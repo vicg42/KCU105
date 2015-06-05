@@ -67,11 +67,15 @@ p_in_clk   => pin_in_refclk
 --#########################################
 --DBG
 --#########################################
-process(g_usrclk(0))
+gen_tst : for i in 0 to 2 generate begin
+process(g_usrclk(i))
 begin
-if rising_edge(g_usrclk(0)) then
-pin_out_led <= pin_in_btn;
+if rising_edge(g_usrclk(i)) then
+pin_out_led(i) <= pin_in_btn(i);
 end if;
 end process;
+end generate gen_tst;
+
+pin_out_led(pin_out_led'high downto 3) <= pin_in_btn(pin_in_btn'high downto 3);
 
 end architecture struct;
