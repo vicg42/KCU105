@@ -514,17 +514,17 @@ pcie_tfc_npd_av      => pcie_tfc_npd_av     ,--: OUT STD_LOGIC_VECTOR(1 DOWNTO 0
 pcie_cq_np_req       => pcie_cq_np_req      ,--: IN  STD_LOGIC;
 pcie_cq_np_req_count => pcie_cq_np_req_count,--: OUT STD_LOGIC_VECTOR(5 DOWNTO 0);
 
-cfg_phy_link_down        => cfg_phy_link_down       ,--: OUT STD_LOGIC;
-cfg_phy_link_status      => cfg_phy_link_status     ,--: OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+cfg_phy_link_down        => open,--cfg_phy_link_down       ,--: OUT STD_LOGIC;
+cfg_phy_link_status      => open,--cfg_phy_link_status     ,--: OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
 cfg_negotiated_width     => cfg_negotiated_width    ,--: OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-cfg_current_speed        => cfg_current_speed       ,--: OUT STD_LOGIC_VECTOR(2 DOWNTO 0);
+cfg_current_speed        => open,--cfg_current_speed       ,--: OUT STD_LOGIC_VECTOR(2 DOWNTO 0);
 cfg_max_payload          => cfg_max_payload         ,--: OUT STD_LOGIC_VECTOR(2 DOWNTO 0);
 cfg_max_read_req         => cfg_max_read_req        ,--: OUT STD_LOGIC_VECTOR(2 DOWNTO 0);
-cfg_function_status      => cfg_function_status     ,--: OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
-cfg_function_power_state => cfg_function_power_state,--: OUT STD_LOGIC_VECTOR(11 DOWNTO 0);
-cfg_vf_status            => cfg_vf_status           ,--: OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
-cfg_vf_power_state       => cfg_vf_power_state      ,--: OUT STD_LOGIC_VECTOR(23 DOWNTO 0);
-cfg_link_power_state     => cfg_link_power_state    ,--: OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+cfg_function_status      => open,--cfg_function_status     ,--: OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
+cfg_function_power_state => open,--cfg_function_power_state,--: OUT STD_LOGIC_VECTOR(11 DOWNTO 0);
+cfg_vf_status            => open,--cfg_vf_status           ,--: OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
+cfg_vf_power_state       => open,--cfg_vf_power_state      ,--: OUT STD_LOGIC_VECTOR(23 DOWNTO 0);
+cfg_link_power_state     => open,--cfg_link_power_state    ,--: OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
 
 cfg_mgmt_addr                 ,--: IN  STD_LOGIC_VECTOR(18 DOWNTO 0);
 cfg_mgmt_write                ,--: IN  STD_LOGIC;
@@ -701,16 +701,16 @@ pcie_cq_np_req_count => pcie_cq_np_req_count,--: in   std_logic_vector(5 downto 
 ------------------------------------
 -- EP and RP
 ------------------------------------
-cfg_phy_link_down        => cfg_phy_link_down        ,--: in   std_logic                           ;
+--cfg_phy_link_down        => cfg_phy_link_down        ,--: in   std_logic                           ;
 cfg_negotiated_width     => cfg_negotiated_width     ,--: in   std_logic_vector(3 downto 0)        ;
-cfg_current_speed        => cfg_current_speed        ,--: in   std_logic_vector(2 downto 0)        ;
-cfg_max_payload          => cfg_max_payload          ,--: in   std_logic_vector(2 downto 0)        ;
-cfg_max_read_req         => cfg_max_read_req         ,--: in   std_logic_vector(2 downto 0)        ;
-cfg_function_status      => cfg_function_status      ,--: in   std_logic_vector(7 downto 0)        ;
-cfg_function_power_state => cfg_function_power_state ,--: in   std_logic_vector(5 downto 0)        ;
-cfg_vf_status            => cfg_vf_status            ,--: in   std_logic_vector(11 downto 0)       ;
-cfg_vf_power_state       => cfg_vf_power_state       ,--: in   std_logic_vector(17 downto 0)       ;
-cfg_link_power_state     => cfg_link_power_state     ,--: in   std_logic_vector( 1 downto 0)       ;
+--cfg_current_speed        => cfg_current_speed        ,--: in   std_logic_vector(2 downto 0)        ;
+--cfg_max_payload          => cfg_max_payload          ,--: in   std_logic_vector(2 downto 0)        ;
+--cfg_max_read_req         => cfg_max_read_req         ,--: in   std_logic_vector(2 downto 0)        ;
+--cfg_function_status      => cfg_function_status      ,--: in   std_logic_vector(7 downto 0)        ;
+--cfg_function_power_state => cfg_function_power_state ,--: in   std_logic_vector(5 downto 0)        ;
+--cfg_vf_status            => cfg_vf_status            ,--: in   std_logic_vector(11 downto 0)       ;
+--cfg_vf_power_state       => cfg_vf_power_state       ,--: in   std_logic_vector(17 downto 0)       ;
+--cfg_link_power_state     => cfg_link_power_state     ,--: in   std_logic_vector( 1 downto 0)       ;
 
 -- Error Reporting Interface
 cfg_err_cor_out       ,--: in   std_logic                              ;
