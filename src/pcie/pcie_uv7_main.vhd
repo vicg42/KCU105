@@ -218,15 +218,19 @@ pcie_perstn1_out : OUT STD_LOGIC
 );
 END component pcie3_core;
 
+
+signal i_pciecore_hot_reset_out : std_logic;
+
+
 begin --architecture behavioral
 
 
 m_core : pcie3_core
 port map(
-pci_exp_txn      : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-pci_exp_txp      : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-pci_exp_rxn      : IN  STD_LOGIC_VECTOR(0 DOWNTO 0);
-pci_exp_rxp      : IN  STD_LOGIC_VECTOR(0 DOWNTO 0);
+pci_exp_txn => p_out_pciexp_txn,--: OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+pci_exp_txp => p_out_pciexp_txp,--: OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+pci_exp_rxn => p_in_pciexp_rxn ,--: IN  STD_LOGIC_VECTOR(0 DOWNTO 0);
+pci_exp_rxp => p_in_pciexp_rxp ,--: IN  STD_LOGIC_VECTOR(0 DOWNTO 0);
 
 user_clk         : OUT STD_LOGIC;
 user_reset       : OUT STD_LOGIC;
@@ -368,7 +372,7 @@ cfg_interrupt_msi_tph_type        : IN  STD_LOGIC_VECTOR(1 DOWNTO 0);
 cfg_interrupt_msi_tph_st_tag      : IN  STD_LOGIC_VECTOR(8 DOWNTO 0);
 cfg_interrupt_msi_function_number : IN  STD_LOGIC_VECTOR(3 DOWNTO 0);
 
-cfg_hot_reset_out               : OUT STD_LOGIC;
+cfg_hot_reset_out               => i_pciecore_hot_reset_out,--: OUT STD_LOGIC;
 cfg_config_space_enable         : IN  STD_LOGIC;
 cfg_req_pm_transition_l23_ready : IN  STD_LOGIC;
 cfg_hot_reset_in                : IN  STD_LOGIC;
@@ -380,8 +384,8 @@ cfg_ds_function_number : IN  STD_LOGIC_VECTOR(2 DOWNTO 0);
 cfg_subsys_vend_id     : IN  STD_LOGIC_VECTOR(15 DOWNTO 0);
 
 sys_clk    : IN  STD_LOGIC;
-sys_clk_gt : IN  STD_LOGIC;
-sys_reset  : IN  STD_LOGIC;
+sys_clk_gt => p_in_gtp_refclkin,--: IN  STD_LOGIC;
+sys_reset  => p_in_pciexp_rst  ,--: IN  STD_LOGIC; (Cold reset + Warm reset)
 
 pcie_perstn1_in  : IN  STD_LOGIC;
 pcie_perstn0_out : OUT STD_LOGIC;
