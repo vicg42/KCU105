@@ -4,8 +4,7 @@
 -- Create Date : 02.07.2015 10:07:56
 -- Module Name : pcie_main.vhd
 --
--- Description : core PCI-Express (from core_gen) + manage of core
---               (PCI-experss core AXI bus contert to TRN bus)
+-- Description :
 --
 -------------------------------------------------------------------------
 library ieee;
