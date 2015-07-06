@@ -13,16 +13,12 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
+use work.pcie_pkg.all;
 use work.prj_def.all;
-use work.prj_cfg.all;
-use work.vicg_common_pkg.all;
+--use work.prj_cfg.all;
+--use work.vicg_common_pkg.all;
 
 entity pcie_main is
-generic(
-G_PCIE_LINK_WIDTH : integer := 1;
-G_PCIE_RST_SEL    : integer := 1;
-G_DBG : string := "OFF"
-);
 port(
 --------------------------------------------------------
 --USR Port
@@ -51,18 +47,8 @@ p_out_tst            : out   std_logic_vector(255 downto 0);
 ---------------------------------------------------------
 --System Port
 ---------------------------------------------------------
-p_in_fast_simulation : in    std_logic;
-
-p_out_pciexp_txp     : out   std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
-p_out_pciexp_txn     : out   std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
-p_in_pciexp_rxp      : in    std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
-p_in_pciexp_rxn      : in    std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
-
-p_in_pciexp_rst      : in    std_logic;--Active level - 0!!!
-
-p_out_module_rdy     : out   std_logic;
-p_in_gtp_refclkin    : in    std_logic;
-p_out_gtp_refclkout  : out   std_logic
+p_in_pcie_phy        : in    TPCIE_pinin;
+p_out_pcie_phy       : out   TPCIE_pinout
 );
 end entity pcie_main;
 
@@ -104,10 +90,10 @@ constant CI_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (o
 
 component pcie3_core
 PORT (
-pci_exp_txn : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-pci_exp_txp : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-pci_exp_rxn : IN  STD_LOGIC_VECTOR(0 DOWNTO 0);
-pci_exp_rxp : IN  STD_LOGIC_VECTOR(0 DOWNTO 0);
+pci_exp_txn : OUT STD_LOGIC_VECTOR(G_PCIE_LINK_WIDTH - 1 DOWNTO 0);
+pci_exp_txp : OUT STD_LOGIC_VECTOR(G_PCIE_LINK_WIDTH - 1 DOWNTO 0);
+pci_exp_rxn : IN  STD_LOGIC_VECTOR(G_PCIE_LINK_WIDTH - 1 DOWNTO 0);
+pci_exp_rxp : IN  STD_LOGIC_VECTOR(G_PCIE_LINK_WIDTH - 1 DOWNTO 0);
 user_clk : OUT STD_LOGIC;
 user_reset : OUT STD_LOGIC;
 user_lnk_up : OUT STD_LOGIC;
@@ -551,8 +537,8 @@ begin --architecture behavioral
 
 m_refclk_ibuf : IBUFDS_GTE3
 port map (
-I     => sys_clk_p,
-IB    => sys_clk_n,
+I     => p_in_pcie_phy.clk_p,
+IB    => p_in_pcie_phy.clk_n,
 ODIV2 => i_sys_clk,
 CEB   => '0',
 O     => i_sys_clk_gt
@@ -561,10 +547,10 @@ O     => i_sys_clk_gt
 
 m_core : pcie3_core
 port map(
-pci_exp_txn => p_out_pciexp_txn,--: OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-pci_exp_txp => p_out_pciexp_txp,--: OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-pci_exp_rxn => p_in_pciexp_rxn ,--: IN  STD_LOGIC_VECTOR(0 DOWNTO 0);
-pci_exp_rxp => p_in_pciexp_rxp ,--: IN  STD_LOGIC_VECTOR(0 DOWNTO 0);
+pci_exp_txn => p_out_pcie_phy.txn,--: OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+pci_exp_txp => p_out_pcie_phy.txp,--: OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+pci_exp_rxn => p_in_pcie_phy.rxn ,--: IN  STD_LOGIC_VECTOR(0 DOWNTO 0);
+pci_exp_rxp => p_in_pcie_phy.rxp ,--: IN  STD_LOGIC_VECTOR(0 DOWNTO 0);
 
 user_clk         => i_user_clk     ,--: OUT STD_LOGIC;
 user_reset       => i_user_reset_n ,--: OUT STD_LOGIC;
@@ -723,7 +709,7 @@ pcie_perstn1_out => open,--: OUT STD_LOGIC
 
 sys_clk    => i_sys_clk      ,--: IN  STD_LOGIC;
 sys_clk_gt => i_sys_clk_gt   ,--: IN  STD_LOGIC;
-sys_reset  => p_in_pciexp_rst --: IN  STD_LOGIC; (Cold reset + Warm reset)
+sys_reset  => p_in_pcie_phy.rst_n --: IN  STD_LOGIC; (Cold reset + Warm reset)
 );
 
 
@@ -920,6 +906,19 @@ p_in_user_lnk_up                      => i_user_lnk_up_n --: in   std_logic     
 --DBG
 --#############################################
 p_out_tst <= (others => '0');
+p_out_usr_tst <= (others => '0');
 
+
+p_out_hclk <= '0';
+p_out_gctrl <= (others => '0');
+
+p_out_dev_ctrl <= (others => '0');
+p_out_dev_din  <= (others => '0');
+p_out_dev_wr   <= '0';
+p_out_dev_rd   <= '0';
+p_out_dev_opt  <= (others => '0');
+
+p_out_module_rdy    <= '0';
+p_out_gtp_refclkout <= '0';
 
 end architecture behavioral;
