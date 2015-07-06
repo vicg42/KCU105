@@ -12,14 +12,25 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
-use work.pcie_unit_pkg.all;
+--use work.pcie_unit_pkg.all;
 use work.prj_def.all;
 use work.prj_cfg.all;
 
 entity pcie_ctrl is
 generic(
-G_PCIEXP_TRN_DBUS : integer:=64;
-G_DBG : string :="OFF"
+G_DATA_WIDTH                     : integer := 64;
+G_KEEP_WIDTH                     : integer := 1;
+G_AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
+G_AXISTEN_IF_RQ_ALIGNMENT_MODE   : boolean := FALSE;
+G_AXISTEN_IF_CC_ALIGNMENT_MODE   : boolean := FALSE;
+G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : boolean := FALSE;
+G_AXISTEN_IF_RC_ALIGNMENT_MODE   : boolean := FALSE;
+G_AXISTEN_IF_ENABLE_CLIENT_TAG   : integer := 1;
+G_AXISTEN_IF_RQ_PARITY_CHECK     : integer := 0;
+G_AXISTEN_IF_CC_PARITY_CHECK     : integer := 0;
+G_AXISTEN_IF_MC_RX_STRADDLE      : integer := 0;
+G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
+G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1')
 );
 port(
 --------------------------------------
@@ -180,7 +191,7 @@ p_out_cfg_ds_function_number           : out  std_logic_vector(2 downto 0)  ;
 ------------------------------------
 -- Interrupt Interface Signals
 p_out_cfg_interrupt_int                 : out  std_logic_vector(3 downto 0) ;
-p_out_cfg_interrupt_pending             : out  std_logic_vector(1 downto 0) ;
+p_out_cfg_interrupt_pending             : out  std_logic_vector(3 downto 0) ;
 p_in_cfg_interrupt_sent                 : in   std_logic                    ;
 p_in_cfg_interrupt_msi_enable           : in   std_logic_vector(1 downto 0) ;
 p_in_cfg_interrupt_msi_vf_enable        : in   std_logic_vector(5 downto 0) ;
@@ -196,7 +207,7 @@ p_out_cfg_interrupt_msi_attr            : out  std_logic_vector(2 downto 0) ;
 p_out_cfg_interrupt_msi_tph_present     : out  std_logic                    ;
 p_out_cfg_interrupt_msi_tph_type        : out  std_logic_vector(1 downto 0) ;
 p_out_cfg_interrupt_msi_tph_st_tag      : out  std_logic_vector(8 downto 0) ;
-p_out_cfg_interrupt_msi_function_number : out  std_logic_vector(2 downto 0) ;
+p_out_cfg_interrupt_msi_function_number : out  std_logic_vector(3 downto 0) ;
 p_in_cfg_interrupt_msi_pending_status_data_enable  : in  std_logic;
 p_in_cfg_interrupt_msi_pending_status_function_num : in  std_logic_vector(3 downto 0);
 
@@ -217,7 +228,9 @@ p_in_user_lnk_up                      : in   std_logic
 );
 end entity pcie_ctrl;
 
+architecture struct of pcie_ctrl is
 
+begin
 
 ------------------------------------------
 ----
