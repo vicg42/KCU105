@@ -430,7 +430,7 @@ p_out_cfg_interrupt_msi_attr            : out  std_logic_vector(2 downto 0) ;
 p_out_cfg_interrupt_msi_tph_present     : out  std_logic                    ;
 p_out_cfg_interrupt_msi_tph_type        : out  std_logic_vector(1 downto 0) ;
 p_out_cfg_interrupt_msi_tph_st_tag      : out  std_logic_vector(8 downto 0) ;
-p_out_cfg_interrupt_msi_function_number : out  std_logic_vector(3 downto 0) ;
+p_out_cfg_interrupt_msi_function_number : out  std_logic_vector( downto 0) ;
 p_in_cfg_interrupt_msi_pending_status_data_enable  : in  std_logic;
 p_in_cfg_interrupt_msi_pending_status_function_num : in  std_logic_vector(3 downto 0);
 
@@ -740,7 +740,7 @@ cfg_interrupt_msi_function_number => i_cfg_interrupt_msi_function_number,--: IN 
 cfg_hot_reset_out               => i_cfg_hot_reset_out              ,--: OUT STD_LOGIC;
 cfg_config_space_enable         => i_cfg_config_space_enable        ,--: IN  STD_LOGIC;
 cfg_req_pm_transition_l23_ready => i_cfg_req_pm_transition_l23_ready,--: IN  STD_LOGIC;
-cfg_hot_reset_in                => i_cfg_hot_reset_in               ,--: IN  STD_LOGIC;
+cfg_hot_reset_in                => i_cfg_hot_reset_in               ,--: IN  STD_LOGIC; --For RP mode only
 
 cfg_ds_port_number     => i_cfg_ds_port_number    ,--: IN  STD_LOGIC_VECTOR(7 DOWNTO 0);
 cfg_ds_bus_number      => i_cfg_ds_bus_number     ,--: IN  STD_LOGIC_VECTOR(7 DOWNTO 0);
@@ -954,12 +954,12 @@ p_in_cfg_interrupt_msi_pending_status_data_enable  => i_cfg_interrupt_msi_pendin
 p_in_cfg_interrupt_msi_pending_status_function_num => i_cfg_interrupt_msi_pending_status_function_num,--: IN  STD_LOGIC_VECTOR(3 DOWNTO 0);
 
 -- EP only
-p_in_cfg_hot_reset_in                 => i_cfg_hot_reset_in               ,--: in   std_logic                    ;
+p_in_cfg_hot_reset_in                 => i_cfg_hot_reset_out              ,--: in   std_logic                    ;
 p_out_cfg_config_space_enable         => i_cfg_config_space_enable        ,--: out  std_logic                    ;
 p_out_cfg_req_pm_transition_l23_ready => i_cfg_req_pm_transition_l23_ready,--: out  std_logic                    ;
 
 -- RP only
-p_out_cfg_hot_reset_out               => i_cfg_hot_reset_out,--: out  std_logic                    ;
+p_out_cfg_hot_reset_out               => i_cfg_hot_reset_in,--: out  std_logic                    ;
 
 p_in_user_clk                         => i_user_clk   ,--: in   std_logic                    ;
 p_in_user_reset                       => i_user_reset ,--: in   std_logic                    ;
