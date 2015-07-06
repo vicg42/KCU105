@@ -51,7 +51,7 @@ p_out_tst            : out   std_logic_vector(255 downto 0);
 ---------------------------------------------------------
 --System Port
 ---------------------------------------------------------
-p_in_fast_simulation : in    std_logic;
+p_in_fast_simulation : in    std_logic ;
 
 p_out_pciexp_txp     : out   std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
 p_out_pciexp_txn     : out   std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
