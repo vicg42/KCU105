@@ -15,8 +15,6 @@ use ieee.numeric_std.all;
 library work;
 use work.pcie_pkg.all;
 use work.prj_def.all;
---use work.prj_cfg.all;
---use work.vicg_common_pkg.all;
 
 entity pcie_main is
 port(
@@ -71,8 +69,7 @@ architecture behavioral of pcie_main is
 --parameter        G_AXISTEN_IF_ENABLE_RX_MSG_INTFC = 0,
 --parameter [17:0] G_AXISTEN_IF_ENABLE_MSG_ROUTE    = 18'h2FFFF
 
-constant CI_DATA_WIDTH                     : integer := 64;
--- Do not override parameters below this line
+constant CI_DATA_WIDTH                     : integer := C_PCGF_PCIE_DWIDTH;
 constant CI_KEEP_WIDTH                     : integer := G_DATA_WIDTH / 32;
 
 constant CI_AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
