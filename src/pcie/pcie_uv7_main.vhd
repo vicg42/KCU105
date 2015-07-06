@@ -253,7 +253,7 @@ pcie_perstn1_out : OUT STD_LOGIC
 END component pcie3_core;
 
 
-component  pcie_app_uscale
+component pcie_ctrl
 generic(
 G_DATA_WIDTH                     : integer := 64;
 G_KEEP_WIDTH                     : integer := G_DATA_WIDTH / 32;
@@ -441,7 +441,7 @@ p_in_user_clk                         : in   std_logic                    ;
 p_in_user_reset                       : in   std_logic                    ;
 p_in_user_lnk_up                      : in   std_logic
 );
-end component pcie_app_uscale;
+end component pcie_ctrl;
 
 
 
@@ -727,7 +727,7 @@ sys_reset  => p_in_pciexp_rst --: IN  STD_LOGIC; (Cold reset + Warm reset)
 );
 
 
-m_ctrl : pcie_app_uscale
+m_ctrl : pcie_ctrl
 generic map(
 G_DATA_WIDTH                     => CI_DATA_WIDTH                     ,
 G_KEEP_WIDTH                     => CI_KEEP_WIDTH                     ,
