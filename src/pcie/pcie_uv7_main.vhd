@@ -27,7 +27,7 @@ port(
 --------------------------------------------------------
 --USR Port
 --------------------------------------------------------
-p_out_hclk           : out   std_logic;
+p_out_hclk           : out   std_logic ;
 p_out_gctrl          : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
 p_out_dev_ctrl       : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
