@@ -222,7 +222,7 @@ p_out_cfg_hot_reset_out               : out  std_logic                    ;
 --led_out                               : out  std_logic_vector(7 downto 0) ;
 
 p_in_user_clk                         : in   std_logic                    ;
-p_in_user_reset                       : in   std_logic                    ;
+p_in_user_reset_n                     : in   std_logic                    ;
 p_in_user_lnk_up                      : in   std_logic
 
 );
@@ -235,6 +235,9 @@ type TSR_flr_bus6 array (0 to 1) of std_logic_vector(5 downto 0);
 signal sr_cfg_flr_done         : TSR_flr_bus2;
 signal sr_cfg_vf_flr_done      : TSR_flr_bus6;
 
+signal i_req_compl             : std_logic;
+signal i_compl_done            : std_logic;
+signal i_rst                   : std_logic;
 
 
 begin
@@ -242,8 +245,20 @@ begin
 ------------------------------------------
 ----
 ------------------------------------------
---i_rst_n <= trn_reset_n_i and not trn_lnk_up_n_i;
+i_rst <= p_in_user_lnk_up and not p_in_user_reset_n;
 
+
+m_pio_to_ctrl : pio_to_ctrl
+port map(
+clk        => p_in_user_clk,
+rst_n      => i_rst,
+
+req_compl  => i_req_compl,
+compl_done => i_compl_done,
+
+cfg_power_state_change_interrupt => p_in_cfg_power_state_change_interrupt,
+cfg_power_state_change_ack       => p_out_cfg_power_state_change_ack
+);
 
 
 --#############################################
@@ -291,14 +306,14 @@ p_out_pcie_cq_np_req   <= '0';--   : out  std_logic                             
 p_out_cfg_fc_sel                      <= (others => '0');--: out  std_logic_vector( 2 downto 0);
 
 p_out_cfg_dsn <= std_logic_vector(TO_UNSIGNED(16#123#, p_out_cfg_dsn'length));
-p_out_cfg_power_state_change_ack       <= '0';--: out  std_logic                     ;
+
 p_out_cfg_err_cor_in   <= '0';
 p_out_cfg_err_uncor_in <= '0';
 
 --Function level reset (FLR)
-process(p_in_user_clk, p_in_user_reset)
+process(p_in_user_clk, p_in_user_reset_n)
 begin
-if p_in_user_reset = '0' begin
+if p_in_user_reset_n = '0' begin
   for i in 0 to sr_cfg_flr_done'length - 1 loop
   sr_cfg_flr_done(i) <= (others => '0');
   end loop;
