@@ -67,7 +67,7 @@
 module pcie_tx    #(
 
   parameter        TCQ = 1,
-//  parameter [1:0] AXISTEN_IF_WIDTH = 00,
+  parameter [1:0] AXISTEN_IF_WIDTH = 00,
   parameter       AXISTEN_IF_RQ_ALIGNMENT_MODE = "FALSE",
   parameter       AXISTEN_IF_CC_ALIGNMENT_MODE = "FALSE",
   parameter       AXISTEN_IF_ENABLE_CLIENT_TAG = 0,
@@ -393,7 +393,7 @@ assign cfg_fc_sel = 3'b0;
 
   generate // 256 bit Interface
 
-  if( AXISTEN_IF_WIDTH == 2'b10)
+  if( C_DATA_WIDTH == 256)
   begin
 
     always @ ( posedge user_clk )
@@ -826,9 +826,9 @@ assign cfg_fc_sel = 3'b0;
           end // reset_else_block
 
       end // Always Block Ends
-    end // If AXISTEN_IF_WIDTH = 256
+    end // If C_DATA_WIDTH = 256
 
-    else if( AXISTEN_IF_WIDTH == 2'b01) // 128-bit Interface
+    else if( C_DATA_WIDTH == 128) // 128-bit Interface
     begin
     always @ ( posedge user_clk )
     begin
@@ -1182,10 +1182,10 @@ assign cfg_fc_sel = 3'b0;
           end // reset_else_block
 
       end // Always Block Ends
-    end // If AXISTEN_IF_WIDTH = 128
+    end // If C_DATA_WIDTH = 128
 
     else
-    begin // 64 Bit Interface
+    begin // C_DATA_WIDTH = 64 Bit Interface
     always @ ( posedge user_clk )
     begin
 
@@ -1586,7 +1586,7 @@ assign cfg_fc_sel = 3'b0;
 
           end // reset_else_block
 
-      end // If AXISTEN_IF_WIDTH = 64
+      end // If C_DATA_WIDTH = 64
     end
   endgenerate
 
