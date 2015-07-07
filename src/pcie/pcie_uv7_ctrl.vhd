@@ -238,12 +238,16 @@ signal i_rd_addr               : std_logic_vector(10 downto 0);
 signal i_rd_be                 : std_logic_vector(3 downto 0);
 signal i_trn_sent              : std_logic;
 signal i_rd_data               : std_logic_vector(31 downto 0);
-signal i_gen_transaction       : std_logic;
 
 signal i_m_axis_cq_tready      : std_logic;
 signal i_m_axis_rc_tready      : std_logic;
 
 signal i_interrupt_done        : std_logic;
+
+signal i_gen_transaction       : std_logic;
+signal i_gen_leg_intr          : std_logic;
+signal i_gen_msi_intr          : std_logic;
+signal i_gen_msix_intr         : std_logic;
 
 
 begin --architecture struct of pcie_ctrl
@@ -315,6 +319,40 @@ p_out_cfg_interrupt_msi_function_number <= (others => '0');
 
 -- RP only
 p_out_cfg_hot_reset_out <= '0';
+
+
+----------------------------------------
+--
+----------------------------------------
+m_usr_app : pcie_usr_app
+port map (
+user_clk => p_in_user_clk,
+reset_n  => p_in_user_reset_n,
+
+--Read Port
+rd_addr  => i_rd_addr ,--: in  std_logic_vector(10 downto 0);
+rd_be    => i_rd_be   ,--: in  std_logic_vector(3 downto 0);
+trn_sent => i_trn_sent,--: in  std_logic;
+rd_data  => i_rd_data ,--: out std_logic_vector(31 downto 0);
+
+--Write Port
+wr_addr  => i_wr_addr, --: in  std_logic_vector(10 downto 0);
+wr_be    => i_wr_be  , --: in  std_logic_vector(7 downto 0);
+wr_data  => i_wr_data, --: in  std_logic_vector(63 downto 0);
+wr_en    => i_wr_en  , --: in  std_logic;
+wr_busy  => i_wr_busy, --: out std_logic;
+
+--Payload info
+payload_len => i_payload_len,--: in  std_logic;
+
+--Trigger to TX and Interrupt Handler Block to generate
+--Transactions and Interrupts
+gen_transaction => i_gen_transaction,--: out std_logic;
+gen_leg_intr    => i_gen_leg_intr   ,--: out std_logic;
+gen_msi_intr    => i_gen_msi_intr   ,--: out std_logic;
+gen_msix_intr   => i_gen_msix_intr   --: out std_logic
+);
+
 
 
 ----------------------------------------
@@ -557,34 +595,6 @@ p_out_dev_opt <= (others => '0');
 --DBG
 p_out_tst <= (others => '0');
 
-
-p_out_s_axis_rq_tlast  <= '0';--: out  std_logic                                   ;
-p_out_s_axis_rq_tdata  <= (others => '0');--: out  std_logic_vector(G_DATA_WIDTH - 1 downto 0) ;
-p_out_s_axis_rq_tuser  <= (others => '0');--: out  std_logic_vector(59 downto 0)               ;
-p_out_s_axis_rq_tkeep  <= (others => '0');--: out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0)   ;
-p_out_s_axis_rq_tvalid <= '0';--: out  std_logic                                   ;
-
-p_out_m_axis_rc_tready <= (others => '0');--: out  std_logic_vector(21 downto 0)               ;
-
-
-p_out_m_axis_cq_tready <= (others => '0');--: out  std_logic_vector(21 downto 0)               ;
-
-p_out_s_axis_cc_tdata  <= (others => '0');--: out  std_logic_vector(G_DATA_WIDTH - 1 downto 0) ;
-p_out_s_axis_cc_tuser  <= (others => '0');--: out  std_logic_vector(32 downto 0)               ;
-p_out_s_axis_cc_tlast  <= '0';--: out  std_logic                                   ;
-p_out_s_axis_cc_tkeep  <= (others => '0');--: out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0)   ;
-p_out_s_axis_cc_tvalid <= '0';--: out  std_logic                                   ;
-
-------------------------------------
---Configuration (CFG) Interface
-------------------------------------
-p_out_pcie_cq_np_req   <= '0';--   : out  std_logic                               ;
-
-
-
-p_out_cfg_fc_sel                      <= (others => '0');--: out  std_logic_vector( 2 downto 0);
-
---p_out_cfg_link_training_enable <= '0';
 
 
 

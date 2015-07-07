@@ -215,5 +215,38 @@ gen_transaction : in  std_logic
 end component pcie_tx;
 
 
+component pcie_usr_app
+generic (
+TCQ : integer := 1
+);
+port (
+user_clk : in  std_logic;
+reset_n  : in  std_logic;
+
+--Read Port
+rd_addr  : in  std_logic_vector(10 downto 0);
+rd_be    : in  std_logic_vector(3 downto 0);
+trn_sent : in  std_logic;
+rd_data  : out std_logic_vector(31 downto 0);
+
+--Write Port
+wr_addr  : in  std_logic_vector(10 downto 0);
+wr_be    : in  std_logic_vector(7 downto 0);
+wr_data  : in  std_logic_vector(63 downto 0);
+wr_en    : in  std_logic;
+wr_busy  : out std_logic;
+
+--Payload info
+payload_len : in  std_logic;
+
+--Trigger to TX and Interrupt Handler Block to generate
+--Transactions and Interrupts
+gen_transaction : out std_logic;
+gen_leg_intr    : out std_logic;
+gen_msi_intr    : out std_logic;
+gen_msix_intr   : out std_logic
+);
+end component pcie_usr_app;
+
 end package pcie_unit_pkg;
 
