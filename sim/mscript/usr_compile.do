@@ -91,7 +91,7 @@ C:\\questa_sim64_10.2c\\win64\\vlog -64 -incr -work xil_defaultlib  +incdir+./..
 "./../../../pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/dsport/pci_exp_usrapp_com.v" \
 "./../../../pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/functional/sys_clk_gen_ds.v" \
 "./../../../pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/dsport/xilinx_pcie_uscale_rp.v" \
-"./../../../pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/functional/board.v" \
+"./../../../../../../sim/testbanch/usr_board.v" \
 
 # compile glbl module
 C:\\questa_sim64_10.2c\\win64\\vlog -work xil_defaultlib "glbl.v"
