@@ -13,6 +13,7 @@ use ieee.numeric_std.all;
 
 library work;
 use work.pcie_pkg.all;
+use work.prj_def.all;
 use work.prj_cfg.all;
 
 entity pcie_uv7_main_sim is
@@ -73,8 +74,8 @@ begin --architecture behavioral
 
 p_in_pcie_phy.rxp   <= pci_exp_rxp;
 p_in_pcie_phy.rxn   <= pci_exp_rxn;
-p_in_pcie_phy.clk_p <= sys_clk_p
-p_in_pcie_phy.clk_n <= sys_clk_n
+p_in_pcie_phy.clk_p <= sys_clk_p;
+p_in_pcie_phy.clk_n <= sys_clk_n;
 p_in_pcie_phy.rst_n <= sys_rst_n;
 
 pci_exp_txp <= p_out_pcie_phy.txp;
