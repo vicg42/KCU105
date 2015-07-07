@@ -49,13 +49,13 @@
 //-----------------------------------------------------------------------------
 //
 // Project    : Ultrascale FPGA Gen3 Integrated Block for PCI Express
-// File       : pio_tx_engine.v
+// File       : pcie_tx.v
 // Version    : 4.0
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //
 // Project    : Ultrascale FPGA Gen3 Integrated Block for PCI Express
-// File       : pio_tx_engine.v
+// File       : pcie_tx.v
 // Version    : 1.3
 //
 // Description: Local-Link Transmit Unit.
@@ -64,10 +64,10 @@
 `timescale 1ps/1ps
 
 (* DowngradeIPIdentifiedWarnings = "yes" *)
-module pio_tx_engine    #(
+module pcie_tx    #(
 
   parameter        TCQ = 1,
-  parameter [1:0] AXISTEN_IF_WIDTH = 00,
+//  parameter [1:0] AXISTEN_IF_WIDTH = 00,
   parameter       AXISTEN_IF_RQ_ALIGNMENT_MODE = "FALSE",
   parameter       AXISTEN_IF_CC_ALIGNMENT_MODE = "FALSE",
   parameter       AXISTEN_IF_ENABLE_CLIENT_TAG = 0,
@@ -75,10 +75,10 @@ module pio_tx_engine    #(
   parameter       AXISTEN_IF_CC_PARITY_CHECK   = 0,
 
   //Do not modify the parameters below this line
-  parameter C_DATA_WIDTH = (AXISTEN_IF_WIDTH[1]) ? 256 : (AXISTEN_IF_WIDTH[0])? 128 : 64,
-  parameter PARITY_WIDTH = C_DATA_WIDTH /8,
-  parameter KEEP_WIDTH   = C_DATA_WIDTH /32,
-  parameter STRB_WIDTH   = C_DATA_WIDTH / 8
+  parameter C_DATA_WIDTH = 64,//(AXISTEN_IF_WIDTH[1]) ? 256 : (AXISTEN_IF_WIDTH[0])? 128 : 64,
+  parameter PARITY_WIDTH = 8 ,//C_DATA_WIDTH /8,
+  parameter KEEP_WIDTH   = 2 ,//C_DATA_WIDTH /32,
+  parameter STRB_WIDTH   = 8 //C_DATA_WIDTH / 8
 )(
 
   input                          user_clk,
@@ -1616,4 +1616,4 @@ assign cfg_fc_sel = 3'b0;
   end
   // synthesis translate_on
 
-endmodule // pio_tx_engine
+endmodule // pcie_tx
