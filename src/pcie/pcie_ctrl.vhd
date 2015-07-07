@@ -230,10 +230,10 @@ end entity pcie_ctrl;
 
 architecture struct of pcie_ctrl is
 
-signal sr_cfg_flr_done_reg0    : std_logic_vector(1 downto 0);
-signal sr_cfg_vf_flr_done_reg0 : std_logic_vector(5 downto 0);
-signal sr_cfg_flr_done_reg1    : std_logic_vector(1 downto 0);
-signal sr_cfg_vf_flr_done_reg1 : std_logic_vector(5 downto 0);
+type TSR_flr_bus2 array (0 to 1) of std_logic_vector(1 downto 0);
+type TSR_flr_bus6 array (0 to 1) of std_logic_vector(5 downto 0);
+signal sr_cfg_flr_done         : TSR_flr_bus2;
+signal sr_cfg_vf_flr_done      : TSR_flr_bus6;
 
 
 
@@ -298,32 +298,33 @@ p_out_cfg_err_uncor_in <= '0';
 --Function level reset (FLR)
 process(p_in_user_clk, p_in_user_reset)
 begin
-if p_in_user_reset = '1' begin
-  sr_cfg_flr_done_reg0    <= (others => '0');
-  sr_cfg_vf_flr_done_reg0 <= (others => '0');
-  sr_cfg_flr_done_reg1    <= (others => '0');
-  sr_cfg_vf_flr_done_reg1 <= (others => '0');
+if p_in_user_reset = '0' begin
+  for i in 0 to sr_cfg_flr_done'length - 1 loop
+  sr_cfg_flr_done(i) <= (others => '0');
+  end loop;
+
+  for i in 0 to sr_cfg_vf_flr_done'length - 1 loop
+  sr_cfg_vf_flr_done(i) <= (others => '0');
+  end loop;
 
 elsif rising_edge(p_in_user_clk) then
-  sr_cfg_flr_done_reg0    <= p_in_cfg_flr_in_process;
-  sr_cfg_vf_flr_done_reg0 <= p_in_cfg_vf_flr_in_process;
-  sr_cfg_flr_done_reg1    <= cfg_flr_done_reg0;
-  sr_cfg_vf_flr_done_reg1 <= cfg_vf_flr_done_reg0;
+  sr_cfg_flr_done <= p_in_cfg_flr_in_process & sr_cfg_flr_done(0 to 0);
+  sr_cfg_vf_flr_done <= p_in_cfg_vf_flr_in_process & sr_cfg_vf_flr_done(0 to 0);
 
 end if;
 end process;
 
 --detect rising edge of p_in_cfg_flr_in_process
-p_out_cfg_flr_done(0) <= not sr_cfg_flr_done_reg1(0) and sr_cfg_flr_done_reg0(0);
-p_out_cfg_flr_done(1) <= not sr_cfg_flr_done_reg1(1) and sr_cfg_flr_done_reg0(1);
+p_out_cfg_flr_done(0) <= not sr_cfg_flr_done(1)(0) and sr_cfg_flr_done(0)(0);
+p_out_cfg_flr_done(1) <= not sr_cfg_flr_done(1)(1) and sr_cfg_flr_done(0)(1);
 
 --detect rising edge of p_in_cfg_vf_flr_in_process
-p_out_cfg_vf_flr_done(0) <= not sr_cfg_vf_flr_done_reg1(0) and sr_cfg_vf_flr_done_reg0(0);
-p_out_cfg_vf_flr_done(1) <= not sr_cfg_vf_flr_done_reg1(1) and sr_cfg_vf_flr_done_reg0(1);
-p_out_cfg_vf_flr_done(2) <= not sr_cfg_vf_flr_done_reg1(2) and sr_cfg_vf_flr_done_reg0(2);
-p_out_cfg_vf_flr_done(3) <= not sr_cfg_vf_flr_done_reg1(3) and sr_cfg_vf_flr_done_reg0(3);
-p_out_cfg_vf_flr_done(4) <= not sr_cfg_vf_flr_done_reg1(4) and sr_cfg_vf_flr_done_reg0(4);
-p_out_cfg_vf_flr_done(5) <= not sr_cfg_vf_flr_done_reg1(5) and sr_cfg_vf_flr_done_reg0(5);
+p_out_cfg_vf_flr_done(0) <= not sr_cfg_vf_flr_done(1)(0) and sr_cfg_vf_flr_done(0)(0);
+p_out_cfg_vf_flr_done(1) <= not sr_cfg_vf_flr_done(1)(1) and sr_cfg_vf_flr_done(0)(1);
+p_out_cfg_vf_flr_done(2) <= not sr_cfg_vf_flr_done(1)(2) and sr_cfg_vf_flr_done(0)(2);
+p_out_cfg_vf_flr_done(3) <= not sr_cfg_vf_flr_done(1)(3) and sr_cfg_vf_flr_done(0)(3);
+p_out_cfg_vf_flr_done(4) <= not sr_cfg_vf_flr_done(1)(4) and sr_cfg_vf_flr_done(0)(4);
+p_out_cfg_vf_flr_done(5) <= not sr_cfg_vf_flr_done(1)(5) and sr_cfg_vf_flr_done(0)(5);
 
 
 
