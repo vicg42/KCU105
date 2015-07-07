@@ -379,6 +379,7 @@ p_out_cfg_ds_function_number  : out  std_logic_vector(2 downto 0);
 p_out_cfg_interrupt_int                 : out  std_logic_vector(3 downto 0) ;
 p_out_cfg_interrupt_pending             : out  std_logic_vector(3 downto 0) ;
 p_in_cfg_interrupt_sent                 : in   std_logic                    ;
+
 p_in_cfg_interrupt_msi_enable           : in   std_logic_vector(1 downto 0) ;
 p_in_cfg_interrupt_msi_vf_enable        : in   std_logic_vector(5 downto 0) ;
 p_in_cfg_interrupt_msi_mmenable         : in   std_logic_vector(5 downto 0) ;
@@ -396,6 +397,13 @@ p_out_cfg_interrupt_msi_tph_st_tag      : out  std_logic_vector(8 downto 0) ;
 p_out_cfg_interrupt_msi_function_number : out  std_logic_vector(3 downto 0) ;
 p_in_cfg_interrupt_msi_pending_status_data_enable  : in  std_logic;
 p_in_cfg_interrupt_msi_pending_status_function_num : in  std_logic_vector(3 downto 0);
+
+p_in_cfg_interrupt_msix_enable          : in  std_logic;
+p_in_cfg_interrupt_msix_sent            : in  std_logic;
+p_in_cfg_interrupt_msix_fail            : in  std_logic;
+p_out_cfg_interrupt_msix_int            : out std_logic;
+p_out_cfg_interrupt_msix_address        : out std_logic_vector(63 downto 0);
+p_out_cfg_interrupt_msix_data           : out std_logic_vector(31 downto 0);
 
 -- EP only
 p_in_cfg_hot_reset_in   : in   std_logic;
@@ -858,6 +866,7 @@ p_out_cfg_ds_function_number  => i_cfg_ds_function_number,
 p_out_cfg_interrupt_int                 => i_cfg_interrupt_int                 ,
 p_out_cfg_interrupt_pending             => i_cfg_interrupt_pending             ,
 p_in_cfg_interrupt_sent                 => i_cfg_interrupt_sent                ,
+
 p_in_cfg_interrupt_msi_enable           => i_cfg_interrupt_msi_enable(1 downto 0)   ,--: in   std_logic_vector(1 downto 0) ;
 p_in_cfg_interrupt_msi_vf_enable        => i_cfg_interrupt_msi_vf_enable(5 downto 0),--: in   std_logic_vector(5 downto 0) ;
 p_in_cfg_interrupt_msi_mmenable         => i_cfg_interrupt_msi_mmenable(5 downto 0) ,--: in   std_logic_vector(5 downto 0) ;
@@ -875,6 +884,13 @@ p_out_cfg_interrupt_msi_tph_st_tag      => i_cfg_interrupt_msi_tph_st_tag      ,
 p_out_cfg_interrupt_msi_function_number => i_cfg_interrupt_msi_function_number ,
 p_in_cfg_interrupt_msi_pending_status_data_enable  => i_cfg_interrupt_msi_pending_status_data_enable ,
 p_in_cfg_interrupt_msi_pending_status_function_num => i_cfg_interrupt_msi_pending_status_function_num,
+
+p_in_cfg_interrupt_msix_enable          => '0',--: in  std_logic;
+p_in_cfg_interrupt_msix_sent            => '0',--: in  std_logic;
+p_in_cfg_interrupt_msix_fail            => '0',--: in  std_logic;
+p_out_cfg_interrupt_msix_int            => open,--: out std_logic;
+p_out_cfg_interrupt_msix_address        => open,--: out std_logic_vector(63 downto 0);
+p_out_cfg_interrupt_msix_data           => open,--: out std_logic_vector(31 downto 0);
 
 -- EP only
 p_in_cfg_hot_reset_in   => i_cfg_hot_reset_out,

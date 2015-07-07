@@ -157,6 +157,7 @@ p_out_cfg_ds_function_number  : out  std_logic_vector(2 downto 0);
 p_out_cfg_interrupt_int                 : out  std_logic_vector(3 downto 0) ;
 p_out_cfg_interrupt_pending             : out  std_logic_vector(3 downto 0) ;
 p_in_cfg_interrupt_sent                 : in   std_logic                    ;
+
 p_in_cfg_interrupt_msi_enable           : in   std_logic_vector(1 downto 0) ;
 p_in_cfg_interrupt_msi_vf_enable        : in   std_logic_vector(5 downto 0) ;
 p_in_cfg_interrupt_msi_mmenable         : in   std_logic_vector(5 downto 0) ;
@@ -174,6 +175,13 @@ p_out_cfg_interrupt_msi_tph_st_tag      : out  std_logic_vector(8 downto 0) ;
 p_out_cfg_interrupt_msi_function_number : out  std_logic_vector(3 downto 0) ;
 p_in_cfg_interrupt_msi_pending_status_data_enable  : in  std_logic;
 p_in_cfg_interrupt_msi_pending_status_function_num : in  std_logic_vector(3 downto 0);
+
+p_in_cfg_interrupt_msix_enable          : in  std_logic;
+p_in_cfg_interrupt_msix_sent            : in  std_logic;
+p_in_cfg_interrupt_msix_fail            : in  std_logic;
+p_out_cfg_interrupt_msix_int            : out std_logic;
+p_out_cfg_interrupt_msix_address        : out std_logic_vector(63 downto 0);
+p_out_cfg_interrupt_msix_data           : out std_logic_vector(31 downto 0);
 
 -- EP only
 p_in_cfg_hot_reset_in   : in   std_logic;
@@ -321,6 +329,7 @@ p_out_cfg_interrupt_msi_function_number <= (others => '0');
 p_out_cfg_hot_reset_out <= '0';
 
 
+
 ----------------------------------------
 --
 ----------------------------------------
@@ -454,6 +463,7 @@ wr_busy     => i_wr_busy     --: in  std_logic                     -- Memory Wri
 );
 
 
+
 ----------------------------------------
 --
 ----------------------------------------
@@ -553,6 +563,41 @@ rd_be           => i_rd_be          ,--: out std_logic_vector(3 downto 0);
 trn_sent        => i_trn_sent       ,--: out std_logic;
 rd_data         => i_rd_data        ,--: in  std_logic_vector(31 downto 0);
 gen_transaction => i_gen_transaction --: in  std_logic
+);
+
+
+
+----------------------------------------
+--
+----------------------------------------
+m_irq : pcie_irq
+port map(
+user_clk => p_in_user_clk,
+reset_n  => p_in_user_reset_n,
+
+--Trigger to generate interrupts (to / from Mem access Block)
+gen_leg_intr   => i_gen_leg_intr ,
+gen_msi_intr   => i_gen_msi_intr ,
+gen_msix_intr  => i_gen_msix_intr,
+interrupt_done => i_interrupt_done, --: out std_logic; --Indicates whether interrupt is done or in process
+
+--Legacy Interrupt Interface
+cfg_interrupt_sent => p_in_cfg_interrupt_sent, --: in  std_logic; --Core asserts this signal when it sends out a Legacy interrupt
+cfg_interrupt_int  => p_out_cfg_interrupt_int, --: out std_logic_vector(3 downto 0); --4 Bits for INTA, INTB, INTC, INTD (assert or deassert)
+
+--MSI Interrupt Interface
+cfg_interrupt_msi_enable => p_in_cfg_interrupt_msi_enable(0),
+cfg_interrupt_msi_sent   => p_in_cfg_interrupt_msi_sent     ,
+cfg_interrupt_msi_fail   => p_in_cfg_interrupt_msi_fail     ,
+cfg_interrupt_msi_int    => p_out_cfg_interrupt_msi_int     ,
+
+--MSI-X Interrupt Interface
+cfg_interrupt_msix_enable  => p_in_cfg_interrupt_msix_enable  ,
+cfg_interrupt_msix_sent    => p_in_cfg_interrupt_msix_sent    ,
+cfg_interrupt_msix_fail    => p_in_cfg_interrupt_msix_fail    ,
+cfg_interrupt_msix_int     => p_out_cfg_interrupt_msix_int    ,
+cfg_interrupt_msix_address => p_out_cfg_interrupt_msix_address,
+cfg_interrupt_msix_data    => p_out_cfg_interrupt_msix_data
 );
 
 

@@ -116,7 +116,7 @@ end component pcie_rx;
 
 component pcie_tx
 generic (
---parameter [1:0] AXISTEN_IF_WIDTH = 00,
+--parameter [1 downto 0);AXISTEN_IF_WIDTH = 00,
 AXISTEN_IF_RQ_ALIGNMENT_MODE : boolean := FALSE;
 AXISTEN_IF_CC_ALIGNMENT_MODE : boolean := FALSE;
 AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
@@ -247,6 +247,44 @@ gen_msi_intr    : out std_logic;
 gen_msix_intr   : out std_logic
 );
 end component pcie_usr_app;
+
+
+component pcie_irq
+generic (
+TCQ : integer := 1
+);
+port (
+user_clk : in  std_logic; --User Clock
+reset_n  : in  std_logic; --User Reset
+
+--Trigger to generate interrupts (to / from Mem access Block)
+gen_leg_intr   : in  std_logic; --Generate Legacy Interrupts
+gen_msi_intr   : in  std_logic; --Generate MSI Interrupts
+gen_msix_intr  : in  std_logic; --Generate MSI-X Interrupts
+interrupt_done : out std_logic; --Indicates whether interrupt is done or in process
+
+--Legacy Interrupt Interface
+cfg_interrupt_sent : in  std_logic; --Core asserts this signal when it sends out a Legacy interrupt
+cfg_interrupt_int  : out std_logic_vector(3 downto 0); --4 Bits for INTA, INTB, INTC, INTD (assert or deassert)
+
+--MSI Interrupt Interface
+cfg_interrupt_msi_enable : in  std_logic;
+cfg_interrupt_msi_sent   : in  std_logic;
+cfg_interrupt_msi_fail   : in  std_logic;
+
+cfg_interrupt_msi_int    : out std_logic_vector(31 downto 0);
+
+--MSI-X Interrupt Interface
+cfg_interrupt_msix_enable : in  std_logic;
+cfg_interrupt_msix_sent   : in  std_logic;
+cfg_interrupt_msix_fail   : in  std_logic;
+
+cfg_interrupt_msix_int    : out std_logic;
+cfg_interrupt_msix_address: out std_logic_vector(63 downto 0);
+cfg_interrupt_msix_data   : out std_logic_vector(31 downto 0)
+);
+end component pcie_irq;
+
 
 end package pcie_unit_pkg;
 
