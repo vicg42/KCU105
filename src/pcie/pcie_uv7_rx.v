@@ -50,7 +50,7 @@
 //
 // Project    : Ultrascale FPGA Gen3 Integrated Block for PCI Express
 // File       : pio_rx_engine.v
-// Version    : 4.0 
+// Version    : 4.0
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //
@@ -1375,7 +1375,7 @@ module pio_rx_engine  #(
                       else if (m_axis_cq_tdata[74:64] == 11'h001) begin // 1DW Payload
                         wr_data       <= #TCQ { 32'b0, m_axis_cq_tdata[159:128]};
                       end
-		    end 
+		    end
 
                     if((m_axis_cq_tdata[74:64] == 11'h001) || (m_axis_cq_tdata[74:64] == 11'h002))
                     begin
