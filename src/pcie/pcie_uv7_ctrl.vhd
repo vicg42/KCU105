@@ -12,7 +12,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
---use work.pcie_unit_pkg.all;
+use work.pcie_unit_pkg.all;
 use work.prj_def.all;
 use work.prj_cfg.all;
 
@@ -230,8 +230,8 @@ end entity pcie_ctrl;
 
 architecture struct of pcie_ctrl is
 
-type TSR_flr_bus2 array (0 to 1) of std_logic_vector(1 downto 0);
-type TSR_flr_bus6 array (0 to 1) of std_logic_vector(5 downto 0);
+type TSR_flr_bus2 is array (0 to 1) of std_logic_vector(1 downto 0);
+type TSR_flr_bus6 is array (0 to 1) of std_logic_vector(5 downto 0);
 signal sr_cfg_flr_done         : TSR_flr_bus2;
 signal sr_cfg_vf_flr_done      : TSR_flr_bus6;
 
@@ -253,7 +253,7 @@ i_rst <= p_in_user_lnk_up and not p_in_user_reset_n;
 ----------------------------------------
 process(p_in_user_clk, p_in_user_reset_n)
 begin
-if p_in_user_reset_n = '0' begin
+if p_in_user_reset_n = '0' then
   for i in 0 to sr_cfg_flr_done'length - 1 loop
   sr_cfg_flr_done(i) <= (others => '0');
   end loop;
@@ -300,8 +300,20 @@ p_out_cfg_err_uncor_in <= '0';
 --p_out_cfg_config_space_enable <= '1';
 --p_out_cfg_req_pm_transition_l23_ready <= '0';
 
+-- Interrupt Interface Signals
+p_out_cfg_interrupt_pending             <= (others => '0');
+p_out_cfg_interrupt_msi_select          <= (others => '0');
+p_out_cfg_interrupt_msi_pending_status  <= (others => '0');
+p_out_cfg_interrupt_msi_attr            <= (others => '0');
+p_out_cfg_interrupt_msi_tph_present     <= '0';
+p_out_cfg_interrupt_msi_tph_type        <= (others => '0');
+p_out_cfg_interrupt_msi_tph_st_tag      <= (others => '0');
+p_out_cfg_interrupt_msi_function_number <= (others => '0');
+
+
 -- RP only
 p_out_cfg_hot_reset_out <= '0';
+
 
 
 ----------------------------------------
@@ -364,13 +376,6 @@ p_out_pcie_cq_np_req   <= '0';--   : out  std_logic                             
 
 p_out_cfg_fc_sel                      <= (others => '0');--: out  std_logic_vector( 2 downto 0);
 
-
-
-
-
-
-
-
 --p_out_cfg_link_training_enable <= '0';
 
 
@@ -380,18 +385,7 @@ p_out_cfg_fc_sel                      <= (others => '0');--: out  std_logic_vect
 ------------------------------------
 -- Interrupt Interface Signals
 p_out_cfg_interrupt_int                 <= (others => '0');--: out  std_logic_vector(3 downto 0) ;
-p_out_cfg_interrupt_pending             <= (others => '0');--: out  std_logic_vector(1 downto 0) ;
-p_out_cfg_interrupt_msi_select          <= (others => '0');--: out  std_logic_vector( 3 downto 0);
 p_out_cfg_interrupt_msi_int             <= (others => '0');--: out  std_logic_vector(31 downto 0);
-p_out_cfg_interrupt_msi_pending_status  <= (others => '0');--: out  std_logic_vector(31 downto 0);
-p_out_cfg_interrupt_msi_attr            <= (others => '0');--: out  std_logic_vector(2 downto 0) ;
-p_out_cfg_interrupt_msi_tph_present     <= '0';--: out  std_logic                    ;
-p_out_cfg_interrupt_msi_tph_type        <= (others => '0');--: out  std_logic_vector(1 downto 0) ;
-p_out_cfg_interrupt_msi_tph_st_tag      <= (others => '0');--: out  std_logic_vector(8 downto 0) ;
-p_out_cfg_interrupt_msi_function_number <= (others => '0');--: out  std_logic_vector(2 downto 0) ;
-
-
-
 
 
 end architecture struct;

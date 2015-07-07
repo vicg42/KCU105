@@ -430,7 +430,7 @@ p_out_cfg_interrupt_msi_attr            : out  std_logic_vector(2 downto 0) ;
 p_out_cfg_interrupt_msi_tph_present     : out  std_logic                    ;
 p_out_cfg_interrupt_msi_tph_type        : out  std_logic_vector(1 downto 0) ;
 p_out_cfg_interrupt_msi_tph_st_tag      : out  std_logic_vector(8 downto 0) ;
-p_out_cfg_interrupt_msi_function_number : out  std_logic_vector( downto 0) ;
+p_out_cfg_interrupt_msi_function_number : out  std_logic_vector(3 downto 0) ;
 p_in_cfg_interrupt_msi_pending_status_data_enable  : in  std_logic;
 p_in_cfg_interrupt_msi_pending_status_function_num : in  std_logic_vector(3 downto 0);
 
