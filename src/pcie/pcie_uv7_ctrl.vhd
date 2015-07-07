@@ -213,8 +213,8 @@ p_in_cfg_interrupt_msi_pending_status_function_num : in  std_logic_vector(3 down
 
 -- EP only
 p_in_cfg_hot_reset_in                 : in   std_logic                    ;
-p_out_cfg_config_space_enable         : out  std_logic                    ;
-p_out_cfg_req_pm_transition_l23_ready : out  std_logic                    ;
+--p_out_cfg_config_space_enable         : out  std_logic                    ;
+--p_out_cfg_req_pm_transition_l23_ready : out  std_logic                    ;
 
 -- RP only
 p_out_cfg_hot_reset_out               : out  std_logic                    ;
@@ -296,8 +296,8 @@ p_out_cfg_err_cor_in   <= '0';
 p_out_cfg_err_uncor_in <= '0';
 
 -- EP only
-p_out_cfg_config_space_enable <= '1';
-p_out_cfg_req_pm_transition_l23_ready <= '0';
+--p_out_cfg_config_space_enable <= '1';
+--p_out_cfg_req_pm_transition_l23_ready <= '0';
 
 -- RP only
 p_out_cfg_hot_reset_out <= '0';
