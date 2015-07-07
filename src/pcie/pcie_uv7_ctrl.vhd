@@ -310,10 +310,6 @@ p_out_cfg_dsn <= std_logic_vector(TO_UNSIGNED(16#123#, p_out_cfg_dsn'length));
 p_out_cfg_err_cor_in   <= '0';
 p_out_cfg_err_uncor_in <= '0';
 
--- EP only
---p_out_cfg_config_space_enable <= '1';
---p_out_cfg_req_pm_transition_l23_ready <= '0';
-
 -- Interrupt Interface Signals
 p_out_cfg_interrupt_pending             <= (others => '0');
 p_out_cfg_interrupt_msi_select          <= (others => '0');
@@ -394,27 +390,27 @@ user_clk => p_in_user_clk,
 reset_n  => p_in_user_reset_n,
 
 -- Completer Request Interface
-m_axis_cq_tdata       => p_in_m_axis_cq_tdata     , --: in  std_logic_vector(C_DATA_WIDTH - 1 downto 0);
-m_axis_cq_tlast       => p_in_m_axis_cq_tlast     , --: in  std_logic;
-m_axis_cq_tvalid      => p_in_m_axis_cq_tvalid    , --: in  std_logic;
-m_axis_cq_tuser       => p_in_m_axis_cq_tuser     , --: in  std_logic_vector(84 downto 0);
-m_axis_cq_tkeep       => p_in_m_axis_cq_tkeep     , --: in  std_logic_vector(KEEP_WIDTH - 1 downto 0);
-pcie_cq_np_req_count  => p_in_pcie_cq_np_req_count, --: in  std_logic_vector(5 downto 0);
-m_axis_cq_tready      => i_m_axis_cq_tready       , --: out std_logic;
-pcie_cq_np_req        => p_out_pcie_cq_np_req     , --: out std_logic;
+m_axis_cq_tdata       => p_in_m_axis_cq_tdata     ,
+m_axis_cq_tlast       => p_in_m_axis_cq_tlast     ,
+m_axis_cq_tvalid      => p_in_m_axis_cq_tvalid    ,
+m_axis_cq_tuser       => p_in_m_axis_cq_tuser     ,
+m_axis_cq_tkeep       => p_in_m_axis_cq_tkeep     ,
+pcie_cq_np_req_count  => p_in_pcie_cq_np_req_count,
+m_axis_cq_tready      => i_m_axis_cq_tready       ,
+pcie_cq_np_req        => p_out_pcie_cq_np_req     ,
 
 -- Requester Completion Interface
-m_axis_rc_tdata       => p_in_m_axis_rc_tdata  ,--: in  std_logic_vector(C_DATA_WIDTH - 1 downto 0);
-m_axis_rc_tlast       => p_in_m_axis_rc_tlast  ,--: in  std_logic;
-m_axis_rc_tvalid      => p_in_m_axis_rc_tvalid ,--: in  std_logic;
-m_axis_rc_tkeep       => p_in_m_axis_rc_tkeep  ,--: in  std_logic_vector(KEEP_WIDTH - 1 downto 0);
-m_axis_rc_tuser       => p_in_m_axis_rc_tuser  ,--: in  std_logic_vector(74 downto 0);
-m_axis_rc_tready      => i_m_axis_rc_tready    ,--: out std_logic;
+m_axis_rc_tdata       => p_in_m_axis_rc_tdata ,
+m_axis_rc_tlast       => p_in_m_axis_rc_tlast ,
+m_axis_rc_tvalid      => p_in_m_axis_rc_tvalid,
+m_axis_rc_tkeep       => p_in_m_axis_rc_tkeep ,
+m_axis_rc_tuser       => p_in_m_axis_rc_tuser ,
+m_axis_rc_tready      => i_m_axis_rc_tready   ,
 
 --RX Message Interface
-cfg_msg_received      => p_in_cfg_msg_received     ,--: in  std_logic;
-cfg_msg_received_type => p_in_cfg_msg_received_type,--: in  std_logic_vector(4 downto 0);
-cfg_msg_data          => p_in_cfg_msg_received_data,--: in  std_logic_vector(7 downto 0);
+cfg_msg_received      => p_in_cfg_msg_received     ,
+cfg_msg_received_type => p_in_cfg_msg_received_type,
+cfg_msg_data          => p_in_cfg_msg_received_data,
 
 -- Memory Read data handshake with Completion
 -- transmit unit. Transmit unit reponds to
@@ -486,44 +482,44 @@ user_clk => p_in_user_clk,
 reset_n  => p_in_user_reset_n,
 
 --AXI-S Completer Competion Interface
-s_axis_cc_tdata  => p_out_s_axis_cc_tdata   ,--: out std_logic_vector(C_DATA_WIDTH - 1 downto 0);
-s_axis_cc_tkeep  => p_out_s_axis_cc_tkeep   ,--: out std_logic_vector(KEEP_WIDTH - 1 downto 0);
-s_axis_cc_tlast  => p_out_s_axis_cc_tlast   ,--: out std_logic;
-s_axis_cc_tvalid => p_out_s_axis_cc_tvalid  ,--: out std_logic;
-s_axis_cc_tuser  => p_out_s_axis_cc_tuser   ,--: out std_logic_vector(32 downto 0);
-s_axis_cc_tready => p_in_s_axis_cc_tready(0),--: in  std_logic;
+s_axis_cc_tdata  => p_out_s_axis_cc_tdata   ,
+s_axis_cc_tkeep  => p_out_s_axis_cc_tkeep   ,
+s_axis_cc_tlast  => p_out_s_axis_cc_tlast   ,
+s_axis_cc_tvalid => p_out_s_axis_cc_tvalid  ,
+s_axis_cc_tuser  => p_out_s_axis_cc_tuser   ,
+s_axis_cc_tready => p_in_s_axis_cc_tready(0),
 
 --AXI-S Requester Request Interface
-s_axis_rq_tdata  => p_out_s_axis_rq_tdata   ,--: out std_logic_vector(C_DATA_WIDTH - 1 downto 0);
-s_axis_rq_tkeep  => p_out_s_axis_rq_tkeep   ,--: out std_logic_vector(KEEP_WIDTH - 1 downto 0);
-s_axis_rq_tlast  => p_out_s_axis_rq_tlast   ,--: out std_logic;
-s_axis_rq_tvalid => p_out_s_axis_rq_tvalid  ,--: out std_logic;
-s_axis_rq_tuser  => p_out_s_axis_rq_tuser   ,--: out std_logic_vector(59 downto 0);
-s_axis_rq_tready => p_in_s_axis_rq_tready(0),--: in  std_logic;
+s_axis_rq_tdata  => p_out_s_axis_rq_tdata   ,
+s_axis_rq_tkeep  => p_out_s_axis_rq_tkeep   ,
+s_axis_rq_tlast  => p_out_s_axis_rq_tlast   ,
+s_axis_rq_tvalid => p_out_s_axis_rq_tvalid  ,
+s_axis_rq_tuser  => p_out_s_axis_rq_tuser   ,
+s_axis_rq_tready => p_in_s_axis_rq_tready(0),
 
 --TX Message Interface
-cfg_msg_transmit_done => p_in_cfg_msg_transmit_done ,--: in  std_logic;
-cfg_msg_transmit      => p_out_cfg_msg_transmit     ,--: out std_logic;
-cfg_msg_transmit_type => p_out_cfg_msg_transmit_type,--: out std_logic_vector(2 downto 0);
-cfg_msg_transmit_data => p_out_cfg_msg_transmit_data,--: out std_logic_vector(31 downto 0);
+cfg_msg_transmit_done => p_in_cfg_msg_transmit_done ,
+cfg_msg_transmit      => p_out_cfg_msg_transmit     ,
+cfg_msg_transmit_type => p_out_cfg_msg_transmit_type,
+cfg_msg_transmit_data => p_out_cfg_msg_transmit_data,
 
 --Tag availability and Flow control Information
-pcie_rq_tag          => p_in_pcie_rq_tag         ,--: in  std_logic_vector(5 downto 0);
-pcie_rq_tag_vld      => p_in_pcie_rq_tag_vld     ,--: in  std_logic;
-pcie_tfc_nph_av      => p_in_pcie_tfc_nph_av     ,--: in  std_logic_vector(1 downto 0);
-pcie_tfc_npd_av      => p_in_pcie_tfc_npd_av     ,--: in  std_logic_vector(1 downto 0);
-pcie_tfc_np_pl_empty => p_in_pcie_tfc_np_pl_empty,--: in  std_logic;
-pcie_rq_seq_num      => p_in_pcie_rq_seq_num     ,--: in  std_logic_vector(3 downto 0);
-pcie_rq_seq_num_vld  => p_in_pcie_rq_seq_num_vld ,--: in  std_logic;
+pcie_rq_tag          => p_in_pcie_rq_tag         ,
+pcie_rq_tag_vld      => p_in_pcie_rq_tag_vld     ,
+pcie_tfc_nph_av      => p_in_pcie_tfc_nph_av     ,
+pcie_tfc_npd_av      => p_in_pcie_tfc_npd_av     ,
+pcie_tfc_np_pl_empty => p_in_pcie_tfc_np_pl_empty,
+pcie_rq_seq_num      => p_in_pcie_rq_seq_num     ,
+pcie_rq_seq_num_vld  => p_in_pcie_rq_seq_num_vld ,
 
 --Cfg Flow Control Information
-cfg_fc_ph   => p_in_cfg_fc_ph  ,--: in  std_logic_vector(7 downto 0);
-cfg_fc_nph  => p_in_cfg_fc_nph ,--: in  std_logic_vector(7 downto 0);
-cfg_fc_cplh => p_in_cfg_fc_cplh,--: in  std_logic_vector(7 downto 0);
-cfg_fc_pd   => p_in_cfg_fc_pd  ,--: in  std_logic_vector(11 downto 0);
-cfg_fc_npd  => p_in_cfg_fc_npd ,--: in  std_logic_vector(11 downto 0);
-cfg_fc_cpld => p_in_cfg_fc_cpld,--: in  std_logic_vector(11 downto 0);
-cfg_fc_sel  => p_out_cfg_fc_sel,--: out std_logic_vector(2 downto 0);
+cfg_fc_ph   => p_in_cfg_fc_ph  ,
+cfg_fc_nph  => p_in_cfg_fc_nph ,
+cfg_fc_cplh => p_in_cfg_fc_cplh,
+cfg_fc_pd   => p_in_cfg_fc_pd  ,
+cfg_fc_npd  => p_in_cfg_fc_npd ,
+cfg_fc_cpld => p_in_cfg_fc_cpld,
+cfg_fc_sel  => p_out_cfg_fc_sel,
 
 --PIO RX Engine Interface
 req_compl    => i_req_compl   ,--: in  std_logic;
