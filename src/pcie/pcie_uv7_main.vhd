@@ -323,6 +323,17 @@ p_in_pcie_cq_np_req_count : in   std_logic_vector(5 downto 0);
 --p_in_pcie_rq_tag_av       : in   std_logic_vector(1 downto 0);
 
 ------------------------------------
+--Management Interface
+------------------------------------
+p_in_cfg_msg_received         : in  std_logic;
+p_in_cfg_msg_received_data    : in  std_logic_vector(7 downto 0);
+p_in_cfg_msg_received_type    : in  std_logic_vector(4 downto 0);
+p_out_cfg_msg_transmit        : out std_logic;
+p_out_cfg_msg_transmit_type   : out std_logic_vector(2 downto 0);
+p_out_cfg_msg_transmit_data   : out std_logic_vector(31 downto 0);
+p_in_cfg_msg_transmit_done    : in  std_logic;
+
+------------------------------------
 -- EP and RP
 ------------------------------------
 p_in_cfg_negotiated_width : in   std_logic_vector(3 downto 0);
@@ -335,7 +346,6 @@ p_in_cfg_function_status  : in   std_logic_vector(7 downto 0);
 p_in_cfg_err_cor_out      : in   std_logic;
 p_in_cfg_err_nonfatal_out : in   std_logic;
 p_in_cfg_err_fatal_out    : in   std_logic;
-
 
 p_in_cfg_fc_ph            : in   std_logic_vector( 7 downto 0);
 p_in_cfg_fc_pd            : in   std_logic_vector(11 downto 0);
@@ -789,6 +799,17 @@ p_in_pcie_rq_tag_vld      => i_pcie_rq_tag_vld     ,
 p_out_pcie_cq_np_req      => i_pcie_cq_np_req      ,
 p_in_pcie_cq_np_req_count => i_pcie_cq_np_req_count,
 --p_in_pcie_rq_tag_av       => i_pcie_rq_tag_av      ,
+
+------------------------------------
+--Management Interface
+------------------------------------
+p_in_cfg_msg_received       => i_cfg_msg_received     ,
+p_in_cfg_msg_received_data  => i_cfg_msg_received_data,
+p_in_cfg_msg_received_type  => i_cfg_msg_received_type,
+p_out_cfg_msg_transmit      => i_cfg_msg_transmit     ,
+p_out_cfg_msg_transmit_type => i_cfg_msg_transmit_type,
+p_out_cfg_msg_transmit_data => i_cfg_msg_transmit_data,
+p_in_cfg_msg_transmit_done  => i_cfg_msg_transmit_done,
 
 ------------------------------------
 -- EP and RP
