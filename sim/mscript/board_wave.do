@@ -25,6 +25,9 @@ add wave -noupdate /board/EP/sys_rst_n
 add wave -noupdate /board/EP/user_lnk_up
 add wave -noupdate /board/EP/user_clk
 add wave -noupdate /board/EP/user_reset
+add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/req_completion
+add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/completion_done
+add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_reset_n
 add wave -noupdate -divider pio_to_ctrl
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_to/req_compl
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_to/compl_done
