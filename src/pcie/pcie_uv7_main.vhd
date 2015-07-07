@@ -320,6 +320,7 @@ p_in_pcie_rq_tag          : in   std_logic_vector(5 downto 0);
 p_in_pcie_rq_tag_vld      : in   std_logic                   ;
 p_out_pcie_cq_np_req      : out  std_logic                   ;
 p_in_pcie_cq_np_req_count : in   std_logic_vector(5 downto 0);
+p_in_pcie_tfc_np_pl_empty : in   std_logic                   ;
 --p_in_pcie_rq_tag_av       : in   std_logic_vector(1 downto 0);
 
 ------------------------------------
@@ -798,6 +799,7 @@ p_in_pcie_rq_tag          => i_pcie_rq_tag         ,
 p_in_pcie_rq_tag_vld      => i_pcie_rq_tag_vld     ,
 p_out_pcie_cq_np_req      => i_pcie_cq_np_req      ,
 p_in_pcie_cq_np_req_count => i_pcie_cq_np_req_count,
+p_in_pcie_tfc_np_pl_empty => '0'                   ,
 --p_in_pcie_rq_tag_av       => i_pcie_rq_tag_av      ,
 
 ------------------------------------
