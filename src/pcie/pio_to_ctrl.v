@@ -60,7 +60,7 @@
 
 `timescale 1ps/1ps
 
-module pio_to_ctrl #(
+module pio_to_ctrl # (
   parameter TCQ = 1
  )(
 
