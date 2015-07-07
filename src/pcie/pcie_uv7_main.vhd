@@ -259,54 +259,54 @@ port (
 --------------------------------------
 --USR Port
 --------------------------------------
-p_out_hclk                 : out   std_logic;
-p_out_gctrl                : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
+p_out_hclk      : out   std_logic;
+p_out_gctrl     : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
 --CTRL user devices
-p_out_dev_ctrl             : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
-p_out_dev_din              : out   std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
-p_in_dev_dout              : in    std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
-p_out_dev_wr               : out   std_logic;
-p_out_dev_rd               : out   std_logic;
-p_in_dev_status            : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
-p_in_dev_irq               : in    std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
-p_in_dev_opt               : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
-p_out_dev_opt              : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
+p_out_dev_ctrl  : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
+p_out_dev_din   : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
+p_in_dev_dout   : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
+p_out_dev_wr    : out   std_logic;
+p_out_dev_rd    : out   std_logic;
+p_in_dev_status : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
+p_in_dev_irq    : in    std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
+p_in_dev_opt    : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
+p_out_dev_opt   : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
 
 --DBG
-p_out_tst                  : out   std_logic_vector(127 downto 0);
-p_in_tst                   : in    std_logic_vector(127 downto 0);
+p_out_tst       : out   std_logic_vector(127 downto 0);
+p_in_tst        : in    std_logic_vector(127 downto 0);
 
 ------------------------------------
 --AXI Interface
 ------------------------------------
-p_out_s_axis_rq_tlast  : out  std_logic                                   ;
-p_out_s_axis_rq_tdata  : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0) ;
-p_out_s_axis_rq_tuser  : out  std_logic_vector(59 downto 0)               ;
-p_out_s_axis_rq_tkeep  : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0)   ;
-p_in_s_axis_rq_tready  : in   std_logic_vector(3 downto 0)                ;
-p_out_s_axis_rq_tvalid : out  std_logic                                   ;
+p_out_s_axis_rq_tlast  : out  std_logic                                  ;
+p_out_s_axis_rq_tdata  : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_out_s_axis_rq_tuser  : out  std_logic_vector(59 downto 0)              ;
+p_out_s_axis_rq_tkeep  : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_s_axis_rq_tready  : in   std_logic_vector(3 downto 0)               ;
+p_out_s_axis_rq_tvalid : out  std_logic                                  ;
 
-p_in_m_axis_rc_tdata   : in   std_logic_vector(G_DATA_WIDTH - 1 downto 0) ;
-p_in_m_axis_rc_tuser   : in   std_logic_vector(74 downto 0)               ;
-p_in_m_axis_rc_tlast   : in   std_logic                                   ;
-p_in_m_axis_rc_tkeep   : in   std_logic_vector(G_KEEP_WIDTH - 1 downto 0)   ;
-p_in_m_axis_rc_tvalid  : in   std_logic                                   ;
-p_out_m_axis_rc_tready : out  std_logic_vector(21 downto 0)               ;
+p_in_m_axis_rc_tdata   : in   std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_in_m_axis_rc_tuser   : in   std_logic_vector(74 downto 0)              ;
+p_in_m_axis_rc_tlast   : in   std_logic                                  ;
+p_in_m_axis_rc_tkeep   : in   std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_m_axis_rc_tvalid  : in   std_logic                                  ;
+p_out_m_axis_rc_tready : out  std_logic_vector(21 downto 0)              ;
 
-p_in_m_axis_cq_tdata   : in   std_logic_vector(G_DATA_WIDTH - 1 downto 0) ;
-p_in_m_axis_cq_tuser   : in   std_logic_vector(84 downto 0)               ;
-p_in_m_axis_cq_tlast   : in   std_logic                                   ;
-p_in_m_axis_cq_tkeep   : in   std_logic_vector(G_KEEP_WIDTH - 1 downto 0)   ;
-p_in_m_axis_cq_tvalid  : in   std_logic                                   ;
-p_out_m_axis_cq_tready : out  std_logic_vector(21 downto 0)               ;
+p_in_m_axis_cq_tdata   : in   std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_in_m_axis_cq_tuser   : in   std_logic_vector(84 downto 0)              ;
+p_in_m_axis_cq_tlast   : in   std_logic                                  ;
+p_in_m_axis_cq_tkeep   : in   std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_m_axis_cq_tvalid  : in   std_logic                                  ;
+p_out_m_axis_cq_tready : out  std_logic_vector(21 downto 0)              ;
 
-p_out_s_axis_cc_tdata  : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0) ;
-p_out_s_axis_cc_tuser  : out  std_logic_vector(32 downto 0)               ;
-p_out_s_axis_cc_tlast  : out  std_logic                                   ;
-p_out_s_axis_cc_tkeep  : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0)   ;
-p_out_s_axis_cc_tvalid : out  std_logic                                   ;
-p_in_s_axis_cc_tready  : in   std_logic_vector(3 downto 0)                ;
+p_out_s_axis_cc_tdata  : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_out_s_axis_cc_tuser  : out  std_logic_vector(32 downto 0)              ;
+p_out_s_axis_cc_tlast  : out  std_logic                                  ;
+p_out_s_axis_cc_tkeep  : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_s_axis_cc_tvalid : out  std_logic                                  ;
+p_in_s_axis_cc_tready  : in   std_logic_vector(3 downto 0)               ;
 
 p_in_pcie_tfc_nph_av  : in   std_logic_vector(1 downto 0)                ;
 p_in_pcie_tfc_npd_av  : in   std_logic_vector(1 downto 0)                ;
@@ -314,100 +314,52 @@ p_in_pcie_tfc_npd_av  : in   std_logic_vector(1 downto 0)                ;
 ------------------------------------
 --Configuration (CFG) Interface
 ------------------------------------
-p_in_pcie_rq_seq_num      : in   std_logic_vector(3 downto 0)            ;
-p_in_pcie_rq_seq_num_vld  : in   std_logic                               ;
-p_in_pcie_rq_tag          : in   std_logic_vector(5 downto 0)            ;
-p_in_pcie_rq_tag_vld      : in   std_logic                               ;
-p_out_pcie_cq_np_req      : out  std_logic                               ;
-p_in_pcie_cq_np_req_count : in   std_logic_vector(5 downto 0)            ;
---p_in_pcie_rq_tag_av       : in   std_logic_vector(1 DOWNTO 0);
+p_in_pcie_rq_seq_num      : in   std_logic_vector(3 downto 0);
+p_in_pcie_rq_seq_num_vld  : in   std_logic                   ;
+p_in_pcie_rq_tag          : in   std_logic_vector(5 downto 0);
+p_in_pcie_rq_tag_vld      : in   std_logic                   ;
+p_out_pcie_cq_np_req      : out  std_logic                   ;
+p_in_pcie_cq_np_req_count : in   std_logic_vector(5 downto 0);
+--p_in_pcie_rq_tag_av       : in   std_logic_vector(1 downto 0);
 
 ------------------------------------
 -- EP and RP
 ------------------------------------
---p_in_cfg_phy_link_down        : in   std_logic                           ;
-p_in_cfg_negotiated_width     : in   std_logic_vector(3 downto 0)        ;
---p_in_cfg_current_speed        : in   std_logic_vector(2 downto 0)        ;
-p_in_cfg_max_payload          : in   std_logic_vector(2 downto 0)        ;
-p_in_cfg_max_read_req         : in   std_logic_vector(2 downto 0)        ;
-p_in_cfg_function_status      : in   std_logic_vector(7 downto 0)        ;
---p_in_cfg_function_power_state : in   std_logic_vector(5 downto 0)        ;
---p_in_cfg_vf_status            : in   std_logic_vector(11 downto 0)       ;
---p_in_cfg_vf_power_state       : in   std_logic_vector(17 downto 0)       ;
---p_in_cfg_link_power_state     : in   std_logic_vector( 1 downto 0)       ;
+p_in_cfg_negotiated_width : in   std_logic_vector(3 downto 0);
+--p_in_cfg_current_speed    : in   std_logic_vector(2 downto 0);
+p_in_cfg_max_payload      : in   std_logic_vector(2 downto 0);
+p_in_cfg_max_read_req     : in   std_logic_vector(2 downto 0);
+p_in_cfg_function_status  : in   std_logic_vector(7 downto 0);
 
 -- Error Reporting Interface
-p_in_cfg_err_cor_out       : in   std_logic                              ;
-p_in_cfg_err_nonfatal_out  : in   std_logic                              ;
-p_in_cfg_err_fatal_out     : in   std_logic                              ;
---p_in_cfg_local_error       : in   std_logic                            ;
+p_in_cfg_err_cor_out      : in   std_logic;
+p_in_cfg_err_nonfatal_out : in   std_logic;
+p_in_cfg_err_fatal_out    : in   std_logic;
 
---p_in_cfg_ltr_enable              : in   std_logic                        ;
---p_in_cfg_ltssm_state             : in   std_logic_vector(5 downto 0)     ;
---p_in_cfg_rcb_status              : in   std_logic_vector(1 downto 0)     ;
---p_in_cfg_dpa_substate_change     : in   std_logic_vector(1 downto 0)     ;
---p_in_cfg_obff_enable             : in   std_logic_vector(1 downto 0)     ;
---p_in_cfg_pl_status_change        : in   std_logic                        ;
 
---p_in_cfg_tph_requester_enable    : in   std_logic_vector(1 downto 0)     ;
---p_in_cfg_tph_st_mode             : in   std_logic_vector(5 downto 0)     ;
---p_in_cfg_vf_tph_requester_enable : in   std_logic_vector(5 downto 0)     ;
---p_in_cfg_vf_tph_st_mode          : in   std_logic_vector(17 downto 0)    ;
+p_in_cfg_fc_ph            : in   std_logic_vector( 7 downto 0);
+p_in_cfg_fc_pd            : in   std_logic_vector(11 downto 0);
+p_in_cfg_fc_nph           : in   std_logic_vector( 7 downto 0);
+p_in_cfg_fc_npd           : in   std_logic_vector(11 downto 0);
+p_in_cfg_fc_cplh          : in   std_logic_vector( 7 downto 0);
+p_in_cfg_fc_cpld          : in   std_logic_vector(11 downto 0);
+p_out_cfg_fc_sel          : out  std_logic_vector( 2 downto 0);
 
----- Management Interface
---p_out_cfg_mgmt_addr                  : out  std_logic_vector(18 downto 0);
---p_out_cfg_mgmt_write                 : out  std_logic                    ;
---p_out_cfg_mgmt_write_data            : out  std_logic_vector(31 downto 0);
---p_out_cfg_mgmt_byte_enable           : out  std_logic_vector( 3 downto 0);
---p_out_cfg_mgmt_read                  : out  std_logic                    ;
---p_in_cfg_mgmt_read_data              : in   std_logic_vector(31 downto 0);
---p_in_cfg_mgmt_read_write_done        : in   std_logic                    ;
---p_out_cfg_mgmt_type1_cfg_reg_access  : out  std_logic                    ;
---p_in_cfg_msg_received                : in   std_logic                    ;
---p_in_cfg_msg_received_data           : in   std_logic_vector(7 downto 0) ;
---p_in_cfg_msg_received_type           : in   std_logic_vector(4 downto 0) ;
---p_out_cfg_msg_transmit               : out  std_logic                    ;
---p_out_cfg_msg_transmit_type          : out  std_logic_vector( 2 downto 0);
---p_out_cfg_msg_transmit_data          : out  std_logic_vector(31 downto 0);
---p_in_cfg_msg_transmit_done           : in   std_logic                    ;
-p_in_cfg_fc_ph                        : in   std_logic_vector( 7 downto 0);
-p_in_cfg_fc_pd                        : in   std_logic_vector(11 downto 0);
-p_in_cfg_fc_nph                       : in   std_logic_vector( 7 downto 0);
-p_in_cfg_fc_npd                       : in   std_logic_vector(11 downto 0);
-p_in_cfg_fc_cplh                      : in   std_logic_vector( 7 downto 0);
-p_in_cfg_fc_cpld                      : in   std_logic_vector(11 downto 0);
-p_out_cfg_fc_sel                      : out  std_logic_vector( 2 downto 0);
---p_out_cfg_per_func_status_control     : out  std_logic_vector( 2 downto 0);
---p_in_cfg_per_func_status_data         : in   std_logic_vector(15 downto 0);
---p_out_cfg_per_function_number         : out  std_logic_vector( 3 downto 0);
---p_out_cfg_per_function_output_request : out  std_logic
---p_in_cfg_per_function_update_done     : in   std_logic
+p_out_cfg_dsn                         : out  std_logic_vector(63 downto 0);
+p_out_cfg_power_state_change_ack      : out  std_logic;
+p_in_cfg_power_state_change_interrupt : in   std_logic;
+p_out_cfg_err_cor_in                  : out  std_logic;
+p_out_cfg_err_uncor_in                : out  std_logic;
 
-p_out_cfg_dsn                          : out  std_logic_vector(63 downto 0) ;
-p_out_cfg_power_state_change_ack       : out  std_logic                     ;
-p_in_cfg_power_state_change_interrupt  : in   std_logic                     ;
-p_out_cfg_err_cor_in                   : out  std_logic                     ;
-p_out_cfg_err_uncor_in                 : out  std_logic                     ;
+p_in_cfg_flr_in_process       : in   std_logic_vector(3 downto 0);
+p_out_cfg_flr_done            : out  std_logic_vector(3 downto 0);
+p_in_cfg_vf_flr_in_process    : in   std_logic_vector(7 downto 0);
+p_out_cfg_vf_flr_done         : out  std_logic_vector(7 downto 0);
 
-p_in_cfg_flr_in_process                : in   std_logic_vector(3 downto 0);
-p_out_cfg_flr_done                     : out  std_logic_vector(3 downto 0);
-p_in_cfg_vf_flr_in_process             : in   std_logic_vector(7 downto 0);
-p_out_cfg_vf_flr_done                  : out  std_logic_vector(7 downto 0);
-
---p_out_cfg_link_training_enable         : out  std_logic                     ;
---p_in_cfg_ext_read_received             : in   std_logic                     ;
---p_in_cfg_ext_write_received            : in   std_logic                     ;
---p_in_cfg_ext_register_number           : in   std_logic_vector( 9 downto 0) ;
---p_in_cfg_ext_function_number           : in   std_logic_vector( 7 downto 0) ;
---p_in_cfg_ext_write_data                : in   std_logic_vector(31 downto 0) ;
---p_in_cfg_ext_write_byte_enable         : in   std_logic_vector( 3 downto 0) ;
---p_out_cfg_ext_read_data                : out  std_logic_vector(31 downto 0) ;
---p_out_cfg_ext_read_data_valid          : out  std_logic                     ;
-
-p_out_cfg_ds_port_number               : out  std_logic_vector(7 downto 0)  ;
-p_out_cfg_ds_bus_number                : out  std_logic_vector(7 downto 0)  ;
-p_out_cfg_ds_device_number             : out  std_logic_vector(4 downto 0)  ;
-p_out_cfg_ds_function_number           : out  std_logic_vector(2 downto 0)  ;
+p_out_cfg_ds_port_number      : out  std_logic_vector(7 downto 0);
+p_out_cfg_ds_bus_number       : out  std_logic_vector(7 downto 0);
+p_out_cfg_ds_device_number    : out  std_logic_vector(4 downto 0);
+p_out_cfg_ds_function_number  : out  std_logic_vector(2 downto 0);
 
 ------------------------------------
 -- EP Only
@@ -435,18 +387,14 @@ p_in_cfg_interrupt_msi_pending_status_data_enable  : in  std_logic;
 p_in_cfg_interrupt_msi_pending_status_function_num : in  std_logic_vector(3 downto 0);
 
 -- EP only
-p_in_cfg_hot_reset_in                 : in   std_logic                    ;
---p_out_cfg_config_space_enable         : out  std_logic                    ;
---p_out_cfg_req_pm_transition_l23_ready : out  std_logic                    ;
+p_in_cfg_hot_reset_in   : in   std_logic;
 
 -- RP only
-p_out_cfg_hot_reset_out               : out  std_logic                    ;
+p_out_cfg_hot_reset_out : out  std_logic;
 
---led_out                               : out  std_logic_vector(7 downto 0) ;
-
-p_in_user_clk                         : in   std_logic                    ;
-p_in_user_reset                       : in   std_logic                    ;
-p_in_user_lnk_up                      : in   std_logic
+p_in_user_clk           : in   std_logic;
+p_in_user_reset_n       : in   std_logic;
+p_in_user_lnk_up        : in   std_logic
 );
 end component pcie_ctrl;
 
@@ -458,7 +406,7 @@ signal i_sys_clk          : std_logic;
 signal i_sys_clk_gt       : std_logic;
 
 signal i_user_clk         : std_logic;
-signal i_user_reset       : std_logic;
+signal i_user_reset_n     : std_logic;
 signal i_user_lnk_up      : std_logic;
 
 signal i_s_axis_rq_tlast  : std_logic                                   ;
@@ -599,7 +547,7 @@ pci_exp_rxn => p_in_pcie_phy.rxn ,--: IN  STD_LOGIC_VECTOR(0 DOWNTO 0);
 pci_exp_rxp => p_in_pcie_phy.rxp ,--: IN  STD_LOGIC_VECTOR(0 DOWNTO 0);
 
 user_clk         => i_user_clk   ,--: OUT STD_LOGIC;
-user_reset       => i_user_reset ,--: OUT STD_LOGIC;
+user_reset       => i_user_reset_n ,--: OUT STD_LOGIC;
 user_lnk_up      => i_user_lnk_up,--: OUT STD_LOGIC;
 
 s_axis_rq_tdata  => i_s_axis_rq_tdata ,--: IN  STD_LOGIC_VECTOR(63 DOWNTO 0);
@@ -834,137 +782,86 @@ p_in_pcie_tfc_npd_av  => i_pcie_tfc_npd_av,--: in   std_logic_vector(1 downto 0)
 ------------------------------------
 --Configuration (CFG) Interface
 ------------------------------------
-p_in_pcie_rq_seq_num      => i_pcie_rq_seq_num     ,--: in   std_logic_vector(3 downto 0)            ;
-p_in_pcie_rq_seq_num_vld  => i_pcie_rq_seq_num_vld ,--: in   std_logic                               ;
-p_in_pcie_rq_tag          => i_pcie_rq_tag         ,--: in   std_logic_vector(5 downto 0)            ;
-p_in_pcie_rq_tag_vld      => i_pcie_rq_tag_vld     ,--: in   std_logic                               ;
-p_out_pcie_cq_np_req      => i_pcie_cq_np_req      ,--: out  std_logic                               ;
-p_in_pcie_cq_np_req_count => i_pcie_cq_np_req_count,--: in   std_logic_vector(5 downto 0)            ;
---p_in_pcie_rq_tag_av       => i_pcie_rq_tag_av      ,--: in   std_logic_vector(1 DOWNTO 0);
+p_in_pcie_rq_seq_num      => i_pcie_rq_seq_num     ,
+p_in_pcie_rq_seq_num_vld  => i_pcie_rq_seq_num_vld ,
+p_in_pcie_rq_tag          => i_pcie_rq_tag         ,
+p_in_pcie_rq_tag_vld      => i_pcie_rq_tag_vld     ,
+p_out_pcie_cq_np_req      => i_pcie_cq_np_req      ,
+p_in_pcie_cq_np_req_count => i_pcie_cq_np_req_count,
+--p_in_pcie_rq_tag_av       => i_pcie_rq_tag_av      ,
 
 ------------------------------------
 -- EP and RP
 ------------------------------------
---p_in_cfg_phy_link_down        => i_cfg_phy_link_down        ,--: in   std_logic                           ;
-p_in_cfg_negotiated_width     => i_cfg_negotiated_width     ,--: in   std_logic_vector(3 downto 0)        ;
---p_in_cfg_current_speed        => i_cfg_current_speed        ,--: in   std_logic_vector(2 downto 0)        ;
-p_in_cfg_max_payload          => i_cfg_max_payload          ,--: in   std_logic_vector(2 downto 0)        ;
-p_in_cfg_max_read_req         => i_cfg_max_read_req         ,--: in   std_logic_vector(2 downto 0)        ;
-p_in_cfg_function_status      => i_cfg_function_status(7 downto 0) ,--: in   std_logic_vector(7 downto 0)        ;
---p_in_cfg_function_power_state => i_cfg_function_power_state ,--: in   std_logic_vector(5 downto 0)        ;
---p_in_cfg_vf_status            => i_cfg_vf_status            ,--: in   std_logic_vector(11 downto 0)       ;
---p_in_cfg_vf_power_state       => i_cfg_vf_power_state       ,--: in   std_logic_vector(17 downto 0)       ;
---p_in_cfg_link_power_state     => i_cfg_link_power_state     ,--: in   std_logic_vector( 1 downto 0)       ;
+p_in_cfg_negotiated_width => i_cfg_negotiated_width,
+--p_in_cfg_current_speed    => i_cfg_current_speed   ,
+p_in_cfg_max_payload      => i_cfg_max_payload     ,
+p_in_cfg_max_read_req     => i_cfg_max_read_req    ,
+p_in_cfg_function_status  => i_cfg_function_status(7 downto 0),
 
 -- Error Reporting Interface
-p_in_cfg_err_cor_out       => i_cfg_err_cor_out       ,--: in   std_logic                              ;
-p_in_cfg_err_nonfatal_out  => i_cfg_err_nonfatal_out  ,--: in   std_logic                              ;
-p_in_cfg_err_fatal_out     => i_cfg_err_fatal_out     ,--: in   std_logic                              ;
---p_in_cfg_local_error       : in   std_logic                            ;
+p_in_cfg_err_cor_out      => i_cfg_err_cor_out       ,
+p_in_cfg_err_nonfatal_out => i_cfg_err_nonfatal_out  ,
+p_in_cfg_err_fatal_out    => i_cfg_err_fatal_out     ,
 
---p_in_cfg_ltr_enable              ,--: in   std_logic                        ;
---p_in_cfg_ltssm_state             ,--: in   std_logic_vector(5 downto 0)     ;
---p_in_cfg_rcb_status              ,--: in   std_logic_vector(1 downto 0)     ;
---p_in_cfg_dpa_substate_change     ,--: in   std_logic_vector(1 downto 0)     ;
---p_in_cfg_obff_enable             ,--: in   std_logic_vector(1 downto 0)     ;
---p_in_cfg_pl_status_change        ,--: in   std_logic                        ;
+p_in_cfg_fc_ph     => i_cfg_fc_ph  ,
+p_in_cfg_fc_pd     => i_cfg_fc_pd  ,
+p_in_cfg_fc_nph    => i_cfg_fc_nph ,
+p_in_cfg_fc_npd    => i_cfg_fc_npd ,
+p_in_cfg_fc_cplh   => i_cfg_fc_cplh,
+p_in_cfg_fc_cpld   => i_cfg_fc_cpld,
+p_out_cfg_fc_sel   => i_cfg_fc_sel ,
 
---p_in_cfg_tph_requester_enable    ,--: in   std_logic_vector(1 downto 0)     ;
---p_in_cfg_tph_st_mode             ,--: in   std_logic_vector(5 downto 0)     ;
---p_in_cfg_vf_tph_requester_enable ,--: in   std_logic_vector(5 downto 0)     ;
---p_in_cfg_vf_tph_st_mode          ,--: in   std_logic_vector(17 downto 0)    ;
+p_out_cfg_dsn                         => i_cfg_dsn                         ,
+p_out_cfg_power_state_change_ack      => i_cfg_power_state_change_ack      ,
+p_in_cfg_power_state_change_interrupt => i_cfg_power_state_change_interrupt,
+p_out_cfg_err_cor_in                  => i_cfg_err_cor_in                  ,
+p_out_cfg_err_uncor_in                => i_cfg_err_uncor_in                ,
 
----- Management Interface
---p_out_cfg_mgmt_addr                  ,--: out  std_logic_vector(18 downto 0);
---p_out_cfg_mgmt_write                 ,--: out  std_logic                    ;
---p_out_cfg_mgmt_write_data            ,--: out  std_logic_vector(31 downto 0);
---p_out_cfg_mgmt_byte_enable           ,--: out  std_logic_vector( 3 downto 0);
---p_out_cfg_mgmt_read                  ,--: out  std_logic                    ;
---p_in_cfg_mgmt_read_data              ,--: in   std_logic_vector(31 downto 0);
---p_in_cfg_mgmt_read_write_done        ,--: in   std_logic                    ;
---p_out_cfg_mgmt_type1_cfg_reg_access  ,--: out  std_logic                    ;
---p_in_cfg_msg_received                ,--: in   std_logic                    ;
---p_in_cfg_msg_received_data           ,--: in   std_logic_vector(7 downto 0) ;
---p_in_cfg_msg_received_type           ,--: in   std_logic_vector(4 downto 0) ;
---p_out_cfg_msg_transmit               ,--: out  std_logic                    ;
---p_out_cfg_msg_transmit_type          ,--: out  std_logic_vector( 2 downto 0);
---p_out_cfg_msg_transmit_data          ,--: out  std_logic_vector(31 downto 0);
---p_in_cfg_msg_transmit_done           ,--: in   std_logic                    ;
-p_in_cfg_fc_ph                        => i_cfg_fc_ph  ,--: in   std_logic_vector( 7 downto 0);
-p_in_cfg_fc_pd                        => i_cfg_fc_pd  ,--: in   std_logic_vector(11 downto 0);
-p_in_cfg_fc_nph                       => i_cfg_fc_nph ,--: in   std_logic_vector( 7 downto 0);
-p_in_cfg_fc_npd                       => i_cfg_fc_npd ,--: in   std_logic_vector(11 downto 0);
-p_in_cfg_fc_cplh                      => i_cfg_fc_cplh,--: in   std_logic_vector( 7 downto 0);
-p_in_cfg_fc_cpld                      => i_cfg_fc_cpld,--: in   std_logic_vector(11 downto 0);
-p_out_cfg_fc_sel                      => i_cfg_fc_sel ,--: out  std_logic_vector( 2 downto 0);
---p_out_cfg_per_func_status_control     ,--: out  std_logic_vector( 2 downto 0);
---p_in_cfg_per_func_status_data         ,--: in   std_logic_vector(15 downto 0);
---p_out_cfg_per_function_number         ,--: out  std_logic_vector( 3 downto 0);
---p_out_cfg_per_function_output_request ,--: out  std_logic
---p_in_cfg_per_function_update_done     ,--: in   std_logic
+p_in_cfg_flr_in_process       => i_cfg_flr_in_process    ,
+p_out_cfg_flr_done            => i_cfg_flr_done          ,
+p_in_cfg_vf_flr_in_process    => i_cfg_vf_flr_in_process ,
+p_out_cfg_vf_flr_done         => i_cfg_vf_flr_done       ,
 
-p_out_cfg_dsn                          => i_cfg_dsn                         ,--: out  std_logic_vector(63 downto 0) ;
-p_out_cfg_power_state_change_ack       => i_cfg_power_state_change_ack      ,--: out  std_logic                     ;
-p_in_cfg_power_state_change_interrupt  => i_cfg_power_state_change_interrupt,--: in   std_logic                     ;
-p_out_cfg_err_cor_in                   => i_cfg_err_cor_in                  ,--: out  std_logic                     ;
-p_out_cfg_err_uncor_in                 => i_cfg_err_uncor_in                ,--: out  std_logic                     ;
-
-p_in_cfg_flr_in_process               => i_cfg_flr_in_process   ,--: in   std_logic_vector(1 downto 0)  ;
-p_out_cfg_flr_done                    => i_cfg_flr_done         ,--: out  std_logic_vector(1 downto 0)  ;
-p_in_cfg_vf_flr_in_process            => i_cfg_vf_flr_in_process,--: in   std_logic_vector(5 downto 0)  ;
-p_out_cfg_vf_flr_done                 => i_cfg_vf_flr_done      ,--: out  std_logic_vector(5 downto 0)  ;
-
---p_out_cfg_link_training_enable        => i_cfg_link_training_enable,--: out  std_logic                     ;
---p_in_cfg_ext_read_received             ,--: in   std_logic                     ;
---p_in_cfg_ext_write_received            ,--: in   std_logic                     ;
---p_in_cfg_ext_register_number           ,--: in   std_logic_vector( 9 downto 0) ;
---p_in_cfg_ext_function_number           ,--: in   std_logic_vector( 7 downto 0) ;
---p_in_cfg_ext_write_data                ,--: in   std_logic_vector(31 downto 0) ;
---p_in_cfg_ext_write_byte_enable         ,--: in   std_logic_vector( 3 downto 0) ;
---p_out_cfg_ext_read_data                ,--: out  std_logic_vector(31 downto 0) ;
---p_out_cfg_ext_read_data_valid         ,--: out  std_logic                     ;
-
-p_out_cfg_ds_port_number               => i_cfg_ds_port_number    ,--: out  std_logic_vector(7 downto 0)  ;
-p_out_cfg_ds_bus_number                => i_cfg_ds_bus_number     ,--: out  std_logic_vector(7 downto 0)  ;
-p_out_cfg_ds_device_number             => i_cfg_ds_device_number  ,--: out  std_logic_vector(4 downto 0)  ;
-p_out_cfg_ds_function_number           => i_cfg_ds_function_number,--: out  std_logic_vector(2 downto 0)  ;
+p_out_cfg_ds_port_number      => i_cfg_ds_port_number    ,
+p_out_cfg_ds_bus_number       => i_cfg_ds_bus_number     ,
+p_out_cfg_ds_device_number    => i_cfg_ds_device_number  ,
+p_out_cfg_ds_function_number  => i_cfg_ds_function_number,
 
 ------------------------------------
 -- EP Only
 ------------------------------------
 -- Interrupt Interface Signals
-p_out_cfg_interrupt_int                 => i_cfg_interrupt_int                 ,--: out  std_logic_vector(3 downto 0) ;
-p_out_cfg_interrupt_pending             => i_cfg_interrupt_pending             ,--: out  std_logic_vector(1 downto 0) ;
-p_in_cfg_interrupt_sent                 => i_cfg_interrupt_sent                ,--: in   std_logic                    ;
-p_in_cfg_interrupt_msi_enable           => i_cfg_interrupt_msi_enable(1 downto 0)          ,--: in   std_logic_vector(1 downto 0) ;
-p_in_cfg_interrupt_msi_vf_enable        => i_cfg_interrupt_msi_vf_enable(5 downto 0)       ,--: in   std_logic_vector(5 downto 0) ;
-p_in_cfg_interrupt_msi_mmenable         => i_cfg_interrupt_msi_mmenable(5 downto 0)        ,--: in   std_logic_vector(5 downto 0) ;
-p_in_cfg_interrupt_msi_mask_update      => i_cfg_interrupt_msi_mask_update     ,--: in   std_logic                    ;
-p_in_cfg_interrupt_msi_data             => i_cfg_interrupt_msi_data            ,--: in   std_logic_vector(31 downto 0);
-p_out_cfg_interrupt_msi_select          => i_cfg_interrupt_msi_select          ,--: out  std_logic_vector( 3 downto 0);
-p_out_cfg_interrupt_msi_int             => i_cfg_interrupt_msi_int             ,--: out  std_logic_vector(31 downto 0);
-p_out_cfg_interrupt_msi_pending_status  => i_cfg_interrupt_msi_pending_status  ,--: out  std_logic_vector(31 downto 0);
-p_in_cfg_interrupt_msi_sent             => i_cfg_interrupt_msi_sent            ,--: in   std_logic                    ;
-p_in_cfg_interrupt_msi_fail             => i_cfg_interrupt_msi_fail            ,--: in   std_logic                    ;
-p_out_cfg_interrupt_msi_attr            => i_cfg_interrupt_msi_attr            ,--: out  std_logic_vector(2 downto 0) ;
-p_out_cfg_interrupt_msi_tph_present     => i_cfg_interrupt_msi_tph_present     ,--: out  std_logic                    ;
-p_out_cfg_interrupt_msi_tph_type        => i_cfg_interrupt_msi_tph_type        ,--: out  std_logic_vector(1 downto 0) ;
-p_out_cfg_interrupt_msi_tph_st_tag      => i_cfg_interrupt_msi_tph_st_tag      ,--: out  std_logic_vector(8 downto 0) ;
-p_out_cfg_interrupt_msi_function_number => i_cfg_interrupt_msi_function_number ,--: out  std_logic_vector(2 downto 0) ;
-p_in_cfg_interrupt_msi_pending_status_data_enable  => i_cfg_interrupt_msi_pending_status_data_enable ,--: IN  STD_LOGIC;
-p_in_cfg_interrupt_msi_pending_status_function_num => i_cfg_interrupt_msi_pending_status_function_num,--: IN  STD_LOGIC_VECTOR(3 DOWNTO 0);
+p_out_cfg_interrupt_int                 => i_cfg_interrupt_int                 ,
+p_out_cfg_interrupt_pending             => i_cfg_interrupt_pending             ,
+p_in_cfg_interrupt_sent                 => i_cfg_interrupt_sent                ,
+p_in_cfg_interrupt_msi_enable           => i_cfg_interrupt_msi_enable(1 downto 0)   ,--: in   std_logic_vector(1 downto 0) ;
+p_in_cfg_interrupt_msi_vf_enable        => i_cfg_interrupt_msi_vf_enable(5 downto 0),--: in   std_logic_vector(5 downto 0) ;
+p_in_cfg_interrupt_msi_mmenable         => i_cfg_interrupt_msi_mmenable(5 downto 0) ,--: in   std_logic_vector(5 downto 0) ;
+p_in_cfg_interrupt_msi_mask_update      => i_cfg_interrupt_msi_mask_update     ,
+p_in_cfg_interrupt_msi_data             => i_cfg_interrupt_msi_data            ,
+p_out_cfg_interrupt_msi_select          => i_cfg_interrupt_msi_select          ,
+p_out_cfg_interrupt_msi_int             => i_cfg_interrupt_msi_int             ,
+p_out_cfg_interrupt_msi_pending_status  => i_cfg_interrupt_msi_pending_status  ,
+p_in_cfg_interrupt_msi_sent             => i_cfg_interrupt_msi_sent            ,
+p_in_cfg_interrupt_msi_fail             => i_cfg_interrupt_msi_fail            ,
+p_out_cfg_interrupt_msi_attr            => i_cfg_interrupt_msi_attr            ,
+p_out_cfg_interrupt_msi_tph_present     => i_cfg_interrupt_msi_tph_present     ,
+p_out_cfg_interrupt_msi_tph_type        => i_cfg_interrupt_msi_tph_type        ,
+p_out_cfg_interrupt_msi_tph_st_tag      => i_cfg_interrupt_msi_tph_st_tag      ,
+p_out_cfg_interrupt_msi_function_number => i_cfg_interrupt_msi_function_number ,
+p_in_cfg_interrupt_msi_pending_status_data_enable  => i_cfg_interrupt_msi_pending_status_data_enable ,
+p_in_cfg_interrupt_msi_pending_status_function_num => i_cfg_interrupt_msi_pending_status_function_num,
 
 -- EP only
-p_in_cfg_hot_reset_in                 => i_cfg_hot_reset_out              ,--: in   std_logic                    ;
---p_out_cfg_config_space_enable         => i_cfg_config_space_enable        ,--: out  std_logic                    ;
---p_out_cfg_req_pm_transition_l23_ready => i_cfg_req_pm_transition_l23_ready,--: out  std_logic                    ;
+p_in_cfg_hot_reset_in   => i_cfg_hot_reset_out,
 
 -- RP only
-p_out_cfg_hot_reset_out               => i_cfg_hot_reset_in,--: out  std_logic                    ;
+p_out_cfg_hot_reset_out => i_cfg_hot_reset_in,
 
-p_in_user_clk                         => i_user_clk   ,--: in   std_logic                    ;
-p_in_user_reset                       => i_user_reset ,--: in   std_logic                    ;
-p_in_user_lnk_up                      => i_user_lnk_up --: in   std_logic                    ;
+p_in_user_clk     => i_user_clk   ,
+p_in_user_reset_n => i_user_reset_n ,
+p_in_user_lnk_up  => i_user_lnk_up
 );
 
 
