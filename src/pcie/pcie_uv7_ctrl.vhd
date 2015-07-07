@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------
 -- Engineer    : Golovachenko Victor
 --
--- Create Date : 11.11.2011 14:41:31
+-- Create Date : 07.07.2015 10:45:04
 -- Module Name : pcie_ctrl.vhd
 --
 -- Description : CTRL core PCI-Express
@@ -18,7 +18,7 @@ use work.prj_cfg.all;
 
 entity pcie_ctrl is
 generic(
-G_DATA_WIDTH                     : integer := 64 ;
+G_DATA_WIDTH                     : integer := 64;
 G_KEEP_WIDTH                     : integer := 1;
 G_AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
 G_AXISTEN_IF_RQ_ALIGNMENT_MODE   : boolean := FALSE;
@@ -36,54 +36,54 @@ port(
 --------------------------------------
 --USR Port
 --------------------------------------
-p_out_hclk                 : out   std_logic;
-p_out_gctrl                : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
+p_out_hclk      : out   std_logic;
+p_out_gctrl     : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
 --CTRL user devices
-p_out_dev_ctrl             : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
-p_out_dev_din              : out   std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
-p_in_dev_dout              : in    std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
-p_out_dev_wr               : out   std_logic;
-p_out_dev_rd               : out   std_logic;
-p_in_dev_status            : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
-p_in_dev_irq               : in    std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
-p_in_dev_opt               : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
-p_out_dev_opt              : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
+p_out_dev_ctrl  : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
+p_out_dev_din   : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
+p_in_dev_dout   : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
+p_out_dev_wr    : out   std_logic;
+p_out_dev_rd    : out   std_logic;
+p_in_dev_status : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
+p_in_dev_irq    : in    std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
+p_in_dev_opt    : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
+p_out_dev_opt   : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
 
 --DBG
-p_out_tst                  : out   std_logic_vector(127 downto 0);
-p_in_tst                   : in    std_logic_vector(127 downto 0);
+p_out_tst       : out   std_logic_vector(127 downto 0);
+p_in_tst        : in    std_logic_vector(127 downto 0);
 
 ------------------------------------
 --AXI Interface
 ------------------------------------
-p_out_s_axis_rq_tlast  : out  std_logic                                   ;
-p_out_s_axis_rq_tdata  : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0) ;
-p_out_s_axis_rq_tuser  : out  std_logic_vector(59 downto 0)               ;
-p_out_s_axis_rq_tkeep  : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0)   ;
-p_in_s_axis_rq_tready  : in   std_logic_vector(3 downto 0)                ;
-p_out_s_axis_rq_tvalid : out  std_logic                                   ;
+p_out_s_axis_rq_tlast  : out  std_logic                                  ;
+p_out_s_axis_rq_tdata  : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_out_s_axis_rq_tuser  : out  std_logic_vector(59 downto 0)              ;
+p_out_s_axis_rq_tkeep  : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_s_axis_rq_tready  : in   std_logic_vector(3 downto 0)               ;
+p_out_s_axis_rq_tvalid : out  std_logic                                  ;
 
-p_in_m_axis_rc_tdata   : in   std_logic_vector(G_DATA_WIDTH - 1 downto 0) ;
-p_in_m_axis_rc_tuser   : in   std_logic_vector(74 downto 0)               ;
-p_in_m_axis_rc_tlast   : in   std_logic                                   ;
-p_in_m_axis_rc_tkeep   : in   std_logic_vector(G_KEEP_WIDTH - 1 downto 0)   ;
-p_in_m_axis_rc_tvalid  : in   std_logic                                   ;
-p_out_m_axis_rc_tready : out  std_logic_vector(21 downto 0)               ;
+p_in_m_axis_rc_tdata   : in   std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_in_m_axis_rc_tuser   : in   std_logic_vector(74 downto 0)              ;
+p_in_m_axis_rc_tlast   : in   std_logic                                  ;
+p_in_m_axis_rc_tkeep   : in   std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_m_axis_rc_tvalid  : in   std_logic                                  ;
+p_out_m_axis_rc_tready : out  std_logic_vector(21 downto 0)              ;
 
-p_in_m_axis_cq_tdata   : in   std_logic_vector(G_DATA_WIDTH - 1 downto 0) ;
-p_in_m_axis_cq_tuser   : in   std_logic_vector(84 downto 0)               ;
-p_in_m_axis_cq_tlast   : in   std_logic                                   ;
-p_in_m_axis_cq_tkeep   : in   std_logic_vector(G_KEEP_WIDTH - 1 downto 0)   ;
-p_in_m_axis_cq_tvalid  : in   std_logic                                   ;
-p_out_m_axis_cq_tready : out  std_logic_vector(21 downto 0)               ;
+p_in_m_axis_cq_tdata   : in   std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_in_m_axis_cq_tuser   : in   std_logic_vector(84 downto 0)              ;
+p_in_m_axis_cq_tlast   : in   std_logic                                  ;
+p_in_m_axis_cq_tkeep   : in   std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_m_axis_cq_tvalid  : in   std_logic                                  ;
+p_out_m_axis_cq_tready : out  std_logic_vector(21 downto 0)              ;
 
-p_out_s_axis_cc_tdata  : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0) ;
-p_out_s_axis_cc_tuser  : out  std_logic_vector(32 downto 0)               ;
-p_out_s_axis_cc_tlast  : out  std_logic                                   ;
-p_out_s_axis_cc_tkeep  : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0)   ;
-p_out_s_axis_cc_tvalid : out  std_logic                                   ;
-p_in_s_axis_cc_tready  : in   std_logic_vector(3 downto 0)                ;
+p_out_s_axis_cc_tdata  : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_out_s_axis_cc_tuser  : out  std_logic_vector(32 downto 0)              ;
+p_out_s_axis_cc_tlast  : out  std_logic                                  ;
+p_out_s_axis_cc_tkeep  : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_s_axis_cc_tvalid : out  std_logic                                  ;
+p_in_s_axis_cc_tready  : in   std_logic_vector(3 downto 0)               ;
 
 p_in_pcie_tfc_nph_av  : in   std_logic_vector(1 downto 0)                ;
 p_in_pcie_tfc_npd_av  : in   std_logic_vector(1 downto 0)                ;
