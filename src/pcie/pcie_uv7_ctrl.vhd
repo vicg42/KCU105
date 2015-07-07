@@ -168,8 +168,8 @@ p_out_cfg_err_uncor_in                 : out  std_logic                     ;
 
 p_in_cfg_flr_in_process               : in   std_logic_vector(1 downto 0)  ;
 p_out_cfg_flr_done                    : out  std_logic_vector(1 downto 0)  ;
-p_in_cfg_vf_flr_in_process            : in   std_logic_vector(5 downto 0)  ;
-p_out_cfg_vf_flr_done                 : out  std_logic_vector(5 downto 0)  ;
+p_in_cfg_vf_flr_in_process            : in   std_logic_vector(7 downto 0)  ;
+p_out_cfg_vf_flr_done                 : out  std_logic_vector(7 downto 0)  ;
 
 --p_out_cfg_link_training_enable         : out  std_logic                     ;
 --p_in_cfg_ext_read_received             : in   std_logic                     ;
@@ -264,7 +264,7 @@ if p_in_user_reset_n = '0' begin
 
 elsif rising_edge(p_in_user_clk) then
   sr_cfg_flr_done <= p_in_cfg_flr_in_process & sr_cfg_flr_done(0 to 0);
-  sr_cfg_vf_flr_done <= p_in_cfg_vf_flr_in_process & sr_cfg_vf_flr_done(0 to 0);
+  sr_cfg_vf_flr_done <= p_in_cfg_vf_flr_in_process(5 downto 0) & sr_cfg_vf_flr_done(0 to 0);
 
 end if;
 end process;
@@ -280,6 +280,7 @@ p_out_cfg_vf_flr_done(2) <= not sr_cfg_vf_flr_done(1)(2) and sr_cfg_vf_flr_done(
 p_out_cfg_vf_flr_done(3) <= not sr_cfg_vf_flr_done(1)(3) and sr_cfg_vf_flr_done(0)(3);
 p_out_cfg_vf_flr_done(4) <= not sr_cfg_vf_flr_done(1)(4) and sr_cfg_vf_flr_done(0)(4);
 p_out_cfg_vf_flr_done(5) <= not sr_cfg_vf_flr_done(1)(5) and sr_cfg_vf_flr_done(0)(5);
+p_out_cfg_vf_flr_done(p_out_cfg_vf_flr_done'high downto 6) <= (others => '0');
 
 
 ----------------------------------------
