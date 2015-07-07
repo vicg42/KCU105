@@ -394,7 +394,7 @@ p_out_cfg_flr_done                     : out  std_logic_vector(3 downto 0);
 p_in_cfg_vf_flr_in_process             : in   std_logic_vector(7 downto 0);
 p_out_cfg_vf_flr_done                  : out  std_logic_vector(7 downto 0);
 
-p_out_cfg_link_training_enable         : out  std_logic                     ;
+--p_out_cfg_link_training_enable         : out  std_logic                     ;
 --p_in_cfg_ext_read_received             : in   std_logic                     ;
 --p_in_cfg_ext_write_received            : in   std_logic                     ;
 --p_in_cfg_ext_register_number           : in   std_logic_vector( 9 downto 0) ;
@@ -576,7 +576,8 @@ signal i_cfg_flr_done                     : std_logic_vector(3 downto 0);
 signal i_cfg_vf_flr_in_process            : std_logic_vector(7 downto 0);
 signal i_cfg_vf_flr_done                  : std_logic_vector(7 downto 0);
 
-signal i_cfg_link_training_enable         : std_logic;
+--signal i_cfg_link_training_enable         : std_logic;
+
 
 begin --architecture behavioral
 
@@ -706,7 +707,7 @@ cfg_flr_in_process               => i_cfg_flr_in_process     ,--: OUT STD_LOGIC_
 cfg_flr_done                     => i_cfg_flr_done           ,--: IN  STD_LOGIC_VECTOR(3 DOWNTO 0);
 cfg_vf_flr_in_process            => i_cfg_vf_flr_in_process  ,--: OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
 cfg_vf_flr_done                  => i_cfg_vf_flr_done        ,--: IN  STD_LOGIC_VECTOR(7 DOWNTO 0);
-cfg_link_training_enable         => i_cfg_link_training_enable         ,--: IN  STD_LOGIC;
+cfg_link_training_enable         => '1'                      ,--: IN  STD_LOGIC;
 cfg_ext_read_received            => open                               ,--: OUT STD_LOGIC;
 cfg_ext_write_received           => open                               ,--: OUT STD_LOGIC;
 cfg_ext_register_number          => open                               ,--: OUT STD_LOGIC_VECTOR(9 DOWNTO 0);
@@ -913,7 +914,7 @@ p_out_cfg_flr_done                    => i_cfg_flr_done         ,--: out  std_lo
 p_in_cfg_vf_flr_in_process            => i_cfg_vf_flr_in_process,--: in   std_logic_vector(5 downto 0)  ;
 p_out_cfg_vf_flr_done                 => i_cfg_vf_flr_done      ,--: out  std_logic_vector(5 downto 0)  ;
 
-p_out_cfg_link_training_enable        => i_cfg_link_training_enable,--: out  std_logic                     ;
+--p_out_cfg_link_training_enable        => i_cfg_link_training_enable,--: out  std_logic                     ;
 --p_in_cfg_ext_read_received             ,--: in   std_logic                     ;
 --p_in_cfg_ext_write_received            ,--: in   std_logic                     ;
 --p_in_cfg_ext_register_number           ,--: in   std_logic_vector( 9 downto 0) ;
