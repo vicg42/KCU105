@@ -60,12 +60,12 @@
 
 `timescale 1ps/1ps
 
-module pio_to_ctrl # (
+module pio_to_ctrl #(
   parameter TCQ = 1
  )(
 
   input      clk,
-  input      rst_n,
+  input      rst,
 
   input      req_compl,
   input      compl_done,
@@ -80,7 +80,7 @@ module pio_to_ctrl # (
 
   always @ (posedge clk)
   begin
-    if (!rst_n ) begin
+    if (rst ) begin
       trn_pending <= #TCQ 1'b0;
     end else begin
       if (!trn_pending && req_compl)
@@ -96,7 +96,7 @@ module pio_to_ctrl # (
 
   always @ (posedge clk)
   begin
-    if (!rst_n ) begin
+    if (rst ) begin
       cfg_power_state_change_ack <= 1'b0;
     end else begin
       if ( cfg_power_state_change_interrupt  && !trn_pending)

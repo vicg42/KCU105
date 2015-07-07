@@ -15,7 +15,7 @@ package pcie_unit_pkg is
 component pio_to_ctrl
 port (
 clk        : in  std_logic;
-rst_n      : in  std_logic;
+rst        : in  std_logic;
 
 req_compl  : in  std_logic;
 compl_done : in  std_logic;

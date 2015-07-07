@@ -251,7 +251,7 @@ i_rst <= p_in_user_lnk_up and not p_in_user_reset_n;
 m_pio_to_ctrl : pio_to_ctrl
 port map(
 clk        => p_in_user_clk,
-rst_n      => i_rst,
+rst        => i_rst,
 
 req_compl  => i_req_compl,
 compl_done => i_compl_done,
