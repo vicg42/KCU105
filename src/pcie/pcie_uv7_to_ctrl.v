@@ -65,7 +65,7 @@ module pio_to_ctrl #(
  )(
 
   input      clk,
-  input      rst,
+  input      rst_n,
 
   input      req_compl,
   input      compl_done,
@@ -80,7 +80,7 @@ module pio_to_ctrl #(
 
   always @ (posedge clk)
   begin
-    if (rst ) begin
+    if ( !rst_n ) begin
       trn_pending <= #TCQ 1'b0;
     end else begin
       if (!trn_pending && req_compl)
@@ -96,7 +96,7 @@ module pio_to_ctrl #(
 
   always @ (posedge clk)
   begin
-    if (rst ) begin
+    if ( !rst_n ) begin
       cfg_power_state_change_ack <= 1'b0;
     end else begin
       if ( cfg_power_state_change_interrupt  && !trn_pending)
