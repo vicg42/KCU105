@@ -18,7 +18,7 @@ use work.prj_cfg.all;
 
 entity pcie_ctrl is
 generic(
-G_DATA_WIDTH                     : integer := 64;
+G_DATA_WIDTH                     : integer := 64 ;
 G_KEEP_WIDTH                     : integer := 1;
 G_AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
 G_AXISTEN_IF_RQ_ALIGNMENT_MODE   : boolean := FALSE;
