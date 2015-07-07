@@ -49,13 +49,13 @@
 //-----------------------------------------------------------------------------
 //
 // Project    : Ultrascale FPGA Gen3 Integrated Block for PCI Express
-// File       : pio_rx_engine.v
+// File       : pcie_rx.v
 // Version    : 4.0
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //
 // Project    : Ultrascale FPGA Gen3 Integrated Block for PCI Express
-// File       : pio_rx_engine.v
+// File       : pcie_rx.v
 // Version    : 1.3
 //
 // Description: Local-Link Receive Unit.
@@ -66,7 +66,7 @@
 
 
 (* DowngradeIPIdentifiedWarnings = "yes" *)
-module pio_rx_engine  #(
+module pcie_rx  #(
   parameter        TCQ = 1,
   parameter [1:0]  AXISTEN_IF_WIDTH = 00,
   parameter        AXISTEN_IF_CQ_ALIGNMENT_MODE   = "FALSE",
@@ -1830,4 +1830,4 @@ module pio_rx_engine  #(
   end
   // synthesis translate_on
 
-endmodule // pio_rx_engine
+endmodule // pcie_rx
