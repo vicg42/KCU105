@@ -230,6 +230,13 @@ end entity pcie_ctrl;
 
 architecture struct of pcie_ctrl is
 
+signal sr_cfg_flr_done_reg0    : std_logic_vector(1 downto 0);
+signal sr_cfg_vf_flr_done_reg0 : std_logic_vector(5 downto 0);
+signal sr_cfg_flr_done_reg1    : std_logic_vector(1 downto 0);
+signal sr_cfg_vf_flr_done_reg1 : std_logic_vector(5 downto 0);
+
+
+
 begin
 
 ------------------------------------------
@@ -283,20 +290,50 @@ p_out_pcie_cq_np_req   <= '0';--   : out  std_logic                             
 
 p_out_cfg_fc_sel                      <= (others => '0');--: out  std_logic_vector( 2 downto 0);
 
-p_out_cfg_dsn                          <= (others => '0');--: out  std_logic_vector(63 downto 0) ;
+p_out_cfg_dsn <= std_logic_vector(TO_UNSIGNED(16#123#, p_out_cfg_dsn'length));
 p_out_cfg_power_state_change_ack       <= '0';--: out  std_logic                     ;
-p_out_cfg_err_cor_in                   <= '0';--: out  std_logic                     ;
-p_out_cfg_err_uncor_in                 <= '0';--: out  std_logic                     ;
+p_out_cfg_err_cor_in   <= '0';
+p_out_cfg_err_uncor_in <= '0';
 
-p_out_cfg_flr_done                    <= (others => '0');--: out  std_logic_vector(1 downto 0)  ;
-p_out_cfg_vf_flr_done                 <= (others => '0');--: out  std_logic_vector(5 downto 0)  ;
+--Function level reset (FLR)
+process(p_in_user_clk, p_in_user_reset)
+begin
+if p_in_user_reset = '1' begin
+  sr_cfg_flr_done_reg0    <= (others => '0');
+  sr_cfg_vf_flr_done_reg0 <= (others => '0');
+  sr_cfg_flr_done_reg1    <= (others => '0');
+  sr_cfg_vf_flr_done_reg1 <= (others => '0');
 
-p_out_cfg_link_training_enable   <= '0';--      : out  std_logic                     ;
+elsif rising_edge(p_in_user_clk) then
+  sr_cfg_flr_done_reg0    <= p_in_cfg_flr_in_process;
+  sr_cfg_vf_flr_done_reg0 <= p_in_cfg_vf_flr_in_process;
+  sr_cfg_flr_done_reg1    <= cfg_flr_done_reg0;
+  sr_cfg_vf_flr_done_reg1 <= cfg_vf_flr_done_reg0;
 
-p_out_cfg_ds_port_number               <= (others => '0');--: out  std_logic_vector(7 downto 0)  ;
-p_out_cfg_ds_bus_number                <= (others => '0');--: out  std_logic_vector(7 downto 0)  ;
-p_out_cfg_ds_device_number             <= (others => '0');--: out  std_logic_vector(4 downto 0)  ;
-p_out_cfg_ds_function_number           <= (others => '0');--: out  std_logic_vector(2 downto 0)  ;
+end if;
+end process;
+
+--detect rising edge of p_in_cfg_flr_in_process
+p_out_cfg_flr_done(0) <= not sr_cfg_flr_done_reg1(0) and sr_cfg_flr_done_reg0(0);
+p_out_cfg_flr_done(1) <= not sr_cfg_flr_done_reg1(1) and sr_cfg_flr_done_reg0(1);
+
+--detect rising edge of p_in_cfg_vf_flr_in_process
+p_out_cfg_vf_flr_done(0) <= not sr_cfg_vf_flr_done_reg1(0) and sr_cfg_vf_flr_done_reg0(0);
+p_out_cfg_vf_flr_done(1) <= not sr_cfg_vf_flr_done_reg1(1) and sr_cfg_vf_flr_done_reg0(1);
+p_out_cfg_vf_flr_done(2) <= not sr_cfg_vf_flr_done_reg1(2) and sr_cfg_vf_flr_done_reg0(2);
+p_out_cfg_vf_flr_done(3) <= not sr_cfg_vf_flr_done_reg1(3) and sr_cfg_vf_flr_done_reg0(3);
+p_out_cfg_vf_flr_done(4) <= not sr_cfg_vf_flr_done_reg1(4) and sr_cfg_vf_flr_done_reg0(4);
+p_out_cfg_vf_flr_done(5) <= not sr_cfg_vf_flr_done_reg1(5) and sr_cfg_vf_flr_done_reg0(5);
+
+
+
+
+p_out_cfg_link_training_enable <= '0';
+
+p_out_cfg_ds_port_number     <= std_logic_vector(TO_UNSIGNED(16#00#, p_out_cfg_ds_port_number'length));
+p_out_cfg_ds_bus_number      <= std_logic_vector(TO_UNSIGNED(16#00#, p_out_cfg_ds_bus_number'length));
+p_out_cfg_ds_device_number   <= std_logic_vector(TO_UNSIGNED(16#00#, p_out_cfg_ds_device_number'length));
+p_out_cfg_ds_function_number <= std_logic_vector(TO_UNSIGNED(16#00#, p_out_cfg_ds_function_number'length));
 
 ------------------------------------
 -- EP Only
@@ -315,11 +352,11 @@ p_out_cfg_interrupt_msi_function_number <= (others => '0');--: out  std_logic_ve
 
 
 -- EP only
-p_out_cfg_config_space_enable         <= '0';--: out  std_logic                    ;
-p_out_cfg_req_pm_transition_l23_ready <= '0';--: out  std_logic                    ;
+p_out_cfg_config_space_enable <= '1';
+p_out_cfg_req_pm_transition_l23_ready <= '0';
 
 -- RP only
-p_out_cfg_hot_reset_out               <= '0';--: out  std_logic                    ;
+p_out_cfg_hot_reset_out <= '0';
 
 
 end architecture struct;
