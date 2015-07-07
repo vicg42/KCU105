@@ -15,7 +15,7 @@ package pcie_unit_pkg is
 component pio_to_ctrl
 port (
 clk        : in  std_logic;
-rst        : in  std_logic;
+rst_n      : in  std_logic;
 
 req_compl  : in  std_logic;
 compl_done : in  std_logic;
@@ -25,9 +25,9 @@ cfg_power_state_change_ack       : out std_logic
 );
 end component pio_to_ctrl;
 
-component rx_engine
+component pcie_rx
 generic(
-AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
+--AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
 AXISTEN_IF_CQ_ALIGNMENT_MODE   : boolean := FALSE;
 AXISTEN_IF_RC_ALIGNMENT_MODE   : boolean := FALSE;
 AXISTEN_IF_RC_STRADDLE         : integer := 0;
@@ -38,7 +38,7 @@ C_DATA_WIDTH                   : integer := 64     ;
 STRB_WIDTH                     : integer := 64 / 8 ; -- TSTRB width
 KEEP_WIDTH                     : integer := 64 / 32;
 PARITY_WIDTH                   : integer := 64 / 8   -- TPARITY width
-)
+);
 port (
 user_clk              : in  std_logic;
 reset_n               : in  std_logic;
@@ -111,7 +111,7 @@ wr_en                 : out std_logic;                    -- Memory Write Enable
 payload_len           : out std_logic;                    -- Transaction Payload Length
 wr_busy               : in  std_logic                     -- Memory Write Busy
 );
-end component rx_engine
+end component pcie_rx;
 
 
 end package pcie_unit_pkg;

@@ -68,7 +68,7 @@
 (* DowngradeIPIdentifiedWarnings = "yes" *)
 module pcie_rx  #(
   parameter        TCQ = 1,
-  parameter [1:0]  AXISTEN_IF_WIDTH = 00,
+//  parameter [1:0]  AXISTEN_IF_WIDTH = 00,
   parameter        AXISTEN_IF_CQ_ALIGNMENT_MODE   = "FALSE",
   parameter        AXISTEN_IF_RC_ALIGNMENT_MODE   = "FALSE",
   parameter        AXISTEN_IF_RC_STRADDLE         = 0,
@@ -77,10 +77,10 @@ module pcie_rx  #(
 
 
   // Do not override parameters below this line
-  parameter C_DATA_WIDTH = (AXISTEN_IF_WIDTH[1]) ? 256 : (AXISTEN_IF_WIDTH[0])? 128 : 64,
-  parameter STRB_WIDTH   = C_DATA_WIDTH / 8,               // TSTRB width
-  parameter KEEP_WIDTH   = C_DATA_WIDTH / 32,
-  parameter PARITY_WIDTH = C_DATA_WIDTH / 8               // TPARITY width
+  parameter C_DATA_WIDTH = 64,//(AXISTEN_IF_WIDTH[1]) ? 256 : (AXISTEN_IF_WIDTH[0])? 128 : 64,
+  parameter STRB_WIDTH   = 8 ,//C_DATA_WIDTH / 8,               // TSTRB width
+  parameter KEEP_WIDTH   = 2 ,//C_DATA_WIDTH / 32,
+  parameter PARITY_WIDTH = 8  //C_DATA_WIDTH / 8               // TPARITY width
 ) (
 
 
