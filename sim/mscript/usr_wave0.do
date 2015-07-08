@@ -67,6 +67,14 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/wr_data
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/wr_en
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/payload_len
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/wr_busy
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_tc
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_attr
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_len
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_rid
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_tag
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_be
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_addr
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_at
 add wave -noupdate -color {Cornflower Blue} /board/EP/m_main/m_ctrl/m_rx/FMT_TYPE
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tdata
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tdata_q
@@ -87,14 +95,6 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_mem
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/cfg_msg_received
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/cfg_msg_received_type
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/cfg_msg_data
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_tc
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_attr
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_len
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_rid
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_tag
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_be
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_addr
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_at
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_des_qword0
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_des_qword1
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_des_tph_present
@@ -216,4 +216,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {181488954 ps} {181523809 ps}
+WaveRestoreZoom {181457253 ps} {182085566 ps}
