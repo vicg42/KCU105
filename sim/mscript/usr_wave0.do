@@ -57,13 +57,16 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_compl
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_compl_wd
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_compl_ur
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/compl_done
+add wave -noupdate -radix hexadecimal /board/EP/m_main/m_ctrl/m_rx/sop
+add wave -noupdate -radix hexadecimal /board/EP/m_main/m_ctrl/m_rx/in_packet_q
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tdata
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tdata_q
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tlast
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tvalid
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tuser
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tkeep
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/pcie_cq_np_req_count
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tready
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/pcie_cq_np_req_count
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/pcie_cq_np_req
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_rc_tdata
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_rc_tlast
@@ -71,6 +74,7 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_rc_tvalid
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_rc_tkeep
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_rc_tuser
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_rc_tready
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_mem
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/cfg_msg_received
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/cfg_msg_received_type
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/cfg_msg_data
@@ -88,7 +92,6 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_des_tph_present
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_des_tph_type
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_des_tph_st_tag
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_mem_lock
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_mem
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/wr_addr
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/wr_be
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/wr_data
@@ -98,8 +101,6 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/wr_busy
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/state
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/trn_type
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/region_select
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/sop
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/in_packet_q
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/data_start_loc
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/io_bar_hit_n
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/mem32_bar_hit_n
@@ -114,10 +115,14 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_dst_id
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_vend_id
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_vend_hdr
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_tl_hdr
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tdata_q
 add wave -noupdate -divider TX_ENGENE
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/user_clk
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/reset_n
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/req_compl
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/req_compl_wd
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/req_compl_ur
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/payload_len
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/compl_done
 add wave -noupdate -radix ascii /board/EP/m_main/m_ctrl/m_tx/state_ascii
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/s_axis_cc_tdata
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/s_axis_cc_tkeep
@@ -149,11 +154,6 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/cfg_fc_pd
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/cfg_fc_npd
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/cfg_fc_cpld
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/cfg_fc_sel
-add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/req_compl
-add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/req_compl_wd
-add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/req_compl_ur
-add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/payload_len
-add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/compl_done
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/req_tc
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/req_td
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/req_ep
@@ -214,4 +214,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {0 ps} {124500105 ps}
+WaveRestoreZoom {181851839 ps} {182078359 ps}
