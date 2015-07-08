@@ -141,6 +141,8 @@ signal i_payload_len         : std_logic := '0';
 
 signal i_data_start_loc      : std_logic_vector(2 downto 0);
 
+signal sr_m_axis_cq_tdata    : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+
 
 
 begin --architecture behavioral of pcie_uv7_rx
@@ -185,6 +187,19 @@ end process;
 
 i_sop <= not i_in_pkt_q and p_in_m_axis_cq_tvalid;
 
+
+process(p_in_user_clk)
+begin
+if rising_edge(p_in_user_clk) then
+  if (p_in_reset_n = '0') then
+    sr_m_axis_cq_tdata <= (others => '0');
+
+  elsif (m_axis_cq_tvalid = '1') then
+    sr_m_axis_cq_tdata <= p_in_m_axis_cq_tdata;
+
+  end if;
+end if;
+end process;
 
 
 --Rx State Machine
@@ -296,14 +311,16 @@ if rising_edge(p_in_user_clk) then
 
                           if (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
                             if (G_AXISTEN_IF_CQ_ALIGNMENT_MODE == "TRUE") then
-                              i_data_start_loc <= {2'b0,m_axis_cq_tdata_q[2]}
+--                              i_data_start_loc <= {2'b0,m_axis_cq_tdata_q[2]}
+                              i_data_start_loc <= std_logic_vector(RESIZE(UNSIGNED(sr_m_axis_cq_tdata(2 downto 2), i_data_start_loc'length));
                             else
                               i_data_start_loc <= (others => '0');
                             end if;
 
                           elsif (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_IO_WR_D) then
                             if (G_AXISTEN_IF_CQ_ALIGNMENT_MODE == "TRUE") then
-                              i_data_start_loc <= {2'b0,m_axis_cq_tdata[2]}
+--                              i_data_start_loc <= {2'b0,m_axis_cq_tdata[2]}
+                              i_data_start_loc <= std_logic_vector(RESIZE(UNSIGNED(p_in_m_axis_cq_tdata(2 downto 2), i_data_start_loc'length));
                             else
                               i_data_start_loc <= (others => '0');
                             end if;
@@ -407,7 +424,7 @@ if rising_edge(p_in_user_clk) then
 
                 i_wr_addr <= i_req_addr(12 downto 2);
 
-                case data_start_loc is
+                case i_data_start_loc is
                   when "000" =>
 
                       i_m_axis_cq_tready <= '0';
