@@ -139,6 +139,9 @@ signal i_req_compl_ur        : std_logic := '0';
 
 signal i_payload_len         : std_logic := '0';
 
+signal i_data_start_loc      : std_logic_vector(2 downto 0);
+
+
 
 begin --architecture behavioral of pcie_uv7_rx
 
@@ -215,6 +218,8 @@ if rising_edge(p_in_user_clk) then
 
     i_payload_len <= '0';
 
+    i_data_start_loc <= (others => '0');
+
   else
 
     case i_fsm_cs is
@@ -287,6 +292,14 @@ if rising_edge(p_in_user_clk) then
                               else
                                 i_payload_len <= '0';
                               end if;
+                          end if;
+
+                          if (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
+                            data_start_loc   <= #TCQ (AXISTEN_IF_CQ_ALIGNMENT_MODE == "TRUE") ? {2'b0,m_axis_cq_tdata_q[2]} : 3'b0;
+
+                          elsif (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_IO_WR_D) then
+                            data_start_loc   <= #TCQ (AXISTEN_IF_CQ_ALIGNMENT_MODE == "TRUE") ? {2'b0,m_axis_cq_tdata[2]} : 3'b0;
+
                           end if;
 
                           --Compl
@@ -388,35 +401,46 @@ if rising_edge(p_in_user_clk) then
                 i_wr_addr <= i_req_addr(12 downto 2);
 
                 case data_start_loc is
-                  when "000"  =>
-                    i_m_axis_cq_tready <= '0';
+                  when "000" =>
 
-                    if i_payload_len = '1' then
-                      wr_data <= p_in_m_axis_cq_tdata(63 downto 0);
-                      wr_be   <= p_in_m_axis_cq_tuser(15 downto 8);
-                    else
-                      wr_data <= std_logic_vector(RESIZE(UNSIGNED(p_in_m_axis_cq_tdata(31 downto 0)), 64));
-                      wr_be   <= std_logic_vector(RESIZE(UNSIGNED(p_in_m_axis_cq_tuser(11 downto 8)),  8));
-                    end if;
+                      i_m_axis_cq_tready <= '0';
 
-                    wr_en  <= '1';
+                      if i_payload_len = '1' then
+                        wr_data <= p_in_m_axis_cq_tdata(63 downto 0);
+                        wr_be   <= p_in_m_axis_cq_tuser(15 downto 8);
 
-                    i_fsm_cs  <= #TCQ PIO_RX_WAIT_STATE;
+                      else
+                        wr_data <= std_logic_vector(RESIZE(UNSIGNED(p_in_m_axis_cq_tdata(31 downto 0)), 64));
+                        wr_be   <= std_logic_vector(RESIZE(UNSIGNED(p_in_m_axis_cq_tuser(11 downto 8)),  8));
 
-                  when "001"  =>
-                    m_axis_cq_tready <= #TCQ payload_len ? 1'b1 : 1'b0;
+                      end if;
 
-                    wr_data <= #TCQ {32'h0, m_axis_cq_tdata[63:32]};
-                    wr_be   <= #TCQ { 4'h0, m_axis_cq_tuser[15:12]};
-                    wr_en   <= #TCQ payload_len ? 1'b0 : 1'b1;
+                      wr_en <= '1';
 
-                    i_fsm_cs <= #TCQ payload_len ? PIO_RX_DATA2 : PIO_RX_WAIT_STATE;
+                      i_fsm_cs <= S_RX_WAIT;
+
+                  when "001" =>
+
+                      if i_payload_len = '1' then
+                        i_m_axis_cq_tready <= '1';
+                        wr_en <= '0';
+
+                        i_fsm_cs <= S_RX_RX_DATA2;
+
+                      else
+                        i_m_axis_cq_tready <= '0';
+                        wr_en <= '1';
+
+                        i_fsm_cs <= S_RX_WAIT;
+                      end if;
+
+                      wr_data <= std_logic_vector(RESIZE(UNSIGNED(p_in_m_axis_cq_tdata(63 downto 32)), 64));
+                      wr_be   <= std_logic_vector(RESIZE(UNSIGNED(p_in_m_axis_cq_tuser(15 downto 12)),  8));
 
                   when others =>
                     i_fsm_cs <= S_RX_RX_DATA;
-                  end
 
-                end case;
+                end case;--case data_start_loc is
 
             end if; --if p_in_m_axis_cq_tvalid = '1' then
 
