@@ -77,7 +77,7 @@ module board;
   `ifdef LINKWIDTH
   localparam   [3:0] LINK_WIDTH = 4'h`LINKWIDTH;
   `else
-  localparam   [3:0] LINK_WIDTH = 4'h1;
+  localparam   [3:0] LINK_WIDTH = 4'h8;
   `endif
   `ifdef LINKSPEED
   localparam   [2:0] LINK_SPEED = 3'h`LINKSPEED;
@@ -103,8 +103,6 @@ module board;
   wire  [(LINK_WIDTH-1):0]  ep_pci_exp_txp;
   wire  [(LINK_WIDTH-1):0]  rp_pci_exp_txn;
   wire  [(LINK_WIDTH-1):0]  rp_pci_exp_txp;
-  wire  [6:0] rp_txn;
-  wire  [6:0] rp_txp;
 
 
 
@@ -125,10 +123,10 @@ module board;
 
 
     // PCI-Express Interface
-    .pci_exp_txn({rp_txn,rp_pci_exp_txn}),
-    .pci_exp_txp({rp_txp,rp_pci_exp_txp}),
-    .pci_exp_rxn({7'b0,ep_pci_exp_txn}),
-    .pci_exp_rxp({7'b0,ep_pci_exp_txp})
+    .pci_exp_txn(rp_pci_exp_txn),
+    .pci_exp_txp(rp_pci_exp_txp),
+    .pci_exp_rxn(ep_pci_exp_txn),
+    .pci_exp_rxp(ep_pci_exp_txp)
 
 
   );

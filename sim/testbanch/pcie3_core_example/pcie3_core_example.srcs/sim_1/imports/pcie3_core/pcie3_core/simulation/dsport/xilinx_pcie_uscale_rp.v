@@ -70,10 +70,10 @@ module xilinx_pcie3_uscale_rp # (
   parameter PL_DISABLE_UPCONFIG_CAPABLE                = "FALSE",
  
   parameter          REF_CLK_FREQ                 = 0,                 // 0 - 100 MHz, 1 - 125 MHz,  2 - 250 MHz
-  parameter        AXISTEN_IF_RQ_ALIGNMENT_MODE   = "FALSE",
-  parameter        AXISTEN_IF_CC_ALIGNMENT_MODE   = "FALSE",
-  parameter        AXISTEN_IF_CQ_ALIGNMENT_MODE   = "FALSE",
-  parameter        AXISTEN_IF_RC_ALIGNMENT_MODE   = "FALSE",
+  parameter        AXISTEN_IF_RQ_ALIGNMENT_MODE   = "TRUE",
+  parameter        AXISTEN_IF_CC_ALIGNMENT_MODE   = "TRUE",
+  parameter        AXISTEN_IF_CQ_ALIGNMENT_MODE   = "TRUE",
+  parameter        AXISTEN_IF_RC_ALIGNMENT_MODE   = "TRUE",
   parameter        AXISTEN_IF_ENABLE_CLIENT_TAG   = "TRUE",
   parameter        AXISTEN_IF_RQ_PARITY_CHECK     = "FALSE",
   parameter        AXISTEN_IF_CC_PARITY_CHECK     = "FALSE",
@@ -93,7 +93,7 @@ module xilinx_pcie3_uscale_rp # (
 );
 
   localparam         TCQ = 1;
-  localparam         EP_DEV_ID = 16'h8011;
+  localparam         EP_DEV_ID = 16'h8018;
 
   //----------------------------------------------------------------------------------------------------------------//
   // 3. AXI Interface                                                                                               //

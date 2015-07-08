@@ -53,6 +53,8 @@ C:\\questa_sim64_10.2c\\win64\\vcom -64 -work xil_defaultlib   \
 "../../src/pcie/pcie_uv7_main.vhd" \
 "../testbanch/pcie_uv7_main_sim.vhd" \
 
+C:\\questa_sim64_10.2c\\win64\\vcom -64 -work xil_defaultlib   \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/sim/pcie3_core.vhd" \
 
 C:\\questa_sim64_10.2c\\win64\\vlog -64 -incr -work xil_defaultlib  +incdir+../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/functional +incdir+../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/tests +incdir+../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/dsport \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/source/pcie3_core_tph_tbl.v" \
@@ -82,7 +84,6 @@ C:\\questa_sim64_10.2c\\win64\\vlog -64 -incr -work xil_defaultlib  +incdir+../t
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/source/pcie3_core_phy_sync_cell.v" \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/source/pcie3_core_rxcdrhold.v" \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/source/pcie3_core_pcie3_uscale_core_top.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/sim/pcie3_core.v" \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/dsport/pci_exp_usrapp_cfg.v" \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/functional/sys_clk_gen.v" \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/dsport/pci_exp_usrapp_rx.v" \

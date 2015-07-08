@@ -76,10 +76,10 @@ constant CI_DATA_WIDTH                     : integer := C_PCGF_PCIE_DWIDTH;
 constant CI_KEEP_WIDTH                     : integer := CI_DATA_WIDTH / 32;
 
 constant CI_AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
-constant CI_AXISTEN_IF_RQ_ALIGNMENT_MODE   : string := "FALSE";
-constant CI_AXISTEN_IF_CC_ALIGNMENT_MODE   : string := "FALSE";
-constant CI_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
-constant CI_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
+constant CI_AXISTEN_IF_RQ_ALIGNMENT_MODE   : string := "TRUE";
+constant CI_AXISTEN_IF_CC_ALIGNMENT_MODE   : string := "TRUE";
+constant CI_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "TRUE";
+constant CI_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "TRUE";
 constant CI_AXISTEN_IF_ENABLE_CLIENT_TAG   : integer := 1;
 constant CI_AXISTEN_IF_RQ_PARITY_CHECK     : integer := 0;
 constant CI_AXISTEN_IF_CC_PARITY_CHECK     : integer := 0;

@@ -50,7 +50,7 @@
 //
 // Project    : Ultrascale FPGA Gen3 Integrated Block for PCI Express
 // File       : pcie_app_uscale.v
-// Version    : 4.0
+// Version    : 4.0 
 //-----------------------------------------------------------------------------
 //
 // Description: PCI Express Endpoint example application design
@@ -70,11 +70,11 @@ module  pcie_app_uscale #(
   parameter KEEP_WIDTH                                 = C_DATA_WIDTH / 32,
   parameter TCQ                                        = 1,
   parameter [1:0]  AXISTEN_IF_WIDTH               = (C_DATA_WIDTH == 256) ? 2'b10 : (C_DATA_WIDTH == 128) ? 2'b01 : 2'b00,
-  parameter        AXISTEN_IF_RQ_ALIGNMENT_MODE   = "FALSE",
-  parameter        AXISTEN_IF_CC_ALIGNMENT_MODE   = "FALSE",
-  parameter        AXISTEN_IF_CQ_ALIGNMENT_MODE   = "FALSE",
-  parameter        AXISTEN_IF_RC_ALIGNMENT_MODE   = "FALSE",
-  parameter        AXISTEN_IF_ENABLE_CLIENT_TAG   = 1,
+  parameter        AXISTEN_IF_RQ_ALIGNMENT_MODE   = "TRUE",
+  parameter        AXISTEN_IF_CC_ALIGNMENT_MODE   = "TRUE",
+  parameter        AXISTEN_IF_CQ_ALIGNMENT_MODE   = "TRUE",
+  parameter        AXISTEN_IF_RC_ALIGNMENT_MODE   = "TRUE",
+  parameter        AXISTEN_IF_ENABLE_CLIENT_TAG   = 0,
   parameter        AXISTEN_IF_RQ_PARITY_CHECK     = 0,
   parameter        AXISTEN_IF_CC_PARITY_CHECK     = 0,
   parameter        AXISTEN_IF_MC_RX_STRADDLE      = 0,
@@ -256,7 +256,7 @@ module  pcie_app_uscale #(
   input                                      user_clk,
   input                                      user_reset,
   input                                      user_lnk_up,
-  input                                      sys_rst_n
+  input                                      sys_rst_n 
 );
 
 
@@ -280,14 +280,8 @@ module  pcie_app_uscale #(
   end
 
   // Create LED output signals
-  assign link_width = cfg_negotiated_width == 4'b1000 ? 2'b11
-                    : (cfg_negotiated_width == 4'b0100 ? 2'b01
-                    : (cfg_negotiated_width == 4'b0010 ? 2'b10
-                    : (cfg_negotiated_width == 4'b0001 ? {1'b0,user_clk_heartbeat[25]} : {user_clk_heartbeat[25],user_clk_heartbeat[25]})));
-
-  assign link_speed = cfg_current_speed == 3'b100 ? 2'b11
-                    : (cfg_current_speed == 3'b010 ? 2'b01
-                    : (cfg_current_speed == 3'b001 ? 2'b10 : {user_clk_heartbeat[25],user_clk_heartbeat[25]}));
+  assign link_width = cfg_negotiated_width == 4'b1000 ? 2'b11 : (cfg_negotiated_width == 4'b0100 ? 2'b01 : (cfg_negotiated_width == 4'b0010 ? 2'b10 : (cfg_negotiated_width == 4'b0001 ? {1'b0,user_clk_heartbeat[25]} : {user_clk_heartbeat[25],user_clk_heartbeat[25]})));
+  assign link_speed = cfg_current_speed == 3'b100 ? 2'b11 : (cfg_current_speed == 3'b010 ? 2'b01 : (cfg_current_speed == 3'b001 ? 2'b10 : {user_clk_heartbeat[25],user_clk_heartbeat[25]}));
 
   // Since the leds are not connected in the example design no OBUF is included.
   assign led_out[0] = sys_rst_n;
@@ -343,8 +337,8 @@ module  pcie_app_uscale #(
 
   assign m_axis_cq_tready                    = {22{m_axis_cq_tready_bit}};
   assign m_axis_rc_tready                    = {22{m_axis_rc_tready_bit}};
-
-
+	
+	
 reg                       [1:0]     cfg_flr_done_reg0;
 reg                       [5:0]     cfg_vf_flr_done_reg0;
 reg                       [1:0]     cfg_flr_done_reg1;
@@ -368,15 +362,9 @@ always @(posedge user_clk)
   end
 
 
-assign cfg_flr_done[0] = ~cfg_flr_done_reg1[0] && cfg_flr_done_reg0[0];
-assign cfg_flr_done[1] = ~cfg_flr_done_reg1[1] && cfg_flr_done_reg0[1];
+assign cfg_flr_done[0] = ~cfg_flr_done_reg1[0] && cfg_flr_done_reg0[0]; assign cfg_flr_done[1] = ~cfg_flr_done_reg1[1] && cfg_flr_done_reg0[1];
 
-assign cfg_vf_flr_done[0] = ~cfg_vf_flr_done_reg1[0] && cfg_vf_flr_done_reg0[0];
-assign cfg_vf_flr_done[1] = ~cfg_vf_flr_done_reg1[1] && cfg_vf_flr_done_reg0[1];
-assign cfg_vf_flr_done[2] = ~cfg_vf_flr_done_reg1[2] && cfg_vf_flr_done_reg0[2];
-assign cfg_vf_flr_done[3] = ~cfg_vf_flr_done_reg1[3] && cfg_vf_flr_done_reg0[3];
-assign cfg_vf_flr_done[4] = ~cfg_vf_flr_done_reg1[4] && cfg_vf_flr_done_reg0[4];
-assign cfg_vf_flr_done[5] = ~cfg_vf_flr_done_reg1[5] && cfg_vf_flr_done_reg0[5];
+assign cfg_vf_flr_done[0] = ~cfg_vf_flr_done_reg1[0] && cfg_vf_flr_done_reg0[0]; assign cfg_vf_flr_done[1] = ~cfg_vf_flr_done_reg1[1] && cfg_vf_flr_done_reg0[1]; assign cfg_vf_flr_done[2] = ~cfg_vf_flr_done_reg1[2] && cfg_vf_flr_done_reg0[2]; assign cfg_vf_flr_done[3] = ~cfg_vf_flr_done_reg1[3] && cfg_vf_flr_done_reg0[3]; assign cfg_vf_flr_done[4] = ~cfg_vf_flr_done_reg1[4] && cfg_vf_flr_done_reg0[4]; assign cfg_vf_flr_done[5] = ~cfg_vf_flr_done_reg1[5] && cfg_vf_flr_done_reg0[5];
 
 
 
