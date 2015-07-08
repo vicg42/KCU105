@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------
 -- Engineer    : Golovachenko Victor
 --
--- Create Date : 25.08.2012 17:56:21
--- Module Name : pcie_rx
+-- Create Date : 08.07.2015 13:35:52
+-- Module Name : pcie_uv7_rx.vhd
 --
--- Description : PCIE rx controller
+-- Description :
 --
 -------------------------------------------------------------------------
 library ieee;
@@ -13,66 +13,97 @@ use ieee.numeric_std.all;
 
 library work;
 use work.reduce_pack.all;
-use work.vicg_common_pkg.all;
 use work.pcie_pkg.all;
 
-entity pcie_rx is
-port(
---usr app
-usr_reg_adr_o       : out   std_logic_vector(7 downto 0);
-usr_reg_din_o       : out   std_logic_vector(31 downto 0);
-usr_reg_wr_o        : out   std_logic;
-usr_reg_rd_o        : out   std_logic;
+entity pcie_uv7_rx is
+generic (
+--AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
+AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
+AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
+AXISTEN_IF_RC_STRADDLE         : integer := 0;
+AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
+AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := TO_UNSIGNED(16#2FFF, 18);
 
---usr_txbuf_dbe_o     : out   std_logic_vector(7 downto 0);
-usr_txbuf_din_o     : out   std_logic_vector(31 downto 0);
-usr_txbuf_wr_o      : out   std_logic;
-usr_txbuf_wr_last_o : out   std_logic;
-usr_txbuf_full_i    : in    std_logic;
-
---pci_core -> usr_app
-trn_rd              : in    std_logic_vector(63 downto 0);
-trn_rrem_n          : in    std_logic_vector(3 downto 0);
-trn_rsof_n          : in    std_logic;
-trn_reof_n          : in    std_logic;
-trn_rsrc_rdy_n      : in    std_logic;             --pci_core - rdy
-trn_rsrc_dsc_n      : in    std_logic;
-trn_rdst_rdy_n_o    : out   std_logic;             --usr_app - rdy
-trn_rbar_hit_n      : in    std_logic_vector(6 downto 0);
-
---Handshake with Tx engine:
-req_compl_o         : out   std_logic;
-compl_done_i        : in    std_logic;
-
-req_addr_o          : out   std_logic_vector(29 downto 0);
-req_pkt_type_o      : out   std_logic_vector(6 downto 0);
-req_tc_o            : out   std_logic_vector(2 downto 0);
-req_td_o            : out   std_logic;
-req_ep_o            : out   std_logic;
-req_attr_o          : out   std_logic_vector(1 downto 0);
-req_len_o           : out   std_logic_vector(9 downto 0);
-req_rid_o           : out   std_logic_vector(15 downto 0);
-req_tag_o           : out   std_logic_vector(7 downto 0);
-req_be_o            : out   std_logic_vector(7 downto 0);
-req_exprom_o        : out   std_logic;
-
---dma trn
-dma_init_i          : in    std_logic;
-
-cpld_total_size_o   : out   std_logic_vector(31 downto 0); --Total count data(DW) recieve pkt CplD
-cpld_malformed_o    : out   std_logic;                     --result of compare (i_cpld_tlp_len != i_cpld_tlp_cnt)
-
---Технологический порт
-tst_o               : out   std_logic_vector(31 downto 0);
-tst_i               : in    std_logic_vector(31 downto 0);
-
---System
-clk                 : in    std_logic;
-rst_n               : in    std_logic
+G_DATA_WIDTH   : integer := 64     ;
+G_STRB_WIDTH   : integer := 64 / 8 ; -- TSTRB width
+G_KEEP_WIDTH   : integer := 64 / 32;
+G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
 );
-end entity pcie_rx;
+port(
+p_in_user_clk : in  std_logic;
+p_in_reset_n  : in  std_logic;
 
-architecture behavioral of pcie_rx is
+-- Completer Request Interface
+p_in_m_axis_cq_tdata      : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_in_m_axis_cq_tlast      : in  std_logic;
+p_in_m_axis_cq_tvalid     : in  std_logic;
+p_in_m_axis_cq_tuser      : in  std_logic_vector(84 downto 0);
+p_in_m_axis_cq_tkeep      : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_pcie_cq_np_req_count : in  std_logic_vector(5 downto 0);
+p_out_m_axis_cq_tready    : out std_logic;
+p_out_pcie_cq_np_req      : out std_logic;
+
+-- Requester Completion Interface
+p_in_m_axis_rc_tdata    : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_in_m_axis_rc_tlast    : in  std_logic;
+p_in_m_axis_rc_tvalid   : in  std_logic;
+p_in_m_axis_rc_tkeep    : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_m_axis_rc_tuser    : in  std_logic_vector(74 downto 0);
+p_out_m_axis_rc_tready  : out std_logic;
+
+--RX Message Interface
+p_in_cfg_msg_received      : in  std_logic;
+p_in_cfg_msg_received_type : in  std_logic_vector(4 downto 0);
+p_in_cfg_msg_data          : in  std_logic_vector(7 downto 0);
+
+-- Memory Read data handshake with Completion
+-- transmit unit. Transmit unit reponds to
+-- req_compl assertion and responds with compl_done
+-- assertion when a Completion w/ data is transmitted.
+p_out_req_compl    : out std_logic := '0';
+p_out_req_compl_wd : out std_logic := '0';
+p_out_req_compl_ur : out std_logic := '0';
+p_in_compl_done    : in  std_logic;
+
+p_out_req_tc       : out std_logic_vector(2 downto 0) ;-- Memory Read TC
+p_out_req_attr     : out std_logic_vector(2 downto 0) ;-- Memory Read Attribute
+p_out_req_len      : out std_logic_vector(10 downto 0);-- Memory Read Length
+p_out_req_rid      : out std_logic_vector(15 downto 0);-- Memory Read Requestor ID { 8'b0 (Bus no),
+                                                       --                            3'b0 (Dev no),
+                                                       --                            5'b0 (Func no)}
+p_out_req_tag      : out std_logic_vector(7 downto 0) ;-- Memory Read Tag
+p_out_req_be       : out std_logic_vector(7 downto 0) ;-- Memory Read Byte Enables
+p_out_req_addr     : out std_logic_vector(12 downto 0);-- Memory Read Address
+p_out_req_at       : out std_logic_vector(1 downto 0) ;-- Address Translation
+
+-- Outputs to the TX Block in case of an UR
+-- Required to form the completions
+p_out_req_des_qword0      : out std_logic_vector(63 downto 0);-- DWord0 and Dword1 of descriptor of the request
+p_out_req_des_qword1      : out std_logic_vector(63 downto 0);-- DWord2 and Dword3 of descriptor of the request
+p_out_req_des_tph_present : out std_logic;                    -- TPH Present in the request
+p_out_req_des_tph_type    : out std_logic_vector(1 downto 0) ;-- If TPH Present then TPH type
+p_out_req_des_tph_st_tag  : out std_logic_vector(7 downto 0) ;-- TPH Steering tag of the request
+
+--Output to Indicate that the Request was a Mem lock Read Req
+p_out_req_mem_lock : out std_logic;
+p_out_req_mem      : out std_logic;
+
+--Memory interface used to save 2 DW data received
+--on Memory Write 32 TLP. Data extracted from
+--inbound TLP is presented to the Endpoint memory
+--unit. Endpoint memory unit reacts to wr_en
+--assertion and asserts wr_busy when it is
+--processing written information.
+p_out_wr_addr     : out std_logic_vector(10 downto 0);-- Memory Write Address
+p_out_wr_be       : out std_logic_vector(7 downto 0); -- Memory Write Byte Enable
+p_out_wr_data     : out std_logic_vector(63 downto 0);-- Memory Write Data
+p_out_wr_en       : out std_logic;                    -- Memory Write Enable
+p_out_payload_len : out std_logic;                    -- Transaction Payload Length
+p_in_wr_busy      : in  std_logic                     -- Memory Write Busy
+);
+end entity pcie_uv7_rx;
+
+architecture behavioral of pcie_uv7_rx is
 
 type TFsm_state is (
 S_RX_IDLE    ,
@@ -91,128 +122,43 @@ S_RX_CPLD_QWN,
 S_RX_CPLD_WT ,
 S_RX_MRD_WT1
 );
-signal i_fsm_cs            : TFsm_state;
+signal i_fsm_rx_cs            : TFsm_state;
 
-signal i_bar_exprom        : std_logic;
-signal i_bar_usr           : std_logic;
+signal i_in_pkt_q           : std_logic;
+signal i_sop                : std_logic;
 
-signal i_cpld_total_size   : unsigned(31 downto 0);
-signal i_cpld_malformed    : std_logic;
-
-signal i_req_compl         : std_logic;
-signal i_req_addr          : std_logic_vector(29 downto 0);
-signal i_req_pkt_type      : std_logic_vector(6 downto 0);
-signal i_req_tc            : std_logic_vector(2 downto 0);
-signal i_req_td            : std_logic;
-signal i_req_ep            : std_logic;
-signal i_req_attr          : std_logic_vector(1 downto 0);
-signal i_req_len           : std_logic_vector(9 downto 0);
-signal i_req_rid           : std_logic_vector(15 downto 0);
-signal i_req_tag           : std_logic_vector(7 downto 0);
-signal i_req_be            : std_logic_vector(7 downto 0);
-signal i_req_exprom        : std_logic;
-
-signal i_trn_rdst_rdy_n    : std_logic;
-
-signal i_cpld_tlp_cnt      : unsigned(9 downto 0);
-signal i_cpld_tlp_len      : std_logic_vector(9 downto 0);
-signal i_cpld_tlp_dlast    : std_logic;
-signal i_cpld_tlp_work     : std_logic;
-
-signal i_usr_di            : std_logic_vector(31 downto 0);
-signal i_usr_di_swap       : std_logic_vector(31 downto 0);
-signal i_usr_wr            : std_logic;
-signal i_usr_rd            : std_logic;
-
-signal i_trn_dw_skip       : std_logic;
-signal i_trn_dw_sel        : unsigned((trn_rd'length / 64) - 1 downto 0);
+signal i_m_axis_cq_tready   : std_logic;
 
 
-
-begin --architecture behavioral
-
-
-----------------------------------------
---DBG
-----------------------------------------
-tst_o <= (others => '0');
+begin --architecture behavioral of pcie_uv7_rx
 
 
-----------------------------------------
---
-----------------------------------------
-i_bar_exprom <= not trn_rbar_hit_n(6);
-i_bar_usr <= not trn_rbar_hit_n(0) or not trn_rbar_hit_n(1);
-
-usr_reg_adr_o <= (i_req_addr(5 downto 0) & "00");
-usr_reg_din_o <= i_usr_di_swap;
-usr_reg_rd_o <= i_usr_rd;
-usr_reg_wr_o <= i_usr_wr and not i_cpld_tlp_work;
-
-usr_txbuf_din_o <= i_usr_di_swap;
-usr_txbuf_wr_o <= i_usr_wr and i_cpld_tlp_work;
-usr_txbuf_wr_last_o <= i_cpld_tlp_dlast;
-
-trn_rdst_rdy_n_o <= i_trn_rdst_rdy_n or OR_reduce(i_trn_dw_sel) or (usr_txbuf_full_i and i_cpld_tlp_work);
-
-gen_swap_usr_di : for i in 0 to (i_usr_di'length / 8) - 1 generate
-i_usr_di_swap((i_usr_di_swap'length - 8*i) - 1 downto
-              (i_usr_di_swap'length - 8*(i+1))) <= i_usr_di(8*(i+1) - 1 downto 8*i);
-end generate gen_swap_usr_di;
-
-req_compl_o   <= i_req_compl;
-req_exprom_o  <= i_req_exprom;
-req_pkt_type_o<= i_req_pkt_type;
-req_tc_o      <= i_req_tc;
-req_td_o      <= i_req_td;
-req_ep_o      <= i_req_ep;
-req_attr_o    <= i_req_attr;
-req_len_o     <= i_req_len;
-req_rid_o     <= i_req_rid;
-req_tag_o     <= i_req_tag;
-req_be_o      <= i_req_be;
-req_addr_o    <= i_req_addr;
-
-cpld_total_size_o <= std_logic_vector(i_cpld_total_size);
-cpld_malformed_o <= i_cpld_malformed;
-
-init : process(clk)
+--Generate a signal that indicates if we are currently receiving a packet.
+--This value is one clock cycle delayed from what is actually on the AXIS data bus.
+process(p_in_user_clk)
 begin
-if rising_edge(clk) then
-  if rst_n = '0' then
-    i_cpld_total_size <= (others => '0');
-    i_cpld_malformed <= '0';
+if rising_edge(p_in_user_clk) then
+  if (p_in_reset_n = '0') then
+    i_in_pkt_q <= '0';
 
-  else
+  elsif (p_in_m_axis_cq_tvalid and i_m_axis_cq_tready and p_in_m_axis_cq_tlast) then
+    i_in_pkt_q <= '0';
 
-    if dma_init_i = '1' then --DMA initialization
-      i_cpld_total_size <= (others => '0');
-      i_cpld_malformed <= '0';
-
-    else
-      if (i_fsm_cs = S_RX_CPLD_WT) and (UNSIGNED(i_cpld_tlp_len) /= i_cpld_tlp_cnt) then
-        i_cpld_malformed <= '1';
-      end if;
-
-      if (i_fsm_cs = S_RX_IDLE)
-        and trn_rsof_n = '0' and trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
-
-          if trn_rd(62 downto 56) = C_PCIE_PKT_TYPE_CPLD_3DW_WD then
-            i_cpld_total_size <= i_cpld_total_size + UNSIGNED(trn_rd(41 downto 32));
-          end if;
-
-      end if;
-
-    end if;
+  elsif (sop and i_m_axis_cq_tready) then
+    i_in_pkt_q <= '1';
   end if;
 end if;
-end process;--init
+end process;
+
+i_sop <= not i_in_pkt_q and p_in_m_axis_cq_tvalid;
+
+
 
 --Rx State Machine
-fsm : process(clk)
+fsm : process(p_in_user_clk)
 begin
-if rising_edge(clk) then
-  if rst_n = '0' then
+if rising_edge(p_in_user_clk) then
+  if p_in_reset_n = '0' then
 
     i_fsm_cs <= S_RX_IDLE;
 
@@ -250,13 +196,27 @@ if rising_edge(clk) then
         --Анализ типа принятого пакета
         --#######################################################################
         when S_RX_IDLE =>
+            i_m_axis_cq_tready <= '1';
+            i_m_axis_rc_tready <= '1';
 
-            if trn_rsof_n = '0' and trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
-                case trn_rd(62 downto 56) is --field FMT (Format pkt) + field TYPE (Type pkt)
+            if i_sop = '1' then
+              i_desc_hdr_qw0     <= p_in_m_axis_cq_tdata(63 downto 0);
+              i_req_byte_enables <= p_in_m_axis_cq_tuser(7 downto 0);
+
+              i_fsm_cs <= S_RX_MRD_QW1;
+            end if;
+
+        --#######################################################################
+        --Анализ типа принятого пакета
+        --#######################################################################
+        when S_RX_PKT_CHK =>
+
+            if p_in_m_axis_cq_tvalid = '1' then
+                case p_in_m_axis_cq_tdata(14 downto 11) is --field FMT (Format pkt) + field TYPE (Type pkt)
                     -------------------------------------------------------------------------
                     --IORd - 3DW, no data (PC<-FPGA)
                     -------------------------------------------------------------------------
-                    when C_PCIE_PKT_TYPE_IORD_3DW_ND =>
+                    when C_PCIE3_PKT_TYPE_IO_RD_ND =>
 
                       if UNSIGNED(trn_rd(41 downto 32)) = TO_UNSIGNED(16#01#, 10) then --Length data payload (DW)
                         i_req_pkt_type <= trn_rd(62 downto 56);
@@ -653,5 +613,6 @@ if rising_edge(clk) then
 end if;--rst_n,
 end process; --fsm
 
-
 end architecture behavioral;
+
+
