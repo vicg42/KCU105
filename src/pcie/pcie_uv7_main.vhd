@@ -76,10 +76,10 @@ constant CI_DATA_WIDTH                     : integer := C_PCGF_PCIE_DWIDTH;
 constant CI_KEEP_WIDTH                     : integer := CI_DATA_WIDTH / 32;
 
 constant CI_AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
-constant CI_AXISTEN_IF_RQ_ALIGNMENT_MODE   : boolean := FALSE;
-constant CI_AXISTEN_IF_CC_ALIGNMENT_MODE   : boolean := FALSE;
-constant CI_AXISTEN_IF_CQ_ALIGNMENT_MODE   : boolean := FALSE;
-constant CI_AXISTEN_IF_RC_ALIGNMENT_MODE   : boolean := FALSE;
+constant CI_AXISTEN_IF_RQ_ALIGNMENT_MODE   : string := "FALSE";
+constant CI_AXISTEN_IF_CC_ALIGNMENT_MODE   : string := "FALSE";
+constant CI_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
+constant CI_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
 constant CI_AXISTEN_IF_ENABLE_CLIENT_TAG   : integer := 1;
 constant CI_AXISTEN_IF_RQ_PARITY_CHECK     : integer := 0;
 constant CI_AXISTEN_IF_CC_PARITY_CHECK     : integer := 0;
@@ -244,10 +244,10 @@ generic(
 G_DATA_WIDTH                     : integer := 64;
 G_KEEP_WIDTH                     : integer := 1;
 G_AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
-G_AXISTEN_IF_RQ_ALIGNMENT_MODE   : boolean := FALSE;
-G_AXISTEN_IF_CC_ALIGNMENT_MODE   : boolean := FALSE;
-G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : boolean := FALSE;
-G_AXISTEN_IF_RC_ALIGNMENT_MODE   : boolean := FALSE;
+G_AXISTEN_IF_RQ_ALIGNMENT_MODE   : string := "FALSE";
+G_AXISTEN_IF_CC_ALIGNMENT_MODE   : string := "FALSE";
+G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
+G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
 G_AXISTEN_IF_ENABLE_CLIENT_TAG   : integer := 1;
 G_AXISTEN_IF_RQ_PARITY_CHECK     : integer := 0;
 G_AXISTEN_IF_CC_PARITY_CHECK     : integer := 0;
@@ -520,28 +520,28 @@ signal i_cfg_hot_reset_in                 : std_logic;
 
 --signal i_cfg_phy_link_down                : std_logic;
 --signal i_cfg_phy_link_status              : std_logic_vector(1 downto 0);
-signal i_cfg_negotiated_width             : std_logic_vector(3 downto 0);
+signal i_cfg_negotiated_width             : std_logic_vector(3 downto 0) := (others => '0');
 --signal i_cfg_current_speed                : std_logic_vector(2 downto 0);
-signal i_cfg_max_payload                  : std_logic_vector(2 downto 0);
-signal i_cfg_max_read_req                 : std_logic_vector(2 downto 0);
-signal i_cfg_function_status              : std_logic_vector(15 downto 0);
+signal i_cfg_max_payload                  : std_logic_vector(2 downto 0) := (others => '0');
+signal i_cfg_max_read_req                 : std_logic_vector(2 downto 0) := (others => '0');
+signal i_cfg_function_status              : std_logic_vector(15 downto 0):= (others => '0');
 --signal i_cfg_function_power_state         : std_logic_vector(11 downto 0);
 --signal i_cfg_vf_status                    : std_logic_vector(15 downto 0);
 --signal i_cfg_vf_power_state               : std_logic_vector(23 downto 0);
 --signal i_cfg_link_power_state             : std_logic_vector(1 downto 0);
 
-signal i_cfg_msg_received                 : std_logic;
-signal i_cfg_msg_received_data            : std_logic_vector(7 downto 0);
-signal i_cfg_msg_received_type            : std_logic_vector(4 downto 0);
-signal i_cfg_msg_transmit                 : std_logic;
-signal i_cfg_msg_transmit_type            : std_logic_vector(2 downto 0);
-signal i_cfg_msg_transmit_data            : std_logic_vector(31 downto 0);
-signal i_cfg_msg_transmit_done            : std_logic;
+signal i_cfg_msg_received                 : std_logic                    := '0';
+signal i_cfg_msg_received_data            : std_logic_vector(7 downto 0) := (others => '0');
+signal i_cfg_msg_received_type            : std_logic_vector(4 downto 0) := (others => '0');
+signal i_cfg_msg_transmit                 : std_logic                    := '0';
+signal i_cfg_msg_transmit_type            : std_logic_vector(2 downto 0) := (others => '0');
+signal i_cfg_msg_transmit_data            : std_logic_vector(31 downto 0):= (others => '0');
+signal i_cfg_msg_transmit_done            : std_logic                    := '0';
 
-signal i_cfg_flr_in_process               : std_logic_vector(3 downto 0);
-signal i_cfg_flr_done                     : std_logic_vector(3 downto 0);
-signal i_cfg_vf_flr_in_process            : std_logic_vector(7 downto 0);
-signal i_cfg_vf_flr_done                  : std_logic_vector(7 downto 0);
+signal i_cfg_flr_in_process               : std_logic_vector(3 downto 0) := (others => '0');
+signal i_cfg_flr_done                     : std_logic_vector(3 downto 0) := (others => '0');
+signal i_cfg_vf_flr_in_process            : std_logic_vector(7 downto 0) := (others => '0');
+signal i_cfg_vf_flr_done                  : std_logic_vector(7 downto 0) := (others => '0');
 
 --signal i_cfg_link_training_enable         : std_logic;
 

@@ -21,10 +21,10 @@ generic(
 G_DATA_WIDTH                     : integer := 64;
 G_KEEP_WIDTH                     : integer := 1;
 G_AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
-G_AXISTEN_IF_RQ_ALIGNMENT_MODE   : boolean := FALSE;
-G_AXISTEN_IF_CC_ALIGNMENT_MODE   : boolean := FALSE;
-G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : boolean := FALSE;
-G_AXISTEN_IF_RC_ALIGNMENT_MODE   : boolean := FALSE;
+G_AXISTEN_IF_RQ_ALIGNMENT_MODE   : string := "FALSE";
+G_AXISTEN_IF_CC_ALIGNMENT_MODE   : string := "FALSE";
+G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
+G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
 G_AXISTEN_IF_ENABLE_CLIENT_TAG   : integer := 1;
 G_AXISTEN_IF_RQ_PARITY_CHECK     : integer := 0;
 G_AXISTEN_IF_CC_PARITY_CHECK     : integer := 0;
@@ -212,10 +212,10 @@ signal i_req_completion        : std_logic;
 signal i_completion_done       : std_logic;
 signal i_rst_n                 : std_logic;
 
-signal i_req_compl             : std_logic;
-signal i_req_compl_wd          : std_logic;
-signal i_req_compl_ur          : std_logic;
-signal i_compl_done            : std_logic;
+signal i_req_compl             : std_logic := '0';
+signal i_req_compl_wd          : std_logic := '0';
+signal i_req_compl_ur          : std_logic := '0';
+signal i_compl_done            : std_logic := '0';
 
 signal i_req_tc                : std_logic_vector(2 downto 0) ;
 signal i_req_attr              : std_logic_vector(2 downto 0) ;

@@ -28,8 +28,8 @@ end component pio_to_ctrl;
 component pcie_rx
 generic(
 --AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
-AXISTEN_IF_CQ_ALIGNMENT_MODE   : boolean := FALSE;
-AXISTEN_IF_RC_ALIGNMENT_MODE   : boolean := FALSE;
+AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
+AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
 AXISTEN_IF_RC_STRADDLE         : integer := 0;
 AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
 AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1');
@@ -70,9 +70,9 @@ cfg_msg_data          : in  std_logic_vector(7 downto 0);
 -- transmit unit. Transmit unit reponds to
 -- req_compl assertion and responds with compl_done
 -- assertion when a Completion w/ data is transmitted.
-req_compl             : out std_logic;
-req_compl_wd          : out std_logic;
-req_compl_ur          : out std_logic;
+req_compl             : out std_logic := '0';
+req_compl_wd          : out std_logic := '0';
+req_compl_ur          : out std_logic := '0';
 compl_done            : in  std_logic;
 
 req_tc                : out std_logic_vector(2 downto 0) ;-- Memory Read TC
@@ -117,8 +117,8 @@ end component pcie_rx;
 component pcie_tx
 generic (
 --parameter [1 downto 0);AXISTEN_IF_WIDTH = 00,
-AXISTEN_IF_RQ_ALIGNMENT_MODE : boolean := FALSE;
-AXISTEN_IF_CC_ALIGNMENT_MODE : boolean := FALSE;
+AXISTEN_IF_RQ_ALIGNMENT_MODE : string := "FALSE";
+AXISTEN_IF_CC_ALIGNMENT_MODE : string := "FALSE";
 AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
 AXISTEN_IF_RQ_PARITY_CHECK   : integer := 0;
 AXISTEN_IF_CC_PARITY_CHECK   : integer := 0;
