@@ -106,21 +106,10 @@ end entity pcie_uv7_rx;
 architecture behavioral of pcie_uv7_rx is
 
 type TFsm_state is (
-S_RX_IDLE    ,
-S_RX_IOWR_QW1,
-S_RX_IOWR_WT ,
-S_RX_MWR_QW1 ,
--- S_RX_MWR_QW41,
--- S_RX_MWR_QW42,
-S_RX_MWR_WT  ,
-S_RX_MRD_QW1 ,
--- S_RX_MRD_QW41,
--- S_RX_MRD_QW42,
-S_RX_MRD_WT  ,
-S_RX_CPL_QW1 ,
-S_RX_CPLD_QWN,
-S_RX_CPLD_WT ,
-S_RX_MRD_WT1
+S_RX_IDLE   ,
+S_RX_PKT_CHK,
+S_RX_RX_DATA,
+S_RX_WAIT
 );
 signal i_fsm_rx_cs            : TFsm_state;
 
@@ -129,9 +118,48 @@ signal i_sop                : std_logic;
 
 signal i_m_axis_cq_tready   : std_logic;
 
+signal i_req_tc              : std_logic_vector(2 downto 0) ;
+signal i_req_attr            : std_logic_vector(2 downto 0) ;
+signal i_req_len             : std_logic_vector(10 downto 0);
+signal i_req_rid             : std_logic_vector(15 downto 0);
+signal i_req_tag             : std_logic_vector(7 downto 0) ;
+signal i_req_be              : std_logic_vector(7 downto 0) ;
+signal i_req_addr            : std_logic_vector(12 downto 0);
+signal i_req_at              : std_logic_vector(1 downto 0) ;
+
+signal i_req_des_qword0      : std_logic_vector(63 downto 0);
+signal i_req_des_qword1      : std_logic_vector(63 downto 0);
+signal i_req_des_tph_present : std_logic;
+signal i_req_des_tph_type    : std_logic_vector(1 downto 0) ;
+signal i_req_des_tph_st_tag  : std_logic_vector(7 downto 0) ;
+
+signal i_req_compl           : std_logic := '0';
+signal i_req_compl_wd        : std_logic := '0';
+signal i_req_compl_ur        : std_logic := '0';
+
+
 
 begin --architecture behavioral of pcie_uv7_rx
 
+
+p_out_req_tc   <= i_req_tc  ;
+p_out_req_attr <= i_req_attr;
+p_out_req_len  <= i_req_len ;
+p_out_req_rid  <= i_req_rid ;
+p_out_req_tag  <= i_req_tag ;
+p_out_req_be   <= i_req_be  ;
+p_out_req_addr <= i_req_addr;
+p_out_req_at   <= i_req_at  ;
+
+p_out_req_des_qword0      <= i_req_des_qword0     ;
+p_out_req_des_qword1      <= i_req_des_qword1     ;
+p_out_req_des_tph_present <= i_req_des_tph_present;
+p_out_req_des_tph_type    <= i_req_des_tph_type   ;
+p_out_req_des_tph_st_tag  <= i_req_des_tph_st_tag ;
+
+p_out_req_compl    <= i_req_compl   ;
+p_out_req_compl_wd <= i_req_compl_wd;
+p_out_req_compl_ur <= i_req_compl_ur;
 
 --Generate a signal that indicates if we are currently receiving a packet.
 --This value is one clock cycle delayed from what is actually on the AXIS data bus.
@@ -162,14 +190,20 @@ if rising_edge(p_in_user_clk) then
 
     i_fsm_cs <= S_RX_IDLE;
 
-    i_trn_rdst_rdy_n <= '0';
+    i_desc_hdr_qw0     <= (others => '0');
+    i_m_axis_cq_tready <= '0';
+    i_m_axis_rc_tready <= '1';
+
+    i_req_des_qword0      <= (others => '0');
+    i_req_des_qword1      <= (others => '0');
+    i_req_des_tph_present <= (others => '0');
+    i_req_des_tph_type    <= (others => '0');
+    i_req_des_tph_st_tag  <= (others => '0');
 
     i_req_compl <= '0';
     i_req_exprom <= '0';
-    i_req_pkt_type <= (others => '0');
+    i_trn_type <= (others => '0');
     i_req_tc   <= (others => '0');
-    i_req_td   <= '0';
-    i_req_ep   <= '0';
     i_req_attr <= (others => '0');
     i_req_len  <= (others => '0');
     i_req_rid  <= (others => '0');
@@ -177,23 +211,12 @@ if rising_edge(p_in_user_clk) then
     i_req_be   <= (others => '0');
     i_req_addr <= (others => '0');
 
-    i_cpld_tlp_len <= (others => '0');
-    i_cpld_tlp_cnt <= (others => '0');
-    i_cpld_tlp_dlast <= '0';
-    i_cpld_tlp_work <= '0';
-
-    i_trn_dw_sel <= (others => '0');
-    i_trn_dw_skip <= '0';
-
-    i_usr_di <= (others => '0');
-    i_usr_wr <= '0';
-    i_usr_rd <= '0';
 
   else
 
     case i_fsm_cs is
         --#######################################################################
-        --Анализ типа принятого пакета
+        --Detect start of packet
         --#######################################################################
         when S_RX_IDLE =>
             i_m_axis_cq_tready <= '1';
@@ -207,406 +230,152 @@ if rising_edge(p_in_user_clk) then
             end if;
 
         --#######################################################################
-        --Анализ типа принятого пакета
+        --Check paket type
         --#######################################################################
         when S_RX_PKT_CHK =>
 
             if p_in_m_axis_cq_tvalid = '1' then
-                case p_in_m_axis_cq_tdata(14 downto 11) is --field FMT (Format pkt) + field TYPE (Type pkt)
+
+                --Req Type
+                case p_in_m_axis_cq_tdata(14 downto 11) is
                     -------------------------------------------------------------------------
                     --IORd - 3DW, no data (PC<-FPGA)
                     -------------------------------------------------------------------------
-                    when C_PCIE3_PKT_TYPE_IO_RD_ND =>
+                    when C_PCIE3_PKT_TYPE_IO_RD_ND
+                        | C_PCIE3_PKT_TYPE_MEM_RD_ND
+                        | C_PCIE3_PKT_TYPE_MEM_LK_RD_ND
+                        | C_PCIE3_PKT_TYPE_IO_WR_D
+                        | C_PCIE3_PKT_TYPE_MEM_WR_D
+                        | C_PCIE3_PKT_TYPE_ATOP_FAA
+                        | C_PCIE3_PKT_TYPE_ATOP_UCS
+                        | C_PCIE3_PKT_TYPE_ATOP_CAS =>
 
-                      if UNSIGNED(trn_rd(41 downto 32)) = TO_UNSIGNED(16#01#, 10) then --Length data payload (DW)
-                        i_req_pkt_type <= trn_rd(62 downto 56);
-                        i_req_tc       <= trn_rd(54 downto 52);
-                        i_req_td       <= trn_rd(47);
-                        i_req_ep       <= trn_rd(46);
-                        i_req_attr     <= trn_rd(45 downto 44);
-                        i_req_len      <= trn_rd(41 downto 32); --Length data payload (DW)
-                        i_req_rid      <= trn_rd(31 downto 16);
-                        i_req_tag      <= trn_rd(15 downto  8);
-                        i_req_be       <= trn_rd( 7 downto  0);
+                      i_m_axis_cq_tready <= '0';
 
-                        i_fsm_cs <= S_RX_MRD_QW1;
+                      i_req_des_qword0      <= i_desc_hdr_qw0(63 downto 0);
+                      i_req_des_qword1      <= p_in_m_axis_cq_tdata(63 downto 0);
+                      i_req_des_tph_present <= p_in_m_axis_cq_tuser(42);
+                      i_req_des_tph_type    <= p_in_m_axis_cq_tuser(44 downto 43);
+                      i_req_des_tph_st_tag  <= p_in_m_axis_cq_tuser(52 downto 45);
+
+                      i_trn_type <= p_in_m_axis_cq_tdata(14 downto 11);
+                      i_req_len  <= p_in_m_axis_cq_tdata(10 downto 0); --Length data payload (DW)
+
+                      --Check length data payload (DW)
+                      if UNSIGNED(p_in_m_axis_cq_tdata(10 downto 0)) = TO_UNSIGNED(16#01#, 11)
+                        or UNSIGNED(p_in_m_axis_cq_tdata(10 downto 0)) = TO_UNSIGNED(16#02#, 11)  then
+
+                          i_req_tc   <= p_in_m_axis_cq_tdata(59 downto 57);
+                          i_req_attr <= p_in_m_axis_cq_tdata(62 downto 60);
+                          i_req_rid  <= p_in_m_axis_cq_tdata(31 downto 16);
+                          i_req_tag  <= p_in_m_axis_cq_tdata(39 downto 32);
+                          i_req_be   <= i_req_byte_enables;
+                          i_req_addr <= i_desc_hdr_qw0(29 downto 0);
+                          i_req_at   <= i_desc_hdr_qw0(1 downto 0);
+
+                          --Compl
+                          if (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_IO_WR_D)
+                            or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_ATOP_FAA)
+                            or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_ATOP_UCS)
+                            or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_ATOP_CAS) then
+
+                              i_req_compl    <= '1';
+                              i_req_compl_wd <= '0';
+
+                              if (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_IO_WR_D) then
+                                i_fsm_cs <= S_RX_RX_DATA;
+                              else
+                                i_fsm_cs <= S_RX_WAIT;
+                              end if;
+
+                          --ComplD
+                          elsif (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_IO_RD_ND)
+                            or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_RD_ND)
+                            or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND) then
+
+                              i_req_compl    <= '0';
+                              i_req_compl_wd <= '1';
+
+                              i_fsm_cs <= S_RX_WAIT;
+
+                          else
+                              i_req_compl    <= '0';
+                              i_req_compl_wd <= '0';
+
+                              i_fsm_cs <= S_RX_RX_DATA;
+
+                          end if;
+
+                      else
+                        i_req_compl    <= '0';
+                        i_req_compl_wd <= '0';
+                        i_req_compl_ur <= '1';
+
                       end if;
 
                     -------------------------------------------------------------------------
-                    --IOWr - 3DW, +data (PC->FPGA)
+                    --
                     -------------------------------------------------------------------------
-                    when C_PCIE_PKT_TYPE_IOWR_3DW_WD =>
+                    when C_PCIE3_PKT_TYPE_MSG
+                        | C_PCIE3_PKT_TYPE_MSG_VD
+                        | C_PCIE3_PKT_TYPE_MSG_ATS =>
 
-                      if UNSIGNED(trn_rd(41 downto 32)) = TO_UNSIGNED(16#01#, 10) then --Length data payload (DW)
-                        i_req_pkt_type <= trn_rd(62 downto 56);
-                        i_req_tc       <= trn_rd(54 downto 52);
-                        i_req_td       <= trn_rd(47);
-                        i_req_ep       <= trn_rd(46);
-                        i_req_attr     <= trn_rd(45 downto 44);
-                        i_req_len      <= trn_rd(41 downto 32); --Length data payload (DW)
-                        i_req_rid      <= trn_rd(31 downto 16);
-                        i_req_tag      <= trn_rd(15 downto  8);
-                        i_req_be       <= trn_rd( 7 downto  0);
+                        i_m_axis_cq_tready <= '0';
 
-                        i_fsm_cs <= S_RX_IOWR_QW1;
-                      end if;
+                        i_trn_type <= p_in_m_axis_cq_tdata(14 downto 11);
+                        i_req_len  <= p_in_m_axis_cq_tdata(10 downto 0);
+                        i_req_mem  <= '0';
 
-                    -------------------------------------------------------------------------
-                    --MWr - 3DW, +data (PC->FPGA)
-                    -------------------------------------------------------------------------
-                   when C_PCIE_PKT_TYPE_MWR_3DW_WD =>
+                        i_req_tc        <= p_in_m_axis_cq_tdata(59 downto 57);
+                        i_req_attr      <= p_in_m_axis_cq_tdata(62 downto 60);
+                        i_req_rid       <= p_in_m_axis_cq_tdata(31 downto 16);
+                        i_req_tag       <= p_in_m_axis_cq_tdata(39 downto 32);
+                        i_req_msg_code  <= p_in_m_axis_cq_tdata(47 downto 40);
+                        i_req_msg_route <= p_in_m_axis_cq_tdata(50 downto 48);
+                        i_req_be        <= i_req_byte_enables;
+                        i_req_at        <= i_desc_hdr_qw0(1 downto 0);
 
-                     if UNSIGNED(trn_rd(41 downto 32)) = TO_UNSIGNED(16#01#, 10) then --Length data payload (DW)
-                        i_fsm_cs <= S_RX_MWR_QW1;
-                     end if;
+                        if p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MSG then
+                          i_req_snoop_latency    <= i_desc_hdr_qw0(15 downto 0);
+                          i_req_no_snoop_latency <= i_desc_hdr_qw0(31 downto 16);
+                          i_req_obff_code        <= i_desc_hdr_qw0(35 downto 32);
 
-                   --  -------------------------------------------------------------------------
-                   --  --MWr - 4DW, +data (PC->FPGA)
-                   --  -------------------------------------------------------------------------
-                   -- when C_PCIE_PKT_TYPE_MWR_4DW_WD =>
+                        elsif p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MSG_VD then
+                          i_req_dst_id    <= i_desc_hdr_qw0(15 downto 0);
+                          i_req_vend_id   <= i_desc_hdr_qw0(31 downto 16);
+                          i_req_vend_hdr  <= i_desc_hdr_qw0(63 downto 32);
 
-                   --   if trn_rd(41 downto 32) = TO_UNSIGNED(16#01#, 10) then --Length data payload (DW)
-                   --      i_fsm_cs <= S_RX_MWR_QW41;
-                   --   end if;
-
-                    -------------------------------------------------------------------------
-                    --MRd - 3DW, no data (PC<-FPGA)
-                    -------------------------------------------------------------------------
-                    when C_PCIE_PKT_TYPE_MRD_3DW_ND =>
-
-                      if UNSIGNED(trn_rd(41 downto 32)) = TO_UNSIGNED(16#01#, 10) then --Length data payload (DW)
-                        i_req_pkt_type <= trn_rd(62 downto 56);
-                        i_req_tc       <= trn_rd(54 downto 52);
-                        i_req_td       <= trn_rd(47);
-                        i_req_ep       <= trn_rd(46);
-                        i_req_attr     <= trn_rd(45 downto 44);
-                        i_req_len      <= trn_rd(41 downto 32);
-                        i_req_rid      <= trn_rd(31 downto 16);
-                        i_req_tag      <= trn_rd(15 downto  8);
-                        i_req_be       <= trn_rd( 7 downto  0);
-
-                        if i_bar_exprom = '1' then
-                          i_req_exprom <= '1';
+                        else --if p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MSG_ATS then
+                          i_req_tl_hdr(127 downto 64) <= i_desc_hdr_qw0(63 downto 0);
                         end if;
 
-                        i_fsm_cs <= S_RX_MRD_QW1;
-                      end if;
-
-                    -- -------------------------------------------------------------------------
-                    -- --MRd - 4DW, no data (PC<-FPGA)
-                    -- -------------------------------------------------------------------------
-                    -- when C_PCIE_PKT_TYPE_MRD_4DW_ND =>
-
-                    --   if UNSIGNED(trn_rd(41 downto 32)) = TO_UNSIGNED(16#01#, 10) then --Length data payload (DW)
-                    --     i_req_pkt_type <= trn_rd(62 downto 56);
-                    --     i_req_tc       <= trn_rd(54 downto 52);
-                    --     i_req_td       <= trn_rd(47);
-                    --     i_req_ep       <= trn_rd(46);
-                    --     i_req_attr     <= trn_rd(45 downto 44);
-                    --     i_req_len      <= trn_rd(41 downto 32);
-                    --     i_req_rid      <= trn_rd(31 downto 16);
-                    --     i_req_tag      <= trn_rd(15 downto  8);
-                    --     i_req_be       <= trn_rd( 7 downto  0);
-
-                    --     if i_bar_exprom = '1' then
-                    --       i_req_exprom <= '1';
-                    --     end if;
-
-                    --     i_fsm_cs <= S_RX_MRD_QW41;
-                    --   end if;
-
-                    -------------------------------------------------------------------------
-                    --Cpl - 3DW, no data
-                    -------------------------------------------------------------------------
-                    when C_PCIE_PKT_TYPE_CPL_3DW_ND =>
-
-                      --if trn_rd(15 downto 13) /= C_PCIE_COMPL_STATUS_SC then
-                        i_fsm_cs <= S_RX_CPL_QW1;
-                      --end if;
-
-                    -------------------------------------------------------------------------
-                    --CplD - 3DW, +data
-                    -------------------------------------------------------------------------
-                    when C_PCIE_PKT_TYPE_CPLD_3DW_WD =>
-
-                        i_cpld_tlp_len <= trn_rd(41 downto 32); --Length data payload (DW)
-                        i_cpld_tlp_cnt <= (others => '0');
-                        i_cpld_tlp_work <= '1';
-                        i_trn_dw_sel <= (others => '1');
-                        i_trn_dw_skip <= '1';
-                        i_fsm_cs <= S_RX_CPLD_QWN;
-
-                     when others =>
                         i_fsm_cs <= S_RX_IDLE;
 
-                end case; --case (trn_rd(62 downto 56))
-            end if; --if trn_rsof_n = '0' and trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
-        --end S_RX_IDLE :
+                    -------------------------------------------------------------------------
+                    --
+                    -------------------------------------------------------------------------
+                     when others =>
+                        i_fsm_cs <= S_RX_PKT_CHK;
+
+                end case; --case p_in_m_axis_cq_tdata(14 downto 11) is
+            end if; --if p_in_m_axis_cq_tvalid = '1' then
+        --end S_RX_PKT_CHK :
 
 
         --#######################################################################
-        --IOWr - 3DW, +data (PC->FPGA)
+        --
         --#######################################################################
-        when S_RX_IOWR_QW1 =>
+        when S_RX_RX_DATA =>
 
-            if trn_reof_n = '0' and trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
-              i_req_addr <= trn_rd(63 downto 34);
-              i_usr_di <= trn_rd(31 downto 0);
+            if p_in_m_axis_cq_tvalid = '1' then
 
-              if i_bar_usr = '1' then
-                i_usr_wr <= '1';
-              end if;
+                i_wr_addr <= i_req_addr(12 downto 2);
 
-              i_req_compl <= '1'; ----Request send pkt Cpl
-              i_trn_rdst_rdy_n <= '1';
-              i_fsm_cs <= S_RX_IOWR_WT;
-            else
-              if trn_rsrc_dsc_n = '0' then --Core PCIE break recieve data
-                i_fsm_cs <= S_RX_IDLE;
-              end if;
-            end if;
+                case p_in_m_axis_cq_tdata(14 downto 11) is
+                end case;
 
-        when S_RX_IOWR_WT =>
+            end if; --if p_in_m_axis_cq_tvalid = '1' then
 
-            i_usr_wr <= '0';
-            if compl_done_i = '1' then --Send pkt Cpl is done
-              i_req_compl <= '0';
-              i_trn_rdst_rdy_n <= '0';
-              i_fsm_cs <= S_RX_IDLE;
-            end if;
-        --END: IOWr - 3DW, +data
-
-
-        --#######################################################################
-        --MRd - 3DW, no data (PC<-FPGA)
-        --#######################################################################
-        when S_RX_MRD_QW1 =>
-
-            if trn_reof_n = '0' and trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
-              i_req_addr <= trn_rd(63 downto 34);
-              i_trn_rdst_rdy_n <= '1';
-
-              if i_req_exprom = '0' then
-                if i_bar_usr = '1' then
-                  i_usr_rd <= '1';
-                end if;
-              end if;
-
-              i_fsm_cs <= S_RX_MRD_WT1;
-            else
-              if trn_rsrc_dsc_n = '0' then --Core PCIE break recieve data
-                i_req_exprom <= '0';
-                i_fsm_cs <= S_RX_IDLE;
-              end if;
-            end if;
-
-        when S_RX_MRD_WT1 =>
-
-            i_usr_rd <= '0';
-            i_req_compl <= '1'; --Request send pkt CplD
-            i_fsm_cs <= S_RX_MRD_WT;
-
-        when S_RX_MRD_WT =>
-
-            if compl_done_i = '1' then --Send pkt  CplD is done
-              i_req_exprom <= '0';
-              i_req_compl <= '0';
-              i_trn_rdst_rdy_n <= '0';
-              i_fsm_cs <= S_RX_IDLE;
-            end if;
-        --END: MRd - 3DW, no data
-
-
-        -- --#######################################################################
-        -- --MRd - 4DW, no data (PC<-FPGA)
-        -- --#######################################################################
-        -- when S_RX_MRD_QW41 =>
-
-        --     if trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
-        --       i_req_addr <= trn_rd(31 downto 2);
-        --       i_trn_rdst_rdy_n <= '1';
-
-        --       if i_req_exprom = '0' then
-        --         if i_bar_usr = '1' then
-        --           i_usr_rd <= '1';
-        --         end if;
-        --       end if;
-
-        --       i_fsm_cs <= S_RX_MRD_WT1;
-        --     else
-        --       if trn_rsrc_dsc_n = '0' then --Core PCIE break recieve data
-        --         i_req_exprom <= '0';
-        --         i_fsm_cs <= S_RX_IDLE;
-        --       end if;
-        --     end if;
-
-        -- when S_RX_MRD_QW42 =>
-
-        --     i_usr_rd <= '0';
-
-        --     if trn_reof_n = '0' and trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
-        --     i_req_compl <= '1';--Request send pkt CplD
-        --     i_fsm_cs <= S_RX_MRD_WT;
-        --     end if;
-        -- --END: MRd - 4DW, no data
-
-
-        --#######################################################################
-        --MWr - 3DW, +data (PC->FPGA)
-        --#######################################################################
-        when S_RX_MWR_QW1 =>
-
-            if trn_reof_n = '0' and trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
-              i_req_addr <= trn_rd(63 downto 34);
-              i_usr_di <= trn_rd(31 downto 0);
-
-              if i_bar_usr = '1' then
-                i_usr_wr <= '1';
-              end if;
-
-              i_trn_rdst_rdy_n <= '1';
-              i_fsm_cs <= S_RX_MWR_WT;
-            else
-              if trn_rsrc_dsc_n = '0' then --Core PCIE break recieve data
-                i_fsm_cs <= S_RX_IDLE;
-              end if;
-            end if;
-
-        when S_RX_MWR_WT =>
-            i_usr_wr <= '0';
-            i_trn_rdst_rdy_n <= '0';
-            i_fsm_cs <= S_RX_IDLE;
-        --END: MWr - 3DW, +data
-
-
-        -- --#######################################################################
-        -- --MWr - 4DW, +data (PC->FPGA)
-        -- --#######################################################################
-        -- when S_RX_MWR_QW41 =>
-
-        --     if trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
-        --       i_usr_di <= trn_rd(63 downto 32);
-
-        --       i_trn_rdst_rdy_n <= '1';
-        --       i_fsm_cs <= S_RX_MWR_WT;
-        --     else
-        --       if trn_rsrc_dsc_n = '0' then --Core PCIE break recieve data
-        --         i_fsm_cs <= S_RX_IDLE;
-        --       end if;
-        --     end if;
-
-        -- when S_RX_MWR_QW42 =>
-
-        --     if trn_reof_n = '0' and trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
-        --       i_req_addr <= trn_rd(31 downto 2);
-
-        --       if i_bar_usr = '1' then
-        --         i_usr_wr <= '1';
-        --       end if;
-
-        --       i_trn_rdst_rdy_n <= '1';
-        --       i_fsm_cs <= S_RX_MWR_WT;
-        --     else
-        --       if trn_rsrc_dsc_n = '0' then --Core PCIE break recieve data
-        --         i_fsm_cs <= S_RX_IDLE;
-        --       end if;
-        --     end if;
-        -- --END: MWr - 4DW, +data (PC->FPGA)
-
-
-        --#######################################################################
-        --Cpl - 3DW, no data
-        --#######################################################################
-        when S_RX_CPL_QW1 =>
-
-            if trn_reof_n = '0' and trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
-              i_fsm_cs <= S_RX_IDLE;
-            else
-              if trn_rsrc_dsc_n = '0' then --Core PCIE break recieve data
-                i_fsm_cs <= S_RX_IDLE;
-              end if;
-            end if;
-        --END: Cpl - 3DW, no data
-
-
-        --#######################################################################
-        --CplD - 3DW, +data
-        --#######################################################################
-        when S_RX_CPLD_QWN =>
-
-            if trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' and usr_txbuf_full_i = '0' then
-
-                if    i_trn_dw_sel = TO_UNSIGNED(16#00#, i_trn_dw_sel'length) then
-                  i_usr_di <= trn_rd(31 downto 0);
-                elsif i_trn_dw_sel = TO_UNSIGNED(16#01#, i_trn_dw_sel'length) then
-                  i_usr_di <= trn_rd(63 downto 32);
-                end if;
-
-                if trn_reof_n = '0' then
-                    i_trn_dw_sel <= i_trn_dw_sel - 1;
-                    i_trn_dw_skip <= '0';
-
-                    if i_trn_dw_skip = '0' then
-                      i_usr_wr <= '1';
-                      i_cpld_tlp_cnt <= i_cpld_tlp_cnt + 1;
-                    else
-                      i_usr_wr <= '0';
-                    end if;
-
-                    if   ((UNSIGNED(trn_rrem_n) = TO_UNSIGNED(16#00#, trn_rrem_n'length)) and
-                                  (i_trn_dw_sel = TO_UNSIGNED(16#00#, i_trn_dw_sel'length)))
-                      or
-                         ((UNSIGNED(trn_rrem_n) = TO_UNSIGNED(16#01#, trn_rrem_n'length)) and
-                                  (i_trn_dw_sel = TO_UNSIGNED(16#01#, i_trn_dw_sel'length))) then
-
-                      i_cpld_tlp_dlast <= '1';
-                      i_trn_rdst_rdy_n <= '1';
-                      i_fsm_cs <= S_RX_CPLD_WT;
-
-                    end if;
-
-                else --if trn_reof_n = '1' then
-
-                    if trn_rsof_n = '1' then
-                        i_trn_dw_sel <= i_trn_dw_sel - 1;
-                        i_trn_dw_skip <= '0';
-
-                        if i_trn_dw_skip = '0' then
-                          i_usr_wr <= '1';
-                          i_cpld_tlp_cnt <= i_cpld_tlp_cnt + 1;
-                        else
-                          i_usr_wr <= '0';
-                        end if;
-
-                        i_fsm_cs <= S_RX_CPLD_QWN;
-                    else
-                        i_usr_wr <= '0';
-                        i_fsm_cs <= S_RX_CPLD_QWN;
-                    end if;
-
-                end if;
-            else
-              if trn_rsrc_dsc_n = '0' then --Core PCIE break recieve data
-                  i_cpld_tlp_dlast <= '1';
-                  i_usr_wr <= '0';
-                  i_fsm_cs <= S_RX_CPLD_WT;
-              else
-                  i_usr_wr <= '0';
-                  i_fsm_cs <= S_RX_CPLD_QWN;
-              end if;
-            end if;
-        --end S_RX_CPLD_QWN :
-
-        when S_RX_CPLD_WT =>
-
-            i_cpld_tlp_cnt <= (others => '0');
-            i_cpld_tlp_dlast <= '0';
-            i_cpld_tlp_work <= '0';
-            i_trn_rdst_rdy_n <= '0';
-            i_trn_dw_sel <= (others => '0');
-            i_usr_wr <= '0';
-            i_fsm_cs <= S_RX_IDLE;
-        --END: CplD - 3DW, +data
 
     end case; --case i_fsm_cs is
   end if;
