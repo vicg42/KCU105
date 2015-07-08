@@ -89,4 +89,18 @@ constant C_PCIE_COMPL_STATUS_UR         : std_logic_vector(2 downto 0):="001";
 constant C_PCIE_COMPL_STATUS_CRS        : std_logic_vector(2 downto 0):="010";
 constant C_PCIE_COMPL_STATUS_CA         : std_logic_vector(2 downto 0):="011";
 
+
+constant C_PCIE3_PKT_TYPE_MEM_RD_ND    : std_logic_vector(3 downto 0) := "0000"; --Memory Read
+constant C_PCIE3_PKT_TYPE_MEM_WR_D     : std_logic_vector(3 downto 0) := "0001"; --Memory Write
+constant C_PCIE3_PKT_TYPE_IO_RD_ND     : std_logic_vector(3 downto 0) := "0010"; --IO Read
+constant C_PCIE3_PKT_TYPE_IO_WR_D      : std_logic_vector(3 downto 0) := "0011"; --IO Write
+constant C_PCIE3_PKT_TYPE_ATOP_FAA     : std_logic_vector(3 downto 0) := "0100"; --Fetch and ADD
+constant C_PCIE3_PKT_TYPE_ATOP_UCS     : std_logic_vector(3 downto 0) := "0101"; --Unconditional SWAP
+constant C_PCIE3_PKT_TYPE_ATOP_CAS     : std_logic_vector(3 downto 0) := "0110"; --Compare and SWAP
+constant C_PCIE3_PKT_TYPE_MEM_LK_RD_ND : std_logic_vector(3 downto 0) := "0111"; --Locked Read Request
+constant C_PCIE3_PKT_TYPE_MSG          : std_logic_vector(3 downto 0) := "1100"; --MSG Transaction apart from Vendor Defined and ATS
+constant C_PCIE3_PKT_TYPE_MSG_VD       : std_logic_vector(3 downto 0) := "1101"; --MSG Transaction apart from Vendor Defined and ATS
+constant C_PCIE3_PKT_TYPE_MSG_ATS      : std_logic_vector(3 downto 0) := "1110"; --MSG Transaction apart from Vendor Defined and ATS
+
+
 end package pcie_pkg;
