@@ -137,10 +137,12 @@ signal i_req_compl           : std_logic := '0';
 signal i_req_compl_wd        : std_logic := '0';
 signal i_req_compl_ur        : std_logic := '0';
 
+signal i_payload_len         : std_logic := '0';
 
 
 begin --architecture behavioral of pcie_uv7_rx
 
+p_out_payload_len <= i_payload_len;
 
 p_out_req_tc   <= i_req_tc  ;
 p_out_req_attr <= i_req_attr;
@@ -211,6 +213,7 @@ if rising_edge(p_in_user_clk) then
     i_req_be   <= (others => '0');
     i_req_addr <= (others => '0');
 
+    i_payload_len <= '0';
 
   else
 
@@ -241,11 +244,11 @@ if rising_edge(p_in_user_clk) then
                     -------------------------------------------------------------------------
                     --IORd - 3DW, no data (PC<-FPGA)
                     -------------------------------------------------------------------------
-                    when C_PCIE3_PKT_TYPE_IO_RD_ND
-                        | C_PCIE3_PKT_TYPE_MEM_RD_ND
+                    when C_PCIE3_PKT_TYPE_MEM_RD_ND
                         | C_PCIE3_PKT_TYPE_MEM_LK_RD_ND
-                        | C_PCIE3_PKT_TYPE_IO_WR_D
                         | C_PCIE3_PKT_TYPE_MEM_WR_D
+                        | C_PCIE3_PKT_TYPE_IO_RD_ND
+                        | C_PCIE3_PKT_TYPE_IO_WR_D
                         | C_PCIE3_PKT_TYPE_ATOP_FAA
                         | C_PCIE3_PKT_TYPE_ATOP_UCS
                         | C_PCIE3_PKT_TYPE_ATOP_CAS =>
@@ -263,7 +266,7 @@ if rising_edge(p_in_user_clk) then
 
                       --Check length data payload (DW)
                       if UNSIGNED(p_in_m_axis_cq_tdata(10 downto 0)) = TO_UNSIGNED(16#01#, 11)
-                        or UNSIGNED(p_in_m_axis_cq_tdata(10 downto 0)) = TO_UNSIGNED(16#02#, 11)  then
+                        or UNSIGNED(p_in_m_axis_cq_tdata(10 downto 0)) = TO_UNSIGNED(16#02#, 11) then
 
                           i_req_tc   <= p_in_m_axis_cq_tdata(59 downto 57);
                           i_req_attr <= p_in_m_axis_cq_tdata(62 downto 60);
@@ -272,6 +275,19 @@ if rising_edge(p_in_user_clk) then
                           i_req_be   <= i_req_byte_enables;
                           i_req_addr <= i_desc_hdr_qw0(29 downto 0);
                           i_req_at   <= i_desc_hdr_qw0(1 downto 0);
+
+                          if (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_RD_ND)
+                            or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND)
+                            or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_WR_D)
+                            or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_IO_RD_ND)
+                            or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_IO_WR_D) then
+
+                              if UNSIGNED(p_in_m_axis_cq_tdata(10 downto 0)) = TO_UNSIGNED(16#02#, 11) then
+                                i_payload_len <= '1';
+                              else
+                                i_payload_len <= '0';
+                              end if;
+                          end if;
 
                           --Compl
                           if (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_IO_WR_D)
@@ -304,7 +320,7 @@ if rising_edge(p_in_user_clk) then
 
                               i_fsm_cs <= S_RX_RX_DATA;
 
-                          end if;
+                          end if;--Check length data payload (DW)
 
                       else
                         i_req_compl    <= '0';
@@ -371,7 +387,29 @@ if rising_edge(p_in_user_clk) then
 
                 i_wr_addr <= i_req_addr(12 downto 2);
 
-                case p_in_m_axis_cq_tdata(14 downto 11) is
+                case data_start_loc is
+                  when "000"  =>
+                    m_axis_cq_tready <= '0';
+
+                    wr_data <= #TCQ payload_len ? m_axis_cq_tdata[63:0] : {32'h0, m_axis_cq_tdata[31:0]};
+                    wr_be   <= #TCQ payload_len ? m_axis_cq_tuser[15:8] : { 4'h0, m_axis_cq_tuser[11:8]};
+                    wr_en   <= #TCQ 1'b1;
+
+                    i_fsm_cs  <= #TCQ PIO_RX_WAIT_STATE;
+
+                  when "001"  =>
+                    m_axis_cq_tready <= #TCQ payload_len ? 1'b1 : 1'b0;
+
+                    wr_data <= #TCQ {32'h0, m_axis_cq_tdata[63:32]};
+                    wr_be   <= #TCQ { 4'h0, m_axis_cq_tuser[15:12]};
+                    wr_en   <= #TCQ payload_len ? 1'b0 : 1'b1;
+
+                    i_fsm_cs <= #TCQ payload_len ? PIO_RX_DATA2 : PIO_RX_WAIT_STATE;
+
+                  when others =>
+                    i_fsm_cs <= S_RX_RX_DATA;
+                  end
+
                 end case;
 
             end if; --if p_in_m_axis_cq_tvalid = '1' then
