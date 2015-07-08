@@ -18,11 +18,11 @@ use work.pcie_pkg.all;
 entity pcie_uv7_rx is
 generic (
 --AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
-AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
-AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
-AXISTEN_IF_RC_STRADDLE         : integer := 0;
-AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
-AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := TO_UNSIGNED(16#2FFF, 18);
+G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
+G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
+G_AXISTEN_IF_RC_STRADDLE         : integer := 0;
+G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
+G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := TO_UNSIGNED(16#2FFF, 18);
 
 G_DATA_WIDTH   : integer := 64     ;
 G_STRB_WIDTH   : integer := 64 / 8 ; -- TSTRB width
@@ -295,11 +295,18 @@ if rising_edge(p_in_user_clk) then
                           end if;
 
                           if (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
-                            data_start_loc   <= #TCQ (AXISTEN_IF_CQ_ALIGNMENT_MODE == "TRUE") ? {2'b0,m_axis_cq_tdata_q[2]} : 3'b0;
+                            if (G_AXISTEN_IF_CQ_ALIGNMENT_MODE == "TRUE") then
+                              i_data_start_loc <= {2'b0,m_axis_cq_tdata_q[2]}
+                            else
+                              i_data_start_loc <= (others => '0');
+                            end if;
 
                           elsif (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_IO_WR_D) then
-                            data_start_loc   <= #TCQ (AXISTEN_IF_CQ_ALIGNMENT_MODE == "TRUE") ? {2'b0,m_axis_cq_tdata[2]} : 3'b0;
-
+                            if (G_AXISTEN_IF_CQ_ALIGNMENT_MODE == "TRUE") then
+                              i_data_start_loc <= {2'b0,m_axis_cq_tdata[2]}
+                            else
+                              i_data_start_loc <= (others => '0');
+                            end if;
                           end if;
 
                           --Compl
