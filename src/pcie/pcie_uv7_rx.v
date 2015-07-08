@@ -343,12 +343,14 @@ module pcie_rx  #(
                     req_len          <= #TCQ m_axis_cq_tdata[10:0];
                     m_axis_cq_tready <= #TCQ 1'b0;
                     req_mem          <= #TCQ 1'b1;
-                    state            <= #TCQ PIO_RX_WAIT_STATE;
+
                     req_des_qword0      <= #TCQ desc_hdr_qw0[63:0];
                     req_des_qword1      <= #TCQ m_axis_cq_tdata[63:0];
                     req_des_tph_present <= #TCQ m_axis_cq_tuser[42];
                     req_des_tph_type    <= #TCQ m_axis_cq_tuser[44:43];
                     req_des_tph_st_tag  <= #TCQ m_axis_cq_tuser[52:45];
+
+                    state            <= #TCQ PIO_RX_WAIT_STATE;
 
                     if((m_axis_cq_tdata[10:0] == 11'h001) || (m_axis_cq_tdata[10:0] == 11'h002))
                     begin
@@ -405,13 +407,15 @@ module pcie_rx  #(
                         payload_len    <= #TCQ 1'b0;
 
                       data_start_loc   <= #TCQ (AXISTEN_IF_CQ_ALIGNMENT_MODE == "TRUE") ? {2'b0,m_axis_cq_tdata_q[2]} : 3'b0;
+
                       state            <= #TCQ PIO_RX_DATA;
                     end
                     else begin // Payload > 2DWORD
-                      state            <= #TCQ PIO_RX_RST_STATE;
                       req_compl        <= #TCQ 1'b0;
                       req_compl_wd     <= #TCQ 1'b0;
                       req_compl_ur     <= #TCQ 1'b1;
+
+                      state            <= #TCQ PIO_RX_RST_STATE;
                     end
                   end // PIO_RX_MEM_WR_FMT_TYPE
 
@@ -422,12 +426,14 @@ module pcie_rx  #(
                     req_len          <= #TCQ m_axis_cq_tdata[10:0];
                     m_axis_cq_tready <= #TCQ 1'b0;
                     req_mem          <= #TCQ 1'b0;
-                    state            <= #TCQ PIO_RX_WAIT_STATE;
+
                     req_des_qword0      <= #TCQ desc_hdr_qw0[63:0];
                     req_des_qword1      <= #TCQ m_axis_cq_tdata[63:0];
                     req_des_tph_present <= #TCQ m_axis_cq_tuser[42];
                     req_des_tph_type    <= #TCQ m_axis_cq_tuser[44:43];
                     req_des_tph_st_tag  <= #TCQ m_axis_cq_tuser[52:45];
+
+                    state            <= #TCQ PIO_RX_WAIT_STATE;
 
                     if((m_axis_cq_tdata[10:0] == 11'h001) || (m_axis_cq_tdata[10:0] == 11'h002))
                     begin
@@ -459,12 +465,14 @@ module pcie_rx  #(
                     trn_type         <= #TCQ m_axis_cq_tdata[14:11];
                     req_len          <= #TCQ m_axis_cq_tdata[10:0];
                     req_mem          <= #TCQ 1'b0;
-                    state            <= #TCQ PIO_RX_WAIT_STATE;
+
                     req_des_qword0      <= #TCQ desc_hdr_qw0[63:0];
                     req_des_qword1      <= #TCQ m_axis_cq_tdata[63:0];
                     req_des_tph_present <= #TCQ m_axis_cq_tuser[42];
                     req_des_tph_type    <= #TCQ m_axis_cq_tuser[44:43];
                     req_des_tph_st_tag  <= #TCQ m_axis_cq_tuser[52:45];
+
+                    state            <= #TCQ PIO_RX_WAIT_STATE;
 
                     if((m_axis_cq_tdata[10:0] == 11'h001) || (m_axis_cq_tdata[10:0] == 11'h002))
                     begin
@@ -483,6 +491,7 @@ module pcie_rx  #(
                         payload_len   <=#TCQ 1'b0;
 
                       data_start_loc   <= #TCQ (AXISTEN_IF_CQ_ALIGNMENT_MODE == "TRUE") ? {2'b0,m_axis_cq_tdata[2]} : 3'b0;
+
                       state            <= #TCQ PIO_RX_DATA;
 
                     end
@@ -490,6 +499,7 @@ module pcie_rx  #(
                       req_compl        <= #TCQ 1'b0;
                       req_compl_wd     <= #TCQ 1'b0;
                       req_compl_ur     <= #TCQ 1'b1;
+
                       state            <= #TCQ PIO_RX_RST_STATE;
                     end
 
@@ -502,12 +512,14 @@ module pcie_rx  #(
                     req_len          <= #TCQ m_axis_cq_tdata[10:0];
                     m_axis_cq_tready <= #TCQ 1'b0;
                     req_mem          <= #TCQ 1'b0;
-                    state            <= #TCQ PIO_RX_WAIT_STATE;
+
                     req_des_qword0      <= #TCQ desc_hdr_qw0[63:0];
                     req_des_qword1      <= #TCQ m_axis_cq_tdata[63:0];
                     req_des_tph_present <= #TCQ m_axis_cq_tuser[42];
                     req_des_tph_type    <= #TCQ m_axis_cq_tuser[44:43];
                     req_des_tph_st_tag  <= #TCQ m_axis_cq_tuser[52:45];
+
+                    state            <= #TCQ PIO_RX_WAIT_STATE;
 
                     if((m_axis_cq_tdata[10:0] == 11'h001) || (m_axis_cq_tdata[10:0] == 11'h002))
                     begin
@@ -533,12 +545,14 @@ module pcie_rx  #(
                     trn_type         <= #TCQ m_axis_cq_tdata[14:11];
                     req_len          <= #TCQ m_axis_cq_tdata[10:0];
                     m_axis_cq_tready <= #TCQ 1'b0;
-                    state            <= #TCQ PIO_RX_WAIT_STATE;
+
                     req_des_qword0      <= #TCQ desc_hdr_qw0[63:0];
                     req_des_qword1      <= #TCQ m_axis_cq_tdata[63:0];
                     req_des_tph_present <= #TCQ m_axis_cq_tuser[42];
                     req_des_tph_type    <= #TCQ m_axis_cq_tuser[44:43];
                     req_des_tph_st_tag  <= #TCQ m_axis_cq_tuser[52:45];
+
+                    state            <= #TCQ PIO_RX_WAIT_STATE;
 
                     if((m_axis_cq_tdata[10:0] == 11'h001) || (m_axis_cq_tdata[10:0] == 11'h002))
                     begin
@@ -584,6 +598,7 @@ module pcie_rx  #(
                     req_be               <= #TCQ req_byte_enables;
                     req_msg_code         <= #TCQ m_axis_cq_tdata[47:40];
                     req_msg_route        <= #TCQ m_axis_cq_tdata[50:48];
+
                     state                <= #TCQ PIO_RX_RST_STATE;
 
                   end // PIO_RX_MSG_FMT_TYPE
@@ -606,6 +621,7 @@ module pcie_rx  #(
                     req_dst_id           <= #TCQ desc_hdr_qw0[15:0];
                     req_vend_id          <= #TCQ desc_hdr_qw0[31:16];
                     req_vend_hdr         <= #TCQ desc_hdr_qw0[63:32];
+
                     state                <= #TCQ PIO_RX_RST_STATE;
 
                   end // PIO_RX_MSG_VD_FMT_TYPE
@@ -626,6 +642,7 @@ module pcie_rx  #(
                     req_be               <= #TCQ req_byte_enables;
                     req_at               <= #TCQ desc_hdr_qw0[1:0];
                     req_tl_hdr[127:64]   <= #TCQ desc_hdr_qw0[63:0];
+
                     state                <= #TCQ PIO_RX_RST_STATE;
 
                   end // PIO_RX_MSG_ATS_FMT_TYPE
