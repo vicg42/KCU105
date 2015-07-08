@@ -351,8 +351,8 @@ initial begin
   else begin
       // $display("[%t] %m: No TESTNAME specified!", $realtime);
       // $finish(2);
-      //testname = "pio_writeReadBack_test0";
-      testname = "sample_smoke_test0";
+      testname = "pio_writeReadBack_test0";
+      //testname = "sample_smoke_test0";
       $display("Running default test {%0s}......", testname);
   end
 
