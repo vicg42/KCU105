@@ -25,6 +25,8 @@ add wave -noupdate /board/EP/sys_rst_n
 add wave -noupdate /board/EP/m_main/i_user_clk
 add wave -noupdate /board/EP/m_main/i_user_reset_n
 add wave -noupdate -divider USR_APP
+add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/user_clk
+add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/reset_n
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/rd_addr
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/rd_be
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/trn_sent
@@ -39,12 +41,21 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/gen_transaction
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/gen_leg_intr
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/gen_msi_intr
 add wave -noupdate -divider pio_to_ctrl
+add wave -noupdate /board/EP/m_main/m_ctrl/m_pio_to_ctrl/clk
+add wave -noupdate /board/EP/m_main/m_ctrl/m_pio_to_ctrl/rst_n
 add wave -noupdate /board/EP/m_main/m_ctrl/m_pio_to_ctrl/req_compl
 add wave -noupdate /board/EP/m_main/m_ctrl/m_pio_to_ctrl/compl_done
 add wave -noupdate /board/EP/m_main/m_ctrl/m_pio_to_ctrl/cfg_power_state_change_interrupt
 add wave -noupdate /board/EP/m_main/m_ctrl/m_pio_to_ctrl/cfg_power_state_change_ack
 add wave -noupdate /board/EP/m_main/m_ctrl/m_pio_to_ctrl/trn_pending
 add wave -noupdate -divider RX_ENGENE
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/user_clk
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/reset_n
+add wave -noupdate -radix ascii /board/EP/m_main/m_ctrl/m_rx/state_ascii
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_compl
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_compl_wd
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_compl_ur
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/compl_done
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tdata
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tlast
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tvalid
@@ -62,10 +73,6 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_rc_tready
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/cfg_msg_received
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/cfg_msg_received_type
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/cfg_msg_data
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_compl
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_compl_wd
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_compl_ur
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/compl_done
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_tc
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_attr
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_len
@@ -107,8 +114,10 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_vend_id
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_vend_hdr
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_tl_hdr
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tdata_q
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/state_ascii
 add wave -noupdate -divider TX_ENGENE
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/user_clk
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/reset_n
+add wave -noupdate -radix ascii /board/EP/m_main/m_ctrl/m_tx/state_ascii
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/s_axis_cc_tdata
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/s_axis_cc_tkeep
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/s_axis_cc_tlast
@@ -187,7 +196,6 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/s_axis_cc_tparity
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/s_axis_rq_tparity
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/dword_count
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/rd_data_reg
-add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/state_ascii
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {0 ps} 0}
 quietly wave cursor active 0
@@ -205,4 +213,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {0 ps} {253435879 ps}
+WaveRestoreZoom {0 ps} {26643751 ps}

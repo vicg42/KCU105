@@ -29,12 +29,16 @@ add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/req_completion
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/completion_done
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_reset_n
 add wave -noupdate -divider pio_to_ctrl
+add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_to/clk
+add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_to/rst_n
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_to/req_compl
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_to/compl_done
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_to/cfg_power_state_change_interrupt
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_to/cfg_power_state_change_ack
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_to/trn_pending
 add wave -noupdate -divider USR_APP
+add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_mem/user_clk
+add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_mem/reset_n
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_mem/rd_addr
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_mem/rd_be
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_mem/trn_sent
@@ -50,6 +54,13 @@ add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_mem/gen_leg_intr
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_mem/gen_msi_intr
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_mem/gen_msix_intr
 add wave -noupdate -divider RX_ENGENE
+add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/user_clk
+add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/reset_n
+add wave -noupdate -radix ascii /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/state_ascii
+add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/req_compl
+add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/req_compl_wd
+add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/req_compl_ur
+add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/compl_done
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/m_axis_cq_tdata
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/m_axis_cq_tlast
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/m_axis_cq_tvalid
@@ -67,10 +78,6 @@ add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/m_axis_rc_trea
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/cfg_msg_received
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/cfg_msg_received_type
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/cfg_msg_data
-add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/req_compl
-add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/req_compl_wd
-add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/req_compl_ur
-add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/compl_done
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/req_tc
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/req_attr
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/req_len
@@ -112,8 +119,10 @@ add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/req_vend_id
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/req_vend_hdr
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/req_tl_hdr
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/m_axis_cq_tdata_q
-add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_rx/state_ascii
 add wave -noupdate -divider TX_ENGENE
+add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_tx/user_clk
+add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_tx/reset_n
+add wave -noupdate -radix ascii /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_tx/state_ascii
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_tx/s_axis_cc_tdata
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_tx/s_axis_cc_tkeep
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_tx/s_axis_cc_tlast
@@ -192,7 +201,6 @@ add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_tx/s_axis_cc_tpar
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_tx/s_axis_rq_tparity
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_tx/dword_count
 add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_tx/rd_data_reg
-add wave -noupdate /board/EP/pcie_app_uscale_i/PIO_i/pio_ep/ep_tx/state_ascii
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {0 ps} 0}
 quietly wave cursor active 0
