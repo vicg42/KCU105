@@ -189,9 +189,9 @@ p_in_cfg_hot_reset_in   : in   std_logic;
 -- RP only
 p_out_cfg_hot_reset_out : out  std_logic;
 
-p_in_user_clk           : in   std_logic;
-p_in_user_reset_n       : in   std_logic;
-p_in_user_lnk_up        : in   std_logic
+p_in_user_clk    : in   std_logic;
+p_in_user_reset  : in   std_logic;
+p_in_user_lnk_up : in   std_logic
 );
 end entity pcie_ctrl;
 
@@ -211,6 +211,7 @@ signal sr_cfg_vf_flr_done      : TSR_flr_bus6;
 signal i_req_completion        : std_logic;
 signal i_completion_done       : std_logic;
 signal i_rst_n                 : std_logic;
+signal i_pio_rst_n             : std_logic;
 
 signal i_req_compl             : std_logic := '0';
 signal i_req_compl_wd          : std_logic := '0';
@@ -261,12 +262,16 @@ signal i_gen_msix_intr         : std_logic;
 begin --architecture struct of pcie_ctrl
 
 
+i_rst_n <= not p_in_user_reset;
+
+i_pio_rst_n <= p_in_user_lnk_up and i_rst_n;
+
 ----------------------------------------
 --Function level reset (FLR)
 ----------------------------------------
-process(p_in_user_clk, p_in_user_reset_n)
+process(p_in_user_clk, p_in_user_reset)
 begin
-if p_in_user_reset_n = '0' then
+if p_in_user_reset = '1' then
   for i in 0 to sr_cfg_flr_done'length - 1 loop
   sr_cfg_flr_done(i) <= (others => '0');
   end loop;
@@ -332,7 +337,7 @@ p_out_cfg_hot_reset_out <= '0';
 m_usr_app : pcie_usr_app
 port map (
 user_clk => p_in_user_clk,
-reset_n  => p_in_user_reset_n,
+reset_n  => i_rst_n,
 
 --Read Port
 rd_addr  => i_rd_addr ,--: in  std_logic_vector(10 downto 0);
@@ -387,7 +392,7 @@ PARITY_WIDTH => CI_PARITY_WIDTH
 )
 port map (
 user_clk => p_in_user_clk,
-reset_n  => p_in_user_reset_n,
+reset_n  => i_rst_n,
 
 -- Completer Request Interface
 m_axis_cq_tdata       => p_in_m_axis_cq_tdata     ,
@@ -479,7 +484,7 @@ PARITY_WIDTH => CI_PARITY_WIDTH
 )
 port map(
 user_clk => p_in_user_clk,
-reset_n  => p_in_user_reset_n,
+reset_n  => i_rst_n,
 
 --AXI-S Completer Competion Interface
 s_axis_cc_tdata  => p_out_s_axis_cc_tdata   ,
@@ -569,7 +574,7 @@ gen_transaction => i_gen_transaction --: in  std_logic
 m_irq : pcie_irq
 port map(
 user_clk => p_in_user_clk,
-reset_n  => p_in_user_reset_n,
+reset_n  => i_rst_n,
 
 --Trigger to generate interrupts (to / from Mem access Block)
 gen_leg_intr   => i_gen_leg_intr ,
@@ -601,15 +606,13 @@ cfg_interrupt_msix_data    => p_out_cfg_interrupt_msix_data
 ----------------------------------------
 --
 ----------------------------------------
-i_rst_n <= p_in_user_lnk_up and p_in_user_reset_n;
-
 i_req_completion <= i_req_compl or i_req_compl_wd or i_req_compl_ur;
 i_completion_done <= i_compl_done or i_interrupt_done;
 
 m_pio_to_ctrl : pio_to_ctrl
 port map(
 clk        => p_in_user_clk,
-rst_n     => i_rst_n,
+rst_n     => i_pio_rst_n,
 
 req_compl  => i_req_completion,
 compl_done => i_completion_done,

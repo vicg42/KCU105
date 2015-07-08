@@ -412,7 +412,7 @@ p_in_cfg_hot_reset_in   : in   std_logic;
 p_out_cfg_hot_reset_out : out  std_logic;
 
 p_in_user_clk           : in   std_logic;
-p_in_user_reset_n       : in   std_logic;
+p_in_user_reset         : in   std_logic;
 p_in_user_lnk_up        : in   std_logic
 );
 end component pcie_ctrl;
@@ -425,7 +425,7 @@ signal i_sys_clk          : std_logic;
 signal i_sys_clk_gt       : std_logic;
 
 signal i_user_clk         : std_logic;
-signal i_user_reset_n     : std_logic;
+signal i_user_reset       : std_logic;
 signal i_user_lnk_up      : std_logic;
 
 signal i_s_axis_rq_tlast  : std_logic                                   ;
@@ -566,7 +566,7 @@ pci_exp_rxn => p_in_pcie_phy.rxn ,--: IN  STD_LOGIC_VECTOR(0 DOWNTO 0);
 pci_exp_rxp => p_in_pcie_phy.rxp ,--: IN  STD_LOGIC_VECTOR(0 DOWNTO 0);
 
 user_clk         => i_user_clk   ,--: OUT STD_LOGIC;
-user_reset       => i_user_reset_n ,--: OUT STD_LOGIC;
+user_reset       => i_user_reset ,--: OUT STD_LOGIC;
 user_lnk_up      => i_user_lnk_up,--: OUT STD_LOGIC;
 
 s_axis_rq_tdata  => i_s_axis_rq_tdata ,--: IN  STD_LOGIC_VECTOR(63 DOWNTO 0);
@@ -898,9 +898,9 @@ p_in_cfg_hot_reset_in   => i_cfg_hot_reset_out,
 -- RP only
 p_out_cfg_hot_reset_out => i_cfg_hot_reset_in,
 
-p_in_user_clk     => i_user_clk   ,
-p_in_user_reset_n => i_user_reset_n ,
-p_in_user_lnk_up  => i_user_lnk_up
+p_in_user_clk    => i_user_clk   ,
+p_in_user_reset  => i_user_reset ,
+p_in_user_lnk_up => i_user_lnk_up
 );
 
 
