@@ -389,11 +389,17 @@ if rising_edge(p_in_user_clk) then
 
                 case data_start_loc is
                   when "000"  =>
-                    m_axis_cq_tready <= '0';
+                    i_m_axis_cq_tready <= '0';
 
-                    wr_data <= #TCQ payload_len ? m_axis_cq_tdata[63:0] : {32'h0, m_axis_cq_tdata[31:0]};
-                    wr_be   <= #TCQ payload_len ? m_axis_cq_tuser[15:8] : { 4'h0, m_axis_cq_tuser[11:8]};
-                    wr_en   <= #TCQ 1'b1;
+                    if i_payload_len = '1' then
+                      wr_data <= p_in_m_axis_cq_tdata(63 downto 0);
+                      wr_be   <= p_in_m_axis_cq_tuser(15 downto 8);
+                    else
+                      wr_data <= std_logic_vector(RESIZE(UNSIGNED(p_in_m_axis_cq_tdata(31 downto 0)), 64));
+                      wr_be   <= std_logic_vector(RESIZE(UNSIGNED(p_in_m_axis_cq_tuser(11 downto 8)),  8));
+                    end if;
+
+                    wr_en  <= '1';
 
                     i_fsm_cs  <= #TCQ PIO_RX_WAIT_STATE;
 
