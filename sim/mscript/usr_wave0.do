@@ -1,4 +1,5 @@
 onerror {resume}
+quietly virtual signal -install /board/EP/m_main/m_ctrl/m_rx { /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tdata[14:11]} FMT_TYPE
 quietly WaveActivateNextPane {} 0
 add wave -noupdate /board/i
 add wave -noupdate /board/sys_rst_n
@@ -52,13 +53,21 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_pio_to_ctrl/trn_pending
 add wave -noupdate -divider RX_ENGENE
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/user_clk
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/reset_n
-add wave -noupdate -radix ascii /board/EP/m_main/m_ctrl/m_rx/state_ascii
+add wave -noupdate -radix hexadecimal /board/EP/m_main/m_ctrl/m_rx/sop
+add wave -noupdate -radix hexadecimal /board/EP/m_main/m_ctrl/m_rx/in_packet_q
+add wave -noupdate -color {Slate Blue} -itemcolor Gold -radix ascii /board/EP/m_main/m_ctrl/m_rx/state_ascii
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_compl
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_compl_wd
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_compl_ur
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/compl_done
-add wave -noupdate -radix hexadecimal /board/EP/m_main/m_ctrl/m_rx/sop
-add wave -noupdate -radix hexadecimal /board/EP/m_main/m_ctrl/m_rx/in_packet_q
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/data_start_loc
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/wr_addr
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/wr_be
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/wr_data
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/wr_en
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/payload_len
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/wr_busy
+add wave -noupdate -color {Cornflower Blue} /board/EP/m_main/m_ctrl/m_rx/FMT_TYPE
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tdata
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tdata_q
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tlast
@@ -92,16 +101,9 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_des_tph_present
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_des_tph_type
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_des_tph_st_tag
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/req_mem_lock
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/wr_addr
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/wr_be
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/wr_data
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/wr_en
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/payload_len
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/wr_busy
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/state
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/trn_type
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/region_select
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/data_start_loc
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/io_bar_hit_n
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/mem32_bar_hit_n
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/mem64_bar_hit_n
@@ -123,7 +125,7 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/req_compl_wd
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/req_compl_ur
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/payload_len
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/compl_done
-add wave -noupdate -radix ascii /board/EP/m_main/m_ctrl/m_tx/state_ascii
+add wave -noupdate -color {Slate Blue} -itemcolor Gold -radix ascii /board/EP/m_main/m_ctrl/m_tx/state_ascii
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/s_axis_cc_tdata
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/s_axis_cc_tkeep
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/s_axis_cc_tlast
@@ -214,4 +216,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {181851839 ps} {182078359 ps}
+WaveRestoreZoom {181450492 ps} {181630380 ps}
