@@ -23,7 +23,8 @@ add wave -noupdate /board/EP/sys_clk_p
 add wave -noupdate /board/EP/sys_clk_n
 add wave -noupdate /board/EP/sys_rst_n
 add wave -noupdate /board/EP/m_main/i_user_clk
-add wave -noupdate /board/EP/m_main/i_user_reset_n
+add wave -noupdate /board/EP/m_main/i_user_reset
+add wave -noupdate /board/EP/m_main/i_user_lnk_up
 add wave -noupdate -divider USR_APP
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/user_clk
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/reset_n
@@ -213,4 +214,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {0 ps} {26643751 ps}
+WaveRestoreZoom {0 ps} {124500105 ps}
