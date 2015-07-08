@@ -426,16 +426,16 @@ req_compl_wd => i_req_compl_wd ,--: out std_logic;
 req_compl_ur => i_req_compl_ur ,--: out std_logic;
 compl_done   => i_compl_done   ,--: in  std_logic;
 
-req_tc       => i_req_tc  ,--: out std_logic_vector(2 downto 0) ;-- Memory Read TC
-req_attr     => i_req_attr,--: out std_logic_vector(2 downto 0) ;-- Memory Read Attribute
-req_len      => i_req_len ,--: out std_logic_vector(10 downto 0);-- Memory Read Length
-req_rid      => i_req_rid ,--: out std_logic_vector(15 downto 0);-- Memory Read Requestor ID { 8'b0 (Bus no),
-                                                                 --                            3'b0 (Dev no),
-                                                                 --                            5'b0 (Func no)}
-req_tag      => i_req_tag ,--: out std_logic_vector(7 downto 0) ;-- Memory Read Tag
-req_be       => i_req_be  ,--: out std_logic_vector(7 downto 0) ;-- Memory Read Byte Enables
-req_addr     => i_req_addr,--: out std_logic_vector(12 downto 0);-- Memory Read Address
-req_at       => i_req_at  ,--: out std_logic_vector(1 downto 0) ;-- Address Translation
+req_tc       => i_req_tc  ,     --: out std_logic_vector(2 downto 0) ;-- Memory Read TC
+req_attr     => i_req_attr,     --: out std_logic_vector(2 downto 0) ;-- Memory Read Attribute
+req_len      => i_req_len ,     --: out std_logic_vector(10 downto 0);-- Memory Read Length
+req_rid      => i_req_rid ,     --: out std_logic_vector(15 downto 0);-- Memory Read Requestor ID { 8'b0 (Bus no),
+                                                                      --                            3'b0 (Dev no),
+                                                                      --                            5'b0 (Func no)}
+req_tag      => i_req_tag ,     --: out std_logic_vector(7 downto 0) ;-- Memory Read Tag
+req_be       => i_req_be  ,     --: out std_logic_vector(7 downto 0) ;-- Memory Read Byte Enables
+req_addr     => i_req_addr,     --: out std_logic_vector(12 downto 0);-- Memory Read Address
+req_at       => i_req_at  ,     --: out std_logic_vector(1 downto 0) ;-- Address Translation
 
 -- Outputs to the TX Block in case of an UR
 -- Required to form the completions
@@ -533,16 +533,16 @@ req_compl_ur => i_req_compl_ur,--: in  std_logic;
 payload_len  => i_payload_len ,--: in  std_logic;
 compl_done   => i_compl_done  ,--: out std_logic;
 
-req_tc   => i_req_tc  ,--: in  std_logic_vector(2 downto 0);
-req_td   => '0',--i_req_td  ,--: in  std_logic;
-req_ep   => '0',--i_req_ep  ,--: in  std_logic;
+req_tc   => i_req_tc  ,            --: in  std_logic_vector(2 downto 0);
+req_td   => '0',--i_req_td  ,      --: in  std_logic;
+req_ep   => '0',--i_req_ep  ,      --: in  std_logic;
 req_attr => i_req_attr(1 downto 0),--: in  std_logic_vector(1 downto 0);
-req_len  => i_req_len ,--: in  std_logic_vector(10 downto 0);
-req_rid  => i_req_rid ,--: in  std_logic_vector(15 downto 0);
-req_tag  => i_req_tag ,--: in  std_logic_vector(7 downto 0);
-req_be   => i_req_be  ,--: in  std_logic_vector(7 downto 0);
-req_addr => i_req_addr,--: in  std_logic_vector(12 downto 0);
-req_at   => i_req_at  ,--: in  std_logic_vector(1 downto 0);
+req_len  => i_req_len ,            --: in  std_logic_vector(10 downto 0);
+req_rid  => i_req_rid ,            --: in  std_logic_vector(15 downto 0);
+req_tag  => i_req_tag ,            --: in  std_logic_vector(7 downto 0);
+req_be   => i_req_be  ,            --: in  std_logic_vector(7 downto 0);
+req_addr => i_req_addr,            --: in  std_logic_vector(12 downto 0);
+req_at   => i_req_at  ,            --: in  std_logic_vector(1 downto 0);
 
 completer_id => (others => '0'),--: in  std_logic_vector(15 downto 0);
 
