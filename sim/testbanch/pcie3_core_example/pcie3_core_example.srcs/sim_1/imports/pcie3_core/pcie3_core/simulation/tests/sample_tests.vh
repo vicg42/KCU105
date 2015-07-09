@@ -50,7 +50,7 @@
 //
 // Project    : Ultrascale FPGA Gen3 Integrated Block for PCI Express
 // File       : sample_tests.vh
-// Version    : 4.0 
+// Version    : 4.0
 //-----------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
@@ -67,9 +67,9 @@ begin
 
 
 
-    
-    $display("[%t] : Expected Device/Vendor ID = %x", $realtime, DEV_VEN_ID); 
-    
+
+    $display("[%t] : Expected Device/Vendor ID = %x", $realtime, DEV_VEN_ID);
+
     //--------------------------------------------------------------------------
     // Read core configuration space via PCIe fabric interface
     //--------------------------------------------------------------------------
@@ -79,7 +79,7 @@ begin
     TSK_TX_TYPE0_CONFIGURATION_READ(DEFAULT_TAG, 12'h0, 4'hF);
     TSK_WAIT_FOR_READ_DATA;
     if  (P_READ_DATA != DEV_VEN_ID) begin
-        $display("[%t] : TEST FAILED --- Data Error Mismatch, Write Data %x != Read Data %x", $realtime, 
+        $display("[%t] : TEST FAILED --- Data Error Mismatch, Write Data %x != Read Data %x", $realtime,
                                     DEV_VEN_ID, P_READ_DATA);
     end
     else begin
@@ -128,9 +128,9 @@ fork
     // List Rx TLP expections
     //---------------------------------------------------------------------------
   begin
-    test_vars[0] = 0;                                                                                                                         
-                                          
-    $display("[%t] : Expected Device/Vendor ID = %x", $realtime, DEV_VEN_ID);                                              
+    test_vars[0] = 0;
+
+    $display("[%t] : Expected Device/Vendor ID = %x", $realtime, DEV_VEN_ID);
 
     expect_cpld_payload[0] = DEV_VEN_ID[31:24];
     expect_cpld_payload[1] = DEV_VEN_ID[23:16];
@@ -155,11 +155,11 @@ fork
       expect_status //expect_status;
     );
 
-    if (expect_status) 
-      test_vars[0] = test_vars[0] + 1;      
+    if (expect_status)
+      test_vars[0] = test_vars[0] + 1;
   end
 join
-  
+
   expect_finish_check = 1;
 
   if (test_vars[0] == 1) begin
