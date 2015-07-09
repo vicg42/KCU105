@@ -10,6 +10,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
+library work;
+use work.prj_def.all;
+
 package pcie_unit_pkg is
 
 component pio_to_ctrl
@@ -215,38 +218,38 @@ gen_transaction : in  std_logic
 end component pcie_tx;
 
 
-component pcie_usr_app
-generic (
-TCQ : integer := 1
-);
-port (
-user_clk : in  std_logic;
-reset_n  : in  std_logic;
-
---Read Port
-rd_addr  : in  std_logic_vector(10 downto 0);
-rd_be    : in  std_logic_vector(3 downto 0);
-trn_sent : in  std_logic;
-rd_data  : out std_logic_vector(31 downto 0);
-
---Write Port
-wr_addr  : in  std_logic_vector(10 downto 0);
-wr_be    : in  std_logic_vector(7 downto 0);
-wr_data  : in  std_logic_vector(63 downto 0);
-wr_en    : in  std_logic;
-wr_busy  : out std_logic;
-
---Payload info
-payload_len : in  std_logic;
-
---Trigger to TX and Interrupt Handler Block to generate
---Transactions and Interrupts
-gen_transaction : out std_logic;
-gen_leg_intr    : out std_logic;
-gen_msi_intr    : out std_logic;
-gen_msix_intr   : out std_logic
-);
-end component pcie_usr_app;
+--component pcie_usr_app
+--generic (
+--TCQ : integer := 1
+--);
+--port (
+--user_clk : in  std_logic;
+--reset_n  : in  std_logic;
+--
+----Read Port
+--rd_addr  : in  std_logic_vector(10 downto 0);
+--rd_be    : in  std_logic_vector(3 downto 0);
+--trn_sent : in  std_logic;
+--rd_data  : out std_logic_vector(31 downto 0);
+--
+----Write Port
+--wr_addr  : in  std_logic_vector(10 downto 0);
+--wr_be    : in  std_logic_vector(7 downto 0);
+--wr_data  : in  std_logic_vector(63 downto 0);
+--wr_en    : in  std_logic;
+--wr_busy  : out std_logic;
+--
+----Payload info
+--payload_len : in  std_logic;
+--
+----Trigger to TX and Interrupt Handler Block to generate
+----Transactions and Interrupts
+--gen_transaction : out std_logic;
+--gen_leg_intr    : out std_logic;
+--gen_msi_intr    : out std_logic;
+--gen_msix_intr   : out std_logic
+--);
+--end component pcie_usr_app;
 
 
 component pcie_irq
@@ -284,6 +287,50 @@ cfg_interrupt_msix_address: out std_logic_vector(63 downto 0);
 cfg_interrupt_msix_data   : out std_logic_vector(31 downto 0)
 );
 end component pcie_irq;
+
+
+component pcie_usr_app is
+generic(
+G_DBG : string := "OFF"
+);
+port(
+-------------------------------------------------------
+--USR Port
+-------------------------------------------------------
+p_out_hclk      : out   std_logic;
+p_out_gctrl     : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);--global ctrl
+
+--CTRL user devices
+p_out_dev_ctrl  : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
+p_out_dev_din   : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);--DEV<-HOST
+p_in_dev_dout   : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);--DEV->HOST
+p_out_dev_wr    : out   std_logic;
+p_out_dev_rd    : out   std_logic;
+p_in_dev_status : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
+p_in_dev_irq    : in    std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
+p_in_dev_opt    : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
+p_out_dev_opt   : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
+
+--DBG
+p_out_tst       : out   std_logic_vector(127 downto 0);
+p_in_tst        : in    std_logic_vector(127 downto 0);
+
+--------------------------------------
+--PCIE_Rx/Tx  Port
+--------------------------------------
+--Target mode
+p_in_reg_adr   : in    std_logic_vector(7 downto 0);
+p_out_reg_dout : out   std_logic_vector(31 downto 0);
+p_in_reg_din   : in    std_logic_vector(31 downto 0);
+p_in_reg_wr    : in    std_logic;
+p_in_reg_rd    : in    std_logic;
+
+p_in_clk   : in    std_logic;
+p_in_rst_n : in    std_logic
+);
+end component pcie_usr_app;
+
+
 
 end package pcie_unit_pkg;
 

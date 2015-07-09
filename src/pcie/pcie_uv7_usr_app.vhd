@@ -65,7 +65,7 @@ signal i_reg_bar          : std_logic;
 signal i_reg_adr          : unsigned(6 downto 0);
 
 signal v_reg_firmware     : std_logic_vector(C_HREG_FRMWARE_LAST_BIT downto 0);
-signal v_reg_ctrl         : std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
+signal v_reg_ctrl         : std_logic_vector(31 downto 0);
 signal v_reg_tst0         : std_logic_vector(31 downto 0);
 signal v_reg_tst1         : std_logic_vector(31 downto 0);
 
@@ -132,12 +132,10 @@ if rising_edge(p_in_clk) then
       ----------------------------------------------
       --Register Space:
       ----------------------------------------------
-        if i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_FIRMWARE, 5) then
-            txd := std_logic_vector(RESIZE(UNSIGNED(v_reg_firmware), txd'length));
-
-        elsif i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_CTRL, 5) then txd := std_logic_vector(RESIZE(UNSIGNED(v_reg_ctrl), txd'length));
-        elsif i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_TST0, 5) then txd := std_logic_vector(RESIZE(UNSIGNED(v_reg_tst1), txd'length));
-        elsif i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_TST1, 5) then txd := std_logic_vector(RESIZE(UNSIGNED(v_reg_tst2), txd'length));
+        if i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_FIRMWARE, 5) then txd := std_logic_vector(RESIZE(UNSIGNED(v_reg_firmware), txd'length));
+        elsif i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_CTRL, 5)  then txd := std_logic_vector(RESIZE(UNSIGNED(v_reg_ctrl), txd'length));
+        elsif i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_TST0, 5)  then txd := std_logic_vector(RESIZE(UNSIGNED(v_reg_tst0), txd'length));
+        elsif i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_TST1, 5)  then txd := std_logic_vector(RESIZE(UNSIGNED(v_reg_tst1), txd'length));
 
         end if;
 

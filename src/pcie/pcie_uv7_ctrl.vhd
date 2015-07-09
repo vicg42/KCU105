@@ -335,33 +335,73 @@ p_out_cfg_hot_reset_out <= '0';
 --
 ----------------------------------------
 m_usr_app : pcie_usr_app
+generic map(
+G_DBG => "OFF"
+)
 port map (
-user_clk => p_in_user_clk,
-reset_n  => i_rst_n,
+-------------------------------------------------------
+--USR Port
+-------------------------------------------------------
+p_out_hclk      => p_out_hclk ,
+p_out_gctrl     => p_out_gctrl,
 
---Read Port
-rd_addr  => i_rd_addr ,--: in  std_logic_vector(10 downto 0);
-rd_be    => i_rd_be   ,--: in  std_logic_vector(3 downto 0);
-trn_sent => i_trn_sent,--: in  std_logic;
-rd_data  => i_rd_data ,--: out std_logic_vector(31 downto 0);
+--CTRL user devices
+p_out_dev_ctrl  => p_out_dev_ctrl ,
+p_out_dev_din   => p_out_dev_din  ,
+p_in_dev_dout   => p_in_dev_dout  ,
+p_out_dev_wr    => p_out_dev_wr   ,
+p_out_dev_rd    => p_out_dev_rd   ,
+p_in_dev_status => p_in_dev_status,
+p_in_dev_irq    => p_in_dev_irq   ,
+p_in_dev_opt    => p_in_dev_opt   ,
+p_out_dev_opt   => p_out_dev_opt  ,
 
---Write Port
-wr_addr  => i_wr_addr, --: in  std_logic_vector(10 downto 0);
-wr_be    => i_wr_be  , --: in  std_logic_vector(7 downto 0);
-wr_data  => i_wr_data, --: in  std_logic_vector(63 downto 0);
-wr_en    => i_wr_en  , --: in  std_logic;
-wr_busy  => i_wr_busy, --: out std_logic;
+--DBG
+p_out_tst       => p_out_tst,
+p_in_tst        => p_in_tst ,
 
---Payload info
-payload_len => i_payload_len,--: in  std_logic;
+--------------------------------------
+--PCIE_Rx/Tx  Port
+--------------------------------------
+--Target mode
+p_in_reg_adr   => i_wr_addr(7 downto 0),-- in    std_logic_vector(7 downto 0);
+p_out_reg_dout => i_rd_data(31 downto 0),--: out   std_logic_vector(31 downto 0);
+p_in_reg_din   => i_wr_data(31 downto 0),-- in    std_logic_vector(31 downto 0);
+p_in_reg_wr    => i_wr_en,-- in    std_logic;
+p_in_reg_rd    => '0',--: in    std_logic;
 
---Trigger to TX and Interrupt Handler Block to generate
---Transactions and Interrupts
-gen_transaction => i_gen_transaction,--: out std_logic;
-gen_leg_intr    => i_gen_leg_intr   ,--: out std_logic;
-gen_msi_intr    => i_gen_msi_intr   ,--: out std_logic;
-gen_msix_intr   => i_gen_msix_intr   --: out std_logic
+p_in_clk   => p_in_user_clk,
+p_in_rst_n => i_rst_n
 );
+
+--m_usr_app : pcie_usr_app
+--port map (
+--user_clk => p_in_user_clk,
+--reset_n  => i_rst_n,
+--
+----Read Port
+--rd_addr  => i_rd_addr ,--: in  std_logic_vector(10 downto 0);
+--rd_be    => i_rd_be   ,--: in  std_logic_vector(3 downto 0);
+--trn_sent => i_trn_sent,--: in  std_logic;
+--rd_data  => i_rd_data ,--: out std_logic_vector(31 downto 0);
+--
+----Write Port
+--wr_addr  => i_wr_addr, --: in  std_logic_vector(10 downto 0);
+--wr_be    => i_wr_be  , --: in  std_logic_vector(7 downto 0);
+--wr_data  => i_wr_data, --: in  std_logic_vector(63 downto 0);
+--wr_en    => i_wr_en  , --: in  std_logic;
+--wr_busy  => i_wr_busy, --: out std_logic;
+--
+----Payload info
+--payload_len => i_payload_len,--: in  std_logic;
+--
+----Trigger to TX and Interrupt Handler Block to generate
+----Transactions and Interrupts
+--gen_transaction => i_gen_transaction,--: out std_logic;
+--gen_leg_intr    => i_gen_leg_intr   ,--: out std_logic;
+--gen_msi_intr    => i_gen_msi_intr   ,--: out std_logic;
+--gen_msix_intr   => i_gen_msix_intr   --: out std_logic
+--);
 
 
 
@@ -624,22 +664,6 @@ cfg_power_state_change_ack       => p_out_cfg_power_state_change_ack
 --#############################################
 --DBG
 --#############################################
-p_out_hclk <= '0';
-p_out_gctrl <= (others => '0');
-
---CTRL user devices
-p_out_dev_ctrl <= (others => '0');
-p_out_dev_din <= (others => '0');
-p_out_dev_wr <= '0';
-p_out_dev_rd <= '0';
-
-p_out_dev_opt <= (others => '0');
-
---DBG
-p_out_tst <= (others => '0');
-
-
-
 
 ------------------------------------
 -- EP Only

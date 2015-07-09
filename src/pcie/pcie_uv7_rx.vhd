@@ -156,6 +156,9 @@ signal i_req_compl_ur        : std_logic := '0';
 signal i_trn_type            : std_logic_vector(3 downto 0);
 signal i_payload_len         : std_logic := '0';
 
+signal i_req_mem             : std_logic;
+signal i_req_mem_lock        : std_logic;
+
 signal i_data_start_loc      : std_logic_vector(2 downto 0);
 
 signal sr_m_axis_cq_tdata    : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
@@ -168,12 +171,17 @@ signal i_wr_en               : std_logic;
 
 begin --architecture behavioral of pcie_rx
 
-p_out_req_mem_lock <= '0';
-p_out_req_mem      <= '0';
+p_out_req_mem_lock <= i_req_mem_lock;
+p_out_req_mem      <= i_req_mem;
 
 p_out_wr_addr <= i_wr_addr;
-p_out_wr_be   <= i_wr_be  ;
-p_out_wr_data <= i_wr_data;
+p_out_wr_be <= i_wr_be; --Пока не понятно как правильно с этим работать. Нужно читать документацию
+
+gen_swap_wr_d : for i in 0 to (p_out_wr_data'length / 8) - 1 generate
+p_out_wr_data((p_out_wr_data'length - 8 * i) - 1
+                    downto (p_out_wr_data'length - 8 * (i + 1))) <= i_wr_data(8 * (i + 1) - 1 downto (8 * i));
+end generate gen_swap_wr_d;
+
 p_out_wr_en   <= i_wr_en  ;
 
 p_out_payload_len <= i_payload_len;
@@ -205,7 +213,7 @@ p_out_m_axis_rc_tready <= i_m_axis_rc_tready;
 
 --Generate a signal that indicates if we are currently receiving a packet.
 --This value is one clock cycle delayed from what is actually on the AXIS data bus.
-process(p_in_clk)
+detect_pkt : process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
   if (p_in_rst_n = '0') then
@@ -221,12 +229,12 @@ if rising_edge(p_in_clk) then
     i_in_pkt_q <= '1';
   end if;
 end if;
-end process;
+end process detect_pkt;
 
 i_sop <= not i_in_pkt_q and p_in_m_axis_cq_tvalid;
 
 
-process(p_in_clk)
+sr_cq_tdata : process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
   if (p_in_rst_n = '0') then
@@ -237,7 +245,7 @@ if rising_edge(p_in_clk) then
 
   end if;
 end if;
-end process;
+end process sr_cq_tdata;
 
 
 --Rx State Machine
@@ -274,6 +282,9 @@ if rising_edge(p_in_clk) then
 
     i_payload_len <= '0';
     i_trn_type <= (others => '0');
+
+    i_req_mem <= '0';
+    i_req_mem_lock <= '0';
 
     i_data_start_loc <= (others => '0');
 
@@ -342,6 +353,18 @@ if rising_edge(p_in_clk) then
                           i_req_be   <= i_req_byte_enables;
                           i_req_addr <= i_desc_hdr_qw0(12 downto 2) & "00";--??????
                           i_req_at   <= i_desc_hdr_qw0(1 downto 0);
+
+                          if (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_RD_ND) then
+                            i_req_mem <= '1';
+                          else
+                            i_req_mem <= '0';
+                          end if;
+
+                          if (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND) then
+                            i_req_mem_lock <= '1';
+                          else
+                            i_req_mem_lock <= '1';
+                          end if;
 
                           if (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_RD_ND)
                             or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND)
@@ -547,12 +570,12 @@ if rising_edge(p_in_clk) then
             i_req_compl    <= '0';
             i_req_compl_wd <= '0';
 
-            if (i_trn_type = C_PCIE3_PKT_TYPE_MEM_WR_D) and (p_in_wr_busy = '0') then
+            if (i_trn_type = C_PCIE3_PKT_TYPE_MEM_WR_D) and (p_in_compl_done = '1') then
 
               i_m_axis_cq_tready <= '1';
               i_fsm_rx <= S_RX_IDLE;
 
-            elsif (i_trn_type = C_PCIE3_PKT_TYPE_IO_WR_D) and (p_in_wr_busy = '0') then
+            elsif (i_trn_type = C_PCIE3_PKT_TYPE_IO_WR_D) and (p_in_compl_done = '1') then
 
               i_m_axis_cq_tready <= '1';
               i_fsm_rx <= S_RX_IDLE;
