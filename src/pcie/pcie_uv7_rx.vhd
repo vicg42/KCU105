@@ -582,8 +582,8 @@ if rising_edge(p_in_user_clk) then
             end if;
 
     end case; --case i_fsm_rx is
-  end if;
-end if;--rst_n,
+  end if;--p_in_reset_n
+end if;--p_in_user_clk
 end process; --fsm
 
 end architecture behavioral;
