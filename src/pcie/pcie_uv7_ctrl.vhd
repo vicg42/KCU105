@@ -379,75 +379,75 @@ end generate gen_rc_trdy;
 m_rx : pcie_rx
 generic map(
 --AXISTEN_IF_WIDTH               => G_AXISTEN_IF_WIDTH,
-AXISTEN_IF_CQ_ALIGNMENT_MODE   => G_AXISTEN_IF_CQ_ALIGNMENT_MODE,
-AXISTEN_IF_RC_ALIGNMENT_MODE   => G_AXISTEN_IF_RC_ALIGNMENT_MODE,
---AXISTEN_IF_RC_STRADDLE         : integer := 0;
-AXISTEN_IF_ENABLE_RX_MSG_INTFC => G_AXISTEN_IF_ENABLE_RX_MSG_INTFC,
-AXISTEN_IF_ENABLE_MSG_ROUTE    => G_AXISTEN_IF_ENABLE_MSG_ROUTE,
+G_AXISTEN_IF_CQ_ALIGNMENT_MODE   => G_AXISTEN_IF_CQ_ALIGNMENT_MODE,
+G_AXISTEN_IF_RC_ALIGNMENT_MODE   => G_AXISTEN_IF_RC_ALIGNMENT_MODE,
+--G_AXISTEN_IF_RC_STRADDLE         : integer := 0;
+G_AXISTEN_IF_ENABLE_RX_MSG_INTFC => G_AXISTEN_IF_ENABLE_RX_MSG_INTFC,
+G_AXISTEN_IF_ENABLE_MSG_ROUTE    => G_AXISTEN_IF_ENABLE_MSG_ROUTE,
 
-C_DATA_WIDTH => G_DATA_WIDTH   ,
-STRB_WIDTH   => CI_STRB_WIDTH  ,
-KEEP_WIDTH   => CI_KEEP_WIDTH  ,
-PARITY_WIDTH => CI_PARITY_WIDTH
+G_DATA_WIDTH   => G_DATA_WIDTH   ,
+G_STRB_WIDTH   => CI_STRB_WIDTH  ,
+G_KEEP_WIDTH   => CI_KEEP_WIDTH  ,
+G_PARITY_WIDTH => CI_PARITY_WIDTH
 )
 port map (
-user_clk => p_in_user_clk,
-reset_n  => i_rst_n,
+p_in_user_clk => p_in_user_clk,
+p_in_reset_n  => i_rst_n,
 
 -- Completer Request Interface
-m_axis_cq_tdata       => p_in_m_axis_cq_tdata     ,
-m_axis_cq_tlast       => p_in_m_axis_cq_tlast     ,
-m_axis_cq_tvalid      => p_in_m_axis_cq_tvalid    ,
-m_axis_cq_tuser       => p_in_m_axis_cq_tuser     ,
-m_axis_cq_tkeep       => p_in_m_axis_cq_tkeep     ,
-pcie_cq_np_req_count  => p_in_pcie_cq_np_req_count,
-m_axis_cq_tready      => i_m_axis_cq_tready       ,
-pcie_cq_np_req        => p_out_pcie_cq_np_req     ,
+p_in_m_axis_cq_tdata      => p_in_m_axis_cq_tdata     ,
+p_in_m_axis_cq_tlast      => p_in_m_axis_cq_tlast     ,
+p_in_m_axis_cq_tvalid     => p_in_m_axis_cq_tvalid    ,
+p_in_m_axis_cq_tuser      => p_in_m_axis_cq_tuser     ,
+p_in_m_axis_cq_tkeep      => p_in_m_axis_cq_tkeep     ,
+p_in_pcie_cq_np_req_count => p_in_pcie_cq_np_req_count,
+p_out_m_axis_cq_tready    => i_m_axis_cq_tready       ,
+p_out_pcie_cq_np_req      => p_out_pcie_cq_np_req     ,
 
 -- Requester Completion Interface
-m_axis_rc_tdata       => p_in_m_axis_rc_tdata ,
-m_axis_rc_tlast       => p_in_m_axis_rc_tlast ,
-m_axis_rc_tvalid      => p_in_m_axis_rc_tvalid,
-m_axis_rc_tkeep       => p_in_m_axis_rc_tkeep ,
-m_axis_rc_tuser       => p_in_m_axis_rc_tuser ,
-m_axis_rc_tready      => i_m_axis_rc_tready   ,
+p_in_m_axis_rc_tdata    => p_in_m_axis_rc_tdata ,
+p_in_m_axis_rc_tlast    => p_in_m_axis_rc_tlast ,
+p_in_m_axis_rc_tvalid   => p_in_m_axis_rc_tvalid,
+p_in_m_axis_rc_tkeep    => p_in_m_axis_rc_tkeep ,
+p_in_m_axis_rc_tuser    => p_in_m_axis_rc_tuser ,
+p_out_m_axis_rc_tready  => i_m_axis_rc_tready   ,
 
 --RX Message Interface
-cfg_msg_received      => p_in_cfg_msg_received     ,
-cfg_msg_received_type => p_in_cfg_msg_received_type,
-cfg_msg_data          => p_in_cfg_msg_received_data,
+p_in_cfg_msg_received      => p_in_cfg_msg_received     ,
+p_in_cfg_msg_received_type => p_in_cfg_msg_received_type,
+p_in_cfg_msg_data          => p_in_cfg_msg_received_data,
 
 -- Memory Read data handshake with Completion
 -- transmit unit. Transmit unit reponds to
 -- req_compl assertion and responds with compl_done
 -- assertion when a Completion w/ data is transmitted.
-req_compl    => i_req_compl    ,--: out std_logic;
-req_compl_wd => i_req_compl_wd ,--: out std_logic;
-req_compl_ur => i_req_compl_ur ,--: out std_logic;
-compl_done   => i_compl_done   ,--: in  std_logic;
+p_out_req_compl    => i_req_compl    ,--: out std_logic;
+p_out_req_compl_wd => i_req_compl_wd ,--: out std_logic;
+p_out_req_compl_ur => i_req_compl_ur ,--: out std_logic;
+p_in_compl_done    => i_compl_done   ,--: in  std_logic;
 
-req_tc       => i_req_tc  ,     --: out std_logic_vector(2 downto 0) ;-- Memory Read TC
-req_attr     => i_req_attr,     --: out std_logic_vector(2 downto 0) ;-- Memory Read Attribute
-req_len      => i_req_len ,     --: out std_logic_vector(10 downto 0);-- Memory Read Length
-req_rid      => i_req_rid ,     --: out std_logic_vector(15 downto 0);-- Memory Read Requestor ID { 8'b0 (Bus no),
-                                                                      --                            3'b0 (Dev no),
-                                                                      --                            5'b0 (Func no)}
-req_tag      => i_req_tag ,     --: out std_logic_vector(7 downto 0) ;-- Memory Read Tag
-req_be       => i_req_be  ,     --: out std_logic_vector(7 downto 0) ;-- Memory Read Byte Enables
-req_addr     => i_req_addr,     --: out std_logic_vector(12 downto 0);-- Memory Read Address
-req_at       => i_req_at  ,     --: out std_logic_vector(1 downto 0) ;-- Address Translation
+p_out_req_tc       => i_req_tc  ,     --: out std_logic_vector(2 downto 0) ;-- Memory Read TC
+p_out_req_attr     => i_req_attr,     --: out std_logic_vector(2 downto 0) ;-- Memory Read Attribute
+p_out_req_len      => i_req_len ,     --: out std_logic_vector(10 downto 0);-- Memory Read Length
+p_out_req_rid      => i_req_rid ,     --: out std_logic_vector(15 downto 0);-- Memory Read Requestor ID { 8'b0 (Bus no),
+                                                                            --                            3'b0 (Dev no),
+                                                                            --                            5'b0 (Func no)}
+p_out_req_tag      => i_req_tag ,     --: out std_logic_vector(7 downto 0) ;-- Memory Read Tag
+p_out_req_be       => i_req_be  ,     --: out std_logic_vector(7 downto 0) ;-- Memory Read Byte Enables
+p_out_req_addr     => i_req_addr,     --: out std_logic_vector(12 downto 0);-- Memory Read Address
+p_out_req_at       => i_req_at  ,     --: out std_logic_vector(1 downto 0) ;-- Address Translation
 
 -- Outputs to the TX Block in case of an UR
 -- Required to form the completions
-req_des_qword0      => i_req_des_qword0     ,--: out std_logic_vector(63 downto 0);-- DWord0 and Dword1 of descriptor of the request
-req_des_qword1      => i_req_des_qword1     ,--: out std_logic_vector(63 downto 0);-- DWord2 and Dword3 of descriptor of the request
-req_des_tph_present => i_req_des_tph_present,--: out std_logic;                    -- TPH Present in the request
-req_des_tph_type    => i_req_des_tph_type   ,--: out std_logic_vector(1 downto 0) ;-- If TPH Present then TPH type
-req_des_tph_st_tag  => i_req_des_tph_st_tag ,--: out std_logic_vector(7 downto 0) ;-- TPH Steering tag of the request
+p_out_req_des_qword0      => i_req_des_qword0     ,--: out std_logic_vector(63 downto 0);-- DWord0 and Dword1 of descriptor of the request
+p_out_req_des_qword1      => i_req_des_qword1     ,--: out std_logic_vector(63 downto 0);-- DWord2 and Dword3 of descriptor of the request
+p_out_req_des_tph_present => i_req_des_tph_present,--: out std_logic;                    -- TPH Present in the request
+p_out_req_des_tph_type    => i_req_des_tph_type   ,--: out std_logic_vector(1 downto 0) ;-- If TPH Present then TPH type
+p_out_req_des_tph_st_tag  => i_req_des_tph_st_tag ,--: out std_logic_vector(7 downto 0) ;-- TPH Steering tag of the request
 
 --Output to Indicate that the Request was a Mem lock Read Req
-req_mem_lock        => i_req_mem_lock,--: out std_logic;
-req_mem             => i_req_mem     ,--: out std_logic;
+p_out_req_mem_lock => i_req_mem_lock,--: out std_logic;
+p_out_req_mem      => i_req_mem     ,--: out std_logic;
 
 --Memory interface used to save 2 DW data received
 --on Memory Write 32 TLP. Data extracted from
@@ -455,14 +455,13 @@ req_mem             => i_req_mem     ,--: out std_logic;
 --unit. Endpoint memory unit reacts to wr_en
 --assertion and asserts wr_busy when it is
 --processing written information.
-wr_addr     => i_wr_addr    ,--: out std_logic_vector(10 downto 0);-- Memory Write Address
-wr_be       => i_wr_be      ,--: out std_logic_vector(7 downto 0); -- Memory Write Byte Enable
-wr_data     => i_wr_data    ,--: out std_logic_vector(63 downto 0);-- Memory Write Data
-wr_en       => i_wr_en      ,--: out std_logic;                    -- Memory Write Enable
-payload_len => i_payload_len,--: out std_logic;                    -- Transaction Payload Length
-wr_busy     => i_wr_busy     --: in  std_logic                     -- Memory Write Busy
+p_out_wr_addr     => i_wr_addr    ,--: out std_logic_vector(10 downto 0);-- Memory Write Address
+p_out_wr_be       => i_wr_be      ,--: out std_logic_vector(7 downto 0); -- Memory Write Byte Enable
+p_out_wr_data     => i_wr_data    ,--: out std_logic_vector(63 downto 0);-- Memory Write Data
+p_out_wr_en       => i_wr_en      ,--: out std_logic;                    -- Memory Write Enable
+p_out_payload_len => i_payload_len,--: out std_logic;                    -- Transaction Payload Length
+p_in_wr_busy      => i_wr_busy     --: in  std_logic                     -- Memory Write Busy
 );
-
 
 
 ----------------------------------------
