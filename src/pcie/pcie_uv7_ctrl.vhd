@@ -391,8 +391,8 @@ G_KEEP_WIDTH   => CI_KEEP_WIDTH  ,
 G_PARITY_WIDTH => CI_PARITY_WIDTH
 )
 port map (
-p_in_user_clk => p_in_user_clk,
-p_in_reset_n  => i_rst_n,
+p_in_clk => p_in_user_clk,
+p_in_rst_n  => i_rst_n,
 
 -- Completer Request Interface
 p_in_m_axis_cq_tdata      => p_in_m_axis_cq_tdata     ,

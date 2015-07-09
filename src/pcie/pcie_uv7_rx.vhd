@@ -31,8 +31,8 @@ G_KEEP_WIDTH   : integer := 64 / 32;
 G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
 );
 port(
-p_in_user_clk : in  std_logic;
-p_in_reset_n  : in  std_logic;
+p_in_clk : in  std_logic;
+p_in_rst_n  : in  std_logic;
 
 -- Completer Request Interface
 p_in_m_axis_cq_tdata      : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
@@ -205,10 +205,10 @@ p_out_m_axis_rc_tready <= i_m_axis_rc_tready;
 
 --Generate a signal that indicates if we are currently receiving a packet.
 --This value is one clock cycle delayed from what is actually on the AXIS data bus.
-process(p_in_user_clk)
+process(p_in_clk)
 begin
-if rising_edge(p_in_user_clk) then
-  if (p_in_reset_n = '0') then
+if rising_edge(p_in_clk) then
+  if (p_in_rst_n = '0') then
     i_in_pkt_q <= '0';
 
   elsif (p_in_m_axis_cq_tvalid = '1'
@@ -226,10 +226,10 @@ end process;
 i_sop <= not i_in_pkt_q and p_in_m_axis_cq_tvalid;
 
 
-process(p_in_user_clk)
+process(p_in_clk)
 begin
-if rising_edge(p_in_user_clk) then
-  if (p_in_reset_n = '0') then
+if rising_edge(p_in_clk) then
+  if (p_in_rst_n = '0') then
     sr_m_axis_cq_tdata <= (others => '0');
 
   elsif (p_in_m_axis_cq_tvalid = '1') then
@@ -241,10 +241,10 @@ end process;
 
 
 --Rx State Machine
-fsm : process(p_in_user_clk)
+fsm : process(p_in_clk)
 begin
-if rising_edge(p_in_user_clk) then
-  if p_in_reset_n = '0' then
+if rising_edge(p_in_clk) then
+  if p_in_rst_n = '0' then
 
     i_fsm_rx <= S_RX_IDLE;
 
@@ -582,8 +582,8 @@ if rising_edge(p_in_user_clk) then
             end if;
 
     end case; --case i_fsm_rx is
-  end if;--p_in_reset_n
-end if;--p_in_user_clk
+  end if;--p_in_rst_n
+end if;--p_in_clk
 end process; --fsm
 
 end architecture behavioral;

@@ -40,8 +40,8 @@ G_KEEP_WIDTH   : integer := 64 / 32;
 G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
 );
 port (
-p_in_user_clk : in  std_logic;
-p_in_reset_n  : in  std_logic;
+p_in_clk : in  std_logic;
+p_in_rst_n  : in  std_logic;
 
 -- Completer Request Interface
 p_in_m_axis_cq_tdata      : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);

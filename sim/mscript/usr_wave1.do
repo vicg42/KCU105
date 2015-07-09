@@ -48,8 +48,8 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_pio_to_ctrl/cfg_power_state_change_
 add wave -noupdate /board/EP/m_main/m_ctrl/m_pio_to_ctrl/cfg_power_state_change_ack
 add wave -noupdate /board/EP/m_main/m_ctrl/m_pio_to_ctrl/trn_pending
 add wave -noupdate -divider RX_ENGENE
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_user_clk
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_reset_n
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_clk
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_rst_n
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/i_in_pkt_q
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/i_sop
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_req_compl
@@ -194,4 +194,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {134513243 ps} {134627563 ps}
+WaveRestoreZoom {0 ps} {7752886 ps}
