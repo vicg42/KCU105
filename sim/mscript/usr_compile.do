@@ -20,7 +20,6 @@ C:\\questa_sim64_10.2c\\win64\\vmap gtwizard_ultrascale_v1_5 msim/gtwizard_ultra
 
 C:\\questa_sim64_10.2c\\win64\\vlog -64 -incr -work xil_defaultlib  +incdir+../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/functional +incdir+../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/tests +incdir+../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/dsport \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/imports/example_design/ep_mem.v" \
-"../../src/pcie/pcie_uv7_usr_app.v" \
 "../../src/pcie/pcie_uv7_tx.v" \
 "../../src/pcie/pcie_uv7_irq.v" \
 "../../src/pcie/pcie_uv7_to_ctrl.v" \
@@ -53,6 +52,7 @@ C:\\questa_sim64_10.2c\\win64\\vcom -64 -work xil_defaultlib   \
 "../../src/pcie/pcie_pkg.vhd" \
 "../../src/pcie/pcie_uv7_unit_pkg.vhd" \
 "../../src/pcie/pcie_uv7_rx.vhd" \
+"../../src/pcie/pcie_uv7_usr_app.vhd" \
 "../../src/pcie/pcie_uv7_ctrl.vhd" \
 "../../src/pcie/pcie_uv7_main.vhd" \
 "../testbanch/pcie_uv7_main_sim.vhd" \
