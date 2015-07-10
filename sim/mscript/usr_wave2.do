@@ -1,4 +1,11 @@
 onerror {resume}
+quietly virtual signal -install /board/EP/m_main/m_ctrl/m_rx { /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tuser(3 downto 0)} m_axis_cq_tuser_first_be
+quietly virtual signal -install /board/EP/m_main/m_ctrl/m_rx { /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tuser(7 downto 4)} m_axis_cq_tuser_last_be
+quietly virtual signal -install /board/EP/m_main/m_ctrl/m_rx { /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tuser(39 downto 8)} m_axis_cq_tuser_byte_en
+quietly virtual signal -install /board/EP/m_main/m_ctrl/m_rx { /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(31 downto 0)} m_axis_cq_tdata_31_0
+quietly virtual signal -install /board/EP/m_main/m_ctrl/m_rx { /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(63 downto 32)} m_axis_cq_tdata_32_63
+quietly virtual signal -install /board/EP/m_main/m_ctrl/m_rx { /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(63 downto 32)} m_axis_tdata_63_32
+quietly virtual signal -install /board/EP/m_main/m_ctrl/m_rx { /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(31 downto 0)} m_axis_tdata_31_0
 quietly WaveActivateNextPane {} 0
 add wave -noupdate /board/i
 add wave -noupdate /board/sys_rst_n
@@ -55,14 +62,30 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_req_compl
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_req_compl_wd
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_req_compl_ur
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_compl_done
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/i_data_start_loc
 add wave -noupdate -color {Slate Blue} -itemcolor Gold /board/EP/m_main/m_ctrl/m_rx/i_fsm_rx
 add wave -noupdate -color {Medium Slate Blue} -itemcolor {Lime Green} -radix binary /board/EP/m_main/m_ctrl/m_rx/i_trn_type
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/i_req_byte_enables
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tuser_first_be
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tuser_last_be
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tuser_byte_en
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tuser(40)
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tuser
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_tdata_31_0
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_tdata_63_32
+add wave -noupdate -radix hexadecimal -childformat {{/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(63) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(62) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(61) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(60) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(59) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(58) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(57) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(56) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(55) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(54) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(53) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(52) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(51) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(50) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(49) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(48) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(47) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(46) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(45) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(44) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(43) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(42) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(41) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(40) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(39) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(38) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(37) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(36) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(35) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(34) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(33) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(32) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(31) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(30) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(29) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(28) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(27) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(26) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(25) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(24) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(23) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(22) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(21) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(20) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(19) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(18) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(17) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(16) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(15) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(14) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(13) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(12) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(11) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(10) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(9) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(8) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(7) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(6) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(5) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(4) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(3) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(2) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(1) -radix hexadecimal} {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(0) -radix hexadecimal}} -subitemconfig {/board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(63) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(62) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(61) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(60) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(59) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(58) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(57) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(56) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(55) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(54) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(53) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(52) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(51) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(50) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(49) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(48) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(47) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(46) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(45) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(44) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(43) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(42) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(41) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(40) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(39) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(38) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(37) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(36) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(35) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(34) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(33) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(32) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(31) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(30) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(29) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(28) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(27) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(26) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(25) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(24) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(23) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(22) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(21) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(20) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(19) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(18) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(17) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(16) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(15) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(14) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(13) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(12) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(11) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(10) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(9) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(8) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(7) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(6) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(5) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(4) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(3) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(2) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(1) {-radix hexadecimal} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(0) {-radix hexadecimal}} /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/i_wr_data
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tkeep
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tvalid
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tlast
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_m_axis_cq_tready
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_req_mem_lock
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_req_mem
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_wr_addr
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_wr_be
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_wr_data
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_wr_en
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_payload_len
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_pcie_cq_np_req_count
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_pcie_cq_np_req
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_rc_tuser
@@ -87,13 +110,6 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_req_des_qword1
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_req_des_tph_present
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_req_des_tph_type
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_req_des_tph_st_tag
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_req_mem_lock
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_req_mem
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_wr_addr
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_wr_be
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_wr_data
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_wr_en
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_payload_len
 add wave -noupdate -divider TX_ENGENE
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/user_clk
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/reset_n
@@ -179,7 +195,7 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/rd_data_reg
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {0 ps} 0}
 quietly wave cursor active 0
-configure wave -namecolwidth 186
+configure wave -namecolwidth 344
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
 configure wave -signalnamewidth 1
@@ -193,4 +209,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {5893099 ps} {15957454 ps}
+WaveRestoreZoom {134485605 ps} {134606389 ps}

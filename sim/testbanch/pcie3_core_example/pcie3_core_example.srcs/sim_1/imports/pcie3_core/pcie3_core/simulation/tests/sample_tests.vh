@@ -268,14 +268,35 @@ begin
                           // Event : Memory Write 32 bit TLP
                           //--------------------------------------------------------------------------
 
-                          board.RP.tx_usrapp.DATA_STORE[0] = 8'h04;
-                          board.RP.tx_usrapp.DATA_STORE[1] = 8'h03;
-                          board.RP.tx_usrapp.DATA_STORE[2] = 8'h02;
-                          board.RP.tx_usrapp.DATA_STORE[3] = 8'h01;
+                          board.RP.tx_usrapp.DATA_STORE[0] = 8'h01;
+                          board.RP.tx_usrapp.DATA_STORE[1] = 8'h02;
+                          board.RP.tx_usrapp.DATA_STORE[2] = 8'h03;
+                          board.RP.tx_usrapp.DATA_STORE[3] = 8'h04;
 
                           board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
-                              board.RP.tx_usrapp.DEFAULT_TC, 11'd1,
-                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h80 + (4 * 1), 4'h0, 4'hF, 1'b0);
+                              board.RP.tx_usrapp.DEFAULT_TC,
+                              11'd1, // Length (in DW)
+                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h80 + (4 * 1), // Address
+                              4'h0, // Last DW Byte Enable
+                              4'hF, // First DW Byte Enable
+                              1'b0); // Poisoned Data: Payload is invalid if set
+                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
+                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
+
+
+
+                          board.RP.tx_usrapp.DATA_STORE[0] = 8'h05;
+                          board.RP.tx_usrapp.DATA_STORE[1] = 8'h06;
+                          board.RP.tx_usrapp.DATA_STORE[2] = 8'h07;
+                          board.RP.tx_usrapp.DATA_STORE[3] = 8'h08;
+
+                          board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
+                              board.RP.tx_usrapp.DEFAULT_TC,
+                              11'd1, // Length (in DW)
+                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h80 + (4 * 2), // Address
+                              4'h0, // Last DW Byte Enable
+                              4'hF, // First DW Byte Enable
+                              1'b0); // Poisoned Data: Payload is invalid if set
                           board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
                           board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
 
