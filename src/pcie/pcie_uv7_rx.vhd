@@ -111,12 +111,11 @@ type TFsmRx_state is (
 S_RX_IDLE   ,
 S_RX_PKT_CHK,
 S_RX_RX_DATA,
---S_RX_RX_DATA2,
 S_RX_WAIT
 );
 signal i_fsm_rx              : TFsmRx_state;
 
-signal i_in_pkt_q            : std_logic;
+--signal i_in_pkt_q            : std_logic;
 signal i_sop                 : std_logic;
 
 signal i_m_axis_cq_tready    : std_logic := '0';
@@ -157,8 +156,7 @@ signal i_req_compl_wd        : std_logic := '0';
 signal i_req_compl_ur        : std_logic := '0';
 
 signal i_trn_type            : std_logic_vector(3 downto 0);
-signal i_payload_len         : std_logic := '0';
-signal i_pload_byte_en       : std_logic_vector((32 / 8) - 1 downto 0);
+--signal i_pload_byte_en       : std_logic_vector((32 / 8) - 1 downto 0);
 
 signal i_req_mem             : std_logic;
 signal i_req_mem_lock        : std_logic;
@@ -185,7 +183,7 @@ p_out_ureg_wr <= i_reg_wr;
 p_out_ureg_wrbe <= i_reg_wrbe;
 p_out_ureg_di <= i_reg_d;
 
-p_out_payload_len <= i_payload_len;
+p_out_payload_len <= '0';
 
 p_out_req_tc   <= i_req_tc  ;
 p_out_req_attr <= i_req_attr;
@@ -211,31 +209,31 @@ p_out_pcie_cq_np_req <= '1';
 p_out_m_axis_cq_tready <= i_m_axis_cq_tready;
 p_out_m_axis_rc_tready <= i_m_axis_rc_tready;
 
-gen_pload_byte_en : for i in 0 to i_pload_byte_en'length - 1 generate begin
-i_pload_byte_en(i) <= p_in_m_axis_cq_tuser(8 + (4 * i)) ;
-end generate gen_pload_byte_en;
+--gen_pload_byte_en : for i in 0 to i_pload_byte_en'length - 1 generate begin
+--i_pload_byte_en(i) <= p_in_m_axis_cq_tuser(8 + (4 * i)) ;
+--end generate gen_pload_byte_en;
 
---Generate a signal that indicates if we are currently receiving a packet.
---This value is one clock cycle delayed from what is actually on the AXIS data bus.
-detect_pkt : process(p_in_clk)
-begin
-if rising_edge(p_in_clk) then
-  if (p_in_rst_n = '0') then
-    i_in_pkt_q <= '0';
+----Generate a signal that indicates if we are currently receiving a packet.
+----This value is one clock cycle delayed from what is actually on the AXIS data bus.
+--detect_pkt : process(p_in_clk)
+--begin
+--if rising_edge(p_in_clk) then
+--  if (p_in_rst_n = '0') then
+--    i_in_pkt_q <= '0';
+--
+--  elsif (p_in_m_axis_cq_tvalid = '1'
+--        and i_m_axis_cq_tready = '1'
+--     and p_in_m_axis_cq_tlast = '1') then
+--
+--    i_in_pkt_q <= '0';
+--
+--  elsif (i_sop = '1' and i_m_axis_cq_tready = '1') then
+--    i_in_pkt_q <= '1';
+--  end if;
+--end if;
+--end process detect_pkt;
 
-  elsif (p_in_m_axis_cq_tvalid = '1'
-        and i_m_axis_cq_tready = '1'
-     and p_in_m_axis_cq_tlast = '1') then
-
-    i_in_pkt_q <= '0';
-
-  elsif (i_sop = '1' and i_m_axis_cq_tready = '1') then
-    i_in_pkt_q <= '1';
-  end if;
-end if;
-end process detect_pkt;
-
-i_sop <= not i_in_pkt_q and p_in_m_axis_cq_tvalid; --p_in_m_axis_cq_tuser(40);--
+i_sop <= p_in_m_axis_cq_tuser(40);--not i_in_pkt_q and p_in_m_axis_cq_tvalid; --
 
 
 sr_cq_tdata : process(p_in_clk)
@@ -286,7 +284,6 @@ if rising_edge(p_in_clk) then
     i_req_addr <= (others => '0');
     i_req_at   <= (others => '0');
 
---    i_payload_len <= '0';
     i_trn_type <= (others => '0');
 
     i_req_mem <= '0';
@@ -310,7 +307,7 @@ if rising_edge(p_in_clk) then
             i_m_axis_rc_tready <= '1';
 
             if i_sop = '1' then
-              i_desc_hdr_qw0     <= p_in_m_axis_cq_tdata(63 downto 0);
+              i_desc_hdr_qw0 <= p_in_m_axis_cq_tdata(63 downto 0);
               i_first_be <= p_in_m_axis_cq_tuser(3 downto 0);
               i_last_be  <= p_in_m_axis_cq_tuser(7 downto 4);
 
@@ -351,7 +348,6 @@ if rising_edge(p_in_clk) then
 
                       --Check length data payload (DW)
                       if UNSIGNED(p_in_m_axis_cq_tdata(10 downto 0)) = TO_UNSIGNED(16#01#, 11) then
---                        or UNSIGNED(p_in_m_axis_cq_tdata(10 downto 0)) = TO_UNSIGNED(16#02#, 11) then
 
                           i_req_tc   <= p_in_m_axis_cq_tdata(59 downto 57);
                           i_req_attr <= p_in_m_axis_cq_tdata(62 downto 60);
@@ -372,19 +368,6 @@ if rising_edge(p_in_clk) then
                           else
                             i_req_mem_lock <= '0';
                           end if;
-
---                          if (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_RD_ND)
---                            or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND)
---                            or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_WR_D)
---                            or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_IO_RD_ND)
---                            or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_IO_WR_D) then
---
---                              if UNSIGNED(p_in_m_axis_cq_tdata(10 downto 0)) = TO_UNSIGNED(16#02#, 11) then
---                                i_payload_len <= '1';
---                              else
---                                i_payload_len <= '0';
---                              end if;
---                          end if;
 
                           if (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
                             if strcmp(G_AXISTEN_IF_CQ_ALIGNMENT_MODE, "TRUE") then
@@ -457,7 +440,6 @@ if rising_edge(p_in_clk) then
 
                         i_trn_type <= p_in_m_axis_cq_tdata(14 downto 11);
                         i_req_len  <= p_in_m_axis_cq_tdata(10 downto 0);
---                        i_req_mem  <= '0';
 
                         i_req_tc        <= p_in_m_axis_cq_tdata(59 downto 57);
                         i_req_attr      <= p_in_m_axis_cq_tdata(62 downto 60);
@@ -510,37 +492,22 @@ if rising_edge(p_in_clk) then
 
                       i_m_axis_cq_tready <= '0';
 
---                      if i_payload_len = '1' then
---                        i_reg_d <= p_in_m_axis_cq_tdata(63 downto 0);
---                        i_reg_wrbe   <= p_in_m_axis_cq_tuser(15 downto 8);
---
---                      else
-                        i_reg_d <= p_in_m_axis_cq_tdata(31 downto 0);
-                        i_reg_wrbe <= p_in_m_axis_cq_tuser(11 downto 8);
-
---                      end if;
-
                       i_reg_wr <= '1';
+                      i_reg_d <= p_in_m_axis_cq_tdata(31 downto 0);
+                      i_reg_wrbe <= p_in_m_axis_cq_tuser(11 downto 8);
+
 
                       i_fsm_rx <= S_RX_WAIT;
 
                   when "001" =>
 
---                      if i_payload_len = '1' then
---                        i_m_axis_cq_tready <= '1';
---                        i_reg_wr <= '0';
---
---                        i_fsm_rx <= S_RX_RX_DATA2;
---
---                      else
-                        i_m_axis_cq_tready <= '0';
-                        i_reg_wr <= '1';
+                      i_m_axis_cq_tready <= '0';
 
-                        i_fsm_rx <= S_RX_WAIT;
---                      end if;
-
+                      i_reg_wr <= '1';
                       i_reg_d <= p_in_m_axis_cq_tdata(63 downto 32);
                       i_reg_wrbe <= p_in_m_axis_cq_tuser(15 downto 12);
+
+                      i_fsm_rx <= S_RX_WAIT;
 
                   when others =>
                     i_fsm_rx <= S_RX_RX_DATA;
@@ -548,25 +515,6 @@ if rising_edge(p_in_clk) then
                 end case;--case data_start_loc is
 
             end if; --if p_in_m_axis_cq_tvalid = '1' then
-
---        when S_RX_RX_DATA2 =>
---
---            if p_in_m_axis_cq_tvalid = '1' and p_in_m_axis_cq_tlast = '1' then
---
---                --Address Aligned Mode
---                if strcmp(G_AXISTEN_IF_CQ_ALIGNMENT_MODE, "TRUE") then
---                    if i_payload_len = '1' then
---                      i_m_axis_cq_tready <= '0';
---
---                      i_reg_d(63 downto 32) <= p_in_m_axis_cq_tdata(31 downto 0);
---                      i_reg_wrbe(7 downto 4)     <= p_in_m_axis_cq_tuser(11 downto 8);
---                      i_reg_wr <= '1';
---
---                      i_fsm_rx <= S_RX_WAIT;
---                    end if;
---                end if;
---
---            end if; --if p_in_m_axis_cq_tvalid = '1' and p_in_m_axis_cq_tlast = '1' then
 
 
         --#######################################################################
