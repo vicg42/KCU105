@@ -62,7 +62,7 @@ architecture behavioral of pcie_usr_app is
 
 signal i_reg_rd           : std_logic;
 signal i_reg_bar          : std_logic;
-signal i_reg_adr          : unsigned(6 downto 0);
+signal i_reg_adr          : unsigned(4 downto 0);
 
 signal v_reg_firmware     : std_logic_vector(C_HREG_FRMWARE_LAST_BIT downto 0);
 signal v_reg_ctrl         : std_logic_vector(31 downto 0);
@@ -79,8 +79,8 @@ begin --architecture behavioral
 v_reg_firmware <= std_logic_vector(TO_UNSIGNED(C_FPGA_FIRMWARE_VERSION, v_reg_firmware'length));
 
 --BAR detector
-i_reg_bar <= p_in_reg_adr(7);--x80 - Register Space
-i_reg_adr <= UNSIGNED(p_in_reg_adr(6 downto 0));
+i_reg_bar <= p_in_reg_adr(5);--x80 - Register Space
+i_reg_adr <= UNSIGNED(p_in_reg_adr(4 downto 0));
 
 --Reg Write:
 wr : process(p_in_clk)
@@ -98,9 +98,9 @@ if rising_edge(p_in_clk) then
       ----------------------------------------------
       --Register Space:
       ----------------------------------------------
-        if i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_CTRL, 5)  then v_reg_ctrl <= p_in_reg_din;
-        elsif i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_TST0, 5) then v_reg_tst0 <= p_in_reg_din;
-        elsif i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_TST1, 5) then v_reg_tst1 <= p_in_reg_din;
+        if i_reg_adr = TO_UNSIGNED(C_HREG_CTRL, 5)  then v_reg_ctrl <= p_in_reg_din;
+        elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST0, 5) then v_reg_tst0 <= p_in_reg_din;
+        elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST1, 5) then v_reg_tst1 <= p_in_reg_din;
 
         end if;
 
