@@ -107,10 +107,11 @@ p_out_req_mem      : out std_logic;
 --unit. Endpoint memory unit reacts to wr_en
 --assertion and asserts wr_busy when it is
 --processing written information.
-p_out_wr_addr     : out std_logic_vector(10 downto 0);-- Memory Write Address
-p_out_wr_be       : out std_logic_vector(7 downto 0); -- Memory Write Byte Enable
-p_out_wr_data     : out std_logic_vector(63 downto 0);-- Memory Write Data
-p_out_wr_en       : out std_logic;                    -- Memory Write Enable
+p_out_ureg_a   : out std_logic_vector(10 downto 0);
+p_out_ureg_di  : out std_logic_vector(31 downto 0);
+p_out_ureg_wrbe: out std_logic_vector(3 downto 0);
+p_out_ureg_wr  : out std_logic;
+
 p_out_payload_len : out std_logic;                    -- Transaction Payload Length
 p_in_wr_busy      : in  std_logic                     -- Memory Write Busy
 );

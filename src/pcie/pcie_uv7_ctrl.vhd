@@ -236,17 +236,18 @@ signal i_req_des_tph_st_tag    : std_logic_vector(7 downto 0) ;-- TPH Steering t
 signal i_req_mem_lock          : std_logic;
 signal i_req_mem               : std_logic;
 
-signal i_wr_addr               : std_logic_vector(10 downto 0);-- Memory Write Address
-signal i_wr_be                 : std_logic_vector(7 downto 0); -- Memory Write Byte Enable
-signal i_wr_data               : std_logic_vector(63 downto 0);-- Memory Write Data
-signal i_wr_en                 : std_logic;                    -- Memory Write Enable
-signal i_payload_len           : std_logic;                    -- Transaction Payload Length
-signal i_wr_busy               : std_logic;                    -- Memory Write Busy
+signal i_ureg_a                : std_logic_vector(10 downto 0);
+signal i_ureg_di               : std_logic_vector(31 downto 0);
+signal i_ureg_wrbe             : std_logic_vector(3 downto 0);
+signal i_ureg_wr               : std_logic;
+
+signal i_payload_len           : std_logic;
+signal i_ureg_busy             : std_logic;
 
 signal i_rd_addr               : std_logic_vector(10 downto 0);
 signal i_rd_be                 : std_logic_vector(3 downto 0);
 signal i_trn_sent              : std_logic;
-signal i_rd_data               : std_logic_vector(31 downto 0);
+signal i_ureg_do               : std_logic_vector(31 downto 0);
 
 signal i_m_axis_cq_tready      : std_logic;
 signal i_m_axis_rc_tready      : std_logic;
@@ -364,10 +365,10 @@ p_in_tst        => p_in_tst ,
 --PCIE_Rx/Tx  Port
 --------------------------------------
 --Target mode
-p_in_reg_adr   => i_wr_addr(7 downto 0),-- in    std_logic_vector(7 downto 0);
-p_out_reg_dout => i_rd_data(31 downto 0),--: out   std_logic_vector(31 downto 0);
-p_in_reg_din   => i_wr_data(31 downto 0),-- in    std_logic_vector(31 downto 0);
-p_in_reg_wr    => i_wr_en,-- in    std_logic;
+p_in_reg_adr   => i_ureg_a(7 downto 0),-- in    std_logic_vector(7 downto 0);
+p_out_reg_dout => i_ureg_do(31 downto 0),--: out   std_logic_vector(31 downto 0);
+p_in_reg_din   => i_ureg_di(31 downto 0),-- in    std_logic_vector(31 downto 0);
+p_in_reg_wr    => i_ureg_wr,-- in    std_logic;
 p_in_reg_rd    => '0',--: in    std_logic;
 
 p_in_clk   => p_in_user_clk,
@@ -383,7 +384,7 @@ p_in_rst_n => i_rst_n
 --rd_addr  => i_rd_addr ,--: in  std_logic_vector(10 downto 0);
 --rd_be    => i_rd_be   ,--: in  std_logic_vector(3 downto 0);
 --trn_sent => i_trn_sent,--: in  std_logic;
---rd_data  => i_rd_data ,--: out std_logic_vector(31 downto 0);
+--rd_data  => i_ureg_do ,--: out std_logic_vector(31 downto 0);
 --
 ----Write Port
 --wr_addr  => i_wr_addr, --: in  std_logic_vector(10 downto 0);
@@ -495,12 +496,13 @@ p_out_req_mem      => i_req_mem     ,--: out std_logic;
 --unit. Endpoint memory unit reacts to wr_en
 --assertion and asserts wr_busy when it is
 --processing written information.
-p_out_wr_addr     => i_wr_addr    ,--: out std_logic_vector(10 downto 0);-- Memory Write Address
-p_out_wr_be       => i_wr_be      ,--: out std_logic_vector(7 downto 0); -- Memory Write Byte Enable
-p_out_wr_data     => i_wr_data    ,--: out std_logic_vector(63 downto 0);-- Memory Write Data
-p_out_wr_en       => i_wr_en      ,--: out std_logic;                    -- Memory Write Enable
+p_out_ureg_a   => i_ureg_a   ,
+p_out_ureg_di  => i_ureg_di  ,
+p_out_ureg_wrbe=> i_ureg_wrbe,
+p_out_ureg_wr  => i_ureg_wr  ,
+
 p_out_payload_len => i_payload_len,--: out std_logic;                    -- Transaction Payload Length
-p_in_wr_busy      => i_wr_busy     --: in  std_logic                     -- Memory Write Busy
+p_in_wr_busy      => i_ureg_busy     --: in  std_logic                     -- Memory Write Busy
 );
 
 
@@ -601,7 +603,7 @@ req_mem      => i_req_mem     , --: in  std_logic;
 rd_addr         => i_rd_addr        ,--: out std_logic_vector(10 downto 0);
 rd_be           => i_rd_be          ,--: out std_logic_vector(3 downto 0);
 trn_sent        => i_trn_sent       ,--: out std_logic;
-rd_data         => i_rd_data        ,--: in  std_logic_vector(31 downto 0);
+rd_data         => i_ureg_do        ,--: in  std_logic_vector(31 downto 0);
 gen_transaction => i_gen_transaction --: in  std_logic
 );
 
