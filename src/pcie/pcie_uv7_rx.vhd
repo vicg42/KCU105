@@ -587,29 +587,6 @@ if rising_edge(p_in_clk) then
               i_fsm_rx <= S_RX_IDLE;
 
             elsif p_in_compl_done = '1' then
---            elsif (i_trn_type = C_PCIE3_PKT_TYPE_IO_WR_D) and (p_in_compl_done = '1') then
---
---              i_m_axis_cq_tready <= '1';
---              i_fsm_rx <= S_RX_IDLE;
---
---            elsif (i_trn_type = C_PCIE3_PKT_TYPE_MEM_RD_ND) and (p_in_compl_done = '1') then
---
---              i_m_axis_cq_tready <= '1';
---              i_fsm_rx <= S_RX_IDLE;
---
---            elsif (i_trn_type = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND) and (p_in_compl_done = '1') then
---
---              i_m_axis_cq_tready <= '1';
---              i_fsm_rx <= S_RX_IDLE;
---
---            elsif (i_trn_type = C_PCIE3_PKT_TYPE_IO_RD_ND) and (p_in_compl_done = '1') then
---
---              i_m_axis_cq_tready <= '1';
---              i_fsm_rx <= S_RX_IDLE;
---
---            elsif ((i_trn_type = C_PCIE3_PKT_TYPE_ATOP_FAA)
---                or (i_trn_type = C_PCIE3_PKT_TYPE_ATOP_UCS)
---                or (i_trn_type = C_PCIE3_PKT_TYPE_ATOP_CAS)) and (p_in_compl_done = '1') then
 
               i_m_axis_cq_tready <= '1';
               i_fsm_rx <= S_RX_IDLE;
