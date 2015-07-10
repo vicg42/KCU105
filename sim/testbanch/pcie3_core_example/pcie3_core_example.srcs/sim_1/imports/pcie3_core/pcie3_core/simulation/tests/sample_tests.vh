@@ -275,7 +275,7 @@ begin
 
                           board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
                               board.RP.tx_usrapp.DEFAULT_TC, 11'd1,
-                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h10, 4'h0, 4'hF, 1'b0);
+                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h80 + (4 * 1), 4'h0, 4'hF, 1'b0);
                           board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
                           board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
 
