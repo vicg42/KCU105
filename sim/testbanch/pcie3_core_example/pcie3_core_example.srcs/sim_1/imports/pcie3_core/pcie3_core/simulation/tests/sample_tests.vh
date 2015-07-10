@@ -300,6 +300,40 @@ begin
                           board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
                           board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
 
+
+
+                          board.RP.tx_usrapp.DATA_STORE[0] = 8'h09;
+                          board.RP.tx_usrapp.DATA_STORE[1] = 8'h0A;
+                          board.RP.tx_usrapp.DATA_STORE[2] = 8'h0B;
+                          board.RP.tx_usrapp.DATA_STORE[3] = 8'h0C;
+
+                          board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
+                              board.RP.tx_usrapp.DEFAULT_TC,
+                              11'd1, // Length (in DW)
+                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h80 + (4 * 3), // Address
+                              4'h0, // Last DW Byte Enable
+                              4'hF, // First DW Byte Enable
+                              1'b0); // Poisoned Data: Payload is invalid if set
+                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
+                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
+
+
+
+                          board.RP.tx_usrapp.DATA_STORE[0] = 8'h0D;
+                          board.RP.tx_usrapp.DATA_STORE[1] = 8'h0E;
+                          board.RP.tx_usrapp.DATA_STORE[2] = 8'h0F;
+                          board.RP.tx_usrapp.DATA_STORE[3] = 8'h10;
+
+                          board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
+                              board.RP.tx_usrapp.DEFAULT_TC,
+                              11'd1, // Length (in DW)
+                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h80 + (4 * 4), // Address
+                              4'h0, // Last DW Byte Enable
+                              4'hF, // First DW Byte Enable
+                              1'b0); // Poisoned Data: Payload is invalid if set
+                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
+                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
+
                           //--------------------------------------------------------------------------
                           // Event : Memory Read 32 bit TLP
                           //--------------------------------------------------------------------------
