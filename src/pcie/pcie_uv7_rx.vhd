@@ -63,7 +63,7 @@ p_in_cfg_msg_data          : in  std_logic_vector(7 downto 0);
 -- assertion when a Completion w/ data is transmitted.
 p_out_req_compl    : out std_logic := '0';
 p_out_req_compl_wd : out std_logic := '0';
-p_out_req_compl_ur : out std_logic := '0';
+p_out_req_compl_ur : out std_logic := '0';--Unsupported Request
 p_in_compl_done    : in  std_logic;
 
 p_out_req_tc       : out std_logic_vector(2 downto 0) ;-- Memory Read TC
@@ -163,8 +163,6 @@ signal i_req_mem_lock        : std_logic;
 
 signal i_data_start_loc      : std_logic_vector(2 downto 0);
 
-signal sr_m_axis_cq_tdata    : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-
 signal i_reg_a               : std_logic_vector(10 downto 0);
 signal i_reg_d               : std_logic_vector(31 downto 0);
 signal i_reg_wrbe            : std_logic_vector(3 downto 0);
@@ -234,20 +232,6 @@ p_out_m_axis_rc_tready <= i_m_axis_rc_tready;
 --end process detect_pkt;
 
 i_sop <= p_in_m_axis_cq_tuser(40);--not i_in_pkt_q and p_in_m_axis_cq_tvalid; --
-
-
-sr_cq_tdata : process(p_in_clk)
-begin
-if rising_edge(p_in_clk) then
-  if (p_in_rst_n = '0') then
-    sr_m_axis_cq_tdata <= (others => '0');
-
-  elsif (p_in_m_axis_cq_tvalid = '1') then
-    sr_m_axis_cq_tdata <= p_in_m_axis_cq_tdata;
-
-  end if;
-end if;
-end process sr_cq_tdata;
 
 
 --Rx State Machine
@@ -371,7 +355,7 @@ if rising_edge(p_in_clk) then
 
                           if (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
                             if strcmp(G_AXISTEN_IF_CQ_ALIGNMENT_MODE, "TRUE") then
-                              i_data_start_loc <= std_logic_vector(RESIZE(UNSIGNED(sr_m_axis_cq_tdata(2 downto 2)), i_data_start_loc'length));
+                              i_data_start_loc <= std_logic_vector(RESIZE(UNSIGNED(i_desc_hdr_qw0(2 downto 2)), i_data_start_loc'length));
 
                             else
                               i_data_start_loc <= (others => '0');
@@ -380,7 +364,7 @@ if rising_edge(p_in_clk) then
 
                           elsif (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_IO_WR_D) then
                             if strcmp(G_AXISTEN_IF_CQ_ALIGNMENT_MODE, "TRUE") then
-                              i_data_start_loc <= std_logic_vector(RESIZE(UNSIGNED(p_in_m_axis_cq_tdata(2 downto 2)), i_data_start_loc'length));
+                              i_data_start_loc <= std_logic_vector(RESIZE(UNSIGNED(i_desc_hdr_qw0(2 downto 2)), i_data_start_loc'length));
 
                             else
                               i_data_start_loc <= (others => '0');
@@ -424,7 +408,7 @@ if rising_edge(p_in_clk) then
                       else
                         i_req_compl    <= '0';
                         i_req_compl_wd <= '0';
-                        i_req_compl_ur <= '1';
+                        i_req_compl_ur <= '1';--Unsupported Request
 
                         i_fsm_rx <= S_RX_WAIT;
                       end if;
