@@ -180,18 +180,10 @@ p_out_req_mem      <= i_req_mem;
 
 
 p_out_ureg_a <= i_reg_a;
+p_out_ureg_wr <= i_reg_wr;
 
-gen_swap_wrbe : for i in 0 to p_out_ureg_wrbe'length - 1 generate
-p_out_ureg_wrbe((p_out_ureg_wrbe'length - i) - 1
-                    downto (p_out_ureg_wrbe'length - (i + 1))) <= i_reg_wrbe((i + 1) - 1 downto i);
-end generate gen_swap_wrbe;
-
-gen_swap_wr_d : for i in 0 to (p_out_ureg_di'length / 8) - 1 generate
-p_out_ureg_di((p_out_ureg_di'length - 8 * i) - 1
-                    downto (p_out_ureg_di'length - 8 * (i + 1))) <= i_reg_d(8 * (i + 1) - 1 downto (8 * i));
-end generate gen_swap_wr_d;
-
-p_out_ureg_wr <= i_reg_wr  ;
+p_out_ureg_wrbe <= i_reg_wrbe;
+p_out_ureg_di <= i_reg_d;
 
 p_out_payload_len <= i_payload_len;
 
