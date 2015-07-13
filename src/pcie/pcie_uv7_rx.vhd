@@ -135,6 +135,9 @@ signal i_req_be              : std_logic_vector(7 downto 0) ;
 signal i_req_addr            : std_logic_vector(12 downto 0);
 signal i_req_at              : std_logic_vector(1 downto 0) ;
 
+signal i_target_func         : std_logic_vector(7 downto 0);
+signal i_bar_id              : std_logic_vector(2 downto 0);
+
 signal i_desc_hdr_qw0        : std_logic_vector(63 downto 0);
 signal i_req_byte_enables    : std_logic_vector(7 downto 0);
 signal i_first_be            : std_logic_vector(3 downto 0);
@@ -243,6 +246,9 @@ end process detect_pkt;
 i_sop <= not i_in_pkt_q and p_in_m_axis_cq_tvalid; --p_in_m_axis_cq_tuser(40);--
 
 i_trn_type <= p_in_m_axis_cq_tdata(14 downto 11);
+i_target_func <= p_in_m_axis_cq_tdata(47 downto 40);
+i_bar_id <= p_in_m_axis_cq_tdata(50 downto 48);
+
 i_m_axis_cq_tready2 <= '0' when p_in_m_axis_cq_tvalid = '1' and (i_fsm_rx = S_RX_PKT_CHK) and
                              (i_trn_type = C_PCIE3_PKT_TYPE_MEM_RD_ND) else '1';
 
@@ -354,6 +360,9 @@ if rising_edge(p_in_clk) then
                           i_req_addr <= i_desc_hdr_qw0(12 downto 2) & "00";--??????
                           i_req_at   <= i_desc_hdr_qw0(1 downto 0);
 
+--                          i_target_func <= p_in_m_axis_cq_tdata(47 downto 40);
+--                          i_bar_id <= p_in_m_axis_cq_tdata(50 downto 48);
+
                           if (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_RD_ND) then
                             i_req_mem <= '1';
                           else
@@ -405,8 +414,13 @@ if rising_edge(p_in_clk) then
                             or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_RD_ND)
                             or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND) then
 
+                              if (UNSIGNED(i_target_func) = TO_UNSIGNED(0, i_target_func'length)) then
                               i_req_compl    <= '0';
                               i_req_compl_wd <= '1';
+                              else
+                              i_req_compl    <= '0';
+                              i_req_compl_wd <= '0';
+                              end if;
 
                               i_fsm_rx <= S_RX_WAIT;
 

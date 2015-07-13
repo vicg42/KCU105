@@ -306,7 +306,15 @@ if rising_edge(p_in_clk) then
 --            i_trn_sent    <= '0';
 
             if p_in_req_compl = '1' then
-              i_fsm_tx <= S_TX_CPL;
+              if (p_in_req_type = C_PCIE3_PKT_TYPE_IO_WR_D) then
+                i_fsm_tx <= S_TX_CPL;
+
+              elsif (p_in_req_type = C_PCIE3_PKT_TYPE_MEM_RD_ND)
+                or (p_in_req_type = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND)
+                or (p_in_req_type = C_PCIE3_PKT_TYPE_IO_RD_ND) then
+
+                i_fsm_tx <= S_TX_CPLD;
+              end if;
             end if;
 
 
