@@ -68,6 +68,7 @@ p_out_req_compl_wd : out std_logic := '0';
 p_out_req_compl_ur : out std_logic := '0';--Unsupported Request
 p_in_compl_done    : in  std_logic;
 
+p_out_req_type     : out std_logic_vector(3 downto 0);
 p_out_req_tc       : out std_logic_vector(2 downto 0) ;-- Memory Read TC
 p_out_req_attr     : out std_logic_vector(2 downto 0) ;-- Memory Read Attribute
 p_out_req_len      : out std_logic_vector(10 downto 0);-- Memory Read Length
@@ -190,6 +191,7 @@ p_out_ureg_di <= i_reg_d;
 
 p_out_payload_len <= '0';
 
+p_out_req_type <= i_req_pkt_type;
 p_out_req_tc   <= i_req_tc  ;
 p_out_req_attr <= i_req_attr;
 p_out_req_len  <= i_req_len ;

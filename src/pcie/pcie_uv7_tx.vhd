@@ -81,6 +81,7 @@ p_in_req_compl_ur : in  std_logic;
 p_in_payload_len  : in  std_logic;
 p_out_compl_done  : out std_logic;
 
+p_in_req_type : in  std_logic_vector(3 downto 0);
 p_in_req_tc   : in  std_logic_vector(2 downto 0);
 p_in_req_td   : in  std_logic;
 p_in_req_ep   : in  std_logic;
@@ -125,6 +126,7 @@ S_TX_CPL_2
 );
 signal i_fsm_tx              : TFsmTx_state;
 
+signal i_s_axis_cc_tparity: std_logic_vector(31 downto 0) := (others => '0');
 
 signal i_s_axis_cc_tdata  : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 signal i_s_axis_cc_tkeep  : std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
@@ -202,7 +204,7 @@ begin
     when "0000" =>
       i_lower_addr <= (p_in_req_addr(4 downto 0) & "00");
     when "0001" | "0011" | "0101" | "0111" | "1001" | "1011" | "1101" | "1111" =>
-      i_lower_addr <= (req_addr_i(4 downto 0) & "00");
+      i_lower_addr <= (p_in_req_addr(4 downto 0) & "00");
     when "0010" | "0110" | "1010" | "1110" =>
       i_lower_addr <= (p_in_req_addr(4 downto 0) & "01");
     when "0100" | "1100" =>
@@ -242,15 +244,10 @@ process(p_in_clk)
 begin
 if (p_in_rst_n = '0') then
   sr_req_compl <= (others => '0');
-
 else
   sr_req_compl <= p_in_req_compl & sr_req_compl(0 to 1);
-
-  end if;
 end if;
 end process;
-
-
 
 
 --Tx State Machine
@@ -259,7 +256,7 @@ begin
 if rising_edge(p_in_clk) then
   if p_in_rst_n = '0' then
 
-    i_fsm_tx <= S_RX_IDLE;
+    i_fsm_tx <= S_TX_IDLE;
 
     i_s_axis_cc_tdata  <= (others => '0');
     i_s_axis_cc_tkeep  <= (others => '0');
@@ -305,11 +302,11 @@ if rising_edge(p_in_clk) then
             i_cfg_msg_transmit_data <= (others => '0');
 
             i_compl_done  <= '0';
-            i_dword_count <= '0';
-            i_trn_sent    <= '0';
+--            i_dword_count <= '0';
+--            i_trn_sent    <= '0';
 
             if p_in_req_compl = '1' then
-              i_fsm_tx <= S_RX_PKT_CHK;
+              i_fsm_tx <= S_TX_CPL;
             end if;
 
 
@@ -355,7 +352,7 @@ if rising_edge(p_in_clk) then
               i_s_axis_cc_tuser <= '0' & i_s_axis_cc_tparity;
             end if;
 
-            if p_in_s_axis_cc_tready = '1' begin
+            if p_in_s_axis_cc_tready = '1' then
               i_fsm_tx <= S_TX_CPL_2;
             end if;
 
@@ -374,7 +371,7 @@ if rising_edge(p_in_clk) then
             i_s_axis_cc_tdata(30 downto 28) <= std_logic_vector(RESIZE(UNSIGNED(p_in_req_attr), 3));
             i_s_axis_cc_tdata(27 downto 25) <= p_in_req_tc;   --
             i_s_axis_cc_tdata(24)           <= '0';           --Completer ID to control selection of Client Supplied Bus number
-            i_s_axis_cc_tdata(23 downto 16) <= p_in_completer_id(16 downto 8); --Completer Bus number - selected if Compl ID    = 1
+            i_s_axis_cc_tdata(23 downto 16) <= p_in_completer_id(15 downto 8); --Completer Bus number - selected if Compl ID    = 1
             i_s_axis_cc_tdata(15 downto 8)  <= p_in_completer_id(7 downto 0);  --Compl Dev / Func no - sel if Compl ID = 1
             i_s_axis_cc_tdata(7 downto 0)   <= p_in_req_tag;  --Matching Request Tag
 
@@ -384,11 +381,9 @@ if rising_edge(p_in_clk) then
               i_s_axis_cc_tuser <= '0' & i_s_axis_cc_tparity;
             end if;
 
-            if p_in_s_axis_cc_tready = '1' begin
+            if p_in_s_axis_cc_tready = '1' then
               i_fsm_tx <= S_TX_IDLE;
             end if;
-
-          end if;
 
     end case; --case i_fsm_tx is
   end if;--p_in_rst_n
