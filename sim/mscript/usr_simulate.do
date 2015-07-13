@@ -8,7 +8,7 @@
 ######################################################################
 vsim -t 1ps -lib xil_defaultlib board_opt
 
-do {usr_wave2.do}
+do {usr_wave3.do}
 
 view wave
 view structure
