@@ -80,7 +80,7 @@ v_reg_firmware <= std_logic_vector(TO_UNSIGNED(C_FPGA_FIRMWARE_VERSION, v_reg_fi
 
 --BAR detector
 i_reg_bar <= p_in_reg_adr(5);--x80 - Register Space
-i_reg_adr <= UNSIGNED(p_in_reg_adr(4 downto 0));
+i_reg_adr <= RESIZE(UNSIGNED(p_in_reg_adr(4 downto 2)), i_reg_adr'length);
 
 --Reg Write:
 wr : process(p_in_clk)
@@ -132,10 +132,10 @@ if rising_edge(p_in_clk) then
       ----------------------------------------------
       --Register Space:
       ----------------------------------------------
-        if i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_FIRMWARE, 5) then txd := std_logic_vector(RESIZE(UNSIGNED(v_reg_firmware), txd'length));
-        elsif i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_CTRL, 5)  then txd := std_logic_vector(RESIZE(UNSIGNED(v_reg_ctrl), txd'length));
-        elsif i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_TST0, 5)  then txd := std_logic_vector(RESIZE(UNSIGNED(v_reg_tst0), txd'length));
-        elsif i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_TST1, 5)  then txd := std_logic_vector(RESIZE(UNSIGNED(v_reg_tst1), txd'length));
+        if i_reg_adr = TO_UNSIGNED(C_HREG_FIRMWARE, 5) then txd := std_logic_vector(RESIZE(UNSIGNED(v_reg_firmware), txd'length));
+        elsif i_reg_adr = TO_UNSIGNED(C_HREG_CTRL, 5)  then txd := std_logic_vector(RESIZE(UNSIGNED(v_reg_ctrl), txd'length));
+        elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST0, 5)  then txd := std_logic_vector(RESIZE(UNSIGNED(v_reg_tst0), txd'length));
+        elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST1, 5)  then txd := std_logic_vector(RESIZE(UNSIGNED(v_reg_tst1), txd'length));
 
         end if;
 
