@@ -111,6 +111,7 @@ p_out_ureg_a   : out std_logic_vector(10 downto 0);
 p_out_ureg_di  : out std_logic_vector(31 downto 0);
 p_out_ureg_wrbe: out std_logic_vector(3 downto 0);
 p_out_ureg_wr  : out std_logic;
+p_out_ureg_rd  : out std_logic;
 
 p_out_payload_len : out std_logic;                    -- Transaction Payload Length
 p_in_wr_busy      : in  std_logic                     -- Memory Write Busy

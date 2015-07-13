@@ -240,6 +240,7 @@ signal i_ureg_a                : std_logic_vector(10 downto 0);
 signal i_ureg_di               : std_logic_vector(31 downto 0);
 signal i_ureg_wrbe             : std_logic_vector(3 downto 0);
 signal i_ureg_wr               : std_logic;
+signal i_ureg_rd               : std_logic;
 
 signal i_payload_len           : std_logic;
 signal i_ureg_busy             : std_logic;
@@ -369,7 +370,7 @@ p_in_reg_adr   => i_ureg_a(7 downto 0),-- in    std_logic_vector(7 downto 0);
 p_out_reg_dout => i_ureg_do(31 downto 0),--: out   std_logic_vector(31 downto 0);
 p_in_reg_din   => i_ureg_di(31 downto 0),-- in    std_logic_vector(31 downto 0);
 p_in_reg_wr    => i_ureg_wr,-- in    std_logic;
-p_in_reg_rd    => '0',--: in    std_logic;
+p_in_reg_rd    => i_ureg_rd,--: in    std_logic;
 
 p_in_clk   => p_in_user_clk,
 p_in_rst_n => i_rst_n
@@ -500,6 +501,7 @@ p_out_ureg_a   => i_ureg_a   ,
 p_out_ureg_di  => i_ureg_di  ,
 p_out_ureg_wrbe=> i_ureg_wrbe,
 p_out_ureg_wr  => i_ureg_wr  ,
+p_out_ureg_rd  => i_ureg_rd  ,
 
 p_out_payload_len => i_payload_len,--: out std_logic;                    -- Transaction Payload Length
 p_in_wr_busy      => i_ureg_busy     --: in  std_logic                     -- Memory Write Busy
