@@ -73,7 +73,6 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_ureg_wrbe
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_ureg_wr
 add wave -noupdate -color {Slate Blue} -itemcolor Gold /board/EP/m_main/m_ctrl/m_rx/i_fsm_rx
 add wave -noupdate -color {Medium Slate Blue} -itemcolor {Lime Green} -radix binary /board/EP/m_main/m_ctrl/m_rx/i_trn_type
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/i_req_byte_enables
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tuser_first_be
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tuser_last_be
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tuser_byte_en
@@ -149,4 +148,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {133730210 ps} {145023780 ps}
+WaveRestoreZoom {125050166 ps} {143951670 ps}
