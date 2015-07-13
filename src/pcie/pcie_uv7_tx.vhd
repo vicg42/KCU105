@@ -85,7 +85,7 @@ p_in_req_tc   : in  std_logic_vector(2 downto 0);
 p_in_req_td   : in  std_logic;
 p_in_req_ep   : in  std_logic;
 p_in_req_attr : in  std_logic_vector(1 downto 0);
-p_in_req_len  : in  std_logic_vector(10:0] ,
+p_in_req_len  : in  std_logic_vector(10 downto 0);
 p_in_req_rid  : in  std_logic_vector(15 downto 0);
 p_in_req_tag  : in  std_logic_vector(7 downto 0);
 p_in_req_be   : in  std_logic_vector(7 downto 0);
@@ -119,63 +119,102 @@ end entity pcie_tx;
 architecture behavioral of pcie_tx is
 
 type TFsmTx_state is (
-S_TX_IDLE   ,
-S_TX_PKT_CHK,
-S_TX_RX_DATA,
-S_TX_WAIT
+S_TX_IDLE  ,
+S_TX_CPL   ,
+S_TX_CPL_2
 );
 signal i_fsm_tx              : TFsmTx_state;
 
-signal i_lower_addr_tmp     : std_logic_vector(6 downto 0);
-signal i_lower_addr         : std_logic_vector(6 downto 0);
 
-signal sr_req_compl         : std_logic_vector(0 to 2);
+signal i_s_axis_cc_tdata  : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+signal i_s_axis_cc_tkeep  : std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+signal i_s_axis_cc_tlast  : std_logic;
+signal i_s_axis_cc_tvalid : std_logic;
+signal i_s_axis_cc_tuser  : std_logic_vector(32 downto 0);
+
+signal i_s_axis_rq_tdata  : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+signal i_s_axis_rq_tkeep  : std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+signal i_s_axis_rq_tlast  : std_logic;
+signal i_s_axis_rq_tvalid : std_logic;
+signal i_s_axis_rq_tuser  : std_logic_vector(59 downto 0);
+
+signal i_cfg_msg_transmit      : std_logic;
+signal i_cfg_msg_transmit_type : std_logic_vector(2 downto 0);
+signal i_cfg_msg_transmit_data : std_logic_vector(31 downto 0);
+
+signal i_compl_done       : std_logic;
+
+--signal i_lower_addr_tmp     : std_logic_vector(6 downto 0);
+signal i_lower_addr       : std_logic_vector(6 downto 0);
+
+signal sr_req_compl       : std_logic_vector(0 to 2);
 
 
 begin --architecture behavioral of pcie_tx
 
+p_out_compl_done <= i_compl_done;
 
---Present address and byte enable to memory module
-process(p_in_clk)
-begin
-if (p_in_rst_n = '0') then
-  i_rd_addr <= (others => '0');
-  i_rd_be   <= (others => '0');
-else
-  if p_in_req_compl_wd = '1' then
-    if i_dword_count = (i_dword_count'range => '0') then
-      i_rd_addr <= UNSIGNED(p_in_req_addr(12 downto 0);
-      i_rd_be   <= p_in_req_be(3 downto 0);
-    end if;
+--AXI-S Completer Competion Interface
+p_out_s_axis_cc_tdata  <= i_s_axis_cc_tdata ;
+p_out_s_axis_cc_tkeep  <= i_s_axis_cc_tkeep ;
+p_out_s_axis_cc_tlast  <= i_s_axis_cc_tlast ;
+p_out_s_axis_cc_tvalid <= i_s_axis_cc_tvalid;
+p_out_s_axis_cc_tuser  <= i_s_axis_cc_tuser ;
 
-  else
-    i_rd_addr <= UNSIGNED(p_in_req_addr(12 downto 2)) + 1;
-    i_rd_be   <= p_in_req_be(7 downto 4);
+--AXI-S Requester Request Interface
+p_out_s_axis_rq_tdata  <= i_s_axis_rq_tdata ;
+p_out_s_axis_rq_tkeep  <= i_s_axis_rq_tkeep ;
+p_out_s_axis_rq_tlast  <= i_s_axis_rq_tlast ;
+p_out_s_axis_rq_tvalid <= i_s_axis_rq_tvalid;
+p_out_s_axis_rq_tuser  <= i_s_axis_rq_tuser ;
 
-  end if;
-end if;
-end process;
+--TX Message Interface
+p_out_cfg_msg_transmit      <= '0';
+p_out_cfg_msg_transmit_type <= (others => '0');
+p_out_cfg_msg_transmit_data <= (others => '0');
+
+
+----Present address and byte enable to memory module
+--process(p_in_clk)
+--begin
+--if (p_in_rst_n = '0') then
+--  i_rd_addr <= (others => '0');
+--  i_rd_be   <= (others => '0');
+--else
+--  if p_in_req_compl_wd = '1' then
+--    if i_dword_count = (i_dword_count'range => '0') then
+--      i_rd_addr <= UNSIGNED(p_in_req_addr(12 downto 0);
+--      i_rd_be   <= p_in_req_be(3 downto 0);
+--    end if;
+--
+--  else
+--    i_rd_addr <= UNSIGNED(p_in_req_addr(12 downto 2)) + 1;
+--    i_rd_be   <= p_in_req_be(7 downto 4);
+--
+--  end if;
+--end if;
+--end process;
 
 --Calculate lower address based on  byte enable
-process (i_rd_be, p_in_req_addr)
+process (p_in_req_be, p_in_req_addr)
 begin
-  case i_rd_be(3 downto 0) is
+  case p_in_req_be(3 downto 0) is
     when "0000" =>
-      i_lower_addr_tmp <= (p_in_req_addr(4 downto 0) & "00");
+      i_lower_addr <= (p_in_req_addr(4 downto 0) & "00");
     when "0001" | "0011" | "0101" | "0111" | "1001" | "1011" | "1101" | "1111" =>
-      i_lower_addr_tmp <= (req_addr_i(4 downto 0) & "00");
+      i_lower_addr <= (req_addr_i(4 downto 0) & "00");
     when "0010" | "0110" | "1010" | "1110" =>
-      i_lower_addr_tmp <= (p_in_req_addr(4 downto 0) & "01");
+      i_lower_addr <= (p_in_req_addr(4 downto 0) & "01");
     when "0100" | "1100" =>
-      i_lower_addr_tmp <= (p_in_req_addr(4 downto 0) & "10");
+      i_lower_addr <= (p_in_req_addr(4 downto 0) & "10");
     when "1000" =>
-      i_lower_addr_tmp <= (p_in_req_addr(4 downto 0) & "11");
+      i_lower_addr <= (p_in_req_addr(4 downto 0) & "11");
     when others =>
-      i_lower_addr_tmp <= (p_in_req_addr(4 downto 0) & "00");
+      i_lower_addr <= (p_in_req_addr(4 downto 0) & "00");
   end case;
 end process;
 
-i_lower_addr <= i_lower_addr_tmp when req_compl_wd_qqq = '1' else (others => '0');
+--i_lower_addr <= i_lower_addr_tmp when req_compl_wd_qqq = '1' else (others => '0');
 
 
 --gen_cc_align_off : if strcmp(G_AXISTEN_IF_CC_ALIGNMENT_MODE, "FALSE") generate begin
@@ -239,8 +278,8 @@ if rising_edge(p_in_clk) then
     i_cfg_msg_transmit_data <= (others => '0');
 
     i_compl_done  <= '0';
-    i_dword_count <= '0';
-    i_trn_sent    <= '0';
+--    i_dword_count <= '0';
+--    i_trn_sent    <= '0';
 
   else
 
@@ -292,7 +331,14 @@ if rising_edge(p_in_clk) then
             --must 1 for IO rd completion and 0 for IO wr completion.
             --1 while sending a completion for zero-length memory read
             --0 must when send a UR or CA completion
-            i_s_axis_cc_tdata(42 downto 32) <= ????;                   --DWord Count 0 - IO Write completions
+            if (p_in_req_type = C_PCIE3_PKT_TYPE_IO_RD_ND) or
+               ((p_in_req_type = C_PCIE3_PKT_TYPE_MEM_RD_ND) and (p_in_req_len = (p_in_req_len'range => '0'))) then
+            i_s_axis_cc_tdata(42 downto 32) <= std_logic_vector(TO_UNSIGNED(1, 11));  --DWord Count
+            elsif (p_in_req_type = C_PCIE3_PKT_TYPE_IO_WR_D) then
+            i_s_axis_cc_tdata(42 downto 32) <= (others => '0');--DWord Count
+            else
+            i_s_axis_cc_tdata(42 downto 32) <= p_in_req_len;   --DWord Count
+            end if;
 
             i_s_axis_cc_tdata(31 downto 30) <= (others => '0');        --Rsvd
             i_s_axis_cc_tdata(29)           <= '0';                    --Locked Read Completion
@@ -300,15 +346,14 @@ if rising_edge(p_in_clk) then
             i_s_axis_cc_tdata(15 downto 10) <= (others => '0');        --Rsvd
             i_s_axis_cc_tdata(9 downto 8)   <= p_in_req_at;            --Adress Type - 2 bits
             i_s_axis_cc_tdata(7)            <= '0';                    --Rsvd
-            i_s_axis_cc_tdata(6 downto 0)   <= lower_addr;             --Starting address of the mem byte - 7 bits
+            i_s_axis_cc_tdata(6 downto 0)   <= (others => '0');        --Starting address of the mem byte - 7 bits
 
 
             if G_AXISTEN_IF_CC_PARITY_CHECK = 0 then
               i_s_axis_cc_tuser <= (others => '0');
             else
-              i_s_axis_cc_tuser <= i_s_axis_cc_tparity;
+              i_s_axis_cc_tuser <= '0' & i_s_axis_cc_tparity;
             end if;
---            s_axis_cc_tuser   <= #TCQ {1'b0, (G_AXISTEN_IF_CC_PARITY_CHECK ? s_axis_cc_tparity : 32'b0)};
 
             if p_in_s_axis_cc_tready = '1' begin
               i_fsm_tx <= S_TX_CPL_2;
@@ -336,9 +381,8 @@ if rising_edge(p_in_clk) then
             if G_AXISTEN_IF_CC_PARITY_CHECK = 0 then
               i_s_axis_cc_tuser <= (others => '0');
             else
-              i_s_axis_cc_tuser <= i_s_axis_cc_tparity;
+              i_s_axis_cc_tuser <= '0' & i_s_axis_cc_tparity;
             end if;
---            s_axis_cc_tuser   <= #TCQ {1'b0, (G_AXISTEN_IF_CC_PARITY_CHECK ? s_axis_cc_tparity : 32'b0)};
 
             if p_in_s_axis_cc_tready = '1' begin
               i_fsm_tx <= S_TX_IDLE;
