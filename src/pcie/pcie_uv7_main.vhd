@@ -55,23 +55,6 @@ end entity pcie_main;
 
 architecture behavioral of pcie_main is
 
---parameter G_DATA_WIDTH = 64,          -- RX/TX interface data width
---
----- Do not override parameters below this line
---parameter G_KEEP_WIDTH                            = G_DATA_WIDTH / 32,
---parameter TCQ                                     = 1,
---parameter [1:0]  G_AXISTEN_IF_WIDTH               = (G_DATA_WIDTH == 256) ? 2'b10 : (G_DATA_WIDTH == 128) ? 2'b01 : 2'b00,
---parameter        G_AXISTEN_IF_RQ_ALIGNMENT_MODE   = "FALSE",
---parameter        G_AXISTEN_IF_CC_ALIGNMENT_MODE   = "FALSE",
---parameter        G_AXISTEN_IF_CQ_ALIGNMENT_MODE   = "FALSE",
---parameter        G_AXISTEN_IF_RC_ALIGNMENT_MODE   = "FALSE",
---parameter        G_AXISTEN_IF_ENABLE_CLIENT_TAG   = 1,
---parameter        G_AXISTEN_IF_RQ_PARITY_CHECK     = 0,
---parameter        G_AXISTEN_IF_CC_PARITY_CHECK     = 0,
---parameter        G_AXISTEN_IF_MC_RX_STRADDLE      = 0,
---parameter        G_AXISTEN_IF_ENABLE_RX_MSG_INTFC = 0,
---parameter [17:0] G_AXISTEN_IF_ENABLE_MSG_ROUTE    = 18'h2FFFF
-
 constant CI_DATA_WIDTH                     : integer := C_PCGF_PCIE_DWIDTH;
 constant CI_KEEP_WIDTH                     : integer := CI_DATA_WIDTH / 32;
 
@@ -85,7 +68,7 @@ constant CI_AXISTEN_IF_RQ_PARITY_CHECK     : integer := 0;
 constant CI_AXISTEN_IF_CC_PARITY_CHECK     : integer := 0;
 constant CI_AXISTEN_IF_MC_RX_STRADDLE      : integer := 0;
 constant CI_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
-constant CI_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1');
+constant CI_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := std_logic_vector(TO_UNSIGNED(16#2FFFF#, 18));
 
 
 component pcie3_core

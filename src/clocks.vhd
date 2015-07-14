@@ -51,7 +51,7 @@ begin
   end if;
 end process;
 
-p_out_rst <= '0';
+p_out_rst <= i_pll_rst;
 
 m_bufg_90M  : IBUFG   port map(I => p_in_clk.M90, O  => g_clk(0));
 m_bufg_300M : IBUFGDS port map(I => p_in_clk.M300_p, IB => p_in_clk.M300_n, O  => g_clk(1));
