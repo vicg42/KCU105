@@ -243,8 +243,7 @@ signal i_ureg_wrbe             : std_logic_vector(3 downto 0);
 signal i_ureg_wr               : std_logic;
 signal i_ureg_rd               : std_logic;
 
-signal i_payload_len           : std_logic := '0';
---signal i_ureg_busy             : std_logic;
+--signal i_payload_len           : std_logic := '0';
 
 signal i_rd_addr               : std_logic_vector(10 downto 0);
 signal i_rd_be                 : std_logic_vector(3 downto 0);
@@ -457,12 +456,8 @@ p_in_cfg_msg_received      => p_in_cfg_msg_received     ,
 p_in_cfg_msg_received_type => p_in_cfg_msg_received_type,
 p_in_cfg_msg_data          => p_in_cfg_msg_received_data,
 
---Memory Read data handshake with Completion
---transmit unit. Transmit unit reponds to
---req_compl assertion and responds with compl_done
---assertion when a Completion w/ data is transmitted.
+--Completion
 p_out_req_compl    => i_req_compl    ,
---p_out_req_compl_wd => i_req_compl_wd ,
 p_out_req_compl_ur => i_req_compl_ur ,
 p_in_compl_done    => i_compl_done   ,
 
@@ -471,8 +466,6 @@ p_out_req_tc       => i_req_tc  ,
 p_out_req_attr     => i_req_attr,
 p_out_req_len      => i_req_len ,
 p_out_req_rid      => i_req_rid ,
-
-
 p_out_req_tag      => i_req_tag ,
 p_out_req_be       => i_req_be  ,
 p_out_req_addr     => i_req_addr,
@@ -486,19 +479,14 @@ p_out_req_des_tph_present => i_req_des_tph_present,
 p_out_req_des_tph_type    => i_req_des_tph_type   ,
 p_out_req_des_tph_st_tag  => i_req_des_tph_st_tag ,
 
-----Output to Indicate that the Request was a Mem lock Read Req
---p_out_req_mem_lock => i_req_mem_lock,
---p_out_req_mem      => i_req_mem     ,
-
+--usr app
 p_out_ureg_a   => i_ureg_a   ,
 p_out_ureg_di  => i_ureg_di  ,
 p_out_ureg_wrbe=> i_ureg_wrbe,
 p_out_ureg_wr  => i_ureg_wr  ,
 p_out_ureg_rd  => i_ureg_rd  ,
 
---p_out_payload_len => i_payload_len,
---p_in_wr_busy      => i_ureg_busy
-
+--system
 p_in_clk   => p_in_user_clk,
 p_in_rst_n => i_rst_n
 );
@@ -562,17 +550,16 @@ p_in_cfg_fc_npd  => p_in_cfg_fc_npd ,
 p_in_cfg_fc_cpld => p_in_cfg_fc_cpld,
 p_out_cfg_fc_sel => p_out_cfg_fc_sel,
 
---PIO RX Engine Interface
+--Completion
 p_in_req_compl    => i_req_compl   ,
---p_in_req_compl_wd => i_req_compl_wd,
 p_in_req_compl_ur => i_req_compl_ur,
-p_in_payload_len  => i_payload_len ,
+--p_in_payload_len  => i_payload_len ,
 p_out_compl_done  => i_compl_done  ,
 
 p_in_req_type => i_req_type,
 p_in_req_tc   => i_req_tc  ,
-p_in_req_td   => '0',--i_req_td  ,
-p_in_req_ep   => '0',--i_req_ep  ,
+p_in_req_td   => '0',
+p_in_req_ep   => '0',
 p_in_req_attr => i_req_attr(1 downto 0),
 p_in_req_len  => i_req_len ,
 p_in_req_rid  => i_req_rid ,
@@ -591,17 +578,10 @@ p_in_req_des_tph_present => i_req_des_tph_present,
 p_in_req_des_tph_type    => i_req_des_tph_type   ,
 p_in_req_des_tph_st_tag  => i_req_des_tph_st_tag ,
 
-----Indicate that the Request was a Mem lock Read Req
---p_in_req_mem_lock => i_req_mem_lock,
---p_in_req_mem      => i_req_mem     ,
---
-----PIO Memory Access Control Interface
---p_out_rd_addr        => i_rd_addr        ,
---p_out_rd_be          => i_rd_be          ,
---p_out_trn_sent       => i_trn_sent       ,
-p_in_ureg_do         => i_ureg_do        ,
---p_in_gen_transaction => i_gen_transaction
+--usr app
+p_in_ureg_do => i_ureg_do,
 
+--system
 p_in_clk   => p_in_user_clk,
 p_in_rst_n => i_rst_n
 );

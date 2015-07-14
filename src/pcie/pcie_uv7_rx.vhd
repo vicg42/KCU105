@@ -56,10 +56,7 @@ p_in_cfg_msg_received      : in  std_logic;
 p_in_cfg_msg_received_type : in  std_logic_vector(4 downto 0);
 p_in_cfg_msg_data          : in  std_logic_vector(7 downto 0);
 
--- Memory Read data handshake with Completion
--- transmit unit. Transmit unit reponds to
--- req_compl assertion and responds with compl_done
--- assertion when a Completion w/ data is transmitted.
+--Completion
 p_out_req_compl    : out std_logic;
 p_out_req_compl_ur : out std_logic;--Unsupported Request
 p_in_compl_done    : in  std_logic;
@@ -68,36 +65,26 @@ p_out_req_type     : out std_logic_vector(3 downto 0);
 p_out_req_tc       : out std_logic_vector(2 downto 0) ;-- Memory Read TC
 p_out_req_attr     : out std_logic_vector(2 downto 0) ;-- Memory Read Attribute
 p_out_req_len      : out std_logic_vector(10 downto 0);-- Memory Read Length
-p_out_req_rid      : out std_logic_vector(15 downto 0);-- Memory Read Requestor ID { 8'b0 (Bus no),
-                                                       --                            3'b0 (Dev no),
-                                                       --                            5'b0 (Func no)}
+p_out_req_rid      : out std_logic_vector(15 downto 0);-- Memory Read Requestor ID {8'b0 (Bus no),3'b0 (Dev no), 5'b0 (Func no)}
 p_out_req_tag      : out std_logic_vector(7 downto 0) ;-- Memory Read Tag
 p_out_req_be       : out std_logic_vector(7 downto 0) ;-- Memory Read Byte Enables
 p_out_req_addr     : out std_logic_vector(12 downto 0);-- Memory Read Address
 p_out_req_at       : out std_logic_vector(1 downto 0) ;-- Address Translation
 
--- Outputs to the TX Block in case of an UR
--- Required to form the completions
 p_out_req_des_qword0      : out std_logic_vector(63 downto 0);-- DWord0 and Dword1 of descriptor of the request
 p_out_req_des_qword1      : out std_logic_vector(63 downto 0);-- DWord2 and Dword3 of descriptor of the request
 p_out_req_des_tph_present : out std_logic;                    -- TPH Present in the request
 p_out_req_des_tph_type    : out std_logic_vector(1 downto 0) ;-- If TPH Present then TPH type
 p_out_req_des_tph_st_tag  : out std_logic_vector(7 downto 0) ;-- TPH Steering tag of the request
 
-----Output to Indicate that the Request was a Mem lock Read Req
---p_out_req_mem_lock : out std_logic;
---p_out_req_mem      : out std_logic;
-
-
+--usr app
 p_out_ureg_a   : out std_logic_vector(10 downto 0);
 p_out_ureg_di  : out std_logic_vector(31 downto 0);
 p_out_ureg_wrbe: out std_logic_vector(3 downto 0);
 p_out_ureg_wr  : out std_logic;
 p_out_ureg_rd  : out std_logic;
 
---p_out_payload_len : out std_logic;
---p_in_wr_busy      : in  std_logic;
-
+--system
 p_in_clk   : in  std_logic;
 p_in_rst_n : in  std_logic
 );
@@ -158,10 +145,6 @@ signal i_req_compl_ur        : std_logic := '0';
 
 signal i_req_pkt_type        : std_logic_vector(3 downto 0);
 signal i_trn_type            : std_logic_vector(3 downto 0);
---signal i_pload_byte_en       : std_logic_vector((32 / 8) - 1 downto 0);
-
---signal i_req_mem             : std_logic;
---signal i_req_mem_lock        : std_logic;
 
 signal i_data_start_loc      : std_logic_vector(2 downto 0);
 

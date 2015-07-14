@@ -95,19 +95,14 @@ p_out_req_des_tph_present : out std_logic;                    -- TPH Present in 
 p_out_req_des_tph_type    : out std_logic_vector(1 downto 0) ;-- If TPH Present then TPH type
 p_out_req_des_tph_st_tag  : out std_logic_vector(7 downto 0) ;-- TPH Steering tag of the request
 
-----Output to Indicate that the Request was a Mem lock Read Req
---p_out_req_mem_lock : out std_logic;
---p_out_req_mem      : out std_logic;
-
+--usr app
 p_out_ureg_a   : out std_logic_vector(10 downto 0);
 p_out_ureg_di  : out std_logic_vector(31 downto 0);
 p_out_ureg_wrbe: out std_logic_vector(3 downto 0);
 p_out_ureg_wr  : out std_logic;
 p_out_ureg_rd  : out std_logic;
 
---p_out_payload_len : out std_logic;                    -- Transaction Payload Length
---p_in_wr_busy      : in  std_logic                     -- Memory Write Busy
-
+--system
 p_in_clk   : in  std_logic;
 p_in_rst_n : in  std_logic
 );
@@ -170,11 +165,10 @@ p_in_cfg_fc_npd  : in  std_logic_vector(11 downto 0);
 p_in_cfg_fc_cpld : in  std_logic_vector(11 downto 0);
 p_out_cfg_fc_sel : out std_logic_vector(2 downto 0);
 
---PIO RX Engine Interface
+--Completion
 p_in_req_compl    : in  std_logic;
---p_in_req_compl_wd : in  std_logic;
 p_in_req_compl_ur : in  std_logic;
-p_in_payload_len  : in  std_logic;
+--p_in_payload_len  : in  std_logic;
 p_out_compl_done  : out std_logic;
 
 p_in_req_type : in  std_logic_vector(3 downto 0);
@@ -191,25 +185,16 @@ p_in_req_at   : in  std_logic_vector(1 downto 0);
 
 p_in_completer_id : in  std_logic_vector(15 downto 0);
 
---Inputs to the TX Block in case of an UR
---Required to form the completions
 p_in_req_des_qword0      : in  std_logic_vector(63 downto 0);
 p_in_req_des_qword1      : in  std_logic_vector(63 downto 0);
 p_in_req_des_tph_present : in  std_logic;
 p_in_req_des_tph_type    : in  std_logic_vector(1 downto 0);
 p_in_req_des_tph_st_tag  : in  std_logic_vector(7 downto 0);
 
-----Indicate that the Request was a Mem lock Read Req
---p_in_req_mem_lock : in  std_logic;
---p_in_req_mem      : in  std_logic;
---
-----PIO Memory Access Control Interface
---p_out_rd_addr        : out std_logic_vector(10 downto 0);
---p_out_rd_be          : out std_logic_vector(3 downto 0);
---p_out_trn_sent       : out std_logic;
+--usr app
 p_in_ureg_do   : in  std_logic_vector(31 downto 0);
---p_in_gen_transaction : in  std_logic;
 
+--system
 p_in_clk   : in  std_logic;
 p_in_rst_n : in  std_logic
 );
