@@ -62,7 +62,6 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_clk
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_rst_n
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/i_sop
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_req_compl
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_req_compl_wd
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_req_compl_ur
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_compl_done
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/i_data_start_loc
@@ -71,6 +70,7 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_ureg_a
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_ureg_di
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_ureg_wrbe
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_ureg_wr
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_ureg_rd
 add wave -noupdate -color {Slate Blue} -itemcolor Gold /board/EP/m_main/m_ctrl/m_rx/i_fsm_rx
 add wave -noupdate -color {Medium Slate Blue} -itemcolor {Lime Green} -radix binary /board/EP/m_main/m_ctrl/m_rx/i_trn_type
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tuser_first_be
@@ -85,9 +85,6 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tkeep
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tvalid
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tlast
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_m_axis_cq_tready
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_req_mem_lock
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_req_mem
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_payload_len
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_pcie_cq_np_req_count
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_pcie_cq_np_req
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_rc_tuser
@@ -112,12 +109,13 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_req_des_tph_present
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_req_des_tph_type
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_req_des_tph_st_tag
 add wave -noupdate -divider TX_ENGENE
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_in_clk
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_in_req_compl
-add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_in_req_compl_wd
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_in_req_compl_ur
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_out_compl_done
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_in_ureg_do
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/i_lower_addr
-add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/sr_req_compl
+add wave -noupdate -expand /board/EP/m_main/m_ctrl/m_tx/sr_req_compl
 add wave -noupdate -color {Medium Slate Blue} -itemcolor Gold /board/EP/m_main/m_ctrl/m_tx/i_fsm_tx
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_out_s_axis_cc_tdata
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_out_s_axis_cc_tkeep
@@ -148,4 +146,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {125050166 ps} {143951670 ps}
+WaveRestoreZoom {136104119 ps} {136162664 ps}

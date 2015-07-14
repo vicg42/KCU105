@@ -31,9 +31,6 @@ G_KEEP_WIDTH   : integer := 64 / 32;
 G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
 );
 port(
-p_in_clk : in  std_logic;
-p_in_rst_n  : in  std_logic;
-
 -- Completer Request Interface
 p_in_m_axis_cq_tdata      : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_in_m_axis_cq_tlast      : in  std_logic;
@@ -63,9 +60,8 @@ p_in_cfg_msg_data          : in  std_logic_vector(7 downto 0);
 -- transmit unit. Transmit unit reponds to
 -- req_compl assertion and responds with compl_done
 -- assertion when a Completion w/ data is transmitted.
-p_out_req_compl    : out std_logic := '0';
-p_out_req_compl_wd : out std_logic := '0';
-p_out_req_compl_ur : out std_logic := '0';--Unsupported Request
+p_out_req_compl    : out std_logic;
+p_out_req_compl_ur : out std_logic;--Unsupported Request
 p_in_compl_done    : in  std_logic;
 
 p_out_req_type     : out std_logic_vector(3 downto 0);
@@ -88,24 +84,22 @@ p_out_req_des_tph_present : out std_logic;                    -- TPH Present in 
 p_out_req_des_tph_type    : out std_logic_vector(1 downto 0) ;-- If TPH Present then TPH type
 p_out_req_des_tph_st_tag  : out std_logic_vector(7 downto 0) ;-- TPH Steering tag of the request
 
---Output to Indicate that the Request was a Mem lock Read Req
-p_out_req_mem_lock : out std_logic;
-p_out_req_mem      : out std_logic;
+----Output to Indicate that the Request was a Mem lock Read Req
+--p_out_req_mem_lock : out std_logic;
+--p_out_req_mem      : out std_logic;
 
---Memory interface used to save 2 DW data received
---on Memory Write 32 TLP. Data extracted from
---inbound TLP is presented to the Endpoint memory
---unit. Endpoint memory unit reacts to wr_en
---assertion and asserts wr_busy when it is
---processing written information.
+
 p_out_ureg_a   : out std_logic_vector(10 downto 0);
 p_out_ureg_di  : out std_logic_vector(31 downto 0);
 p_out_ureg_wrbe: out std_logic_vector(3 downto 0);
 p_out_ureg_wr  : out std_logic;
 p_out_ureg_rd  : out std_logic;
 
-p_out_payload_len : out std_logic;
-p_in_wr_busy      : in  std_logic
+--p_out_payload_len : out std_logic;
+--p_in_wr_busy      : in  std_logic;
+
+p_in_clk   : in  std_logic;
+p_in_rst_n : in  std_logic
 );
 end entity pcie_rx;
 
@@ -160,15 +154,14 @@ signal i_req_vend_hdr         : std_logic_vector(31 downto 0);
 signal i_req_tl_hdr           : std_logic_vector(127 downto 0);
 
 signal i_req_compl           : std_logic := '0';
-signal i_req_compl_wd        : std_logic := '0';
 signal i_req_compl_ur        : std_logic := '0';
 
 signal i_req_pkt_type        : std_logic_vector(3 downto 0);
 signal i_trn_type            : std_logic_vector(3 downto 0);
 --signal i_pload_byte_en       : std_logic_vector((32 / 8) - 1 downto 0);
 
-signal i_req_mem             : std_logic;
-signal i_req_mem_lock        : std_logic;
+--signal i_req_mem             : std_logic;
+--signal i_req_mem_lock        : std_logic;
 
 signal i_data_start_loc      : std_logic_vector(2 downto 0);
 
@@ -182,17 +175,17 @@ signal i_reg_rd              : std_logic;
 
 begin --architecture behavioral of pcie_rx
 
-p_out_req_mem_lock <= i_req_mem_lock;
-p_out_req_mem      <= i_req_mem;
+--p_out_req_mem_lock <= i_req_mem_lock;
+--p_out_req_mem      <= i_req_mem;
 
 
 p_out_ureg_a <= i_reg_a;
 p_out_ureg_wr <= i_reg_wr;
-p_out_ureg_rd <= i_req_compl_wd;
+p_out_ureg_rd <= i_reg_rd;
 p_out_ureg_wrbe <= i_reg_wrbe;
 p_out_ureg_di <= i_reg_d;
 
-p_out_payload_len <= '0';
+--p_out_payload_len <= '0';
 
 p_out_req_type <= i_req_pkt_type;
 p_out_req_tc   <= i_req_tc  ;
@@ -210,13 +203,12 @@ p_out_req_des_tph_present <= i_req_des_tph_present;
 p_out_req_des_tph_type    <= i_req_des_tph_type   ;
 p_out_req_des_tph_st_tag  <= i_req_des_tph_st_tag ;
 
-p_out_req_compl    <= i_req_compl   ;
-p_out_req_compl_wd <= i_req_compl_wd;
+p_out_req_compl    <= i_req_compl;
 p_out_req_compl_ur <= i_req_compl_ur;
 
 p_out_pcie_cq_np_req <= '1';
 
-p_out_m_axis_cq_tready <= i_m_axis_cq_tready and i_m_axis_cq_tready2;
+p_out_m_axis_cq_tready <= i_m_axis_cq_tready;-- and i_m_axis_cq_tready2;
 p_out_m_axis_rc_tready <= i_m_axis_rc_tready;
 
 --gen_pload_byte_en : for i in 0 to i_pload_byte_en'length - 1 generate begin
@@ -243,14 +235,14 @@ if rising_edge(p_in_clk) then
 end if;
 end process detect_pkt;
 
-i_sop <= not i_in_pkt_q and p_in_m_axis_cq_tvalid; --p_in_m_axis_cq_tuser(40);--
+i_sop <= p_in_m_axis_cq_tuser(40);--not i_in_pkt_q and p_in_m_axis_cq_tvalid; --
 
 i_trn_type <= p_in_m_axis_cq_tdata(14 downto 11);
-i_target_func <= p_in_m_axis_cq_tdata(47 downto 40);
-i_bar_id <= p_in_m_axis_cq_tdata(50 downto 48);
-
-i_m_axis_cq_tready2 <= '0' when p_in_m_axis_cq_tvalid = '1' and (i_fsm_rx = S_RX_PKT_CHK) and
-                             (i_trn_type = C_PCIE3_PKT_TYPE_MEM_RD_ND) else '1';
+--i_target_func <= p_in_m_axis_cq_tdata(47 downto 40);
+--i_bar_id <= p_in_m_axis_cq_tdata(50 downto 48);
+--
+--i_m_axis_cq_tready2 <= '0' when p_in_m_axis_cq_tvalid = '1' and (i_fsm_rx = S_RX_PKT_CHK) and
+--                             (i_trn_type = C_PCIE3_PKT_TYPE_MEM_RD_ND) else '1';
 
 --Rx State Machine
 fsm : process(p_in_clk)
@@ -274,7 +266,6 @@ if rising_edge(p_in_clk) then
     i_req_des_tph_st_tag  <= (others => '0');
 
     i_req_compl    <= '0';
-    i_req_compl_wd <= '0';
     i_req_compl_ur <= '0';
 
     i_req_len  <= (others => '0');
@@ -285,11 +276,7 @@ if rising_edge(p_in_clk) then
     i_req_be   <= (others => '0');
     i_req_addr <= (others => '0');
     i_req_at   <= (others => '0');
-
     i_req_pkt_type <= (others => '0');
-
-    i_req_mem <= '0';
-    i_req_mem_lock <= '0';
 
     i_data_start_loc <= (others => '0');
 
@@ -347,7 +334,7 @@ if rising_edge(p_in_clk) then
                       i_req_des_tph_st_tag  <= p_in_m_axis_cq_tuser(52 downto 45);
 
                       i_req_pkt_type <= i_trn_type;
-                      i_req_len  <= p_in_m_axis_cq_tdata(10 downto 0); --Length data payload (DW)
+                      i_req_len <= p_in_m_axis_cq_tdata(10 downto 0); --Length data payload (DW)
 
                       --Check length data payload (DW)
                       if UNSIGNED(p_in_m_axis_cq_tdata(10 downto 0)) = TO_UNSIGNED(16#01#, 11) then
@@ -360,20 +347,8 @@ if rising_edge(p_in_clk) then
                           i_req_addr <= i_desc_hdr_qw0(12 downto 2) & "00";--??????
                           i_req_at   <= i_desc_hdr_qw0(1 downto 0);
 
---                          i_target_func <= p_in_m_axis_cq_tdata(47 downto 40);
---                          i_bar_id <= p_in_m_axis_cq_tdata(50 downto 48);
-
-                          if (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_RD_ND) then
-                            i_req_mem <= '1';
-                          else
-                            i_req_mem <= '0';
-                          end if;
-
-                          if (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND) then
-                            i_req_mem_lock <= '1';
-                          else
-                            i_req_mem_lock <= '0';
-                          end if;
+                          i_target_func <= p_in_m_axis_cq_tdata(47 downto 40);
+                          i_bar_id <= p_in_m_axis_cq_tdata(50 downto 48);
 
                           if (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
                             if strcmp(G_AXISTEN_IF_CQ_ALIGNMENT_MODE, "TRUE") then
@@ -395,47 +370,37 @@ if rising_edge(p_in_clk) then
                           end if;
 
                           --Compl
-                          if (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_IO_WR_D) then
---                            or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_ATOP_FAA)
---                            or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_ATOP_UCS)
---                            or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_ATOP_CAS) then
+                          if (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
 
-                              i_req_compl    <= '1';
-                              i_req_compl_wd <= '0';
-
---                              if (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_IO_WR_D) then
-                                i_fsm_rx <= S_RX_RX_DATA;
---                              else
---                                i_fsm_rx <= S_RX_WAIT;
---                              end if;
-
-                          --ComplD
-                          elsif (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_IO_RD_ND)
-                            or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_RD_ND)
-                            or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND) then
-
-                              if (UNSIGNED(i_target_func) = TO_UNSIGNED(0, i_target_func'length)) then
-                              i_req_compl    <= '0';
-                              i_req_compl_wd <= '1';
-                              else
-                              i_req_compl    <= '0';
-                              i_req_compl_wd <= '0';
-                              end if;
-
-                              i_fsm_rx <= S_RX_WAIT;
-
-                          else
-                              i_req_compl    <= '0';
-                              i_req_compl_wd <= '0';
-
+                              i_req_compl <= '0';
                               i_fsm_rx <= S_RX_RX_DATA;
 
-                          end if;--Check length data payload (DW)
+                          else
+                              i_req_compl <= '1';
 
-                      else
+                              if (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_IO_WR_D) then
+--                              or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_ATOP_FAA)
+--                              or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_ATOP_UCS)
+--                              or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_ATOP_CAS) then
+
+                                i_fsm_rx <= S_RX_RX_DATA;
+
+                              elsif (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_IO_RD_ND)
+                                or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_RD_ND)
+                                or (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND) then
+
+                                  i_reg_rd <= '1';
+                                  i_fsm_rx <= S_RX_WAIT;
+
+                              end if;
+                          end if;
+
+                      else --if UNSIGNED(p_in_m_axis_cq_tdata(10 downto 0)) /= TO_UNSIGNED(16#01#, 11) then
                         i_req_compl    <= '0';
-                        i_req_compl_wd <= '0';
                         i_req_compl_ur <= '1';--Unsupported Request
+
+                        i_target_func <= (others => '0');
+                        i_bar_id <= (others => '0');
 
                         i_fsm_rx <= S_RX_WAIT;
                       end if;
@@ -507,7 +472,6 @@ if rising_edge(p_in_clk) then
                       i_reg_d <= p_in_m_axis_cq_tdata(31 downto 0);
                       i_reg_wrbe <= p_in_m_axis_cq_tuser(11 downto 8);
 
-
                       i_fsm_rx <= S_RX_WAIT;
 
                   when "001" =>
@@ -533,12 +497,13 @@ if rising_edge(p_in_clk) then
         --#######################################################################
         when S_RX_WAIT =>
 
-            i_req_mem <= '0';
-            i_req_mem_lock <= '0';
+--            i_req_mem <= '0';
+--            i_req_mem_lock <= '0';
 
             i_reg_wr <= '0';
-            i_req_compl    <= '0';
-            i_req_compl_wd <= '0';
+            i_reg_rd <= '0';
+            i_req_compl <= '0';
+            i_req_compl_ur <= '0';
 
             if (i_req_pkt_type = C_PCIE3_PKT_TYPE_MEM_WR_D) then
 

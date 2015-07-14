@@ -30,9 +30,6 @@ G_KEEP_WIDTH   : integer := 64 / 32;
 G_PARITY_WIDTH : integer := 64 / 8   --TPARITY width
 );
 port(
-p_in_clk   : in  std_logic;
-p_in_rst_n : in  std_logic;
-
 --AXI-S Completer Competion Interface
 p_out_s_axis_cc_tdata  : out std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_out_s_axis_cc_tkeep  : out std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
@@ -76,7 +73,7 @@ p_out_cfg_fc_sel : out std_logic_vector(2 downto 0);
 
 --PIO RX Engine Interface
 p_in_req_compl    : in  std_logic;
-p_in_req_compl_wd : in  std_logic;
+--p_in_req_compl_wd : in  std_logic;
 p_in_req_compl_ur : in  std_logic;
 p_in_payload_len  : in  std_logic;
 p_out_compl_done  : out std_logic;
@@ -103,17 +100,19 @@ p_in_req_des_tph_present : in  std_logic;
 p_in_req_des_tph_type    : in  std_logic_vector(1 downto 0);
 p_in_req_des_tph_st_tag  : in  std_logic_vector(7 downto 0);
 
---Indicate that the Request was a Mem lock Read Req
-p_in_req_mem_lock : in  std_logic;
-p_in_req_mem      : in  std_logic;
+----Indicate that the Request was a Mem lock Read Req
+--p_in_req_mem_lock : in  std_logic;
+--p_in_req_mem      : in  std_logic;
 
 --PIO Memory Access Control Interface
-p_out_rd_addr  : out std_logic_vector(10 downto 0);
-p_out_rd_be    : out std_logic_vector(3 downto 0);
-p_out_trn_sent : out std_logic;
-p_in_rd_data   : in  std_logic_vector(31 downto 0);
-p_in_gen_transaction : in  std_logic
+--p_out_rd_addr  : out std_logic_vector(10 downto 0);
+--p_out_rd_be    : out std_logic_vector(3 downto 0);
+--p_out_trn_sent : out std_logic;
+p_in_ureg_do   : in  std_logic_vector(31 downto 0);
+--p_in_gen_transaction : in  std_logic
 
+p_in_clk   : in  std_logic;
+p_in_rst_n : in  std_logic
 );
 end entity pcie_tx;
 
@@ -149,7 +148,7 @@ signal i_compl_done       : std_logic;
 --signal i_lower_addr_tmp     : std_logic_vector(6 downto 0);
 signal i_lower_addr       : std_logic_vector(6 downto 0);
 
-signal sr_req_compl       : std_logic_vector(0 to 2);
+signal sr_req_compl       : std_logic_vector(0 to 1);
 
 
 begin --architecture behavioral of pcie_tx
@@ -242,10 +241,12 @@ end process;
 
 process(p_in_clk)
 begin
-if (p_in_rst_n = '0') then
-  sr_req_compl <= (others => '0');
-else
-  sr_req_compl <= p_in_req_compl & sr_req_compl(0 to 1);
+if rising_edge(p_in_clk) then
+  if (p_in_rst_n = '0') then
+    sr_req_compl <= (others => '0');
+  else
+    sr_req_compl <= p_in_req_compl & sr_req_compl(0 to 0);
+  end if;
 end if;
 end process;
 
@@ -274,9 +275,7 @@ if rising_edge(p_in_clk) then
     i_cfg_msg_transmit_type <= (others => '0');
     i_cfg_msg_transmit_data <= (others => '0');
 
-    i_compl_done  <= '0';
---    i_dword_count <= '0';
---    i_trn_sent    <= '0';
+    i_compl_done <= '0';
 
   else
 
@@ -301,20 +300,10 @@ if rising_edge(p_in_clk) then
             i_cfg_msg_transmit_type <= (others => '0');
             i_cfg_msg_transmit_data <= (others => '0');
 
-            i_compl_done  <= '0';
---            i_dword_count <= '0';
---            i_trn_sent    <= '0';
+            i_compl_done <= '0';
 
             if p_in_req_compl = '1' then
-              if (p_in_req_type = C_PCIE3_PKT_TYPE_IO_WR_D) then
-                i_fsm_tx <= S_TX_CPL;
-
-              elsif (p_in_req_type = C_PCIE3_PKT_TYPE_MEM_RD_ND)
-                or (p_in_req_type = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND)
-                or (p_in_req_type = C_PCIE3_PKT_TYPE_IO_RD_ND) then
-
-                i_fsm_tx <= S_TX_CPLD;
-              end if;
+              i_fsm_tx <= S_TX_CPL;
             end if;
 
 
@@ -322,9 +311,8 @@ if rising_edge(p_in_clk) then
         --
         --#######################################################################
         when S_TX_CPL =>
-        --Completion Without Payload - Alignment doesnt matter
 
-          if sr_req_compl(2) = '1' then
+          if sr_req_compl(sr_req_compl'high) = '1' then
             i_s_axis_cc_tvalid <= '1';
             i_s_axis_cc_tlast  <= '0';
             i_s_axis_cc_tkeep  <= std_logic_vector(TO_UNSIGNED(3, i_s_axis_cc_tkeep'length));
@@ -333,16 +321,18 @@ if rising_edge(p_in_clk) then
             i_s_axis_cc_tdata(47)           <= '0';                    --Rsvd
             i_s_axis_cc_tdata(46)           <= '0';                    --Posioned completion
             i_s_axis_cc_tdata(45 downto 43) <= C_PCIE_COMPL_STATUS_SC; --Completion Status: SuccessFull completion
-            --must 1 for IO rd completion and 0 for IO wr completion.
-            --1 while sending a completion for zero-length memory read
-            --0 must when send a UR or CA completion
+
             if (p_in_req_type = C_PCIE3_PKT_TYPE_IO_RD_ND) or
                ((p_in_req_type = C_PCIE3_PKT_TYPE_MEM_RD_ND) and (p_in_req_len = (p_in_req_len'range => '0'))) then
-            i_s_axis_cc_tdata(42 downto 32) <= std_logic_vector(TO_UNSIGNED(1, 11));  --DWord Count
+
+              i_s_axis_cc_tdata(42 downto 32) <= std_logic_vector(TO_UNSIGNED(1, 11));  --DWord Count
+
             elsif (p_in_req_type = C_PCIE3_PKT_TYPE_IO_WR_D) then
-            i_s_axis_cc_tdata(42 downto 32) <= (others => '0');--DWord Count
+              i_s_axis_cc_tdata(42 downto 32) <= (others => '0');--DWord Count
+
             else
-            i_s_axis_cc_tdata(42 downto 32) <= p_in_req_len;   --DWord Count
+              i_s_axis_cc_tdata(42 downto 32) <= p_in_req_len;   --DWord Count
+
             end if;
 
             i_s_axis_cc_tdata(31 downto 30) <= (others => '0');        --Rsvd
@@ -353,11 +343,10 @@ if rising_edge(p_in_clk) then
             i_s_axis_cc_tdata(7)            <= '0';                    --Rsvd
             i_s_axis_cc_tdata(6 downto 0)   <= (others => '0');        --Starting address of the mem byte - 7 bits
 
-
             if G_AXISTEN_IF_CC_PARITY_CHECK = 0 then
               i_s_axis_cc_tuser <= (others => '0');
             else
-              i_s_axis_cc_tuser <= '0' & i_s_axis_cc_tparity;
+              i_s_axis_cc_tuser <= std_logic_vector(RESIZE(UNSIGNED(i_s_axis_cc_tparity), i_s_axis_cc_tuser'length));
             end if;
 
             if p_in_s_axis_cc_tready = '1' then
@@ -370,10 +359,19 @@ if rising_edge(p_in_clk) then
 
             i_s_axis_cc_tvalid <= '1';
             i_s_axis_cc_tlast  <= '1';
-            i_s_axis_cc_tkeep  <= std_logic_vector(TO_UNSIGNED(1, i_s_axis_cc_tkeep'length));
 
+            if (p_in_req_type = C_PCIE3_PKT_TYPE_MEM_RD_ND)
+                or (p_in_req_type = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND)
+                or (p_in_req_type = C_PCIE3_PKT_TYPE_IO_RD_ND) then
 
-            i_s_axis_cc_tdata(63 downto 32) <= (others => '0'); --
+              i_s_axis_cc_tdata(63 downto 32) <= p_in_ureg_do;
+              i_s_axis_cc_tkeep <= std_logic_vector(TO_UNSIGNED(3, i_s_axis_cc_tkeep'length));
+
+            else
+              i_s_axis_cc_tdata(63 downto 32) <= (others => '0');
+              i_s_axis_cc_tkeep <= std_logic_vector(TO_UNSIGNED(1, i_s_axis_cc_tkeep'length));
+
+            end if;
 
             i_s_axis_cc_tdata(31)           <= '0';           -- Force ECRC
             i_s_axis_cc_tdata(30 downto 28) <= std_logic_vector(RESIZE(UNSIGNED(p_in_req_attr), 3));
@@ -386,10 +384,11 @@ if rising_edge(p_in_clk) then
             if G_AXISTEN_IF_CC_PARITY_CHECK = 0 then
               i_s_axis_cc_tuser <= (others => '0');
             else
-              i_s_axis_cc_tuser <= '0' & i_s_axis_cc_tparity;
+              i_s_axis_cc_tuser <= std_logic_vector(RESIZE(UNSIGNED(i_s_axis_cc_tparity), i_s_axis_cc_tuser'length));
             end if;
 
             if p_in_s_axis_cc_tready = '1' then
+              i_compl_done <= '1';
               i_fsm_tx <= S_TX_IDLE;
             end if;
 

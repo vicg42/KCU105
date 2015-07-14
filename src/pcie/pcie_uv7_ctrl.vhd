@@ -214,7 +214,7 @@ signal i_rst_n                 : std_logic;
 signal i_pio_rst_n             : std_logic;
 
 signal i_req_compl             : std_logic := '0';
-signal i_req_compl_wd          : std_logic := '0';
+--signal i_req_compl_wd          : std_logic := '0';
 signal i_req_compl_ur          : std_logic := '0';
 signal i_compl_done            : std_logic := '0';
 
@@ -243,8 +243,8 @@ signal i_ureg_wrbe             : std_logic_vector(3 downto 0);
 signal i_ureg_wr               : std_logic;
 signal i_ureg_rd               : std_logic;
 
-signal i_payload_len           : std_logic;
-signal i_ureg_busy             : std_logic;
+signal i_payload_len           : std_logic := '0';
+--signal i_ureg_busy             : std_logic;
 
 signal i_rd_addr               : std_logic_vector(10 downto 0);
 signal i_rd_be                 : std_logic_vector(3 downto 0);
@@ -367,11 +367,11 @@ p_in_tst        => p_in_tst ,
 --PCIE_Rx/Tx  Port
 --------------------------------------
 --Target mode
-p_in_reg_adr   => i_ureg_a(7 downto 0),-- in    std_logic_vector(7 downto 0);
-p_out_reg_dout => i_ureg_do(31 downto 0),--: out   std_logic_vector(31 downto 0);
-p_in_reg_din   => i_ureg_di(31 downto 0),-- in    std_logic_vector(31 downto 0);
-p_in_reg_wr    => i_ureg_wr,-- in    std_logic;
-p_in_reg_rd    => i_ureg_rd,--: in    std_logic;
+p_in_reg_adr   => i_ureg_a(7 downto 0),
+p_out_reg_dout => i_ureg_do(31 downto 0),
+p_in_reg_din   => i_ureg_di(31 downto 0),
+p_in_reg_wr    => i_ureg_wr,
+p_in_reg_rd    => i_ureg_rd,
 
 p_in_clk   => p_in_user_clk,
 p_in_rst_n => i_rst_n
@@ -434,9 +434,6 @@ G_KEEP_WIDTH   => CI_KEEP_WIDTH  ,
 G_PARITY_WIDTH => CI_PARITY_WIDTH
 )
 port map (
-p_in_clk   => p_in_user_clk,
-p_in_rst_n => i_rst_n,
-
 --Completer Request Interface
 p_in_m_axis_cq_tdata      => p_in_m_axis_cq_tdata     ,
 p_in_m_axis_cq_tlast      => p_in_m_axis_cq_tlast     ,
@@ -464,49 +461,46 @@ p_in_cfg_msg_data          => p_in_cfg_msg_received_data,
 --transmit unit. Transmit unit reponds to
 --req_compl assertion and responds with compl_done
 --assertion when a Completion w/ data is transmitted.
-p_out_req_compl    => i_req_compl    ,--: out std_logic;
-p_out_req_compl_wd => i_req_compl_wd ,--: out std_logic;
-p_out_req_compl_ur => i_req_compl_ur ,--: out std_logic;
-p_in_compl_done    => i_compl_done   ,--: in  std_logic;
+p_out_req_compl    => i_req_compl    ,
+--p_out_req_compl_wd => i_req_compl_wd ,
+p_out_req_compl_ur => i_req_compl_ur ,
+p_in_compl_done    => i_compl_done   ,
 
 p_out_req_type     => i_req_type,
-p_out_req_tc       => i_req_tc  ,     --: out std_logic_vector(2 downto 0) ;-- Memory Read TC
-p_out_req_attr     => i_req_attr,     --: out std_logic_vector(2 downto 0) ;-- Memory Read Attribute
-p_out_req_len      => i_req_len ,     --: out std_logic_vector(10 downto 0);-- Memory Read Length
-p_out_req_rid      => i_req_rid ,     --: out std_logic_vector(15 downto 0);-- Memory Read Requestor ID { 8'b0 (Bus no),
-                                                                            --                            3'b0 (Dev no),
-                                                                            --                            5'b0 (Func no)}
-p_out_req_tag      => i_req_tag ,     --: out std_logic_vector(7 downto 0) ;-- Memory Read Tag
-p_out_req_be       => i_req_be  ,     --: out std_logic_vector(7 downto 0) ;-- Memory Read Byte Enables
-p_out_req_addr     => i_req_addr,     --: out std_logic_vector(12 downto 0);-- Memory Read Address
-p_out_req_at       => i_req_at  ,     --: out std_logic_vector(1 downto 0) ;-- Address Translation
+p_out_req_tc       => i_req_tc  ,
+p_out_req_attr     => i_req_attr,
+p_out_req_len      => i_req_len ,
+p_out_req_rid      => i_req_rid ,
+
+
+p_out_req_tag      => i_req_tag ,
+p_out_req_be       => i_req_be  ,
+p_out_req_addr     => i_req_addr,
+p_out_req_at       => i_req_at  ,
 
 --Outputs to the TX Block in case of an UR
 --Required to form the completions
-p_out_req_des_qword0      => i_req_des_qword0     ,--: out std_logic_vector(63 downto 0);-- DWord0 and Dword1 of descriptor of the request
-p_out_req_des_qword1      => i_req_des_qword1     ,--: out std_logic_vector(63 downto 0);-- DWord2 and Dword3 of descriptor of the request
-p_out_req_des_tph_present => i_req_des_tph_present,--: out std_logic;                    -- TPH Present in the request
-p_out_req_des_tph_type    => i_req_des_tph_type   ,--: out std_logic_vector(1 downto 0) ;-- If TPH Present then TPH type
-p_out_req_des_tph_st_tag  => i_req_des_tph_st_tag ,--: out std_logic_vector(7 downto 0) ;-- TPH Steering tag of the request
+p_out_req_des_qword0      => i_req_des_qword0     ,
+p_out_req_des_qword1      => i_req_des_qword1     ,
+p_out_req_des_tph_present => i_req_des_tph_present,
+p_out_req_des_tph_type    => i_req_des_tph_type   ,
+p_out_req_des_tph_st_tag  => i_req_des_tph_st_tag ,
 
---Output to Indicate that the Request was a Mem lock Read Req
-p_out_req_mem_lock => i_req_mem_lock,--: out std_logic;
-p_out_req_mem      => i_req_mem     ,--: out std_logic;
+----Output to Indicate that the Request was a Mem lock Read Req
+--p_out_req_mem_lock => i_req_mem_lock,
+--p_out_req_mem      => i_req_mem     ,
 
---Memory interface used to save 2 DW data received
---on Memory Write 32 TLP. Data extracted from
---inbound TLP is presented to the Endpoint memory
---unit. Endpoint memory unit reacts to wr_en
---assertion and asserts wr_busy when it is
---processing written information.
 p_out_ureg_a   => i_ureg_a   ,
 p_out_ureg_di  => i_ureg_di  ,
 p_out_ureg_wrbe=> i_ureg_wrbe,
 p_out_ureg_wr  => i_ureg_wr  ,
 p_out_ureg_rd  => i_ureg_rd  ,
 
-p_out_payload_len => i_payload_len,--: out std_logic;                    -- Transaction Payload Length
-p_in_wr_busy      => i_ureg_busy     --: in  std_logic                     -- Memory Write Busy
+--p_out_payload_len => i_payload_len,
+--p_in_wr_busy      => i_ureg_busy
+
+p_in_clk   => p_in_user_clk,
+p_in_rst_n => i_rst_n
 );
 
 
@@ -528,9 +522,6 @@ G_KEEP_WIDTH   => CI_KEEP_WIDTH  ,
 G_PARITY_WIDTH => CI_PARITY_WIDTH
 )
 port map(
-p_in_clk   => p_in_user_clk,
-p_in_rst_n => i_rst_n,
-
 --AXI-S Completer Competion Interface
 p_out_s_axis_cc_tdata  => p_out_s_axis_cc_tdata   ,
 p_out_s_axis_cc_tkeep  => p_out_s_axis_cc_tkeep   ,
@@ -572,44 +563,47 @@ p_in_cfg_fc_cpld => p_in_cfg_fc_cpld,
 p_out_cfg_fc_sel => p_out_cfg_fc_sel,
 
 --PIO RX Engine Interface
-p_in_req_compl    => i_req_compl   ,--: in  std_logic;
-p_in_req_compl_wd => i_req_compl_wd,--: in  std_logic;
-p_in_req_compl_ur => i_req_compl_ur,--: in  std_logic;
-p_in_payload_len  => i_payload_len ,--: in  std_logic;
-p_out_compl_done  => i_compl_done  ,--: out std_logic;
+p_in_req_compl    => i_req_compl   ,
+--p_in_req_compl_wd => i_req_compl_wd,
+p_in_req_compl_ur => i_req_compl_ur,
+p_in_payload_len  => i_payload_len ,
+p_out_compl_done  => i_compl_done  ,
 
 p_in_req_type => i_req_type,
-p_in_req_tc   => i_req_tc  ,            --: in  std_logic_vector(2 downto 0);
-p_in_req_td   => '0',--i_req_td  ,      --: in  std_logic;
-p_in_req_ep   => '0',--i_req_ep  ,      --: in  std_logic;
-p_in_req_attr => i_req_attr(1 downto 0),--: in  std_logic_vector(1 downto 0);
-p_in_req_len  => i_req_len ,            --: in  std_logic_vector(10 downto 0);
-p_in_req_rid  => i_req_rid ,            --: in  std_logic_vector(15 downto 0);
-p_in_req_tag  => i_req_tag ,            --: in  std_logic_vector(7 downto 0);
-p_in_req_be   => i_req_be  ,            --: in  std_logic_vector(7 downto 0);
-p_in_req_addr => i_req_addr,            --: in  std_logic_vector(12 downto 0);
-p_in_req_at   => i_req_at  ,            --: in  std_logic_vector(1 downto 0);
+p_in_req_tc   => i_req_tc  ,
+p_in_req_td   => '0',--i_req_td  ,
+p_in_req_ep   => '0',--i_req_ep  ,
+p_in_req_attr => i_req_attr(1 downto 0),
+p_in_req_len  => i_req_len ,
+p_in_req_rid  => i_req_rid ,
+p_in_req_tag  => i_req_tag ,
+p_in_req_be   => i_req_be  ,
+p_in_req_addr => i_req_addr,
+p_in_req_at   => i_req_at  ,
 
-p_in_completer_id => (others => '0'),--: in  std_logic_vector(15 downto 0);
+p_in_completer_id => (others => '0'),
 
 --Inputs to the TX Block in case of an UR
 --Required to form the completions
-p_in_req_des_qword0      => i_req_des_qword0     ,-- : in  std_logic_vector(63 downto 0);
-p_in_req_des_qword1      => i_req_des_qword1     ,-- : in  std_logic_vector(63 downto 0);
-p_in_req_des_tph_present => i_req_des_tph_present,-- : in  std_logic;
-p_in_req_des_tph_type    => i_req_des_tph_type   ,-- : in  std_logic_vector(1 downto 0);
-p_in_req_des_tph_st_tag  => i_req_des_tph_st_tag ,-- : in  std_logic_vector(7 downto 0);
+p_in_req_des_qword0      => i_req_des_qword0     ,
+p_in_req_des_qword1      => i_req_des_qword1     ,
+p_in_req_des_tph_present => i_req_des_tph_present,
+p_in_req_des_tph_type    => i_req_des_tph_type   ,
+p_in_req_des_tph_st_tag  => i_req_des_tph_st_tag ,
 
---Indicate that the Request was a Mem lock Read Req
-p_in_req_mem_lock => i_req_mem_lock, --: in  std_logic;
-p_in_req_mem      => i_req_mem     , --: in  std_logic;
+----Indicate that the Request was a Mem lock Read Req
+--p_in_req_mem_lock => i_req_mem_lock,
+--p_in_req_mem      => i_req_mem     ,
+--
+----PIO Memory Access Control Interface
+--p_out_rd_addr        => i_rd_addr        ,
+--p_out_rd_be          => i_rd_be          ,
+--p_out_trn_sent       => i_trn_sent       ,
+p_in_ureg_do         => i_ureg_do        ,
+--p_in_gen_transaction => i_gen_transaction
 
---PIO Memory Access Control Interface
-p_out_rd_addr        => i_rd_addr        ,--: out std_logic_vector(10 downto 0);
-p_out_rd_be          => i_rd_be          ,--: out std_logic_vector(3 downto 0);
-p_out_trn_sent       => i_trn_sent       ,--: out std_logic;
-p_in_rd_data         => i_ureg_do        ,--: in  std_logic_vector(31 downto 0);
-p_in_gen_transaction => i_gen_transaction --: in  std_logic
+p_in_clk   => p_in_user_clk,
+p_in_rst_n => i_rst_n
 );
 
 
@@ -652,12 +646,12 @@ cfg_interrupt_msix_data    => p_out_cfg_interrupt_msix_data
 ----------------------------------------
 --
 ----------------------------------------
-i_req_completion <= i_req_compl or i_req_compl_wd or i_req_compl_ur;
+i_req_completion <= i_req_compl or i_req_compl_ur;--i_req_compl_wd or
 i_completion_done <= i_compl_done or i_interrupt_done;
 
 m_pio_to_ctrl : pio_to_ctrl
 port map(
-clk        => p_in_user_clk,
+clk       => p_in_user_clk,
 rst_n     => i_pio_rst_n,
 
 req_compl  => i_req_completion,
@@ -676,8 +670,8 @@ cfg_power_state_change_ack       => p_out_cfg_power_state_change_ack
 -- EP Only
 ------------------------------------
 -- Interrupt Interface Signals
-p_out_cfg_interrupt_int                 <= (others => '0');--: out  std_logic_vector(3 downto 0) ;
-p_out_cfg_interrupt_msi_int             <= (others => '0');--: out  std_logic_vector(31 downto 0);
+p_out_cfg_interrupt_int     <= (others => '0');--: out  std_logic_vector(3 downto 0) ;
+p_out_cfg_interrupt_msi_int <= (others => '0');--: out  std_logic_vector(31 downto 0);
 
 
 end architecture struct;
