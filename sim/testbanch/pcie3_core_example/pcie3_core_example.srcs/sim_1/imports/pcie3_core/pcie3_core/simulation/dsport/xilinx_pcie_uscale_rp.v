@@ -93,7 +93,7 @@ module xilinx_pcie3_uscale_rp # (
 );
 
   localparam         TCQ = 1;
-  localparam         EP_DEV_ID = 16'h8018;
+  localparam         EP_DEV_ID = 16'h8005;
 
   //----------------------------------------------------------------------------------------------------------------//
   // 3. AXI Interface                                                                                               //

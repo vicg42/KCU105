@@ -270,11 +270,11 @@ module xilinx_pcie3_uscale_ep # (
 
 
 
-//  wire [15:0]  cfg_vend_id        = 16'h10EE;   
-//  wire [15:0]  cfg_dev_id         = 16'h8018;   
-//  wire [15:0]  cfg_subsys_id      = 16'h0007;                                
-//  wire [7:0]   cfg_rev_id         = 8'h00; 
-  wire [15:0]  cfg_subsys_vend_id = 16'h10EE;                                  
+//  wire [15:0]  cfg_vend_id        = 16'h0777;   
+//  wire [15:0]  cfg_dev_id         = 16'h8005;   
+//  wire [15:0]  cfg_subsys_id      = 16'h8005;                                
+//  wire [7:0]   cfg_rev_id         = 8'h01; 
+  wire [15:0]  cfg_subsys_vend_id = 16'h0777;                                  
   
 
 // Core Top Level Wrapper
