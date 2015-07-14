@@ -34,6 +34,11 @@ add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_flr_in_process
 add wave -noupdate /board/EP/m_main/m_ctrl/p_out_cfg_flr_done
 add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_vf_flr_in_process
 add wave -noupdate /board/EP/m_main/m_ctrl/p_out_cfg_vf_flr_done
+add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_current_speed
+add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_negotiated_width
+add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_max_payload
+add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_max_read_req
+add wave -noupdate -expand /board/EP/m_main/m_ctrl/p_in_cfg_function_status
 add wave -noupdate -divider USR_APP
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/p_in_clk
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/p_in_rst_n
@@ -132,7 +137,7 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_in_s_axis_rq_tready
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {0 ps} 0}
 quietly wave cursor active 0
-configure wave -namecolwidth 162
+configure wave -namecolwidth 232
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
 configure wave -signalnamewidth 1
@@ -146,4 +151,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {136104119 ps} {136162664 ps}
+WaveRestoreZoom {42678454 ps} {178738715 ps}
