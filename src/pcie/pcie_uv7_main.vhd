@@ -337,8 +337,9 @@ p_in_cfg_msg_transmit_done    : in  std_logic;
 ------------------------------------
 -- EP and RP
 ------------------------------------
+p_in_cfg_phy_link_status  : in   std_logic_vector(1 downto 0);
 p_in_cfg_negotiated_width : in   std_logic_vector(3 downto 0);
---p_in_cfg_current_speed    : in   std_logic_vector(2 downto 0);
+p_in_cfg_current_speed    : in   std_logic_vector(2 downto 0);
 p_in_cfg_max_payload      : in   std_logic_vector(2 downto 0);
 p_in_cfg_max_read_req     : in   std_logic_vector(2 downto 0);
 p_in_cfg_function_status  : in   std_logic_vector(7 downto 0);
@@ -519,9 +520,9 @@ signal i_cfg_hot_reset_out                : std_logic;
 signal i_cfg_hot_reset_in                 : std_logic;
 
 --signal i_cfg_phy_link_down                : std_logic;
---signal i_cfg_phy_link_status              : std_logic_vector(1 downto 0);
+signal i_cfg_phy_link_status              : std_logic_vector(1 downto 0);
 signal i_cfg_negotiated_width             : std_logic_vector(3 downto 0) := (others => '0');
---signal i_cfg_current_speed                : std_logic_vector(2 downto 0);
+signal i_cfg_current_speed                : std_logic_vector(2 downto 0);
 signal i_cfg_max_payload                  : std_logic_vector(2 downto 0) := (others => '0');
 signal i_cfg_max_read_req                 : std_logic_vector(2 downto 0) := (others => '0');
 signal i_cfg_function_status              : std_logic_vector(15 downto 0):= (others => '0');
@@ -608,9 +609,9 @@ pcie_cq_np_req       => i_pcie_cq_np_req      ,--: IN  STD_LOGIC;
 pcie_cq_np_req_count => i_pcie_cq_np_req_count,--: OUT STD_LOGIC_VECTOR(5 DOWNTO 0);
 
 cfg_phy_link_down        => open                      ,--: OUT STD_LOGIC;
-cfg_phy_link_status      => open                      ,--: OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+cfg_phy_link_status      => i_cfg_phy_link_status     ,--: OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
 cfg_negotiated_width     => i_cfg_negotiated_width    ,--: OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-cfg_current_speed        => open                      ,--: OUT STD_LOGIC_VECTOR(2 DOWNTO 0);
+cfg_current_speed        => i_cfg_current_speed       ,--: OUT STD_LOGIC_VECTOR(2 DOWNTO 0);
 cfg_max_payload          => i_cfg_max_payload         ,--: OUT STD_LOGIC_VECTOR(2 DOWNTO 0);
 cfg_max_read_req         => i_cfg_max_read_req        ,--: OUT STD_LOGIC_VECTOR(2 DOWNTO 0);
 cfg_function_status      => i_cfg_function_status     ,--: OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
@@ -824,8 +825,9 @@ p_in_cfg_msg_transmit_done  => i_cfg_msg_transmit_done,
 ------------------------------------
 -- EP and RP
 ------------------------------------
+p_in_cfg_phy_link_status  => i_cfg_phy_link_status ,
 p_in_cfg_negotiated_width => i_cfg_negotiated_width,
---p_in_cfg_current_speed    => i_cfg_current_speed   ,
+p_in_cfg_current_speed    => i_cfg_current_speed   ,
 p_in_cfg_max_payload      => i_cfg_max_payload     ,
 p_in_cfg_max_read_req     => i_cfg_max_read_req    ,
 p_in_cfg_function_status  => i_cfg_function_status(7 downto 0),

@@ -18,7 +18,6 @@ use work.pcie_pkg.all;
 
 entity pcie_rx is
 generic (
---AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
 G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
 G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
 G_AXISTEN_IF_RC_STRADDLE         : integer := 0;
@@ -444,44 +443,30 @@ if rising_edge(p_in_clk) then
 
             if p_in_m_axis_cq_tvalid = '1' then
 
+                i_m_axis_cq_tready <= '0';
+
                 i_reg_a <= i_req_addr(12 downto 2);
+                i_reg_wr <= '1';
 
-                case i_data_start_loc is
-                  when "000" =>
+                if p_in_m_axis_cq_tkeep(1 downto 0) = "01" then
+                  i_reg_d <= p_in_m_axis_cq_tdata((32 * 1) - 1 downto (32 * 0));
+                  i_reg_wrbe <= p_in_m_axis_cq_tuser((8 + (4 * 1)) - 1 downto (8 + (4 * 0)));--(11 downto 8);
 
-                      i_m_axis_cq_tready <= '0';
+                else
+                  i_reg_d <= p_in_m_axis_cq_tdata((32 * 2) - 1 downto (32 * 1));
+                  i_reg_wrbe <= p_in_m_axis_cq_tuser((8 + (4 * 2)) - 1 downto (8 + (4 * 1)));--(15 downto 12);
 
-                      i_reg_wr <= '1';
-                      i_reg_d <= p_in_m_axis_cq_tdata(31 downto 0);
-                      i_reg_wrbe <= p_in_m_axis_cq_tuser(11 downto 8);
+                end if;
 
-                      i_fsm_rx <= S_RX_WAIT;
+                i_fsm_rx <= S_RX_WAIT;
 
-                  when "001" =>
-
-                      i_m_axis_cq_tready <= '0';
-
-                      i_reg_wr <= '1';
-                      i_reg_d <= p_in_m_axis_cq_tdata(63 downto 32);
-                      i_reg_wrbe <= p_in_m_axis_cq_tuser(15 downto 12);
-
-                      i_fsm_rx <= S_RX_WAIT;
-
-                  when others =>
-                    i_fsm_rx <= S_RX_RX_DATA;
-
-                end case;--case data_start_loc is
-
-            end if; --if p_in_m_axis_cq_tvalid = '1' then
+            end if;
 
 
         --#######################################################################
         --
         --#######################################################################
         when S_RX_WAIT =>
-
---            i_req_mem <= '0';
---            i_req_mem_lock <= '0';
 
             i_reg_wr <= '0';
             i_reg_rd <= '0';

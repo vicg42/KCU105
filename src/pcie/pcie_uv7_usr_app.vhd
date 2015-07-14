@@ -100,7 +100,7 @@ if rising_edge(p_in_clk) then
       ----------------------------------------------
         if i_reg_adr = TO_UNSIGNED(C_HREG_CTRL, 5)  then v_reg_ctrl <= p_in_reg_din;
         elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST0, 5) then v_reg_tst0 <= p_in_reg_din;
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST1, 5) then v_reg_tst1 <= p_in_reg_din;
+        elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST1, 5) then v_reg_tst1 <= p_in_tst(31 downto 0);--p_in_reg_din;
 
         end if;
 

@@ -73,7 +73,6 @@ p_out_cfg_fc_sel : out std_logic_vector(2 downto 0);
 --Completion
 p_in_req_compl    : in  std_logic;
 p_in_req_compl_ur : in  std_logic;
---p_in_payload_len  : in  std_logic;
 p_out_compl_done  : out std_logic;
 
 p_in_req_type : in  std_logic_vector(3 downto 0);

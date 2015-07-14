@@ -114,8 +114,9 @@ p_in_cfg_msg_transmit_done    : in  std_logic;
 ------------------------------------
 -- EP and RP
 ------------------------------------
-p_in_cfg_negotiated_width : in   std_logic_vector(3 downto 0);
---p_in_cfg_current_speed    : in   std_logic_vector(2 downto 0);
+p_in_cfg_phy_link_status  : in   std_logic_vector(1 downto 0);
+p_in_cfg_negotiated_width : in   std_logic_vector(3 downto 0); -- valid when cfg_phy_link_status[1:0] == 11b
+p_in_cfg_current_speed    : in   std_logic_vector(2 downto 0);
 p_in_cfg_max_payload      : in   std_logic_vector(2 downto 0);
 p_in_cfg_max_read_req     : in   std_logic_vector(2 downto 0);
 p_in_cfg_function_status  : in   std_logic_vector(7 downto 0);
@@ -124,7 +125,6 @@ p_in_cfg_function_status  : in   std_logic_vector(7 downto 0);
 p_in_cfg_err_cor_out      : in   std_logic;
 p_in_cfg_err_nonfatal_out : in   std_logic;
 p_in_cfg_err_fatal_out    : in   std_logic;
-
 
 p_in_cfg_fc_ph            : in   std_logic_vector( 7 downto 0);
 p_in_cfg_fc_pd            : in   std_logic_vector(11 downto 0);
@@ -197,11 +197,9 @@ end entity pcie_ctrl;
 
 architecture struct of pcie_ctrl is
 
---C_DATA_WIDTH                   : integer := 64     ;
 constant CI_STRB_WIDTH   : integer := G_DATA_WIDTH / 8 ; -- TSTRB width
 constant CI_KEEP_WIDTH   : integer := G_DATA_WIDTH / 32;
 constant CI_PARITY_WIDTH : integer := G_DATA_WIDTH / 8 ;  -- TPARITY width
-
 
 type TSR_flr_bus2 is array (0 to 1) of std_logic_vector(1 downto 0);
 type TSR_flr_bus6 is array (0 to 1) of std_logic_vector(5 downto 0);
@@ -213,10 +211,9 @@ signal i_completion_done       : std_logic;
 signal i_rst_n                 : std_logic;
 signal i_pio_rst_n             : std_logic;
 
-signal i_req_compl             : std_logic := '0';
---signal i_req_compl_wd          : std_logic := '0';
-signal i_req_compl_ur          : std_logic := '0';
-signal i_compl_done            : std_logic := '0';
+signal i_req_compl             : std_logic;
+signal i_req_compl_ur          : std_logic;
+signal i_compl_done            : std_logic;
 
 signal i_req_type              : std_logic_vector(3 downto 0) ;
 signal i_req_tc                : std_logic_vector(2 downto 0) ;
@@ -228,27 +225,18 @@ signal i_req_be                : std_logic_vector(7 downto 0) ;
 signal i_req_addr              : std_logic_vector(12 downto 0);
 signal i_req_at                : std_logic_vector(1 downto 0) ;
 
-signal i_req_des_qword0        : std_logic_vector(63 downto 0);-- DWord0 and Dword1 of descriptor of the request
-signal i_req_des_qword1        : std_logic_vector(63 downto 0);-- DWord2 and Dword3 of descriptor of the request
-signal i_req_des_tph_present   : std_logic;                    -- TPH Present in the request
-signal i_req_des_tph_type      : std_logic_vector(1 downto 0) ;-- If TPH Present then TPH type
-signal i_req_des_tph_st_tag    : std_logic_vector(7 downto 0) ;-- TPH Steering tag of the request
-
-signal i_req_mem_lock          : std_logic;
-signal i_req_mem               : std_logic;
+signal i_req_des_qword0        : std_logic_vector(63 downto 0);
+signal i_req_des_qword1        : std_logic_vector(63 downto 0);
+signal i_req_des_tph_present   : std_logic;
+signal i_req_des_tph_type      : std_logic_vector(1 downto 0) ;
+signal i_req_des_tph_st_tag    : std_logic_vector(7 downto 0) ;
 
 signal i_ureg_a                : std_logic_vector(10 downto 0);
 signal i_ureg_di               : std_logic_vector(31 downto 0);
+signal i_ureg_do               : std_logic_vector(31 downto 0);
 signal i_ureg_wrbe             : std_logic_vector(3 downto 0);
 signal i_ureg_wr               : std_logic;
 signal i_ureg_rd               : std_logic;
-
---signal i_payload_len           : std_logic := '0';
-
-signal i_rd_addr               : std_logic_vector(10 downto 0);
-signal i_rd_be                 : std_logic_vector(3 downto 0);
-signal i_trn_sent              : std_logic;
-signal i_ureg_do               : std_logic_vector(31 downto 0);
 
 signal i_m_axis_cq_tready      : std_logic;
 signal i_m_axis_rc_tready      : std_logic;
@@ -259,6 +247,10 @@ signal i_gen_transaction       : std_logic;
 signal i_gen_leg_intr          : std_logic;
 signal i_gen_msi_intr          : std_logic;
 signal i_gen_msix_intr         : std_logic;
+
+signal tst_cfg_status          : std_logic_vector(21 downto 0);
+signal tst_in                  : std_logic_vector(127 downto 0);
+
 
 
 begin --architecture struct of pcie_ctrl
@@ -312,7 +304,7 @@ p_out_cfg_ds_bus_number      <= std_logic_vector(TO_UNSIGNED(16#00#, p_out_cfg_d
 p_out_cfg_ds_device_number   <= std_logic_vector(TO_UNSIGNED(16#00#, p_out_cfg_ds_device_number'length));
 p_out_cfg_ds_function_number <= std_logic_vector(TO_UNSIGNED(16#00#, p_out_cfg_ds_function_number'length));
 
-p_out_cfg_dsn <= std_logic_vector(TO_UNSIGNED(16#123#, p_out_cfg_dsn'length));
+p_out_cfg_dsn <= std_logic_vector(TO_UNSIGNED(C_PCFG_FIRMWARE_VERSION, p_out_cfg_dsn'length));
 
 p_out_cfg_err_cor_in   <= '0';
 p_out_cfg_err_uncor_in <= '0';
@@ -341,9 +333,9 @@ generic map(
 G_DBG => "OFF"
 )
 port map (
--------------------------------------------------------
+----------------------------------------
 --USR Port
--------------------------------------------------------
+----------------------------------------
 p_out_hclk      => p_out_hclk ,
 p_out_gctrl     => p_out_gctrl,
 
@@ -360,7 +352,7 @@ p_out_dev_opt   => p_out_dev_opt  ,
 
 --DBG
 p_out_tst       => p_out_tst,
-p_in_tst        => p_in_tst ,
+p_in_tst        => tst_in ,
 
 --------------------------------------
 --PCIE_Rx/Tx  Port
@@ -376,37 +368,6 @@ p_in_clk   => p_in_user_clk,
 p_in_rst_n => i_rst_n
 );
 
---m_usr_app : pcie_usr_app
---port map (
---user_clk => p_in_user_clk,
---reset_n  => i_rst_n,
---
-----Read Port
---rd_addr  => i_rd_addr ,--: in  std_logic_vector(10 downto 0);
---rd_be    => i_rd_be   ,--: in  std_logic_vector(3 downto 0);
---trn_sent => i_trn_sent,--: in  std_logic;
---rd_data  => i_ureg_do ,--: out std_logic_vector(31 downto 0);
---
-----Write Port
---wr_addr  => i_wr_addr, --: in  std_logic_vector(10 downto 0);
---wr_be    => i_wr_be  , --: in  std_logic_vector(7 downto 0);
---wr_data  => i_wr_data, --: in  std_logic_vector(63 downto 0);
---wr_en    => i_wr_en  , --: in  std_logic;
---wr_busy  => i_wr_busy, --: out std_logic;
---
-----Payload info
---payload_len => i_payload_len,--: in  std_logic;
---
-----Trigger to TX and Interrupt Handler Block to generate
-----Transactions and Interrupts
---gen_transaction => i_gen_transaction,--: out std_logic;
---gen_leg_intr    => i_gen_leg_intr   ,--: out std_logic;
---gen_msi_intr    => i_gen_msi_intr   ,--: out std_logic;
---gen_msix_intr   => i_gen_msix_intr   --: out std_logic
---);
-
-
-
 ----------------------------------------
 --
 ----------------------------------------
@@ -420,7 +381,6 @@ end generate gen_rc_trdy;
 
 m_rx : pcie_rx
 generic map(
---AXISTEN_IF_WIDTH               => G_AXISTEN_IF_WIDTH,
 G_AXISTEN_IF_CQ_ALIGNMENT_MODE   => G_AXISTEN_IF_CQ_ALIGNMENT_MODE,
 G_AXISTEN_IF_RC_ALIGNMENT_MODE   => G_AXISTEN_IF_RC_ALIGNMENT_MODE,
 --G_AXISTEN_IF_RC_STRADDLE         : integer := 0;
@@ -471,8 +431,6 @@ p_out_req_be       => i_req_be  ,
 p_out_req_addr     => i_req_addr,
 p_out_req_at       => i_req_at  ,
 
---Outputs to the TX Block in case of an UR
---Required to form the completions
 p_out_req_des_qword0      => i_req_des_qword0     ,
 p_out_req_des_qword1      => i_req_des_qword1     ,
 p_out_req_des_tph_present => i_req_des_tph_present,
@@ -497,7 +455,6 @@ p_in_rst_n => i_rst_n
 ----------------------------------------
 m_tx : pcie_tx
 generic map (
---parameter [1:0] AXISTEN_IF_WIDTH = 00,
 G_AXISTEN_IF_RQ_ALIGNMENT_MODE => G_AXISTEN_IF_RQ_ALIGNMENT_MODE,
 G_AXISTEN_IF_CC_ALIGNMENT_MODE => G_AXISTEN_IF_CC_ALIGNMENT_MODE,
 G_AXISTEN_IF_ENABLE_CLIENT_TAG => G_AXISTEN_IF_ENABLE_CLIENT_TAG,
@@ -553,7 +510,6 @@ p_out_cfg_fc_sel => p_out_cfg_fc_sel,
 --Completion
 p_in_req_compl    => i_req_compl   ,
 p_in_req_compl_ur => i_req_compl_ur,
---p_in_payload_len  => i_payload_len ,
 p_out_compl_done  => i_compl_done  ,
 
 p_in_req_type => i_req_type,
@@ -570,8 +526,6 @@ p_in_req_at   => i_req_at  ,
 
 p_in_completer_id => (others => '0'),
 
---Inputs to the TX Block in case of an UR
---Required to form the completions
 p_in_req_des_qword0      => i_req_des_qword0     ,
 p_in_req_des_qword1      => i_req_des_qword1     ,
 p_in_req_des_tph_present => i_req_des_tph_present,
@@ -588,45 +542,44 @@ p_in_rst_n => i_rst_n
 
 
 
+------------------------------------------
+----
+------------------------------------------
+--m_irq : pcie_irq
+--port map(
+--user_clk => p_in_user_clk,
+--reset_n  => i_rst_n,
+--
+----Trigger to generate interrupts (to / from Mem access Block)
+--gen_leg_intr   => i_gen_leg_intr ,
+--gen_msi_intr   => i_gen_msi_intr ,
+--gen_msix_intr  => i_gen_msix_intr,
+--interrupt_done => i_interrupt_done, --: out std_logic; --Indicates whether interrupt is done or in process
+--
+----Legacy Interrupt Interface
+--cfg_interrupt_sent => p_in_cfg_interrupt_sent, --: in  std_logic; --Core asserts this signal when it sends out a Legacy interrupt
+--cfg_interrupt_int  => p_out_cfg_interrupt_int, --: out std_logic_vector(3 downto 0); --4 Bits for INTA, INTB, INTC, INTD (assert or deassert)
+--
+----MSI Interrupt Interface
+--cfg_interrupt_msi_enable => p_in_cfg_interrupt_msi_enable(0),
+--cfg_interrupt_msi_sent   => p_in_cfg_interrupt_msi_sent     ,
+--cfg_interrupt_msi_fail   => p_in_cfg_interrupt_msi_fail     ,
+--cfg_interrupt_msi_int    => p_out_cfg_interrupt_msi_int     ,
+--
+----MSI-X Interrupt Interface
+--cfg_interrupt_msix_enable  => p_in_cfg_interrupt_msix_enable  ,
+--cfg_interrupt_msix_sent    => p_in_cfg_interrupt_msix_sent    ,
+--cfg_interrupt_msix_fail    => p_in_cfg_interrupt_msix_fail    ,
+--cfg_interrupt_msix_int     => p_out_cfg_interrupt_msix_int    ,
+--cfg_interrupt_msix_address => p_out_cfg_interrupt_msix_address,
+--cfg_interrupt_msix_data    => p_out_cfg_interrupt_msix_data
+--);
+
+
 ----------------------------------------
 --
 ----------------------------------------
-m_irq : pcie_irq
-port map(
-user_clk => p_in_user_clk,
-reset_n  => i_rst_n,
-
---Trigger to generate interrupts (to / from Mem access Block)
-gen_leg_intr   => i_gen_leg_intr ,
-gen_msi_intr   => i_gen_msi_intr ,
-gen_msix_intr  => i_gen_msix_intr,
-interrupt_done => i_interrupt_done, --: out std_logic; --Indicates whether interrupt is done or in process
-
---Legacy Interrupt Interface
-cfg_interrupt_sent => p_in_cfg_interrupt_sent, --: in  std_logic; --Core asserts this signal when it sends out a Legacy interrupt
-cfg_interrupt_int  => p_out_cfg_interrupt_int, --: out std_logic_vector(3 downto 0); --4 Bits for INTA, INTB, INTC, INTD (assert or deassert)
-
---MSI Interrupt Interface
-cfg_interrupt_msi_enable => p_in_cfg_interrupt_msi_enable(0),
-cfg_interrupt_msi_sent   => p_in_cfg_interrupt_msi_sent     ,
-cfg_interrupt_msi_fail   => p_in_cfg_interrupt_msi_fail     ,
-cfg_interrupt_msi_int    => p_out_cfg_interrupt_msi_int     ,
-
---MSI-X Interrupt Interface
-cfg_interrupt_msix_enable  => p_in_cfg_interrupt_msix_enable  ,
-cfg_interrupt_msix_sent    => p_in_cfg_interrupt_msix_sent    ,
-cfg_interrupt_msix_fail    => p_in_cfg_interrupt_msix_fail    ,
-cfg_interrupt_msix_int     => p_out_cfg_interrupt_msix_int    ,
-cfg_interrupt_msix_address => p_out_cfg_interrupt_msix_address,
-cfg_interrupt_msix_data    => p_out_cfg_interrupt_msix_data
-);
-
-
-
-----------------------------------------
---
-----------------------------------------
-i_req_completion <= i_req_compl or i_req_compl_ur;--i_req_compl_wd or
+i_req_completion <= i_req_compl or i_req_compl_ur;
 i_completion_done <= i_compl_done or i_interrupt_done;
 
 m_pio_to_ctrl : pio_to_ctrl
@@ -650,8 +603,25 @@ cfg_power_state_change_ack       => p_out_cfg_power_state_change_ack
 -- EP Only
 ------------------------------------
 -- Interrupt Interface Signals
-p_out_cfg_interrupt_int     <= (others => '0');--: out  std_logic_vector(3 downto 0) ;
-p_out_cfg_interrupt_msi_int <= (others => '0');--: out  std_logic_vector(31 downto 0);
+p_out_cfg_interrupt_int     <= (others => '0');
+p_out_cfg_interrupt_msi_int <= (others => '0');
+p_out_cfg_interrupt_msix_address <= (others => '0');
+p_out_cfg_interrupt_msix_data    <= (others => '0');
+
+process(p_in_user_clk)
+begin
+if rising_edge(p_in_user_clk) then
+tst_cfg_status(21 downto 20) <= p_in_cfg_phy_link_status ;--: in   std_logic_vector(1 downto 0);
+tst_cfg_status(19 downto 17) <= p_in_cfg_negotiated_width;--: in   std_logic_vector(3 downto 0); -- valid when cfg_phy_link_status[1:0] == 11b
+tst_cfg_status(16 downto 14) <= p_in_cfg_current_speed   ;--: in   std_logic_vector(2 downto 0);
+tst_cfg_status(13 downto 11) <= p_in_cfg_max_payload     ;--: in   std_logic_vector(2 downto 0);
+tst_cfg_status(10 downto 8) <= p_in_cfg_max_read_req    ;--: in   std_logic_vector(2 downto 0);
+tst_cfg_status(7 downto 0) <= p_in_cfg_function_status ;--: in   std_logic_vector(7 downto 0);
+end if;
+end process;
+
+tst_in <= std_logic_vector(RESIZE(UNSIGNED(tst_cfg_status), tst_in'length));
+
 
 
 end architecture struct;
