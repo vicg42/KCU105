@@ -251,6 +251,10 @@ signal i_gen_msix_intr         : std_logic;
 signal tst_cfg_status          : std_logic_vector(22 downto 0);
 signal tst_in                  : std_logic_vector(127 downto 0);
 
+signal tst_rx_out              : std_logic_vector(31 downto 0);
+signal tst_tx_out              : std_logic_vector(69 downto 0);
+signal i_dbg_pcie              : std_logic_vector(299 downto 0);
+
 
 
 begin --architecture struct of pcie_ctrl
@@ -433,6 +437,9 @@ p_out_ureg_wrbe=> i_ureg_wrbe,
 p_out_ureg_wr  => i_ureg_wr  ,
 p_out_ureg_rd  => i_ureg_rd  ,
 
+--DBG
+p_out_tst => tst_rx_out,
+
 --system
 p_in_clk   => p_in_user_clk,
 p_in_rst_n => i_rst_n
@@ -523,6 +530,9 @@ p_in_req_des_tph_st_tag  => i_req_des_tph_st_tag ,
 
 --usr app
 p_in_ureg_do => i_ureg_do,
+
+--DBG
+p_out_tst => tst_tx_out,
 
 --system
 p_in_clk   => p_in_user_clk,
@@ -620,6 +630,41 @@ end process;
 tst_in <= std_logic_vector(RESIZE(UNSIGNED(tst_cfg_status), tst_in'length));
 
 
+
+--#############################################
+--DBGCS
+--#############################################
+m_dbg_pcie : dbgcs_ila_pcie
+port map (
+clk => p_in_user_clk,
+probe0 => i_dbg_pcie
+);
+
+i_dbg_pcie(63 downto 0) <= p_in_m_axis_cq_tdata(63 downto 0);
+i_dbg_pcie(65 downto 64) <= p_in_m_axis_cq_tkeep(1 downto 0);
+i_dbg_pcie(66) <= p_in_m_axis_cq_tvalid;
+i_dbg_pcie(67) <= p_in_m_axis_cq_tlast;
+i_dbg_pcie(68) <= i_m_axis_cq_tready;
+
+i_dbg_pcie(70 downto 69) <= tst_rx_out(1 downto 0); --RX: fsm
+i_dbg_pcie(72 downto 71) <= tst_tx_out(69 downto 68);--TX: fsm
+i_dbg_pcie(73)             <= tst_tx_out(1);          --s_axis_cc_tlast ;
+i_dbg_pcie(74)             <= tst_tx_out(0);          --s_axis_cc_tvalid;
+i_dbg_pcie(138 downto 75)  <= tst_tx_out(67 downto 4);--s_axis_cc_tdata
+i_dbg_pcie(140 downto 139) <= tst_tx_out(3 downto 2); --s_axis_cc_tkeep(1 downto 0);
+
+i_dbg_pcie(141) <= i_req_compl   ;
+i_dbg_pcie(142) <= i_req_compl_ur;
+i_dbg_pcie(143) <= i_compl_done  ;
+
+i_dbg_pcie(144) <= i_ureg_wr;
+i_dbg_pcie(145) <= i_ureg_rd;
+i_dbg_pcie(153 downto 146) <= i_ureg_a(7 downto 0);
+
+i_dbg_pcie(161 downto 154) <= p_in_cfg_function_status(7 downto 0);
+i_dbg_pcie(162) <= p_in_user_lnk_up;
+
+i_dbg_pcie(299 downto 163) <= (others => '0');
 
 end architecture struct;
 

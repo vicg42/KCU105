@@ -69,6 +69,9 @@ signal v_reg_ctrl         : std_logic_vector(31 downto 0);
 signal v_reg_tst0         : std_logic_vector(31 downto 0);
 signal v_reg_tst1         : std_logic_vector(31 downto 0);
 
+--attribute mark_debug : string;
+--attribute mark_debug of v_reg_tst1: signal is "true";
+
 
 begin --architecture behavioral
 

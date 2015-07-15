@@ -197,4 +197,6 @@ pin_out_led(0) <= i_test_led(0);
 pin_out_led(5 downto 1) <= pin_in_btn(4 downto 0);
 pin_out_led(7 downto 6) <= (others => '0');
 
+
+
 end architecture struct;

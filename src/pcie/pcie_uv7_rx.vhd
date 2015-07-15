@@ -83,6 +83,9 @@ p_out_ureg_wrbe: out std_logic_vector(3 downto 0);
 p_out_ureg_wr  : out std_logic;
 p_out_ureg_rd  : out std_logic;
 
+--DBG
+p_out_tst : out std_logic_vector(31 downto 0);
+
 --system
 p_in_clk   : in  std_logic;
 p_in_rst_n : in  std_logic
@@ -153,6 +156,7 @@ signal i_reg_wrbe            : std_logic_vector(3 downto 0);
 signal i_reg_wr              : std_logic;
 signal i_reg_rd              : std_logic;
 
+signal tst_fsm_rx            : unsigned(1 downto 0);
 
 
 begin --architecture behavioral of pcie_rx
@@ -489,6 +493,20 @@ if rising_edge(p_in_clk) then
   end if;--p_in_rst_n
 end if;--p_in_clk
 end process; --fsm
+
+
+
+--#######################################################################
+--DBG
+--#######################################################################
+tst_fsm_rx <= TO_UNSIGNED(16#01#,tst_fsm_rx'length) when i_fsm_rx = S_RX_WAIT       else
+              TO_UNSIGNED(16#02#,tst_fsm_rx'length) when i_fsm_rx = S_RX_RX_DATA    else
+              TO_UNSIGNED(16#03#,tst_fsm_rx'length) when i_fsm_rx = S_RX_PKT_CHK    else
+              TO_UNSIGNED(16#00#,tst_fsm_rx'length); --i_fsm_rx = S_RX_IDLE           else
+
+p_out_tst(1 downto 0) <= std_logic_vector(tst_fsm_rx);
+p_out_tst(31 downto 2) <= (others => '0');
+
 
 end architecture behavioral;
 

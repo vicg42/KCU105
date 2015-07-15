@@ -1,13 +1,13 @@
 ###################################
 #
 ###################################
-set_property PACKAGE_PIN AK17 [get_ports {pin_in_refclk[M300_p]}]
-set_property IOSTANDARD LVDS [get_ports {pin_in_refclk[M300_p]}]
-create_clock -period 3.333 -name {pin_in_refclk[M300_p]} -waveform {0.000 1.667} [get_ports {pin_in_refclk[M300_p]}]
-
-set_property PACKAGE_PIN G10 [get_ports {pin_in_refclk[M125_p]}]
-set_property IOSTANDARD LVDS [get_ports {pin_in_refclk[M125_p]}]
-create_clock -period 8.000 -name {pin_in_refclk[M125_p]} -waveform {0.000 4.000} [get_ports {pin_in_refclk[M125_p]}]
+#set_property PACKAGE_PIN AK17 [get_ports {pin_in_refclk[M300_p]}]
+#set_property IOSTANDARD LVDS [get_ports {pin_in_refclk[M300_p]}]
+#create_clock -period 3.333 -name {pin_in_refclk[M300_p]} -waveform {0.000 1.667} [get_ports {pin_in_refclk[M300_p]}]
+#
+#set_property PACKAGE_PIN G10 [get_ports {pin_in_refclk[M125_p]}]
+#set_property IOSTANDARD LVDS [get_ports {pin_in_refclk[M125_p]}]
+#create_clock -period 8.000 -name {pin_in_refclk[M125_p]} -waveform {0.000 4.000} [get_ports {pin_in_refclk[M125_p]}]
 
 set_property PACKAGE_PIN AA32 [get_ports {pin_in_refclk[M90]}]
 set_property IOSTANDARD LVCMOS18 [get_ports {pin_in_refclk[M90]}]

@@ -102,6 +102,9 @@ p_out_ureg_wrbe: out std_logic_vector(3 downto 0);
 p_out_ureg_wr  : out std_logic;
 p_out_ureg_rd  : out std_logic;
 
+--DBG
+p_out_tst : out std_logic_vector(31 downto 0);
+
 --system
 p_in_clk   : in  std_logic;
 p_in_rst_n : in  std_logic
@@ -192,6 +195,9 @@ p_in_req_des_tph_st_tag  : in  std_logic_vector(7 downto 0);
 
 --usr app
 p_in_ureg_do   : in  std_logic_vector(31 downto 0);
+
+--DBG
+p_out_tst : out std_logic_vector(69 downto 0);
 
 --system
 p_in_clk   : in  std_logic;
@@ -313,6 +319,12 @@ p_in_rst_n : in    std_logic
 end component pcie_usr_app;
 
 
+component dbgcs_ila_pcie is
+port (
+clk : in std_logic;
+probe0 : in std_logic_vector(299 downto 0)
+);
+end component dbgcs_ila_pcie;
 
 end package pcie_unit_pkg;
 
