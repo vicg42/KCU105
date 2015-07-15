@@ -63,8 +63,8 @@ module xilinx_pcie3_uscale_ep # (
   parameter          C_DATA_WIDTH                        = 64,         // RX/TX interface data width
   parameter          KEEP_WIDTH                          = C_DATA_WIDTH / 32,
   parameter          EXT_PIPE_SIM                        = "FALSE",  // This Parameter has effect on selecting Enable External PIPE Interface in GUI.
-  parameter          PL_LINK_CAP_MAX_LINK_SPEED          = 1,  // 1- GEN1, 2 - GEN2, 4 - GEN3
-  parameter          PL_LINK_CAP_MAX_LINK_WIDTH          = 8  // 1- X1, 2 - X2, 4 - X4, 8 - X8
+  parameter          PL_LINK_CAP_MAX_LINK_SPEED          = 2,  // 1- GEN1, 2 - GEN2, 4 - GEN3
+  parameter          PL_LINK_CAP_MAX_LINK_WIDTH          = 4  // 1- X1, 2 - X2, 4 - X4, 8 - X8
 ) (
   output  [(PL_LINK_CAP_MAX_LINK_WIDTH - 1) : 0]  pci_exp_txp,
   output  [(PL_LINK_CAP_MAX_LINK_WIDTH - 1) : 0]  pci_exp_txn,
@@ -292,6 +292,10 @@ module xilinx_pcie3_uscale_ep # (
     .pci_exp_rxn                                    ( pci_exp_rxn ),
     .pci_exp_rxp                                    ( pci_exp_rxp ),
 
+   //---------- Shared Logic Internal -------------------------
+    .int_qpll1lock_out                              (  ),   
+    .int_qpll1outrefclk_out                         (  ),
+    .int_qpll1outclk_out                            (  ),
 
 
     //---------------------------------------------------------------------------------------//

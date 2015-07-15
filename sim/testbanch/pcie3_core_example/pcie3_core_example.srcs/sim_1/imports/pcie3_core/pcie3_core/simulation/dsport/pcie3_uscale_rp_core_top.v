@@ -1221,6 +1221,10 @@ module rp_pcie3_uscale_core_top
   output wire [69:0]  pipe_tx_6_sigs,
   output wire [69:0]  pipe_tx_7_sigs,
 
+   //---------- Shared Logic Internal -------------------------
+  output wire [((PL_LINK_CAP_MAX_LINK_WIDTH-1)>>2):0] int_qpll1lock_out,   
+  output wire [((PL_LINK_CAP_MAX_LINK_WIDTH-1)>>2):0] int_qpll1outrefclk_out,
+  output wire [((PL_LINK_CAP_MAX_LINK_WIDTH-1)>>2):0] int_qpll1outclk_out,
     //---------- External GT COMMON Ports ----------------------
   output wire [((PL_LINK_CAP_MAX_LINK_WIDTH-1)>>2):0] ext_qpll1refclk,
   output wire [((PL_LINK_CAP_MAX_LINK_WIDTH-1)>>2):0] ext_qpll1pd,
@@ -3116,6 +3120,10 @@ rp_phy_wrapper #
     .PHY_RXEQ_DONE                     ( pipe_rx_eqdone ),         
     .PHY_RXEQ_ADAPT_DONE               ( pipe_rx_eq_adapt_done ),         
     
+   //---------- Shared Logic Internal -------------------------
+    .INT_QPLL1LOCK_OUT                 ( int_qpll1lock_out ),   
+    .INT_QPLL1OUTREFCLK_OUT            ( int_qpll1outrefclk_out ),
+    .INT_QPLL1OUTCLK_OUT               ( int_qpll1outclk_out ),
     //---------- External GT COMMON Ports ----------------------
     .EXT_QPLL1REFCLK                   ( ext_qpll1refclk ),
     .EXT_QPLL1PD                       ( ext_qpll1pd ),

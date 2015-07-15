@@ -855,10 +855,10 @@ module pcie3_uscale_rp_top  (
     .drp_di (16'b0),
    //---------- CHANNEL DRP  --------------------------------
    .ext_ch_gt_drpclk ( ),
-   .ext_ch_gt_drpaddr({8{9'b0}}), 
-   .ext_ch_gt_drpen  ({8{1'b0}}),
-   .ext_ch_gt_drpdi  ({8{16'b0}}),
-   .ext_ch_gt_drpwe  ({8{1'b0}}),
+   .ext_ch_gt_drpaddr({4{9'b0}}), 
+   .ext_ch_gt_drpen  ({4{1'b0}}),
+   .ext_ch_gt_drpdi  ({4{16'b0}}),
+   .ext_ch_gt_drpwe  ({4{1'b0}}),
    .ext_ch_gt_drpdo  ( ),
    .ext_ch_gt_drprdy ( ),
     .user_tph_stt_address ( 5'b0),
@@ -888,6 +888,10 @@ module pcie3_uscale_rp_top  (
    .pipe_tx_5_sigs     (),
    .pipe_tx_6_sigs     (),
    .pipe_tx_7_sigs     (),
+  //---------- Shared Logic Internal -------------------------
+   .int_qpll1lock_out      (),   
+   .int_qpll1outrefclk_out (),
+   .int_qpll1outclk_out    (), 
     //---------- External GT COMMON Ports ----------------------
    .ext_qpll1refclk        (),
    .ext_qpll1pd            (),
