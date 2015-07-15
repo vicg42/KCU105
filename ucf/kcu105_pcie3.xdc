@@ -15,6 +15,8 @@ set_false_path -from [get_ports {pin_in_pcie_phy[rst_n]}]
 ###############################################################################
 # User Physical Constraints
 ###############################################################################
+set_property LOC PCIE_3_1_X0Y0 [get_cells m_host/m_core/U0/pcie3_uscale_top_inst/pcie3_uscale_wrapper_inst/PCIE_3_1_inst]
+
 
 ###############################################################################
 # Pinout and Related I/O Constraints

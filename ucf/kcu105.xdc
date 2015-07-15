@@ -13,12 +13,6 @@ set_property PACKAGE_PIN AA32 [get_ports {pin_in_refclk[M90]}]
 set_property IOSTANDARD LVCMOS18 [get_ports {pin_in_refclk[M90]}]
 create_clock -period 11.111 -name {pin_in_refclk[M90]} -waveform {0.000 5.556} [get_ports {pin_in_refclk[M90]}]
 
-###################################
-#
-###################################
-set_property LOC PCIE_3_1_X0Y0 [get_cells pcie3_uscale_top_inst/pcie3_uscale_wrapper_inst/PCIE_3_1_inst]
-
-set_property PACKAGE_PIN AB6 [get_ports {pin_in_pcie_phy[clk_p]}]
 
 ###################################
 #
