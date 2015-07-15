@@ -63,7 +63,7 @@ constant CI_AXISTEN_IF_RQ_ALIGNMENT_MODE   : string := "FALSE";
 constant CI_AXISTEN_IF_CC_ALIGNMENT_MODE   : string := "FALSE";
 constant CI_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
 constant CI_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
-constant CI_AXISTEN_IF_ENABLE_CLIENT_TAG   : integer := 1;
+constant CI_AXISTEN_IF_ENABLE_CLIENT_TAG   : integer := 0;
 constant CI_AXISTEN_IF_RQ_PARITY_CHECK     : integer := 0;
 constant CI_AXISTEN_IF_CC_PARITY_CHECK     : integer := 0;
 constant CI_AXISTEN_IF_MC_RX_STRADDLE      : integer := 0;
@@ -541,6 +541,8 @@ CEB   => '0',
 O     => i_sys_clk_gt
 );
 
+
+i_cfg_subsys_vend_id <= std_logic_vector(TO_UNSIGNED(0, i_cfg_subsys_vend_id'length));
 
 m_core : pcie3_core
 port map(

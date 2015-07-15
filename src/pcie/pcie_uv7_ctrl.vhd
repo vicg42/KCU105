@@ -248,7 +248,7 @@ signal i_gen_leg_intr          : std_logic;
 signal i_gen_msi_intr          : std_logic;
 signal i_gen_msix_intr         : std_logic;
 
-signal tst_cfg_status          : std_logic_vector(21 downto 0);
+signal tst_cfg_status          : std_logic_vector(22 downto 0);
 signal tst_in                  : std_logic_vector(127 downto 0);
 
 
@@ -580,7 +580,7 @@ p_in_rst_n => i_rst_n
 --
 ----------------------------------------
 i_req_completion <= i_req_compl or i_req_compl_ur;
-i_completion_done <= i_compl_done or i_interrupt_done;
+i_completion_done <= i_compl_done;-- or i_interrupt_done;
 
 m_pio_to_ctrl : pio_to_ctrl
 port map(
@@ -611,8 +611,8 @@ p_out_cfg_interrupt_msix_data    <= (others => '0');
 process(p_in_user_clk)
 begin
 if rising_edge(p_in_user_clk) then
-tst_cfg_status(21 downto 20) <= p_in_cfg_phy_link_status ;--: in   std_logic_vector(1 downto 0);
-tst_cfg_status(19 downto 17) <= p_in_cfg_negotiated_width;--: in   std_logic_vector(3 downto 0); -- valid when cfg_phy_link_status[1:0] == 11b
+tst_cfg_status(22 downto 21) <= p_in_cfg_phy_link_status ;--: in   std_logic_vector(1 downto 0);
+tst_cfg_status(20 downto 17) <= p_in_cfg_negotiated_width;--: in   std_logic_vector(3 downto 0); -- valid when cfg_phy_link_status[1:0] == 11b
 tst_cfg_status(16 downto 14) <= p_in_cfg_current_speed   ;--: in   std_logic_vector(2 downto 0);
 tst_cfg_status(13 downto 11) <= p_in_cfg_max_payload     ;--: in   std_logic_vector(2 downto 0);
 tst_cfg_status(10 downto 8) <= p_in_cfg_max_read_req    ;--: in   std_logic_vector(2 downto 0);

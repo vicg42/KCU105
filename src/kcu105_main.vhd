@@ -16,6 +16,8 @@ use work.vicg_common_pkg.all;
 use work.reduce_pack.all;
 use work.clocks_pkg.all;
 use work.pcie_pkg.all;
+use work.prj_cfg.all;
+use work.prj_def.all;
 
 entity kcu105_main is
 port(
@@ -192,16 +194,7 @@ p_in_rst   => i_usrclk_rst
 );
 
 pin_out_led(0) <= i_test_led(0);
-
-gen_tst : for i in 1 to 2 generate begin
-process(g_usrclk(i))
-begin
-if rising_edge(g_usrclk(i)) then
-pin_out_led(i) <= pin_in_btn(i);
-end if;
-end process;
-end generate gen_tst;
-
-pin_out_led(pin_out_led'high downto 3) <= pin_in_btn(pin_in_btn'high downto 3);
+pin_out_led(5 downto 1) <= pin_in_btn(4 downto 0);
+pin_out_led(7 downto 6) <= (others => '0');
 
 end architecture struct;
