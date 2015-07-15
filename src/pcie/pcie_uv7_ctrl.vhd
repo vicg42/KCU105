@@ -173,8 +173,8 @@ p_out_cfg_interrupt_msi_tph_present     : out  std_logic                    ;
 p_out_cfg_interrupt_msi_tph_type        : out  std_logic_vector(1 downto 0) ;
 p_out_cfg_interrupt_msi_tph_st_tag      : out  std_logic_vector(8 downto 0) ;
 p_out_cfg_interrupt_msi_function_number : out  std_logic_vector(3 downto 0) ;
-p_in_cfg_interrupt_msi_pending_status_data_enable  : in  std_logic;
-p_in_cfg_interrupt_msi_pending_status_function_num : in  std_logic_vector(3 downto 0);
+p_out_cfg_interrupt_msi_pending_status_data_enable  : out  std_logic;
+p_out_cfg_interrupt_msi_pending_status_function_num : out  std_logic_vector(3 downto 0);
 
 p_in_cfg_interrupt_msix_enable          : in  std_logic;
 p_in_cfg_interrupt_msix_sent            : in  std_logic;
@@ -308,17 +308,6 @@ p_out_cfg_dsn <= std_logic_vector(TO_UNSIGNED(C_PCFG_FIRMWARE_VERSION, p_out_cfg
 
 p_out_cfg_err_cor_in   <= '0';
 p_out_cfg_err_uncor_in <= '0';
-
--- Interrupt Interface Signals
-p_out_cfg_interrupt_pending             <= (others => '0');
-p_out_cfg_interrupt_msi_select          <= (others => '0');
-p_out_cfg_interrupt_msi_pending_status  <= (others => '0');
-p_out_cfg_interrupt_msi_attr            <= (others => '0');
-p_out_cfg_interrupt_msi_tph_present     <= '0';
-p_out_cfg_interrupt_msi_tph_type        <= (others => '0');
-p_out_cfg_interrupt_msi_tph_st_tag      <= (others => '0');
-p_out_cfg_interrupt_msi_function_number <= (others => '0');
-
 
 -- RP only
 p_out_cfg_hot_reset_out <= '0';
@@ -599,14 +588,22 @@ cfg_power_state_change_ack       => p_out_cfg_power_state_change_ack
 --DBG
 --#############################################
 
-------------------------------------
--- EP Only
-------------------------------------
 -- Interrupt Interface Signals
-p_out_cfg_interrupt_int     <= (others => '0');
-p_out_cfg_interrupt_msi_int <= (others => '0');
-p_out_cfg_interrupt_msix_address <= (others => '0');
-p_out_cfg_interrupt_msix_data    <= (others => '0');
+p_out_cfg_interrupt_int                 <= (others => '0');
+p_out_cfg_interrupt_pending             <= (others => '0');
+p_out_cfg_interrupt_msi_select          <= (others => '0');
+p_out_cfg_interrupt_msi_int             <= (others => '0');
+p_out_cfg_interrupt_msi_pending_status  <= (others => '0');
+p_out_cfg_interrupt_msi_attr            <= (others => '0');
+p_out_cfg_interrupt_msi_tph_present     <= '0';
+p_out_cfg_interrupt_msi_tph_type        <= (others => '0');
+p_out_cfg_interrupt_msi_tph_st_tag      <= (others => '0');
+p_out_cfg_interrupt_msi_function_number <= (others => '0');
+p_out_cfg_interrupt_msi_pending_status_data_enable  <= '0';
+p_out_cfg_interrupt_msi_pending_status_function_num <= (others => '0');
+p_out_cfg_interrupt_msix_int            <= '0';
+p_out_cfg_interrupt_msix_address        <= (others => '0');
+p_out_cfg_interrupt_msix_data           <= (others => '0');
 
 process(p_in_user_clk)
 begin

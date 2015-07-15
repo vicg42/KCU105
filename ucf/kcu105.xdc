@@ -18,20 +18,21 @@ create_clock -period 11.111 -name {pin_in_refclk[M90]} -waveform {0.000 5.556} [
 ###################################
 set_property LOC PCIE_3_1_X0Y0 [get_cells pcie3_uscale_top_inst/pcie3_uscale_wrapper_inst/PCIE_3_1_inst]
 
+set_property PACKAGE_PIN AB6 [get_ports {pin_in_pcie_phy[clk_p]}]
 
 ###################################
 #
 ###################################
 #CPU_RESET
-set_property PACKAGE_PIN AN8  [get_ports {pin_in_btn[0]}]
+set_property PACKAGE_PIN AN8 [get_ports {pin_in_btn[0]}]
 #SW_N
 set_property PACKAGE_PIN AD10 [get_ports {pin_in_btn[1]}]
 #SW_C
 set_property PACKAGE_PIN AE10 [get_ports {pin_in_btn[2]}]
 #SW_E
-set_property PACKAGE_PIN AF8  [get_ports {pin_in_btn[3]}]
+set_property PACKAGE_PIN AF8 [get_ports {pin_in_btn[3]}]
 #SW_W
-set_property PACKAGE_PIN AF9  [get_ports {pin_in_btn[4]}]
+set_property PACKAGE_PIN AF9 [get_ports {pin_in_btn[4]}]
 
 set_property IOSTANDARD LVCMOS18 [get_ports {pin_in_btn[0]}]
 set_property IOSTANDARD LVCMOS18 [get_ports {pin_in_btn[1]}]
@@ -57,4 +58,3 @@ set_property IOSTANDARD LVCMOS18 [get_ports {pin_out_led[4]}]
 set_property IOSTANDARD LVCMOS18 [get_ports {pin_out_led[5]}]
 set_property IOSTANDARD LVCMOS18 [get_ports {pin_out_led[6]}]
 set_property IOSTANDARD LVCMOS18 [get_ports {pin_out_led[7]}]
-

@@ -379,8 +379,8 @@ p_out_cfg_interrupt_msi_tph_present     : out  std_logic                    ;
 p_out_cfg_interrupt_msi_tph_type        : out  std_logic_vector(1 downto 0) ;
 p_out_cfg_interrupt_msi_tph_st_tag      : out  std_logic_vector(8 downto 0) ;
 p_out_cfg_interrupt_msi_function_number : out  std_logic_vector(3 downto 0) ;
-p_in_cfg_interrupt_msi_pending_status_data_enable  : in  std_logic;
-p_in_cfg_interrupt_msi_pending_status_function_num : in  std_logic_vector(3 downto 0);
+p_out_cfg_interrupt_msi_pending_status_data_enable  : out  std_logic;
+p_out_cfg_interrupt_msi_pending_status_function_num : out  std_logic_vector(3 downto 0);
 
 p_in_cfg_interrupt_msix_enable          : in  std_logic;
 p_in_cfg_interrupt_msix_sent            : in  std_logic;
@@ -869,8 +869,8 @@ p_out_cfg_interrupt_msi_tph_present     => i_cfg_interrupt_msi_tph_present     ,
 p_out_cfg_interrupt_msi_tph_type        => i_cfg_interrupt_msi_tph_type        ,
 p_out_cfg_interrupt_msi_tph_st_tag      => i_cfg_interrupt_msi_tph_st_tag      ,
 p_out_cfg_interrupt_msi_function_number => i_cfg_interrupt_msi_function_number ,
-p_in_cfg_interrupt_msi_pending_status_data_enable  => i_cfg_interrupt_msi_pending_status_data_enable ,
-p_in_cfg_interrupt_msi_pending_status_function_num => i_cfg_interrupt_msi_pending_status_function_num,
+p_out_cfg_interrupt_msi_pending_status_data_enable  => i_cfg_interrupt_msi_pending_status_data_enable ,
+p_out_cfg_interrupt_msi_pending_status_function_num => i_cfg_interrupt_msi_pending_status_function_num,
 
 p_in_cfg_interrupt_msix_enable          => '0',--: in  std_logic;
 p_in_cfg_interrupt_msix_sent            => '0',--: in  std_logic;

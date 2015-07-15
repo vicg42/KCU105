@@ -162,6 +162,7 @@ p_out_cfg_msg_transmit      <= '0';
 p_out_cfg_msg_transmit_type <= (others => '0');
 p_out_cfg_msg_transmit_data <= (others => '0');
 
+p_out_cfg_fc_sel <= (others => '0');
 
 ----Present address and byte enable to memory module
 --process(p_in_clk)
