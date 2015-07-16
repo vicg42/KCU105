@@ -258,6 +258,9 @@ if rising_edge(p_in_clk) then
     i_req_at   <= (others => '0');
     i_req_pkt_type <= (others => '0');
 
+    i_target_func <= (others => '0');
+    i_bar_id <= (others => '0');
+
     i_data_start_loc <= (others => '0');
 
     i_reg_d <= (others => '0');
@@ -274,6 +277,9 @@ if rising_edge(p_in_clk) then
         when S_RX_IDLE =>
             i_m_axis_cq_tready <= '1';
             i_m_axis_rc_tready <= '1';
+
+            i_target_func <= (others => '0');
+            i_bar_id <= (others => '0');
 
             if i_sop = '1' and p_in_m_axis_cq_tvalid = '1' then
               i_desc_hdr_qw0 <= p_in_m_axis_cq_tdata(63 downto 0);
