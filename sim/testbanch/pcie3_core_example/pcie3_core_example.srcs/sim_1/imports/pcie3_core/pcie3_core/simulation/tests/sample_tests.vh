@@ -276,7 +276,7 @@ begin
                           board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
                               board.RP.tx_usrapp.DEFAULT_TC,
                               11'd1, // Length (in DW)
-                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h80 + (4 * 1), // Address
+                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h80 + (4 * 0), // Address
                               4'h0, // Last DW Byte Enable
                               4'hF, // First DW Byte Enable
                               1'b0); // Poisoned Data: Payload is invalid if set
@@ -293,7 +293,7 @@ begin
                           board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
                               board.RP.tx_usrapp.DEFAULT_TC,
                               11'd1, // Length (in DW)
-                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h80 + (4 * 2), // Address
+                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h80 + (4 * 1), // Address
                               4'h0, // Last DW Byte Enable
                               4'hF, // First DW Byte Enable
                               1'b0); // Poisoned Data: Payload is invalid if set
@@ -310,7 +310,7 @@ begin
                           board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
                               board.RP.tx_usrapp.DEFAULT_TC,
                               11'd1, // Length (in DW)
-                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h80 + (4 * 3), // Address
+                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h80 + (4 * 2), // Address
                               4'h0, // Last DW Byte Enable
                               4'hF, // First DW Byte Enable
                               1'b0); // Poisoned Data: Payload is invalid if set
@@ -327,7 +327,7 @@ begin
                           board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
                               board.RP.tx_usrapp.DEFAULT_TC,
                               11'd1, // Length (in DW)
-                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h80 + (4 * 4), // Address
+                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h80 + (4 * 3), // Address
                               4'h0, // Last DW Byte Enable
                               4'hF, // First DW Byte Enable
                               1'b0); // Poisoned Data: Payload is invalid if set
@@ -345,7 +345,7 @@ begin
                              board.RP.tx_usrapp.TSK_TX_MEMORY_READ_32(board.RP.tx_usrapp.DEFAULT_TAG,
                                  board.RP.tx_usrapp.DEFAULT_TC,
                                  11'd1,
-                                 board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h80 + (4 * 1), // Address
+                                 board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h80 + (4 * 0), // Address
                                  4'h0,
                                  4'hF);
                              board.RP.tx_usrapp.TSK_WAIT_FOR_READ_DATA;
@@ -378,7 +378,7 @@ begin
                              board.RP.tx_usrapp.TSK_TX_MEMORY_READ_32(board.RP.tx_usrapp.DEFAULT_TAG,
                                  board.RP.tx_usrapp.DEFAULT_TC,
                                  11'd1,
-                                 board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h10 + 2,
+                                 board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h80 + (4 * 1),
                                  4'h0,
                                  4'hF);
                              board.RP.tx_usrapp.TSK_WAIT_FOR_READ_DATA;
