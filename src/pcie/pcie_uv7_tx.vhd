@@ -400,11 +400,8 @@ tst_fsm_tx <= TO_UNSIGNED(16#01#,tst_fsm_tx'length) when i_fsm_tx = S_TX_CPL_2  
               TO_UNSIGNED(16#02#,tst_fsm_tx'length) when i_fsm_tx = S_TX_CPL    else
               TO_UNSIGNED(16#00#,tst_fsm_tx'length); --i_fsm_tx = S_TX_IDLE       else
 
-p_out_tst(0) <= i_s_axis_cc_tvalid;
-p_out_tst(1) <= i_s_axis_cc_tlast ;
-p_out_tst(3 downto 2) <= i_s_axis_cc_tkeep(1 downto 0);
-p_out_tst(67 downto 4) <= i_s_axis_cc_tdata(63 downto 0);
-p_out_tst(69 downto 68) <= std_logic_vector(tst_fsm_tx);
+p_out_tst(1 downto 0) <= std_logic_vector(tst_fsm_tx);
+p_out_tst(69 downto 68) <= (others => '0');
 
 end architecture behavioral;
 
