@@ -38,7 +38,7 @@ add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_current_speed
 add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_negotiated_width
 add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_max_payload
 add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_max_read_req
-add wave -noupdate -expand /board/EP/m_main/m_ctrl/p_in_cfg_function_status
+add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_function_status
 add wave -noupdate -divider USR_APP
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/p_in_clk
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/p_in_rst_n
@@ -71,7 +71,6 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_req_compl_ur
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_compl_done
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/i_data_start_loc
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_req_addr
-add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_ureg_a
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_ureg_di
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_ureg_wrbe
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_ureg_wr
@@ -82,6 +81,8 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tuser_first_be
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tuser_last_be
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_cq_tuser_byte_en
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tuser(40)
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/i_target_func
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/i_bar_id
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tuser
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_tdata_31_0
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_axis_tdata_63_32
@@ -151,4 +152,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {42678454 ps} {178738715 ps}
+WaveRestoreZoom {209819679 ps} {222250263 ps}
