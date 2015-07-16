@@ -161,9 +161,6 @@ signal tst_fsm_rx            : unsigned(1 downto 0);
 
 begin --architecture behavioral of pcie_rx
 
---p_out_req_mem_lock <= i_req_mem_lock;
---p_out_req_mem      <= i_req_mem;
-
 
 p_out_ureg_a <= i_reg_a;
 p_out_ureg_wr <= i_reg_wr;
