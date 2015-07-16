@@ -96,7 +96,6 @@ p_out_req_des_tph_type    : out std_logic_vector(1 downto 0) ;-- If TPH Present 
 p_out_req_des_tph_st_tag  : out std_logic_vector(7 downto 0) ;-- TPH Steering tag of the request
 
 --usr app
-p_out_ureg_a   : out std_logic_vector(10 downto 0);
 p_out_ureg_di  : out std_logic_vector(31 downto 0);
 p_out_ureg_wrbe: out std_logic_vector(3 downto 0);
 p_out_ureg_wr  : out std_logic;

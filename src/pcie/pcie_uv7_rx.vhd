@@ -77,7 +77,6 @@ p_out_req_des_tph_type    : out std_logic_vector(1 downto 0) ;-- If TPH Present 
 p_out_req_des_tph_st_tag  : out std_logic_vector(7 downto 0) ;-- TPH Steering tag of the request
 
 --usr app
-p_out_ureg_a   : out std_logic_vector(10 downto 0);
 p_out_ureg_di  : out std_logic_vector(31 downto 0);
 p_out_ureg_wrbe: out std_logic_vector(3 downto 0);
 p_out_ureg_wr  : out std_logic;
@@ -150,7 +149,6 @@ signal i_trn_type            : std_logic_vector(3 downto 0);
 
 signal i_data_start_loc      : std_logic_vector(2 downto 0);
 
-signal i_reg_a               : std_logic_vector(10 downto 0);
 signal i_reg_d               : std_logic_vector(31 downto 0);
 signal i_reg_wrbe            : std_logic_vector(3 downto 0);
 signal i_reg_wr              : std_logic;
@@ -162,7 +160,6 @@ signal tst_fsm_rx            : unsigned(1 downto 0);
 begin --architecture behavioral of pcie_rx
 
 
-p_out_ureg_a <= i_reg_a;
 p_out_ureg_wr <= i_reg_wr;
 p_out_ureg_rd <= i_reg_rd;
 p_out_ureg_wrbe <= i_reg_wrbe;
@@ -263,7 +260,6 @@ if rising_edge(p_in_clk) then
 
     i_data_start_loc <= (others => '0');
 
-    i_reg_a <= (others => '0');
     i_reg_d <= (others => '0');
     i_reg_wrbe <= (others => '0');
     i_reg_wr   <= '0';
@@ -446,7 +442,6 @@ if rising_edge(p_in_clk) then
 
                 i_m_axis_cq_tready <= '0';
 
-                i_reg_a <= i_req_addr(12 downto 2);
                 i_reg_wr <= '1';
 
                 if p_in_m_axis_cq_tkeep(1 downto 0) = "01" then

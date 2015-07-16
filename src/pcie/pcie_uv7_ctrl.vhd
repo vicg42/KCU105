@@ -233,7 +233,6 @@ signal i_req_des_tph_present   : std_logic;
 signal i_req_des_tph_type      : std_logic_vector(1 downto 0) ;
 signal i_req_des_tph_st_tag    : std_logic_vector(7 downto 0) ;
 
-signal i_ureg_a                : std_logic_vector(10 downto 0);
 signal i_ureg_di               : std_logic_vector(31 downto 0);
 signal i_ureg_do               : std_logic_vector(31 downto 0);
 signal i_ureg_wrbe             : std_logic_vector(3 downto 0);
@@ -271,7 +270,7 @@ signal i_tx_fsm                : std_logic_vector(1 downto 0);
 signal i_rx_fsm                : std_logic_vector(1 downto 0);
 
 attribute mark_debug : string;
-attribute mark_debug of i_ureg_a           : signal is "true";
+attribute mark_debug of i_req_addr         : signal is "true";
 attribute mark_debug of i_ureg_wr          : signal is "true";
 attribute mark_debug of i_ureg_rd          : signal is "true";
 attribute mark_debug of i_req_compl        : signal is "true";
@@ -384,7 +383,7 @@ p_in_tst        => tst_in ,
 --PCIE_Rx/Tx  Port
 --------------------------------------
 --Target mode
-p_in_reg_adr   => i_ureg_a(7 downto 0),
+p_in_reg_adr   => i_req_addr(7 downto 0),
 p_out_reg_dout => i_ureg_do(31 downto 0),
 p_in_reg_din   => i_ureg_di(31 downto 0),
 p_in_reg_wr    => i_ureg_wr,
@@ -464,7 +463,6 @@ p_out_req_des_tph_type    => i_req_des_tph_type   ,
 p_out_req_des_tph_st_tag  => i_req_des_tph_st_tag ,
 
 --usr app
-p_out_ureg_a   => i_ureg_a   ,
 p_out_ureg_di  => i_ureg_di  ,
 p_out_ureg_wrbe=> i_ureg_wrbe,
 p_out_ureg_wr  => i_ureg_wr  ,
@@ -722,7 +720,7 @@ i_dbg_pcie(143) <= i_compl_done  ;
 
 i_dbg_pcie(144) <= i_ureg_wr;
 i_dbg_pcie(145) <= i_ureg_rd;
-i_dbg_pcie(153 downto 146) <= i_ureg_a(7 downto 0);
+i_dbg_pcie(153 downto 146) <= i_req_addr(7 downto 0);
 
 i_dbg_pcie(161 downto 154) <= p_in_cfg_function_status(7 downto 0);
 i_dbg_pcie(162) <= p_in_user_lnk_up;
