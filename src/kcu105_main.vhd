@@ -176,7 +176,7 @@ p_out_pcie_phy       => pin_out_pcie_phy
 m_led : fpga_test_01
 generic map(
 G_BLINK_T05 => 10#125#,
-G_CLK_T05us => 10#450#
+G_CLK_T05us => 10#62#
 )
 port map (
 p_out_test_led  => i_test_led(0),
