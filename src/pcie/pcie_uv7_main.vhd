@@ -713,6 +713,10 @@ pcie_perstn1_in  => '0' ,--: IN  STD_LOGIC;
 pcie_perstn0_out => open,--: OUT STD_LOGIC;
 pcie_perstn1_out => open,--: OUT STD_LOGIC
 
+int_qpll1lock_out => open, --: OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+int_qpll1outrefclk_out => open, --: OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+int_qpll1outclk_out => open, --: OUT STD_LOGIC_VECTOR(0 DOWNTO 0)
+
 sys_clk    => i_sys_clk      ,--: IN  STD_LOGIC;
 sys_clk_gt => i_sys_clk_gt   ,--: IN  STD_LOGIC;
 sys_reset  => p_in_pcie_phy.rst_n --: IN  STD_LOGIC; (Cold reset + Warm reset)
@@ -721,7 +725,7 @@ sys_reset  => p_in_pcie_phy.rst_n --: IN  STD_LOGIC; (Cold reset + Warm reset)
 
 m_ctrl : pcie_ctrl
 generic map(
-G_DBGCS => "OFF",--G_DBGCS,
+G_DBGCS => G_DBGCS,
 G_DATA_WIDTH                     => CI_DATA_WIDTH                     ,
 G_KEEP_WIDTH                     => CI_KEEP_WIDTH                     ,
 G_AXISTEN_IF_WIDTH               => CI_AXISTEN_IF_WIDTH               ,
