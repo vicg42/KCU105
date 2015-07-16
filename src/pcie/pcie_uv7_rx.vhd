@@ -279,7 +279,7 @@ if rising_edge(p_in_clk) then
             i_m_axis_cq_tready <= '1';
             i_m_axis_rc_tready <= '1';
 
-            if i_sop = '1' then
+            if i_sop = '1' and p_in_m_axis_cq_tvalid = '1' then
               i_desc_hdr_qw0 <= p_in_m_axis_cq_tdata(63 downto 0);
               i_first_be <= p_in_m_axis_cq_tuser(3 downto 0);
               i_last_be  <= p_in_m_axis_cq_tuser(7 downto 4);
