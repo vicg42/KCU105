@@ -43,6 +43,9 @@ end entity kcu105_main;
 architecture struct of kcu105_main is
 
 component pcie_main is
+generic(
+G_DBGCS : string := "OFF"
+);
 port(
 --------------------------------------------------------
 --USR Port
@@ -137,6 +140,9 @@ p_in_clk   => pin_in_refclk
 --
 --***********************************************************
 m_host : pcie_main
+generic map(
+G_DBGCS => C_PCGF_PCIE_DBGCS
+)
 port map(
 --------------------------------------------------------
 --USR Port

@@ -14,6 +14,7 @@ use ieee.numeric_std.all;
 library work;
 use work.reduce_pack.all;
 use work.vicg_common_pkg.all;
+use work.pcie_pkg.all;
 use work.prj_def.all;
 use work.prj_cfg.all;
 
@@ -46,12 +47,14 @@ p_in_tst        : in    std_logic_vector(127 downto 0);
 --------------------------------------
 --PCIE_Rx/Tx  Port
 --------------------------------------
+p_in_pcie_prm  : in  TPCIE_cfgprm;
+
 --Target mode
-p_in_reg_adr   : in    std_logic_vector(7 downto 0);
-p_out_reg_dout : out   std_logic_vector(31 downto 0);
-p_in_reg_din   : in    std_logic_vector(31 downto 0);
-p_in_reg_wr    : in    std_logic;
-p_in_reg_rd    : in    std_logic;
+p_in_reg_adr   : in  std_logic_vector(7 downto 0);
+p_out_reg_dout : out std_logic_vector(31 downto 0);
+p_in_reg_din   : in  std_logic_vector(31 downto 0);
+p_in_reg_wr    : in  std_logic;
+p_in_reg_rd    : in  std_logic;
 
 p_in_clk   : in    std_logic;
 p_in_rst_n : in    std_logic
@@ -136,6 +139,17 @@ if rising_edge(p_in_clk) then
         elsif i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_CTRL, 5)  then txd := std_logic_vector(RESIZE(UNSIGNED(v_reg_ctrl), txd'length));
         elsif i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_TST0, 5)  then txd := std_logic_vector(RESIZE(UNSIGNED(v_reg_tst0), txd'length));
         elsif i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_TST1, 5)  then txd := std_logic_vector(RESIZE(UNSIGNED(v_reg_tst1), txd'length));
+
+
+        elsif i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_PCIE, 5) then
+            txd(C_HREG_PCIE_NEG_LINK_M_RBIT downto C_HREG_PCIE_NEG_LINK_L_RBIT)
+                := p_in_pcie_prm.link_width(5 downto 0);
+
+            txd(C_HREG_PCIE_NEG_MAX_PAYLOAD_M_BIT downto C_HREG_PCIE_NEG_MAX_PAYLOAD_L_BIT)
+                := p_in_pcie_prm.max_payload(2 downto 0);
+
+            txd(C_HREG_PCIE_NEG_MAX_RD_REQ_M_BIT downto C_HREG_PCIE_NEG_MAX_RD_REQ_L_BIT)
+                := p_in_pcie_prm.max_rd_req(2 downto 0);
 
         end if;
 

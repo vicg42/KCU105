@@ -14,6 +14,7 @@ use ieee.numeric_std.all;
 library work;
 use work.vicg_common_pkg.all;
 use work.pcie_unit_pkg.all;
+use work.pcie_pkg.all;
 use work.prj_def.all;
 use work.prj_cfg.all;
 
@@ -203,6 +204,8 @@ constant CI_STRB_WIDTH   : integer := G_DATA_WIDTH / 8 ; -- TSTRB width
 constant CI_KEEP_WIDTH   : integer := G_DATA_WIDTH / 32;
 constant CI_PARITY_WIDTH : integer := G_DATA_WIDTH / 8 ;  -- TPARITY width
 
+signal i_pcie_prm              : TPCIE_cfgprm;
+
 type TSR_flr_bus2 is array (0 to 1) of std_logic_vector(1 downto 0);
 type TSR_flr_bus6 is array (0 to 1) of std_logic_vector(5 downto 0);
 signal sr_cfg_flr_done         : TSR_flr_bus2;
@@ -349,6 +352,10 @@ p_out_cfg_err_uncor_in <= '0';
 p_out_cfg_hot_reset_out <= '0';
 
 
+i_pcie_prm.link_width <= std_logic_vector(RESIZE(UNSIGNED(p_in_cfg_negotiated_width), i_pcie_prm.link_width'length));
+i_pcie_prm.max_payload <= std_logic_vector(RESIZE(UNSIGNED(p_in_cfg_max_payload), i_pcie_prm.max_payload'length));
+i_pcie_prm.max_rd_req <= std_logic_vector(RESIZE(UNSIGNED(p_in_cfg_max_read_req), i_pcie_prm.max_rd_req'length));
+
 
 ----------------------------------------
 --
@@ -382,6 +389,8 @@ p_in_tst        => tst_in ,
 --------------------------------------
 --PCIE_Rx/Tx  Port
 --------------------------------------
+p_in_pcie_prm => i_pcie_prm,
+
 --Target mode
 p_in_reg_adr   => i_req_addr(7 downto 0),
 p_out_reg_dout => i_ureg_do(31 downto 0),

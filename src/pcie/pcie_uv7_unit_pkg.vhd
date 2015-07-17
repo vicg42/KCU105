@@ -12,6 +12,7 @@ use ieee.std_logic_1164.all;
 
 library work;
 use work.prj_def.all;
+use work.pcie_pkg.all;
 
 package pcie_unit_pkg is
 
@@ -229,7 +230,6 @@ end component pcie_tx;
 ----Payload info
 --payload_len : in  std_logic;
 --
-----Trigger to TX and Interrupt Handler Block to generate
 ----Transactions and Interrupts
 --gen_transaction : out std_logic;
 --gen_leg_intr    : out std_logic;
@@ -305,6 +305,8 @@ p_in_tst        : in    std_logic_vector(127 downto 0);
 --------------------------------------
 --PCIE_Rx/Tx  Port
 --------------------------------------
+p_in_pcie_prm  : in  TPCIE_cfgprm;
+
 --Target mode
 p_in_reg_adr   : in    std_logic_vector(7 downto 0);
 p_out_reg_dout : out   std_logic_vector(31 downto 0);

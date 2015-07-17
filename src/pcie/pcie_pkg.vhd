@@ -41,6 +41,13 @@ txp      : std_logic_vector(C_PCGF_PCIE_LINK_WIDTH - 1 downto 0);
 txn      : std_logic_vector(C_PCGF_PCIE_LINK_WIDTH - 1 downto 0);
 end record;
 
+type TPCIE_cfgprm is record
+link_width  : std_logic_vector(5 downto 0);--Count link PCI-Express negotiation with PC
+max_payload : std_logic_vector(2 downto 0);--max_payload_size negotiation with PC
+max_rd_req  : std_logic_vector(2 downto 0);--Max read request size for the device when acting as the Requester
+end record;
+
+
 --Buffer of core PCI-Express:
 constant C_PCIE_BUF_NON_POSTED_QUEUE    : integer:=0;
 constant C_PCIE_BUF_POSTED_QUEUE        : integer:=1;
