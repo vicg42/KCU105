@@ -305,10 +305,10 @@ if rising_edge(p_in_clk) then
                         | C_PCIE3_PKT_TYPE_MEM_LK_RD_ND
                         | C_PCIE3_PKT_TYPE_MEM_WR_D
                         | C_PCIE3_PKT_TYPE_IO_RD_ND
-                        | C_PCIE3_PKT_TYPE_IO_WR_D
-                        | C_PCIE3_PKT_TYPE_ATOP_FAA
-                        | C_PCIE3_PKT_TYPE_ATOP_UCS
-                        | C_PCIE3_PKT_TYPE_ATOP_CAS =>
+                        | C_PCIE3_PKT_TYPE_IO_WR_D =>
+--                        | C_PCIE3_PKT_TYPE_ATOP_FAA
+--                        | C_PCIE3_PKT_TYPE_ATOP_UCS
+--                        | C_PCIE3_PKT_TYPE_ATOP_CAS =>
 
                       i_m_axis_cq_tready <= '0';
 
