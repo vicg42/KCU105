@@ -253,7 +253,7 @@ signal i_gen_msi_intr          : std_logic;
 signal i_gen_msix_intr         : std_logic;
 
 signal tst_cfg_status          : std_logic_vector(22 downto 0);
-signal tst_in                  : std_logic_vector(127 downto 0);
+--signal tst_in                  : std_logic_vector(127 downto 0);
 
 signal tst_rx_out              : std_logic_vector(31 downto 0);
 signal tst_tx_out              : std_logic_vector(69 downto 0);
@@ -384,7 +384,7 @@ p_out_dev_opt   => p_out_dev_opt  ,
 
 --DBG
 p_out_tst       => p_out_tst,
-p_in_tst        => tst_in ,
+p_in_tst        => (others => '0'), --tst_in ,
 
 --------------------------------------
 --PCIE_Rx/Tx  Port
@@ -654,21 +654,6 @@ p_out_cfg_interrupt_msi_pending_status_function_num <= (others => '0');
 p_out_cfg_interrupt_msix_int            <= '0';
 p_out_cfg_interrupt_msix_address        <= (others => '0');
 p_out_cfg_interrupt_msix_data           <= (others => '0');
-
-process(p_in_user_clk)
-begin
-if rising_edge(p_in_user_clk) then
-tst_cfg_status(22 downto 21) <= p_in_cfg_phy_link_status ;--: in   std_logic_vector(1 downto 0);
-tst_cfg_status(20 downto 17) <= p_in_cfg_negotiated_width;--: in   std_logic_vector(3 downto 0); -- valid when cfg_phy_link_status[1:0] == 11b
-tst_cfg_status(16 downto 14) <= p_in_cfg_current_speed   ;--: in   std_logic_vector(2 downto 0);
-tst_cfg_status(13 downto 11) <= p_in_cfg_max_payload     ;--: in   std_logic_vector(2 downto 0);
-tst_cfg_status(10 downto 8) <= p_in_cfg_max_read_req    ;--: in   std_logic_vector(2 downto 0);
-tst_cfg_status(7 downto 0) <= p_in_cfg_function_status ;--: in   std_logic_vector(7 downto 0);
-end if;
-end process;
-
-tst_in <= std_logic_vector(RESIZE(UNSIGNED(tst_cfg_status), tst_in'length));
-
 
 
 --#############################################

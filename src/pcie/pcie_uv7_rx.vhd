@@ -329,7 +329,7 @@ if rising_edge(p_in_clk) then
                           i_req_rid  <= p_in_m_axis_cq_tdata(31 downto 16);
                           i_req_tag  <= p_in_m_axis_cq_tdata(39 downto 32);
                           i_req_be   <= i_last_be & i_first_be;
-                          i_req_addr <= i_desc_hdr_qw0(12 downto 2) & "00";--??????
+                          i_req_addr <= i_desc_hdr_qw0(12 downto 2) & "00";
                           i_req_at   <= i_desc_hdr_qw0(1 downto 0);
 
                           i_target_func <= p_in_m_axis_cq_tdata(47 downto 40);
@@ -452,11 +452,11 @@ if rising_edge(p_in_clk) then
 
                 if p_in_m_axis_cq_tkeep(1 downto 0) = "01" then
                   i_reg_d <= p_in_m_axis_cq_tdata((32 * 1) - 1 downto (32 * 0));
-                  i_reg_wrbe <= p_in_m_axis_cq_tuser((8 + (4 * 1)) - 1 downto (8 + (4 * 0)));--(11 downto 8);
+                  i_reg_wrbe <= p_in_m_axis_cq_tuser((8 + (4 * 1)) - 1 downto (8 + (4 * 0)));
 
                 else
                   i_reg_d <= p_in_m_axis_cq_tdata((32 * 2) - 1 downto (32 * 1));
-                  i_reg_wrbe <= p_in_m_axis_cq_tuser((8 + (4 * 2)) - 1 downto (8 + (4 * 1)));--(15 downto 12);
+                  i_reg_wrbe <= p_in_m_axis_cq_tuser((8 + (4 * 2)) - 1 downto (8 + (4 * 1)));
 
                 end if;
 
