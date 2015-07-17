@@ -147,8 +147,6 @@ signal i_req_compl_ur        : std_logic := '0';
 signal i_req_pkt_type        : std_logic_vector(3 downto 0);
 signal i_trn_type            : std_logic_vector(3 downto 0);
 
-signal i_data_start_loc      : std_logic_vector(2 downto 0);
-
 signal i_reg_d               : std_logic_vector(31 downto 0);
 signal i_reg_wrbe            : std_logic_vector(3 downto 0);
 signal i_reg_wr              : std_logic;
@@ -261,8 +259,6 @@ if rising_edge(p_in_clk) then
     i_target_func <= (others => '0');
     i_bar_id <= (others => '0');
 
-    i_data_start_loc <= (others => '0');
-
     i_reg_d <= (others => '0');
     i_reg_wrbe <= (others => '0');
     i_reg_wr   <= '0';
@@ -334,25 +330,6 @@ if rising_edge(p_in_clk) then
 
                           i_target_func <= p_in_m_axis_cq_tdata(47 downto 40);
                           i_bar_id <= p_in_m_axis_cq_tdata(50 downto 48);
-
-                          if (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
-                            if strcmp(G_AXISTEN_IF_CQ_ALIGNMENT_MODE, "TRUE") then
-                              i_data_start_loc <= std_logic_vector(RESIZE(UNSIGNED(i_desc_hdr_qw0(2 downto 2)), i_data_start_loc'length));
-
-                            else
-                              i_data_start_loc <= (others => '0');
-
-                            end if;
-
-                          elsif (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_IO_WR_D) then
-                            if strcmp(G_AXISTEN_IF_CQ_ALIGNMENT_MODE, "TRUE") then
-                              i_data_start_loc <= std_logic_vector(RESIZE(UNSIGNED(i_desc_hdr_qw0(2 downto 2)), i_data_start_loc'length));
-
-                            else
-                              i_data_start_loc <= (others => '0');
-
-                            end if;
-                          end if;
 
                           --Compl
                           if (p_in_m_axis_cq_tdata(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
