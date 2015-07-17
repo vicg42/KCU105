@@ -31,7 +31,7 @@ end entity clocks;
 
 architecture synth of clocks is
 
-signal g_clk90M      : std_logic;
+signal g_clk         : std_logic_vector(2 downto 0);
 signal i_pll_rst_cnt : unsigned(4 downto 0) := "11111";
 signal i_pll_rst     : std_logic := '1';
 
@@ -39,9 +39,9 @@ signal i_pll_rst     : std_logic := '1';
 begin --architecture synth
 
 
-process(g_clk90M)
+process(g_clk(0))
 begin
-  if rising_edge(g_clk90M) then
+  if rising_edge(g_clk(0)) then
     if i_pll_rst_cnt = (i_pll_rst_cnt'range => '0') then
       i_pll_rst <= '0';
     else
@@ -51,10 +51,13 @@ begin
   end if;
 end process;
 
-p_out_rst <= '0';
+p_out_rst <= i_pll_rst;
 
-m_bufg_90M : IBUFG port map(I  => p_in_clk.M90, O  => g_clk90M);
+--m_bufg_90M  : IBUFG   port map(I => p_in_clk.M90, O  => g_clk(2));
+--m_bufg_300M : IBUFGDS port map(I => p_in_clk.M300_p, IB => p_in_clk.M300_n, O  => g_clk(1));
+m_bufg_125M : IBUFGDS port map(I => p_in_clk.M125_p, IB => p_in_clk.M125_n, O  => g_clk(0));
 
-p_out_gclk(0) <= g_clk90M;
+p_out_gclk(2 downto 0) <= g_clk(2 downto 0);
+
 
 end architecture synth;

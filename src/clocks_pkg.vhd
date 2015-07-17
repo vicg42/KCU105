@@ -13,11 +13,11 @@ use ieee.std_logic_1164.all;
 package clocks_pkg is
 
 type TRefClkPinIN is record
-M300_p : std_logic;
-M300_n : std_logic;
+--M300_p : std_logic;
+--M300_n : std_logic;
 M125_p : std_logic;
 M125_n : std_logic;
-M90    : std_logic;
+--M90    : std_logic;
 end record;
 
 end clocks_pkg;
