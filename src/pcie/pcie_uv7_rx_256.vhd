@@ -416,7 +416,7 @@ if rising_edge(p_in_clk) then
 
               elsif p_in_m_axis_cq_tkeep(7 downto 0) = "01111100" then
                 --Req Type
-                case p_in_m_axis_cq_tdata(((32 * 3) + 14) downto ((32 * 3) + 11)) is
+                case p_in_m_axis_cq_tdata(((32 * 4) + 14) downto ((32 * 4) + 11)) is
                     -------------------------------------------------------------------------
                     --
                     -------------------------------------------------------------------------
@@ -428,21 +428,21 @@ if rising_edge(p_in_clk) then
 
                       i_m_axis_cq_tready <= '0';
 
-                      i_req_des_qword0 <= p_in_m_axis_cq_tdata((32 * 3) - 1 downto (32 * 1));
-                      i_req_des_qword1 <= p_in_m_axis_cq_tdata((32 * 5) - 1 downto (32 * 3));
+                      i_req_des_qword0 <= p_in_m_axis_cq_tdata((32 * 4) - 1 downto (32 * 2));
+                      i_req_des_qword1 <= p_in_m_axis_cq_tdata((32 * 6) - 1 downto (32 * 4));
 
-                      i_req_attr <= p_in_m_axis_cq_tdata(((32 * 4) + 30) downto ((32 * 4) + 28));
-                      i_req_tc   <= p_in_m_axis_cq_tdata(((32 * 4) + 27) downto ((32 * 4) + 25));
-                      i_bar_id   <= p_in_m_axis_cq_tdata(((32 * 4) + 18) downto ((32 * 4) + 16));
-                      i_trg_func <= p_in_m_axis_cq_tdata(((32 * 4) + 15) downto ((32 * 4) +  8));
-                      i_req_tag  <= p_in_m_axis_cq_tdata(((32 * 4) +  7) downto ((32 * 4) +  0));
+                      i_req_attr <= p_in_m_axis_cq_tdata(((32 * 5) + 30) downto ((32 * 5) + 28));
+                      i_req_tc   <= p_in_m_axis_cq_tdata(((32 * 5) + 27) downto ((32 * 5) + 25));
+                      i_bar_id   <= p_in_m_axis_cq_tdata(((32 * 5) + 18) downto ((32 * 5) + 16));
+                      i_trg_func <= p_in_m_axis_cq_tdata(((32 * 5) + 15) downto ((32 * 5) +  8));
+                      i_req_tag  <= p_in_m_axis_cq_tdata(((32 * 5) +  7) downto ((32 * 5) +  0));
 
-                      i_req_rid  <= p_in_m_axis_cq_tdata(((32 * 3) + 31) downto ((32 * 3) + 16));
-                      i_req_pkt  <= p_in_m_axis_cq_tdata(((32 * 3) + 14) downto ((32 * 3) + 11));
-                      i_req_len  <= p_in_m_axis_cq_tdata(((32 * 3) + 10) downto ((32 * 3) +  0)); --Length data payload (DW)
+                      i_req_rid  <= p_in_m_axis_cq_tdata(((32 * 4) + 31) downto ((32 * 4) + 16));
+                      i_req_pkt  <= p_in_m_axis_cq_tdata(((32 * 4) + 14) downto ((32 * 4) + 11));
+                      i_req_len  <= p_in_m_axis_cq_tdata(((32 * 4) + 10) downto ((32 * 4) +  0)); --Length data payload (DW)
 
-                      i_req_addr <= p_in_m_axis_cq_tdata(((32 * 1) + 12) downto ((32 * 1) + 2)) & "00";
-                      i_req_at   <= p_in_m_axis_cq_tdata(((32 * 1) +  1) downto ((32 * 1) + 0));
+                      i_req_addr <= p_in_m_axis_cq_tdata(((32 * 3) + 12) downto ((32 * 2) + 2)) & "00";
+                      i_req_at   <= p_in_m_axis_cq_tdata(((32 * 3) +  1) downto ((32 * 2) + 0));
 
                       i_req_be   <= p_in_m_axis_cq_tuser(7 downto 4) & p_in_m_axis_cq_tuser(3 downto 0);
 
@@ -451,33 +451,33 @@ if rising_edge(p_in_clk) then
                       i_req_des_tph_st_tag  <= p_in_m_axis_cq_tuser((52 + 64) downto (45 + 64));
 
                       --Check length data payload (DW)
-                      if UNSIGNED(p_in_m_axis_cq_tdata(((32 * 3) + 10) downto ((32 * 3) + 0))) = TO_UNSIGNED(16#01#, 11) then
+                      if UNSIGNED(p_in_m_axis_cq_tdata(((32 * 4) + 10) downto ((32 * 4) + 0))) = TO_UNSIGNED(16#01#, 11) then
 
                           --Compl
-                          if (p_in_m_axis_cq_tdata(((32 * 3) + 14) downto ((32 * 3) + 11)) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
+                          if (p_in_m_axis_cq_tdata(((32 * 4) + 14) downto ((32 * 4) + 11)) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
 
                               i_req_compl <= '0';
 
                               i_reg_wr <= '1';
-                              i_reg_d    <= p_in_m_axis_cq_tdata((32 * 6) - 1 downto (32 * 5));
-                              i_reg_wrbe <= p_in_m_axis_cq_tuser((8 + (4 * 6)) - 1 downto (8 + (4 * 5)));
+                              i_reg_d    <= p_in_m_axis_cq_tdata((32 * 7) - 1 downto (32 * 6));
+                              i_reg_wrbe <= p_in_m_axis_cq_tuser((8 + (4 * 7)) - 1 downto (8 + (4 * 6)));
 
                               i_fsm_rx <= S_RX_WAIT;
 
                           else
                               i_req_compl <= '1';
 
-                              if (p_in_m_axis_cq_tdata(((32 * 3) + 14) downto ((32 * 3) + 11)) = C_PCIE3_PKT_TYPE_IO_WR_D) then
+                              if (p_in_m_axis_cq_tdata(((32 * 4) + 14) downto ((32 * 4) + 11)) = C_PCIE3_PKT_TYPE_IO_WR_D) then
 
                               i_reg_wr <= '1';
-                              i_reg_d    <= p_in_m_axis_cq_tdata((32 * 6) - 1 downto (32 * 5));
-                              i_reg_wrbe <= p_in_m_axis_cq_tuser((8 + (4 * 6)) - 1 downto (8 + (4 * 5)));
+                              i_reg_d    <= p_in_m_axis_cq_tdata((32 * 7) - 1 downto (32 * 6));
+                              i_reg_wrbe <= p_in_m_axis_cq_tuser((8 + (4 * 7)) - 1 downto (8 + (4 * 6)));
 
                                 i_fsm_rx <= S_RX_WAIT;
 
-                              elsif (p_in_m_axis_cq_tdata(((32 * 3) + 14) downto ((32 * 3) + 11)) = C_PCIE3_PKT_TYPE_IO_RD_ND)
-                                 or (p_in_m_axis_cq_tdata(((32 * 3) + 14) downto ((32 * 3) + 11)) = C_PCIE3_PKT_TYPE_MEM_RD_ND)
-                                 or (p_in_m_axis_cq_tdata(((32 * 3) + 14) downto ((32 * 3) + 11)) = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND) then
+                              elsif (p_in_m_axis_cq_tdata(((32 * 4) + 14) downto ((32 * 4) + 11)) = C_PCIE3_PKT_TYPE_IO_RD_ND)
+                                 or (p_in_m_axis_cq_tdata(((32 * 4) + 14) downto ((32 * 4) + 11)) = C_PCIE3_PKT_TYPE_MEM_RD_ND)
+                                 or (p_in_m_axis_cq_tdata(((32 * 4) + 14) downto ((32 * 4) + 11)) = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND) then
 
                                   i_reg_rd <= '1';
                                   i_fsm_rx <= S_RX_WAIT;
