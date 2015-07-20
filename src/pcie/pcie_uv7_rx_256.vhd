@@ -96,8 +96,11 @@ architecture behavioral of pcie_rx is
 type TFsmRx_state is (
 S_RX_IDLE,
 S_RX_CHK2,
+S_RX_CHK3,
+S_RX_CHK4,
 S_RX_DATA,
-S_RX_WAIT
+S_RX_WAIT,
+S_RX_WAIT2
 );
 signal i_fsm_rx              : TFsmRx_state;
 
@@ -133,6 +136,7 @@ signal i_reg_wrbe            : std_logic_vector(3 downto 0);
 signal i_reg_wr              : std_logic;
 signal i_reg_rd              : std_logic;
 
+signal tst_err                 : std_logic;
 signal tst_fsm_rx            : unsigned(1 downto 0);
 
 
@@ -208,13 +212,13 @@ if rising_edge(p_in_clk) then
 
     i_req_be   <= (others => '0');
 
-    i_req_des_tph_present <= (others => '0');
+    i_req_des_tph_present <= '0';
     i_req_des_tph_type    <= (others => '0');
     i_req_des_tph_st_tag  <= (others => '0');
 
     i_reg_d <= (others => '0');
     i_reg_wrbe <= (others => '0');
-    i_reg_wr   <= '0'; i_err <= '0';
+    i_reg_wr   <= '0'; tst_err <= '0';
     i_reg_rd   <= '0';
 
   else
@@ -400,10 +404,9 @@ if rising_edge(p_in_clk) then
                         --
                         -------------------------------------------------------------------------
                          when others =>
-                            i_fsm_rx <= S_RX_PKT_CHK;
+                            i_fsm_rx <= S_RX_IDLE;
 
                     end case; --Req Type
-
 
 
 
@@ -485,10 +488,9 @@ if rising_edge(p_in_clk) then
                         --
                         -------------------------------------------------------------------------
                          when others =>
-                            i_fsm_rx <= S_RX_PKT_CHK;
+                            i_fsm_rx <= S_RX_IDLE;
 
                     end case; --Req Type
-
 
 
 
@@ -570,10 +572,9 @@ if rising_edge(p_in_clk) then
                         --
                         -------------------------------------------------------------------------
                          when others =>
-                            i_fsm_rx <= S_RX_PKT_CHK;
+                            i_fsm_rx <= S_RX_IDLE;
 
                     end case; --Req Type
-
 
 
 
@@ -652,10 +653,9 @@ if rising_edge(p_in_clk) then
                         --
                         -------------------------------------------------------------------------
                          when others =>
-                            i_fsm_rx <= S_RX_PKT_CHK;
+                            i_fsm_rx <= S_RX_IDLE;
 
                     end case; --Req Type
-
 
 
 
@@ -707,7 +707,7 @@ if rising_edge(p_in_clk) then
                         --
                         -------------------------------------------------------------------------
                          when others =>
-                            i_fsm_rx <= S_RX_PKT_CHK;
+                            i_fsm_rx <= S_RX_IDLE;
 
                     end case; --Req Type
 
@@ -737,13 +737,13 @@ if rising_edge(p_in_clk) then
 
               else
                 i_m_axis_cq_tready <= '0';
-                i_err <= '1';
-                i_fsm_rx <= S_RX_IDLE2;
+                tst_err <= '1';
+                i_fsm_rx <= S_RX_WAIT2;
 
               end if;--if p_in_m_axis_cq_tkeep(7 downto 0) = "00011111" then
 
             end if; --if p_in_m_axis_cq_tvalid = '1' then
-        --end S_RX_PKT_CHK :
+        --end S_RX_IDLE :
 
 
 
@@ -765,12 +765,11 @@ if rising_edge(p_in_clk) then
                     i_trg_func <= p_in_m_axis_cq_tdata(((32 * 0) + 15) downto ((32 * 0) +  8));
                     i_req_tag  <= p_in_m_axis_cq_tdata(((32 * 0) +  7) downto ((32 * 0) +  0));
 
-
                     i_reg_d    <= p_in_m_axis_cq_tdata((32 * 2) - 1 downto (32 * 1));
                     i_reg_wrbe <= p_in_m_axis_cq_tuser((8 + (4 * 2)) - 1 downto (8 + (4 * 1)));
 
                     --Compl
-                    if i_req_pkt = C_PCIE3_PKT_TYPE_MEM_WR_D) then
+                    if (i_req_pkt = C_PCIE3_PKT_TYPE_MEM_WR_D) then
 
                         i_req_compl <= '0';
                         i_reg_wr <= '1';
@@ -778,7 +777,7 @@ if rising_edge(p_in_clk) then
                     else
                         i_req_compl <= '1';
 
-                        if i_req_pkt = C_PCIE3_PKT_TYPE_IO_WR_D) then
+                        if (i_req_pkt = C_PCIE3_PKT_TYPE_IO_WR_D) then
 
                           i_reg_wr <= '1';
 
@@ -794,8 +793,8 @@ if rising_edge(p_in_clk) then
                     i_fsm_rx <= S_RX_WAIT;
 
                 else
-                  i_err <= '1';
-                  i_fsm_rx <= S_RX_IDLE2;
+                  tst_err <= '1';
+                  i_fsm_rx <= S_RX_WAIT2;
 
                 end if;
             end if;
@@ -882,13 +881,13 @@ if rising_edge(p_in_clk) then
                         --
                         -------------------------------------------------------------------------
                          when others =>
-                            i_fsm_rx <= S_RX_PKT_CHK;
+                            i_fsm_rx <= S_RX_IDLE;
 
                     end case; --Req Type
 
                 else
-                  i_err <= '1';
-                  i_fsm_rx <= S_RX_IDLE2;
+                  tst_err <= '1';
+                  i_fsm_rx <= S_RX_WAIT2;
 
                 end if;
             end if;
@@ -977,13 +976,13 @@ if rising_edge(p_in_clk) then
                         --
                         -------------------------------------------------------------------------
                          when others =>
-                            i_fsm_rx <= S_RX_PKT_CHK;
+                            i_fsm_rx <= S_RX_IDLE;
 
                     end case; --Req Type
 
                 else
-                  i_err <= '1';
-                  i_fsm_rx <= S_RX_IDLE2;
+                  tst_err <= '1';
+                  i_fsm_rx <= S_RX_WAIT2;
 
                 end if;
             end if;
@@ -1012,8 +1011,8 @@ if rising_edge(p_in_clk) then
 
                 else
 
-                  i_err <= '1';
-                  i_fsm_rx <= S_RX_IDLE2;
+                  tst_err <= '1';
+                  i_fsm_rx <= S_RX_WAIT2;
 
                 end if;
 
@@ -1039,9 +1038,9 @@ if rising_edge(p_in_clk) then
             end if;
 
 
-        when S_RX_IDLE2 =>
+        when S_RX_WAIT2 =>
 
-            i_err <= '0';
+            tst_err <= '0';
             i_reg_wr <= '0';
             i_reg_rd <= '0';
             i_req_compl <= '0';
