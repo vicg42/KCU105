@@ -300,8 +300,6 @@ if rising_edge(p_in_clk) then
                                   end if;
                               end if;
 
-                              i_fsm_rx <= S_RX_WAIT;
-
                           else
                             i_req_compl    <= '0';
                             i_req_compl_ur <= '1';--Unsupported Request
@@ -309,8 +307,9 @@ if rising_edge(p_in_clk) then
                             i_bar_id <= (others => '0');
                             i_trg_func <= (others => '0');
 
-                            i_fsm_rx <= S_RX_WAIT;
                           end if;
+
+                          i_fsm_rx <= S_RX_WAIT;
 
                         -------------------------------------------------------------------------
                         --
@@ -385,8 +384,6 @@ if rising_edge(p_in_clk) then
                                   end if;
                               end if;
 
-                              i_fsm_rx <= S_RX_WAIT;
-
                           else
                             i_req_compl    <= '0';
                             i_req_compl_ur <= '1';--Unsupported Request
@@ -394,8 +391,9 @@ if rising_edge(p_in_clk) then
                             i_bar_id <= (others => '0');
                             i_trg_func <= (others => '0');
 
-                            i_fsm_rx <= S_RX_WAIT;
                           end if;
+
+                          i_fsm_rx <= S_RX_WAIT;
 
                         -------------------------------------------------------------------------
                         --
@@ -471,8 +469,6 @@ if rising_edge(p_in_clk) then
                                   end if;
                               end if;
 
-                              i_fsm_rx <= S_RX_WAIT;
-
                           else
                             i_req_compl    <= '0';
                             i_req_compl_ur <= '1';--Unsupported Request
@@ -480,8 +476,9 @@ if rising_edge(p_in_clk) then
                             i_bar_id <= (others => '0');
                             i_trg_func <= (others => '0');
 
-                            i_fsm_rx <= S_RX_WAIT;
                           end if;
+
+                          i_fsm_rx <= S_RX_WAIT;
 
                         -------------------------------------------------------------------------
                         --
@@ -557,8 +554,6 @@ if rising_edge(p_in_clk) then
                                   end if;
                               end if;
 
-                              i_fsm_rx <= S_RX_WAIT;
-
                           else
                             i_req_compl    <= '0';
                             i_req_compl_ur <= '1';--Unsupported Request
@@ -566,8 +561,9 @@ if rising_edge(p_in_clk) then
                             i_bar_id <= (others => '0');
                             i_trg_func <= (others => '0');
 
-                            i_fsm_rx <= S_RX_WAIT;
                           end if;
+
+                          i_fsm_rx <= S_RX_WAIT;
 
                         -------------------------------------------------------------------------
                         --
