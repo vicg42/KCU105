@@ -196,17 +196,17 @@ process (p_in_req_be, p_in_req_addr)
 begin
   case p_in_req_be(3 downto 0) is
     when "0000" =>
-      i_lower_addr <= (p_in_req_addr(4 downto 0) & "00");
+      i_lower_addr <= (p_in_req_addr(6 downto 2) & "00");
     when "0001" | "0011" | "0101" | "0111" | "1001" | "1011" | "1101" | "1111" =>
-      i_lower_addr <= (p_in_req_addr(4 downto 0) & "00");
+      i_lower_addr <= (p_in_req_addr(6 downto 2) & "00");
     when "0010" | "0110" | "1010" | "1110" =>
-      i_lower_addr <= (p_in_req_addr(4 downto 0) & "01");
+      i_lower_addr <= (p_in_req_addr(6 downto 2) & "01");
     when "0100" | "1100" =>
-      i_lower_addr <= (p_in_req_addr(4 downto 0) & "10");
+      i_lower_addr <= (p_in_req_addr(6 downto 2) & "10");
     when "1000" =>
-      i_lower_addr <= (p_in_req_addr(4 downto 0) & "11");
+      i_lower_addr <= (p_in_req_addr(6 downto 2) & "11");
     when others =>
-      i_lower_addr <= (p_in_req_addr(4 downto 0) & "00");
+      i_lower_addr <= (p_in_req_addr(6 downto 2) & "00");
   end case;
 end process;
 
