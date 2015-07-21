@@ -96,23 +96,13 @@ signal i_m_axis_cq_tready    : std_logic := '0';
 signal i_m_axis_rc_tready    : std_logic := '1';
 
 signal i_req_pkt             : std_logic_vector(3 downto 0);
-signal i_req_tc              : std_logic_vector(2 downto 0) ;
-signal i_req_attr            : std_logic_vector(2 downto 0) ;
-signal i_req_len             : std_logic_vector(10 downto 0);
-signal i_req_rid             : std_logic_vector(15 downto 0);
-signal i_req_tag             : std_logic_vector(7 downto 0) ;
-signal i_req_be              : std_logic_vector(7 downto 0) ;
-signal i_req_addr            : std_logic_vector(12 downto 0);
-signal i_req_at              : std_logic_vector(1 downto 0) ;
 signal i_trg_func            : std_logic_vector(7 downto 0);
 signal i_bar_id              : std_logic_vector(2 downto 0);
 
 signal i_req_des             : TPCIEDesc;
---signal i_req_des_qword0      : std_logic_vector(63 downto 0);
---signal i_req_des_qword1      : std_logic_vector(63 downto 0);
-signal i_req_des_tph_present : std_logic;
-signal i_req_des_tph_type    : std_logic_vector(1 downto 0) ;
-signal i_req_des_tph_st_tag  : std_logic_vector(7 downto 0) ;
+signal i_thp                 : TPCIEtph;
+signal i_first_be            : std_logic_vector(3 downto 0);
+signal i_last_be             : std_logic_vector(3 downto 0);
 
 signal i_req_compl           : std_logic := '0';
 signal i_req_compl_ur        : std_logic := '0';
@@ -135,30 +125,12 @@ p_out_ureg_rd <= i_reg_rd;
 p_out_ureg_wrbe <= i_reg_wrbe;
 p_out_ureg_di <= i_reg_d;
 
---p_out_payload_len <= '0';
-
---p_out_req_type <= i_req_pkt;
---p_out_req_tc   <= i_req_tc  ;
---p_out_req_attr <= i_req_attr;
---p_out_req_len  <= i_req_len ;
---p_out_req_rid  <= i_req_rid ;
---p_out_req_tag  <= i_req_tag ;
---p_out_req_be   <= i_req_be  ;
---p_out_req_addr <= i_req_addr;
---p_out_req_at   <= i_req_at  ;
-
---p_out_req_des_qword0      <= i_req_des_qword0     ;
---p_out_req_des_qword1      <= i_req_des_qword1     ;
---p_out_req_des_tph_present <= i_req_des_tph_present;
---p_out_req_des_tph_type    <= i_req_des_tph_type   ;
---p_out_req_des_tph_st_tag  <= i_req_des_tph_st_tag ;
-
 p_out_req_prm.desc <= i_req_des;
-p_out_req_prm.thp.present <= i_req_des_tph_present;
-p_out_req_prm.thp.t_type <= i_req_des_tph_type   ;
-p_out_req_prm.thp.st_tag <= i_req_des_tph_st_tag ;
-p_out_req_prm.first_be <= i_req_be(3 downto 0);
-p_out_req_prm.last_be <= i_req_be(7 downto 4);
+p_out_req_prm.thp.present <= i_tph.present;
+p_out_req_prm.thp.t_type <= i_tph.t_type   ;
+p_out_req_prm.thp.st_tag <= i_tph.st_tag ;
+p_out_req_prm.first_be <= i_first_be;
+p_out_req_prm.last_be <= i_last_be;
 
 p_out_req_compl    <= i_req_compl;
 p_out_req_compl_ur <= i_req_compl_ur;
@@ -190,28 +162,20 @@ if rising_edge(p_in_clk) then
     i_req_compl    <= '0';
     i_req_compl_ur <= '0';
 
+    i_req_pkt <= (others => '0');
+    i_trg_func <= (others => '0');
+    i_bar_id <= (others => '0');
+
     for i in 0 to (i_req_des'length - 1) loop
     i_req_des(i) <= (others => '0');
     end loop;
---    i_req_des_qword0 <= (others => '0');
---    i_req_des_qword1 <= (others => '0');
 
-    i_req_attr <= (others => '0');
-    i_req_tc   <= (others => '0');
-    i_bar_id   <= (others => '0');
-    i_trg_func <= (others => '0');
-    i_req_tag  <= (others => '0');
-    i_req_rid  <= (others => '0');
-    i_req_pkt  <= (others => '0');
-    i_req_len  <= (others => '0');
-    i_req_addr <= (others => '0');
-    i_req_at   <= (others => '0');
+    i_first_be <= (others => '0');
+    i_last_be <= (others => '0');
 
-    i_req_be   <= (others => '0');
-
-    i_req_des_tph_present <= '0';
-    i_req_des_tph_type    <= (others => '0');
-    i_req_des_tph_st_tag  <= (others => '0');
+    i_tph.present <= '0';
+    i_tph.t_type <= (others => '0');
+    i_tph.st_tag <= (others => '0');
 
     i_reg_d <= (others => '0');
     i_reg_wrbe <= (others => '0');
@@ -233,11 +197,12 @@ if rising_edge(p_in_clk) then
 
             elsif i_sop = '1' then
 
-              i_req_be   <= p_in_m_axis_cq_tuser(7 downto 4) & p_in_m_axis_cq_tuser(3 downto 0);
+              i_first_be <= p_in_m_axis_cq_tuser(3 downto 0);
+              i_last_be <= p_in_m_axis_cq_tuser(7 downto 4);
 
-              i_req_des_tph_present <= p_in_m_axis_cq_tuser(42);
-              i_req_des_tph_type    <= p_in_m_axis_cq_tuser(44 downto 43);
-              i_req_des_tph_st_tag  <= p_in_m_axis_cq_tuser(52 downto 45);
+              i_tph.present <= p_in_m_axis_cq_tuser(42);
+              i_tph.t_type  <= p_in_m_axis_cq_tuser(44 downto 43);
+              i_tph.st_tag  <= p_in_m_axis_cq_tuser(52 downto 45);
 
               --#######################################
               --cq_tkeep(7 downto 0) = "00011111"
@@ -261,18 +226,10 @@ if rising_edge(p_in_clk) then
                           i_req_des(2) <= p_in_m_axis_cq_tdata((32 * 3) - 1 downto (32 * 2));
                           i_req_des(3) <= p_in_m_axis_cq_tdata((32 * 4) - 1 downto (32 * 3));
 
-                          i_req_attr <= p_in_m_axis_cq_tdata(((32 * 3) + 30) downto ((32 * 3) + 28));
-                          i_req_tc   <= p_in_m_axis_cq_tdata(((32 * 3) + 27) downto ((32 * 3) + 25));
                           i_bar_id   <= p_in_m_axis_cq_tdata(((32 * 3) + 18) downto ((32 * 3) + 16));
                           i_trg_func <= p_in_m_axis_cq_tdata(((32 * 3) + 15) downto ((32 * 3) +  8));
-                          i_req_tag  <= p_in_m_axis_cq_tdata(((32 * 3) +  7) downto ((32 * 3) +  0));
 
-                          i_req_rid  <= p_in_m_axis_cq_tdata(((32 * 2) + 31) downto ((32 * 2) + 16));
-                          i_req_pkt  <= p_in_m_axis_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11));
-                          i_req_len  <= p_in_m_axis_cq_tdata(((32 * 2) + 10) downto ((32 * 2) +  0)); --Length data payload (DW)
-
-                          i_req_addr <= p_in_m_axis_cq_tdata(((32 * 0) + 12) downto ((32 * 0) + 2)) & "00";
-                          i_req_at   <= p_in_m_axis_cq_tdata(((32 * 0) +  1) downto ((32 * 0) + 0));
+--                          i_req_pkt  <= p_in_m_axis_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11));
 
                           --Check length data payload (DW)
                           if UNSIGNED(p_in_m_axis_cq_tdata(((32 * 2) + 10) downto ((32 * 2) + 0))) = TO_UNSIGNED(16#01#, 11) then
@@ -350,18 +307,10 @@ if rising_edge(p_in_clk) then
                           i_req_des(2) <= p_in_m_axis_cq_tdata((32 * 4) - 1 downto (32 * 3));
                           i_req_des(3) <= p_in_m_axis_cq_tdata((32 * 5) - 1 downto (32 * 4));
 
-                          i_req_attr <= p_in_m_axis_cq_tdata(((32 * 4) + 30) downto ((32 * 4) + 28));
-                          i_req_tc   <= p_in_m_axis_cq_tdata(((32 * 4) + 27) downto ((32 * 4) + 25));
                           i_bar_id   <= p_in_m_axis_cq_tdata(((32 * 4) + 18) downto ((32 * 4) + 16));
                           i_trg_func <= p_in_m_axis_cq_tdata(((32 * 4) + 15) downto ((32 * 4) +  8));
-                          i_req_tag  <= p_in_m_axis_cq_tdata(((32 * 4) +  7) downto ((32 * 4) +  0));
 
-                          i_req_rid  <= p_in_m_axis_cq_tdata(((32 * 3) + 31) downto ((32 * 3) + 16));
-                          i_req_pkt  <= p_in_m_axis_cq_tdata(((32 * 3) + 14) downto ((32 * 3) + 11));
-                          i_req_len  <= p_in_m_axis_cq_tdata(((32 * 3) + 10) downto ((32 * 3) +  0)); --Length data payload (DW)
-
-                          i_req_addr <= p_in_m_axis_cq_tdata(((32 * 1) + 12) downto ((32 * 1) + 2)) & "00";
-                          i_req_at   <= p_in_m_axis_cq_tdata(((32 * 1) +  1) downto ((32 * 1) + 0));
+--                          i_req_pkt  <= p_in_m_axis_cq_tdata(((32 * 3) + 14) downto ((32 * 3) + 11));
 
                           --Check length data payload (DW)
                           if UNSIGNED(p_in_m_axis_cq_tdata(((32 * 3) + 10) downto ((32 * 3) + 0))) = TO_UNSIGNED(16#01#, 11) then
@@ -439,18 +388,10 @@ if rising_edge(p_in_clk) then
                           i_req_des(2) <= p_in_m_axis_cq_tdata((32 * 5) - 1 downto (32 * 4));
                           i_req_des(3) <= p_in_m_axis_cq_tdata((32 * 6) - 1 downto (32 * 5));
 
-                          i_req_attr <= p_in_m_axis_cq_tdata(((32 * 5) + 30) downto ((32 * 5) + 28));
-                          i_req_tc   <= p_in_m_axis_cq_tdata(((32 * 5) + 27) downto ((32 * 5) + 25));
                           i_bar_id   <= p_in_m_axis_cq_tdata(((32 * 5) + 18) downto ((32 * 5) + 16));
                           i_trg_func <= p_in_m_axis_cq_tdata(((32 * 5) + 15) downto ((32 * 5) +  8));
-                          i_req_tag  <= p_in_m_axis_cq_tdata(((32 * 5) +  7) downto ((32 * 5) +  0));
 
-                          i_req_rid  <= p_in_m_axis_cq_tdata(((32 * 4) + 31) downto ((32 * 4) + 16));
-                          i_req_pkt  <= p_in_m_axis_cq_tdata(((32 * 4) + 14) downto ((32 * 4) + 11));
-                          i_req_len  <= p_in_m_axis_cq_tdata(((32 * 4) + 10) downto ((32 * 4) +  0)); --Length data payload (DW)
-
-                          i_req_addr <= p_in_m_axis_cq_tdata(((32 * 2) + 12) downto ((32 * 2) + 2)) & "00";
-                          i_req_at   <= p_in_m_axis_cq_tdata(((32 * 2) +  1) downto ((32 * 2) + 0));
+--                          i_req_pkt  <= p_in_m_axis_cq_tdata(((32 * 4) + 14) downto ((32 * 4) + 11));
 
                           --Check length data payload (DW)
                           if UNSIGNED(p_in_m_axis_cq_tdata(((32 * 4) + 10) downto ((32 * 4) + 0))) = TO_UNSIGNED(16#01#, 11) then
@@ -527,18 +468,10 @@ if rising_edge(p_in_clk) then
                           i_req_des(2) <= p_in_m_axis_cq_tdata((32 * 6) - 1 downto (32 * 5));
                           i_req_des(3) <= p_in_m_axis_cq_tdata((32 * 7) - 1 downto (32 * 6));
 
-                          i_req_attr <= p_in_m_axis_cq_tdata(((32 * 6) + 30) downto ((32 * 6) + 28));
-                          i_req_tc   <= p_in_m_axis_cq_tdata(((32 * 6) + 27) downto ((32 * 6) + 25));
                           i_bar_id   <= p_in_m_axis_cq_tdata(((32 * 6) + 18) downto ((32 * 6) + 16));
                           i_trg_func <= p_in_m_axis_cq_tdata(((32 * 6) + 15) downto ((32 * 6) +  8));
-                          i_req_tag  <= p_in_m_axis_cq_tdata(((32 * 6) +  7) downto ((32 * 6) +  0));
 
-                          i_req_rid  <= p_in_m_axis_cq_tdata(((32 * 5) + 31) downto ((32 * 5) + 16));
-                          i_req_pkt  <= p_in_m_axis_cq_tdata(((32 * 5) + 14) downto ((32 * 5) + 11));
-                          i_req_len  <= p_in_m_axis_cq_tdata(((32 * 5) + 10) downto ((32 * 5) +  0)); --Length data payload (DW)
-
-                          i_req_addr <= p_in_m_axis_cq_tdata(((32 * 3) + 12) downto ((32 * 3) + 2)) & "00";
-                          i_req_at   <= p_in_m_axis_cq_tdata(((32 * 3) +  1) downto ((32 * 3) + 0));
+--                          i_req_pkt  <= p_in_m_axis_cq_tdata(((32 * 5) + 14) downto ((32 * 5) + 11));
 
                           --Check length data payload (DW)
                           if UNSIGNED(p_in_m_axis_cq_tdata(((32 * 5) + 10) downto ((32 * 5) + 0))) = TO_UNSIGNED(16#01#, 11) then
@@ -615,18 +548,10 @@ if rising_edge(p_in_clk) then
                           i_req_des(2) <= p_in_m_axis_cq_tdata((32 * 7) - 1 downto (32 * 6));
                           i_req_des(3) <= p_in_m_axis_cq_tdata((32 * 8) - 1 downto (32 * 7));
 
-                          i_req_attr <= p_in_m_axis_cq_tdata(((32 * 7) + 30) downto ((32 * 7) + 28));
-                          i_req_tc   <= p_in_m_axis_cq_tdata(((32 * 7) + 27) downto ((32 * 7) + 25));
                           i_bar_id   <= p_in_m_axis_cq_tdata(((32 * 7) + 18) downto ((32 * 7) + 16));
                           i_trg_func <= p_in_m_axis_cq_tdata(((32 * 7) + 15) downto ((32 * 7) +  8));
-                          i_req_tag  <= p_in_m_axis_cq_tdata(((32 * 7) +  7) downto ((32 * 7) +  0));
 
-                          i_req_rid  <= p_in_m_axis_cq_tdata(((32 * 6) + 31) downto ((32 * 6) + 16));
-                          i_req_pkt  <= p_in_m_axis_cq_tdata(((32 * 6) + 14) downto ((32 * 6) + 11));
-                          i_req_len  <= p_in_m_axis_cq_tdata(((32 * 6) + 10) downto ((32 * 6) +  0)); --Length data payload (DW)
-
-                          i_req_addr <= p_in_m_axis_cq_tdata(((32 * 4) + 12) downto ((32 * 4) + 2)) & "00";
-                          i_req_at   <= p_in_m_axis_cq_tdata(((32 * 4) +  1) downto ((32 * 4) + 0));
+--                          i_req_pkt  <= p_in_m_axis_cq_tdata(((32 * 6) + 14) downto ((32 * 6) + 11));
 
                           --Check length data payload (DW)
                           if UNSIGNED(p_in_m_axis_cq_tdata(((32 * 6) + 10) downto ((32 * 6) + 0))) = TO_UNSIGNED(16#01#, 11) then
@@ -696,12 +621,7 @@ if rising_edge(p_in_clk) then
                           i_req_des(2) <= p_in_m_axis_cq_tdata((32 * 8) - 1 downto (32 * 7));
 --                          i_req_des(3) <= p_in_m_axis_cq_tdata((32 * 9) - 1 downto (32 * 8));
 
-                          i_req_rid  <= p_in_m_axis_cq_tdata(((32 * 7) + 31) downto ((32 * 7) + 16));
                           i_req_pkt  <= p_in_m_axis_cq_tdata(((32 * 7) + 14) downto ((32 * 7) + 11));
-                          i_req_len  <= p_in_m_axis_cq_tdata(((32 * 7) + 10) downto ((32 * 7) +  0)); --Length data payload (DW)
-
-                          i_req_addr <= p_in_m_axis_cq_tdata(((32 * 5) + 12) downto ((32 * 5) + 2)) & "00";
-                          i_req_at   <= p_in_m_axis_cq_tdata(((32 * 5) +  1) downto ((32 * 5) + 0));
 
                           --Check length data payload (DW)
                           if UNSIGNED(p_in_m_axis_cq_tdata(((32 * 7) + 10) downto ((32 * 7) + 0))) = TO_UNSIGNED(16#01#, 11) then
@@ -774,11 +694,8 @@ if rising_edge(p_in_clk) then
 
                     i_req_des(3) <= p_in_m_axis_cq_tdata((32 * 1) - 1 downto (32 * 0));
 
-                    i_req_attr <= p_in_m_axis_cq_tdata(((32 * 0) + 30) downto ((32 * 0) + 28));
-                    i_req_tc   <= p_in_m_axis_cq_tdata(((32 * 0) + 27) downto ((32 * 0) + 25));
                     i_bar_id   <= p_in_m_axis_cq_tdata(((32 * 0) + 18) downto ((32 * 0) + 16));
                     i_trg_func <= p_in_m_axis_cq_tdata(((32 * 0) + 15) downto ((32 * 0) +  8));
-                    i_req_tag  <= p_in_m_axis_cq_tdata(((32 * 0) +  7) downto ((32 * 0) +  0));
 
                     i_reg_d    <= p_in_m_axis_cq_tdata((32 * 2) - 1 downto (32 * 1));
                     i_reg_wrbe <= p_in_m_axis_cq_tuser((8 + (4 * 2)) - 1 downto (8 + (4 * 1)));
@@ -840,15 +757,10 @@ if rising_edge(p_in_clk) then
 
                           i_m_axis_cq_tready <= '0';
 
-                          i_req_attr <= p_in_m_axis_cq_tdata(((32 * 1) + 30) downto ((32 * 1) + 28));
-                          i_req_tc   <= p_in_m_axis_cq_tdata(((32 * 1) + 27) downto ((32 * 1) + 25));
                           i_bar_id   <= p_in_m_axis_cq_tdata(((32 * 1) + 18) downto ((32 * 1) + 16));
                           i_trg_func <= p_in_m_axis_cq_tdata(((32 * 1) + 15) downto ((32 * 1) +  8));
-                          i_req_tag  <= p_in_m_axis_cq_tdata(((32 * 1) +  7) downto ((32 * 1) +  0));
 
-                          i_req_rid  <= p_in_m_axis_cq_tdata(((32 * 0) + 31) downto ((32 * 0) + 16));
-                          i_req_pkt  <= p_in_m_axis_cq_tdata(((32 * 0) + 14) downto ((32 * 0) + 11));
-                          i_req_len  <= p_in_m_axis_cq_tdata(((32 * 0) + 10) downto ((32 * 0) +  0)); --Length data payload (DW)
+--                          i_req_pkt  <= p_in_m_axis_cq_tdata(((32 * 0) + 14) downto ((32 * 0) + 11));
 
                           if p_in_m_axis_cq_tkeep(2) = '1' then
                           i_req_addr <= i_req_des(0)(12 downto 2) & "00";
@@ -937,18 +849,10 @@ if rising_edge(p_in_clk) then
 
                           i_m_axis_cq_tready <= '0';
 
-                          i_req_attr <= p_in_m_axis_cq_tdata(((32 * 2) + 30) downto ((32 * 2) + 28));
-                          i_req_tc   <= p_in_m_axis_cq_tdata(((32 * 2) + 27) downto ((32 * 2) + 25));
                           i_bar_id   <= p_in_m_axis_cq_tdata(((32 * 2) + 18) downto ((32 * 2) + 16));
                           i_trg_func <= p_in_m_axis_cq_tdata(((32 * 2) + 15) downto ((32 * 2) +  8));
-                          i_req_tag  <= p_in_m_axis_cq_tdata(((32 * 2) +  7) downto ((32 * 2) +  0));
 
-                          i_req_rid  <= p_in_m_axis_cq_tdata(((32 * 1) + 31) downto ((32 * 1) + 16));
-                          i_req_pkt  <= p_in_m_axis_cq_tdata(((32 * 1) + 14) downto ((32 * 1) + 11));
-                          i_req_len  <= p_in_m_axis_cq_tdata(((32 * 1) + 10) downto ((32 * 1) +  0)); --Length data payload (DW)
-
-                          i_req_addr <= i_req_des(0)(12 downto 2) & "00";
-                          i_req_at   <= i_req_des(0)( 1 downto 0);
+--                          i_req_pkt  <= p_in_m_axis_cq_tdata(((32 * 1) + 14) downto ((32 * 1) + 11));
 
                           --Check length data payload (DW)
                           if UNSIGNED(p_in_m_axis_cq_tdata(((32 * 1) + 10) downto ((32 * 1) + 0))) = TO_UNSIGNED(16#01#, 11) then

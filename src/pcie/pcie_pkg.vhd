@@ -49,7 +49,7 @@ end record;
 
 type TPCIEDesc is array (0 to 3) of std_logic_vector(31 downto 0);
 
-type TPCIEthp is record
+type TPCIEtph is record
 present : std_logic;                    -- TPH Present in the request
 t_type  : std_logic_vector(1 downto 0) ;-- If TPH Present then TPH type
 st_tag  : std_logic_vector(7 downto 0) ;-- TPH Steering tag of the request
@@ -57,7 +57,7 @@ end record;
 
 type TPCIE_reqprm is record
 desc : TPCIEDesc;
-thp  : TPCIEthp;
+thp  : TPCIEtph;
 first_be : std_logic_vector(3 downto 0);
 last_be  : std_logic_vector(3 downto 0);
 end record;

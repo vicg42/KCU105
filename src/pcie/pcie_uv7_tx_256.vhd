@@ -77,25 +77,7 @@ p_out_compl_done  : out std_logic;
 
 p_in_req_prm      : in TPCIE_reqprm;
 
---p_in_req_type : in  std_logic_vector(3 downto 0);
---p_in_req_tc   : in  std_logic_vector(2 downto 0);
---p_in_req_td   : in  std_logic;
---p_in_req_ep   : in  std_logic;
---p_in_req_attr : in  std_logic_vector(1 downto 0);
---p_in_req_len  : in  std_logic_vector(10 downto 0);
---p_in_req_rid  : in  std_logic_vector(15 downto 0);
---p_in_req_tag  : in  std_logic_vector(7 downto 0);
---p_in_req_be   : in  std_logic_vector(7 downto 0);
---p_in_req_addr : in  std_logic_vector(12 downto 0);
---p_in_req_at   : in  std_logic_vector(1 downto 0);
-
 p_in_completer_id : in  std_logic_vector(15 downto 0);
-
---p_in_req_des_qword0      : in  std_logic_vector(63 downto 0);
---p_in_req_des_qword1      : in  std_logic_vector(63 downto 0);
---p_in_req_des_tph_present : in  std_logic;
---p_in_req_des_tph_type    : in  std_logic_vector(1 downto 0);
---p_in_req_des_tph_st_tag  : in  std_logic_vector(7 downto 0);
 
 --usr app
 p_in_ureg_do   : in  std_logic_vector(31 downto 0);
@@ -151,18 +133,6 @@ end record;
 signal i_req              : TReq;
 
 signal i_req_be           : std_logic_vector(7 downto 0);
---signal i_req_type         : std_logic_vector(3 downto 0);
---signal i_req_tc           : std_logic_vector(2 downto 0);
---signal i_req_attr         : std_logic_vector(2 downto 0);
---signal i_req_len          : std_logic_vector(10 downto 0);
---signal i_req_rid          : std_logic_vector(15 downto 0);
---signal i_req_tag          : std_logic_vector(7 downto 0);
---signal i_req_be           : std_logic_vector(7 downto 0);
---signal i_req_addr         : std_logic_vector(12 downto 0);
---signal i_req_at           : std_logic_vector(1 downto 0);
---
---signal i_req_td           : std_logic;
---signal i_req_ep           : std_logic;
 
 --signal i_lower_addr_tmp     : std_logic_vector(6 downto 0);
 signal i_lower_addr       : std_logic_vector(6 downto 0);
