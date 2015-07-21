@@ -65,12 +65,12 @@ architecture behavioral of pcie_usr_app is
 
 signal i_reg_rd           : std_logic;
 signal i_reg_bar          : std_logic;
-signal i_reg_adr          : unsigned(6 downto 0);
+signal i_reg_adr          : unsigned(4 downto 0);
 
 signal v_reg_firmware     : std_logic_vector(C_HREG_FRMWARE_LAST_BIT downto 0);
-signal v_reg_ctrl         : std_logic_vector(31 downto 0);
-signal v_reg_tst0         : std_logic_vector(31 downto 0);
-signal v_reg_tst1         : std_logic_vector(31 downto 0);
+type TReg is array (1 to 15) of std_logic_vector(31 downto 0);
+signal v_reg              : TReg;
+
 
 
 begin --architecture behavioral
@@ -83,30 +83,37 @@ v_reg_firmware <= std_logic_vector(TO_UNSIGNED(C_FPGA_FIRMWARE_VERSION, v_reg_fi
 
 --BAR detector
 i_reg_bar <= p_in_reg_adr(7);--x80 - Register Space
-i_reg_adr <= UNSIGNED(p_in_reg_adr(6 downto 0));
+i_reg_adr <= UNSIGNED(p_in_reg_adr(6 downto 2));
 
 --Reg Write:
 wr : process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
   if p_in_rst_n = '0' then
-    v_reg_ctrl <= (others => '0');
-    v_reg_tst0 <= (others => '0');
-    v_reg_tst1 <= (others => '0');
+    for i in 1 to (v_reg'length - 1) loop
+    v_reg(i) <= (others => '0');
+    end loop;
 
   else
 
     if p_in_reg_wr = '1' then
       if i_reg_bar = '1' then
-      ----------------------------------------------
-      --Register Space:
-      ----------------------------------------------
-        if i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_CTRL, 5)  then v_reg_ctrl <= p_in_reg_din;
-        elsif i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_TST0, 5) then v_reg_tst0 <= p_in_reg_din;
-        elsif i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_TST1, 5) then v_reg_tst1 <= p_in_tst(31 downto 0);--p_in_reg_din;
-
-        end if;
-
+          if    i_reg_adr = TO_UNSIGNED(C_HREG_CTRL      , 5) then v_reg(1) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_ADR, 5) then v_reg(2) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_LEN, 5) then v_reg(3) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(C_HREG_DEV_CTRL  , 5) then v_reg(4) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(C_HREG_DEV_STATUS, 5) then v_reg(5) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(C_HREG_IRQ       , 5) then v_reg(6) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(C_HREG_MEM_ADR   , 5) then v_reg(7) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(C_HREG_MEM_CTRL  , 5) then v_reg(8) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(C_HREG_FG_FRMRK  , 5) then v_reg(9) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(C_HREG_PCIE      , 5) then v_reg(10) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(C_HREG_FUNC      , 5) then v_reg(11) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(C_HREG_FUNCPRM   , 5) then v_reg(12) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST0      , 5) then v_reg(13) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST1      , 5) then v_reg(14) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST2      , 5) then v_reg(15) <= p_in_reg_din;
+          end if;
       end if;
     end if;
 
@@ -135,13 +142,9 @@ if rising_edge(p_in_clk) then
       ----------------------------------------------
       --Register Space:
       ----------------------------------------------
-        if i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_FIRMWARE, 5) then txd := std_logic_vector(RESIZE(UNSIGNED(v_reg_firmware), txd'length));
-        elsif i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_CTRL, 5)  then txd := std_logic_vector(RESIZE(UNSIGNED(v_reg_ctrl), txd'length));
-        elsif i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_TST0, 5)  then txd := std_logic_vector(RESIZE(UNSIGNED(v_reg_tst0), txd'length));
-        elsif i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_TST1, 5)  then txd := std_logic_vector(RESIZE(UNSIGNED(v_reg_tst1), txd'length));
+        if i_reg_adr = TO_UNSIGNED(C_HREG_FIRMWARE, 5) then txd := std_logic_vector(RESIZE(UNSIGNED(v_reg_firmware), txd'length));
 
-
-        elsif i_reg_adr(6 downto 2) = TO_UNSIGNED(C_HREG_PCIE, 5) then
+        elsif i_reg_adr = TO_UNSIGNED(C_HREG_PCIE, 5) then
             txd(C_HREG_PCIE_NEG_LINK_M_RBIT downto C_HREG_PCIE_NEG_LINK_L_RBIT)
                 := p_in_pcie_prm.link_width(5 downto 0);
 
@@ -151,16 +154,32 @@ if rising_edge(p_in_clk) then
             txd(C_HREG_PCIE_NEG_MAX_RD_REQ_M_BIT downto C_HREG_PCIE_NEG_MAX_RD_REQ_L_BIT)
                 := p_in_pcie_prm.max_rd_req(2 downto 0);
 
+        elsif i_reg_adr = TO_UNSIGNED(C_HREG_CTRL      , 5) then txd := v_reg(1);
+        elsif i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_ADR, 5) then txd := v_reg(2);
+        elsif i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_LEN, 5) then txd := v_reg(3);
+        elsif i_reg_adr = TO_UNSIGNED(C_HREG_DEV_CTRL  , 5) then txd := v_reg(4);
+        elsif i_reg_adr = TO_UNSIGNED(C_HREG_DEV_STATUS, 5) then txd := v_reg(5);
+        elsif i_reg_adr = TO_UNSIGNED(C_HREG_IRQ       , 5) then txd := v_reg(6);
+        elsif i_reg_adr = TO_UNSIGNED(C_HREG_MEM_ADR   , 5) then txd := v_reg(7);
+        elsif i_reg_adr = TO_UNSIGNED(C_HREG_MEM_CTRL  , 5) then txd := v_reg(8);
+        elsif i_reg_adr = TO_UNSIGNED(C_HREG_FG_FRMRK  , 5) then txd := v_reg(9);
+
+        elsif i_reg_adr = TO_UNSIGNED(C_HREG_FUNC      , 5) then txd := v_reg(11);
+        elsif i_reg_adr = TO_UNSIGNED(C_HREG_FUNCPRM   , 5) then txd := v_reg(12);
+        elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST0      , 5) then txd := v_reg(13);
+        elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST1      , 5) then txd := v_reg(14);
+        elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST2      , 5) then txd := v_reg(15);
         end if;
 
       end if;
 
       p_out_reg_dout <= txd;
 
-    end if;--if i_reg_rd = '1' then
+    end if;
+
   end if;
-end if;--p_in_rst_n,
-end process;--rd
+end if;
+end process;
 
 
 
