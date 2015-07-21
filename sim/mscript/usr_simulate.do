@@ -8,7 +8,7 @@
 ######################################################################
 vsim -voptargs="+acc" -t 1ps -L unisims_ver -L unimacro_ver -L secureip -L xil_defaultlib -L gtwizard_ultrascale_v1_5 -lib xil_defaultlib xil_defaultlib.board xil_defaultlib.glbl
 
-do {usr_wave3.do}
+do {usr_wave4.do}
 
 view wave
 view structure

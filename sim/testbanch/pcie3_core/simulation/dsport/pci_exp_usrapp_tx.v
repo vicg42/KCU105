@@ -157,8 +157,8 @@ module pci_exp_usrapp_tx #(
 
 parameter    Tcq = 1;
 
-localparam   [3:0] LINK_CAP_MAX_LINK_WIDTH_EP = 4'h4;
-localparam   [2:0] LINK_CAP_MAX_LINK_SPEED_EP = 3'h2;
+localparam   [3:0] LINK_CAP_MAX_LINK_WIDTH_EP = 4'h8;
+localparam   [2:0] LINK_CAP_MAX_LINK_SPEED_EP = 3'h4;
 
 localparam   [3:0] MAX_LINK_SPEED = (LINK_CAP_MAX_LINK_SPEED_EP==3'h4) ? 4'h3 : ((LINK_CAP_MAX_LINK_SPEED_EP==3'h2) ? 4'h2 : 4'h1);
 
@@ -326,7 +326,7 @@ initial begin
   BAR_INIT_P_MEM32_START    =  33'h00000_0000; // start of 32bit memory
   BAR_INIT_P_IO_START       =  33'h00000_0000; // start of 32bit io
 
-  DEV_VEN_ID                = (EP_DEV_ID << 16) | (32'h10EE);
+  DEV_VEN_ID                = (EP_DEV_ID << 16) | (32'h0777);//(32'h10EE);
   PIO_MAX_MEMORY            = 8192;            // PIO has max of 8Kbytes of memory
   PIO_MAX_NUM_BLOCK_RAMS    = 4;               // PIO has four block RAMS to test
   PIO_MAX_MEMORY            = 2048;            // PIO has 4 memory regions with 2 Kbytes of memory per region, ie 8 Kbytes

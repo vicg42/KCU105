@@ -20,9 +20,9 @@ constant C_PCFG_FIRMWARE_VERSION       : integer := 16#0001#;
 constant C_PCFG_BOARD                  : string := "KCU105";
 
 --PCI-Express
-constant C_PCGF_PCIE_DBGCS             : string := "ON";
-constant C_PCGF_PCIE_LINK_WIDTH        : integer := 4; --if change count link than need regenerat core PCI-Express
-constant C_PCGF_PCIE_DWIDTH            : integer := 64;
+constant C_PCGF_PCIE_DBGCS             : string := "OFF";
+constant C_PCGF_PCIE_LINK_WIDTH        : integer := 8; --if change count link than need regenerat core PCI-Express
+constant C_PCGF_PCIE_DWIDTH            : integer := 256;
 
 --FG(frame grabber)
 constant C_PCFG_FG_PIXBIT              : integer := 16; --Count bit/pix

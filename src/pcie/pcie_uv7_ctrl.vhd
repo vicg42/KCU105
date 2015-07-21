@@ -220,21 +220,23 @@ signal i_req_compl             : std_logic;
 signal i_req_compl_ur          : std_logic;
 signal i_compl_done            : std_logic;
 
-signal i_req_type              : std_logic_vector(3 downto 0) ;
-signal i_req_tc                : std_logic_vector(2 downto 0) ;
-signal i_req_attr              : std_logic_vector(2 downto 0) ;
-signal i_req_len               : std_logic_vector(10 downto 0);
-signal i_req_rid               : std_logic_vector(15 downto 0);
-signal i_req_tag               : std_logic_vector(7 downto 0) ;
-signal i_req_be                : std_logic_vector(7 downto 0) ;
-signal i_req_addr              : std_logic_vector(12 downto 0);
-signal i_req_at                : std_logic_vector(1 downto 0) ;
+signal i_req_prm               : TPCIE_reqprm;
 
-signal i_req_des_qword0        : std_logic_vector(63 downto 0);
-signal i_req_des_qword1        : std_logic_vector(63 downto 0);
-signal i_req_des_tph_present   : std_logic;
-signal i_req_des_tph_type      : std_logic_vector(1 downto 0) ;
-signal i_req_des_tph_st_tag    : std_logic_vector(7 downto 0) ;
+--signal i_req_type              : std_logic_vector(3 downto 0) ;
+--signal i_req_tc                : std_logic_vector(2 downto 0) ;
+--signal i_req_attr              : std_logic_vector(2 downto 0) ;
+--signal i_req_len               : std_logic_vector(10 downto 0);
+--signal i_req_rid               : std_logic_vector(15 downto 0);
+--signal i_req_tag               : std_logic_vector(7 downto 0) ;
+--signal i_req_be                : std_logic_vector(7 downto 0) ;
+--signal i_req_addr              : std_logic_vector(12 downto 0);
+--signal i_req_at                : std_logic_vector(1 downto 0) ;
+--
+--signal i_req_des_qword0        : std_logic_vector(63 downto 0);
+--signal i_req_des_qword1        : std_logic_vector(63 downto 0);
+--signal i_req_des_tph_present   : std_logic;
+--signal i_req_des_tph_type      : std_logic_vector(1 downto 0) ;
+--signal i_req_des_tph_st_tag    : std_logic_vector(7 downto 0) ;
 
 signal i_ureg_di               : std_logic_vector(31 downto 0);
 signal i_ureg_do               : std_logic_vector(31 downto 0);
@@ -361,7 +363,7 @@ p_in_tst        => (others => '0'), --tst_in ,
 p_in_pcie_prm => i_pcie_prm,
 
 --Target mode
-p_in_reg_adr   => i_req_addr(7 downto 0),
+p_in_reg_adr   => i_req_prm.desc(0)(7 downto 0),
 p_out_reg_dout => i_ureg_do(31 downto 0),
 p_in_reg_din   => i_ureg_di(31 downto 0),
 p_in_reg_wr    => i_ureg_wr,
@@ -424,21 +426,23 @@ p_out_req_compl    => i_req_compl    ,
 p_out_req_compl_ur => i_req_compl_ur ,
 p_in_compl_done    => i_compl_done   ,
 
-p_out_req_type     => i_req_type,
-p_out_req_tc       => i_req_tc  ,
-p_out_req_attr     => i_req_attr,
-p_out_req_len      => i_req_len ,
-p_out_req_rid      => i_req_rid ,
-p_out_req_tag      => i_req_tag ,
-p_out_req_be       => i_req_be  ,
-p_out_req_addr     => i_req_addr,
-p_out_req_at       => i_req_at  ,
+p_out_req_prm      => i_req_prm,
 
-p_out_req_des_qword0      => i_req_des_qword0     ,
-p_out_req_des_qword1      => i_req_des_qword1     ,
-p_out_req_des_tph_present => i_req_des_tph_present,
-p_out_req_des_tph_type    => i_req_des_tph_type   ,
-p_out_req_des_tph_st_tag  => i_req_des_tph_st_tag ,
+--p_out_req_type     => i_req_type,
+--p_out_req_tc       => i_req_tc  ,
+--p_out_req_attr     => i_req_attr,
+--p_out_req_len      => i_req_len ,
+--p_out_req_rid      => i_req_rid ,
+--p_out_req_tag      => i_req_tag ,
+--p_out_req_be       => i_req_be  ,
+--p_out_req_addr     => i_req_addr,
+--p_out_req_at       => i_req_at  ,
+--
+--p_out_req_des_qword0      => i_req_des_qword0     ,
+--p_out_req_des_qword1      => i_req_des_qword1     ,
+--p_out_req_des_tph_present => i_req_des_tph_present,
+--p_out_req_des_tph_type    => i_req_des_tph_type   ,
+--p_out_req_des_tph_st_tag  => i_req_des_tph_st_tag ,
 
 --usr app
 p_out_ureg_di  => i_ureg_di  ,
@@ -517,25 +521,9 @@ p_in_req_compl    => i_req_compl   ,
 p_in_req_compl_ur => i_req_compl_ur,
 p_out_compl_done  => i_compl_done  ,
 
-p_in_req_type => i_req_type,
-p_in_req_tc   => i_req_tc  ,
-p_in_req_td   => '0',
-p_in_req_ep   => '0',
-p_in_req_attr => i_req_attr(1 downto 0),
-p_in_req_len  => i_req_len ,
-p_in_req_rid  => i_req_rid ,
-p_in_req_tag  => i_req_tag ,
-p_in_req_be   => i_req_be  ,
-p_in_req_addr => i_req_addr,
-p_in_req_at   => i_req_at  ,
+p_in_req_prm      => i_req_prm,
 
 p_in_completer_id => (others => '0'),
-
-p_in_req_des_qword0      => i_req_des_qword0     ,
-p_in_req_des_qword1      => i_req_des_qword1     ,
-p_in_req_des_tph_present => i_req_des_tph_present,
-p_in_req_des_tph_type    => i_req_des_tph_type   ,
-p_in_req_des_tph_st_tag  => i_req_des_tph_st_tag ,
 
 --usr app
 p_in_ureg_do => i_ureg_do,

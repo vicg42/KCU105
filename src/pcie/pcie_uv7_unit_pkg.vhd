@@ -76,25 +76,7 @@ p_out_req_compl    : out std_logic := '0';
 p_out_req_compl_ur : out std_logic := '0';
 p_in_compl_done    : in  std_logic;
 
-p_out_req_type     : out std_logic_vector(3 downto 0) ;
-p_out_req_tc       : out std_logic_vector(2 downto 0) ;-- Memory Read TC
-p_out_req_attr     : out std_logic_vector(2 downto 0) ;-- Memory Read Attribute
-p_out_req_len      : out std_logic_vector(10 downto 0);-- Memory Read Length
-p_out_req_rid      : out std_logic_vector(15 downto 0);-- Memory Read Requestor ID { 8'b0 (Bus no),
-                                                       --                            3'b0 (Dev no),
-                                                       --                            5'b0 (Func no)}
-p_out_req_tag      : out std_logic_vector(7 downto 0) ;-- Memory Read Tag
-p_out_req_be       : out std_logic_vector(7 downto 0) ;-- Memory Read Byte Enables
-p_out_req_addr     : out std_logic_vector(12 downto 0);-- Memory Read Address
-p_out_req_at       : out std_logic_vector(1 downto 0) ;-- Address Translation
-
--- Outputs to the TX Block in case of an UR
--- Required to form the completions
-p_out_req_des_qword0      : out std_logic_vector(63 downto 0);-- DWord0 and Dword1 of descriptor of the request
-p_out_req_des_qword1      : out std_logic_vector(63 downto 0);-- DWord2 and Dword3 of descriptor of the request
-p_out_req_des_tph_present : out std_logic;                    -- TPH Present in the request
-p_out_req_des_tph_type    : out std_logic_vector(1 downto 0) ;-- If TPH Present then TPH type
-p_out_req_des_tph_st_tag  : out std_logic_vector(7 downto 0) ;-- TPH Steering tag of the request
+p_out_req_prm      : out TPCIE_reqprm;
 
 --usr app
 p_out_ureg_di  : out std_logic_vector(31 downto 0);
@@ -173,25 +155,9 @@ p_in_req_compl    : in  std_logic;
 p_in_req_compl_ur : in  std_logic;
 p_out_compl_done  : out std_logic;
 
-p_in_req_type : in  std_logic_vector(3 downto 0);
-p_in_req_tc   : in  std_logic_vector(2 downto 0);
-p_in_req_td   : in  std_logic;
-p_in_req_ep   : in  std_logic;
-p_in_req_attr : in  std_logic_vector(1 downto 0);
-p_in_req_len  : in  std_logic_vector(10 downto 0);
-p_in_req_rid  : in  std_logic_vector(15 downto 0);
-p_in_req_tag  : in  std_logic_vector(7 downto 0);
-p_in_req_be   : in  std_logic_vector(7 downto 0);
-p_in_req_addr : in  std_logic_vector(12 downto 0);
-p_in_req_at   : in  std_logic_vector(1 downto 0);
+p_in_req_prm      : in TPCIE_reqprm;
 
 p_in_completer_id : in  std_logic_vector(15 downto 0);
-
-p_in_req_des_qword0      : in  std_logic_vector(63 downto 0);
-p_in_req_des_qword1      : in  std_logic_vector(63 downto 0);
-p_in_req_des_tph_present : in  std_logic;
-p_in_req_des_tph_type    : in  std_logic_vector(1 downto 0);
-p_in_req_des_tph_st_tag  : in  std_logic_vector(7 downto 0);
 
 --usr app
 p_in_ureg_do   : in  std_logic_vector(31 downto 0);

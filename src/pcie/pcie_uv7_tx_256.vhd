@@ -75,25 +75,27 @@ p_in_req_compl    : in  std_logic;
 p_in_req_compl_ur : in  std_logic;
 p_out_compl_done  : out std_logic;
 
-p_in_req_type : in  std_logic_vector(3 downto 0);
-p_in_req_tc   : in  std_logic_vector(2 downto 0);
-p_in_req_td   : in  std_logic;
-p_in_req_ep   : in  std_logic;
-p_in_req_attr : in  std_logic_vector(1 downto 0);
-p_in_req_len  : in  std_logic_vector(10 downto 0);
-p_in_req_rid  : in  std_logic_vector(15 downto 0);
-p_in_req_tag  : in  std_logic_vector(7 downto 0);
-p_in_req_be   : in  std_logic_vector(7 downto 0);
-p_in_req_addr : in  std_logic_vector(12 downto 0);
-p_in_req_at   : in  std_logic_vector(1 downto 0);
+p_in_req_prm      : in TPCIE_reqprm;
+
+--p_in_req_type : in  std_logic_vector(3 downto 0);
+--p_in_req_tc   : in  std_logic_vector(2 downto 0);
+--p_in_req_td   : in  std_logic;
+--p_in_req_ep   : in  std_logic;
+--p_in_req_attr : in  std_logic_vector(1 downto 0);
+--p_in_req_len  : in  std_logic_vector(10 downto 0);
+--p_in_req_rid  : in  std_logic_vector(15 downto 0);
+--p_in_req_tag  : in  std_logic_vector(7 downto 0);
+--p_in_req_be   : in  std_logic_vector(7 downto 0);
+--p_in_req_addr : in  std_logic_vector(12 downto 0);
+--p_in_req_at   : in  std_logic_vector(1 downto 0);
 
 p_in_completer_id : in  std_logic_vector(15 downto 0);
 
-p_in_req_des_qword0      : in  std_logic_vector(63 downto 0);
-p_in_req_des_qword1      : in  std_logic_vector(63 downto 0);
-p_in_req_des_tph_present : in  std_logic;
-p_in_req_des_tph_type    : in  std_logic_vector(1 downto 0);
-p_in_req_des_tph_st_tag  : in  std_logic_vector(7 downto 0);
+--p_in_req_des_qword0      : in  std_logic_vector(63 downto 0);
+--p_in_req_des_qword1      : in  std_logic_vector(63 downto 0);
+--p_in_req_des_tph_present : in  std_logic;
+--p_in_req_des_tph_type    : in  std_logic_vector(1 downto 0);
+--p_in_req_des_tph_st_tag  : in  std_logic_vector(7 downto 0);
 
 --usr app
 p_in_ureg_do   : in  std_logic_vector(31 downto 0);
@@ -196,21 +198,21 @@ p_out_cfg_msg_transmit_data <= (others => '0');
 
 p_out_cfg_fc_sel <= (others => '0');
 
+i_req.attr <= p_in_req_prm.desc(3)(30 downto 28);
+i_req.tc   <= p_in_req_prm.desc(3)(27 downto 25);
+i_req.tag  <= p_in_req_prm.desc(3)( 7 downto  0);
+i_req.rid  <= p_in_req_prm.desc(2)(31 downto 16);
+i_req.pkt  <= p_in_req_prm.desc(2)(14 downto 11);
+i_req.len  <= p_in_req_prm.desc(2)(10 downto  0);
+i_req.addr <= p_in_req_prm.desc(0)(12 downto  2) & "00";
+i_req.at   <= p_in_req_prm.desc(0)( 1 downto  0);
 
-i_req.attr <= p_in_req_des_qword1((32 * 1) + 30 downto (32 * 1) + 28);
-i_req.tc   <= p_in_req_des_qword1((32 * 1) + 27 downto (32 * 1) + 25);
-i_req.tag  <= p_in_req_des_qword1((32 * 1) +  7 downto (32 * 1) +  0);
-i_req.rid  <= p_in_req_des_qword1((32 * 0) + 31 downto (32 * 0) + 16);
-i_req.pkt  <= p_in_req_des_qword1((32 * 0) + 14 downto (32 * 0) + 11);
-i_req.len  <= p_in_req_des_qword1((32 * 0) + 10 downto (32 * 0) +  0);
-i_req.addr <= p_in_req_des_qword0((32 * 0) + 12 downto (32 * 0) +  2) & "00";
-i_req.at   <= p_in_req_des_qword0((32 * 0) +  1 downto (32 * 0) +  0);
-
+i_req_be  <= p_in_req_prm.last_be & p_in_req_prm.first_be;
 
 --Calculate lower address based on  byte enable
-process (p_in_req_be, i_req.addr)
+process (i_req_be, i_req.addr)
 begin
-  case p_in_req_be(3 downto 0) is
+  case i_req_be(3 downto 0) is
     when "0000" =>
       i_lower_addr <= (i_req.addr(6 downto 2) & "00");
     when "0001" | "0011" | "0101" | "0111" | "1001" | "1011" | "1101" | "1111" =>

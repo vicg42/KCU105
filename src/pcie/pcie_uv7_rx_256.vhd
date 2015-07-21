@@ -60,21 +60,7 @@ p_out_req_compl    : out std_logic;
 p_out_req_compl_ur : out std_logic;--Unsupported Request
 p_in_compl_done    : in  std_logic;
 
-p_out_req_type     : out std_logic_vector(3 downto 0);
-p_out_req_tc       : out std_logic_vector(2 downto 0) ;-- Memory Read TC
-p_out_req_attr     : out std_logic_vector(2 downto 0) ;-- Memory Read Attribute
-p_out_req_len      : out std_logic_vector(10 downto 0);-- Memory Read Length
-p_out_req_rid      : out std_logic_vector(15 downto 0);-- Memory Read Requestor ID {8'b0 (Bus no),3'b0 (Dev no), 5'b0 (Func no)}
-p_out_req_tag      : out std_logic_vector(7 downto 0) ;-- Memory Read Tag
-p_out_req_be       : out std_logic_vector(7 downto 0) ;-- Memory Read Byte Enables
-p_out_req_addr     : out std_logic_vector(12 downto 0);-- Memory Read Address
-p_out_req_at       : out std_logic_vector(1 downto 0) ;-- Address Translation
-
-p_out_req_des_qword0      : out std_logic_vector(63 downto 0);-- DWord0 and Dword1 of descriptor of the request
-p_out_req_des_qword1      : out std_logic_vector(63 downto 0);-- DWord2 and Dword3 of descriptor of the request
-p_out_req_des_tph_present : out std_logic;                    -- TPH Present in the request
-p_out_req_des_tph_type    : out std_logic_vector(1 downto 0) ;-- If TPH Present then TPH type
-p_out_req_des_tph_st_tag  : out std_logic_vector(7 downto 0) ;-- TPH Steering tag of the request
+p_out_req_prm      : out TPCIE_reqprm;
 
 --usr app
 p_out_ureg_di  : out std_logic_vector(31 downto 0);
@@ -121,8 +107,9 @@ signal i_req_at              : std_logic_vector(1 downto 0) ;
 signal i_trg_func            : std_logic_vector(7 downto 0);
 signal i_bar_id              : std_logic_vector(2 downto 0);
 
-signal i_req_des_qword0      : std_logic_vector(63 downto 0);
-signal i_req_des_qword1      : std_logic_vector(63 downto 0);
+signal i_req_des             : TPCIEDesc;
+--signal i_req_des_qword0      : std_logic_vector(63 downto 0);
+--signal i_req_des_qword1      : std_logic_vector(63 downto 0);
 signal i_req_des_tph_present : std_logic;
 signal i_req_des_tph_type    : std_logic_vector(1 downto 0) ;
 signal i_req_des_tph_st_tag  : std_logic_vector(7 downto 0) ;
@@ -150,21 +137,28 @@ p_out_ureg_di <= i_reg_d;
 
 --p_out_payload_len <= '0';
 
-p_out_req_type <= i_req_pkt;
-p_out_req_tc   <= i_req_tc  ;
-p_out_req_attr <= i_req_attr;
-p_out_req_len  <= i_req_len ;
-p_out_req_rid  <= i_req_rid ;
-p_out_req_tag  <= i_req_tag ;
-p_out_req_be   <= i_req_be  ;
-p_out_req_addr <= i_req_addr;
-p_out_req_at   <= i_req_at  ;
+--p_out_req_type <= i_req_pkt;
+--p_out_req_tc   <= i_req_tc  ;
+--p_out_req_attr <= i_req_attr;
+--p_out_req_len  <= i_req_len ;
+--p_out_req_rid  <= i_req_rid ;
+--p_out_req_tag  <= i_req_tag ;
+--p_out_req_be   <= i_req_be  ;
+--p_out_req_addr <= i_req_addr;
+--p_out_req_at   <= i_req_at  ;
 
-p_out_req_des_qword0      <= i_req_des_qword0     ;
-p_out_req_des_qword1      <= i_req_des_qword1     ;
-p_out_req_des_tph_present <= i_req_des_tph_present;
-p_out_req_des_tph_type    <= i_req_des_tph_type   ;
-p_out_req_des_tph_st_tag  <= i_req_des_tph_st_tag ;
+--p_out_req_des_qword0      <= i_req_des_qword0     ;
+--p_out_req_des_qword1      <= i_req_des_qword1     ;
+--p_out_req_des_tph_present <= i_req_des_tph_present;
+--p_out_req_des_tph_type    <= i_req_des_tph_type   ;
+--p_out_req_des_tph_st_tag  <= i_req_des_tph_st_tag ;
+
+p_out_req_prm.desc <= i_req_des;
+p_out_req_prm.thp.present <= i_req_des_tph_present;
+p_out_req_prm.thp.t_type <= i_req_des_tph_type   ;
+p_out_req_prm.thp.st_tag <= i_req_des_tph_st_tag ;
+p_out_req_prm.first_be <= i_req_be(3 downto 0);
+p_out_req_prm.last_be <= i_req_be(7 downto 4);
 
 p_out_req_compl    <= i_req_compl;
 p_out_req_compl_ur <= i_req_compl_ur;
@@ -196,8 +190,11 @@ if rising_edge(p_in_clk) then
     i_req_compl    <= '0';
     i_req_compl_ur <= '0';
 
-    i_req_des_qword0 <= (others => '0');
-    i_req_des_qword1 <= (others => '0');
+    for i in 0 to (i_req_des'length - 1) loop
+    i_req_des(i) <= (others => '0');
+    end loop;
+--    i_req_des_qword0 <= (others => '0');
+--    i_req_des_qword1 <= (others => '0');
 
     i_req_attr <= (others => '0');
     i_req_tc   <= (others => '0');
@@ -245,7 +242,7 @@ if rising_edge(p_in_clk) then
               --#######################################
               --cq_tkeep(7 downto 0) = "00011111"
               --#######################################
-              if p_in_m_axis_cq_tkeep(7 downto 0) = "00011111" then
+              if p_in_m_axis_cq_tkeep(3 downto 0) = "1111" then --if p_in_m_axis_cq_tkeep(7 downto 0) = "00011111" then
                     --Req Type
                     case p_in_m_axis_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) is
                         -------------------------------------------------------------------------
@@ -259,10 +256,10 @@ if rising_edge(p_in_clk) then
 
                           i_m_axis_cq_tready <= '0';
 
-                          i_req_des_qword0((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_cq_tdata((32 * 1) - 1 downto (32 * 0));
-                          i_req_des_qword0((32 * 2) - 1 downto (32 * 1)) <= p_in_m_axis_cq_tdata((32 * 2) - 1 downto (32 * 1));
-                          i_req_des_qword1((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_cq_tdata((32 * 3) - 1 downto (32 * 2));
-                          i_req_des_qword1((32 * 2) - 1 downto (32 * 1)) <= p_in_m_axis_cq_tdata((32 * 4) - 1 downto (32 * 3));
+                          i_req_des(0) <= p_in_m_axis_cq_tdata((32 * 1) - 1 downto (32 * 0));
+                          i_req_des(1) <= p_in_m_axis_cq_tdata((32 * 2) - 1 downto (32 * 1));
+                          i_req_des(2) <= p_in_m_axis_cq_tdata((32 * 3) - 1 downto (32 * 2));
+                          i_req_des(3) <= p_in_m_axis_cq_tdata((32 * 4) - 1 downto (32 * 3));
 
                           i_req_attr <= p_in_m_axis_cq_tdata(((32 * 3) + 30) downto ((32 * 3) + 28));
                           i_req_tc   <= p_in_m_axis_cq_tdata(((32 * 3) + 27) downto ((32 * 3) + 25));
@@ -280,21 +277,26 @@ if rising_edge(p_in_clk) then
                           --Check length data payload (DW)
                           if UNSIGNED(p_in_m_axis_cq_tdata(((32 * 2) + 10) downto ((32 * 2) + 0))) = TO_UNSIGNED(16#01#, 11) then
 
-                              i_reg_d    <= p_in_m_axis_cq_tdata((32 * 5) - 1 downto (32 * 4));
-                              i_reg_wrbe <= p_in_m_axis_cq_tuser((8 + (4 * 5)) - 1 downto (8 + (4 * 4)));
+                                i_reg_d    <= p_in_m_axis_cq_tdata((32 * 5) - 1 downto (32 * 4));
+                                i_reg_wrbe <= p_in_m_axis_cq_tuser((8 + (4 * 5)) - 1 downto (8 + (4 * 4)));
 
                               --Compl
                               if (p_in_m_axis_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
 
                                   i_req_compl <= '0';
+
+                                  if p_in_m_axis_cq_tkeep(4) = '1' then
                                   i_reg_wr <= '1';
+                                  end if;
 
                               else
                                   i_req_compl <= '1';
 
                                   if (p_in_m_axis_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_IO_WR_D) then
 
+                                    if p_in_m_axis_cq_tkeep(4) = '1' then
                                     i_reg_wr <= '1';
+                                    end if;
 
                                   elsif (p_in_m_axis_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_IO_RD_ND)
                                      or (p_in_m_axis_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_MEM_RD_ND)
@@ -329,7 +331,7 @@ if rising_edge(p_in_clk) then
               --#######################################
               --cq_tkeep(7 downto 0) = "00111110"
               --#######################################
-              elsif p_in_m_axis_cq_tkeep(7 downto 0) = "00111110" then
+              elsif p_in_m_axis_cq_tkeep(4 downto 0) = "11110" then --elsif p_in_m_axis_cq_tkeep(7 downto 0) = "00111110" then
                     --Req Type
                     case p_in_m_axis_cq_tdata(((32 * 3) + 14) downto ((32 * 3) + 11)) is
                         -------------------------------------------------------------------------
@@ -343,10 +345,10 @@ if rising_edge(p_in_clk) then
 
                           i_m_axis_cq_tready <= '0';
 
-                          i_req_des_qword0((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_cq_tdata((32 * 2) - 1 downto (32 * 1));
-                          i_req_des_qword0((32 * 2) - 1 downto (32 * 1)) <= p_in_m_axis_cq_tdata((32 * 3) - 1 downto (32 * 2));
-                          i_req_des_qword1((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_cq_tdata((32 * 4) - 1 downto (32 * 3));
-                          i_req_des_qword1((32 * 2) - 1 downto (32 * 1)) <= p_in_m_axis_cq_tdata((32 * 5) - 1 downto (32 * 4));
+                          i_req_des(0) <= p_in_m_axis_cq_tdata((32 * 2) - 1 downto (32 * 1));
+                          i_req_des(1) <= p_in_m_axis_cq_tdata((32 * 3) - 1 downto (32 * 2));
+                          i_req_des(2) <= p_in_m_axis_cq_tdata((32 * 4) - 1 downto (32 * 3));
+                          i_req_des(3) <= p_in_m_axis_cq_tdata((32 * 5) - 1 downto (32 * 4));
 
                           i_req_attr <= p_in_m_axis_cq_tdata(((32 * 4) + 30) downto ((32 * 4) + 28));
                           i_req_tc   <= p_in_m_axis_cq_tdata(((32 * 4) + 27) downto ((32 * 4) + 25));
@@ -371,14 +373,19 @@ if rising_edge(p_in_clk) then
                               if (p_in_m_axis_cq_tdata(((32 * 3) + 14) downto ((32 * 3) + 11)) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
 
                                   i_req_compl <= '0';
+
+                                  if p_in_m_axis_cq_tkeep(5) = '1' then
                                   i_reg_wr <= '1';
+                                  end if;
 
                               else
                                   i_req_compl <= '1';
 
                                   if (p_in_m_axis_cq_tdata(((32 * 3) + 14) downto ((32 * 3) + 11)) = C_PCIE3_PKT_TYPE_IO_WR_D) then
 
+                                    if p_in_m_axis_cq_tkeep(5) = '1' then
                                     i_reg_wr <= '1';
+                                    end if;
 
                                   elsif (p_in_m_axis_cq_tdata(((32 * 3) + 14) downto ((32 * 3) + 11)) = C_PCIE3_PKT_TYPE_IO_RD_ND)
                                      or (p_in_m_axis_cq_tdata(((32 * 3) + 14) downto ((32 * 3) + 11)) = C_PCIE3_PKT_TYPE_MEM_RD_ND)
@@ -413,7 +420,7 @@ if rising_edge(p_in_clk) then
               --#######################################
               --cq_tkeep(7 downto 0) = "01111100"
               --#######################################
-              elsif p_in_m_axis_cq_tkeep(7 downto 0) = "01111100" then
+              elsif p_in_m_axis_cq_tkeep(5 downto 0) = "111100" then --p_in_m_axis_cq_tkeep(7 downto 0) = "01111100" then
                     --Req Type
                     case p_in_m_axis_cq_tdata(((32 * 4) + 14) downto ((32 * 4) + 11)) is
                         -------------------------------------------------------------------------
@@ -427,10 +434,10 @@ if rising_edge(p_in_clk) then
 
                           i_m_axis_cq_tready <= '0';
 
-                          i_req_des_qword0((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_cq_tdata((32 * 3) - 1 downto (32 * 2));
-                          i_req_des_qword0((32 * 2) - 1 downto (32 * 1)) <= p_in_m_axis_cq_tdata((32 * 4) - 1 downto (32 * 3));
-                          i_req_des_qword1((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_cq_tdata((32 * 5) - 1 downto (32 * 4));
-                          i_req_des_qword1((32 * 2) - 1 downto (32 * 1)) <= p_in_m_axis_cq_tdata((32 * 6) - 1 downto (32 * 5));
+                          i_req_des(0) <= p_in_m_axis_cq_tdata((32 * 3) - 1 downto (32 * 2));
+                          i_req_des(1) <= p_in_m_axis_cq_tdata((32 * 4) - 1 downto (32 * 3));
+                          i_req_des(2) <= p_in_m_axis_cq_tdata((32 * 5) - 1 downto (32 * 4));
+                          i_req_des(3) <= p_in_m_axis_cq_tdata((32 * 6) - 1 downto (32 * 5));
 
                           i_req_attr <= p_in_m_axis_cq_tdata(((32 * 5) + 30) downto ((32 * 5) + 28));
                           i_req_tc   <= p_in_m_axis_cq_tdata(((32 * 5) + 27) downto ((32 * 5) + 25));
@@ -455,14 +462,18 @@ if rising_edge(p_in_clk) then
                               if (p_in_m_axis_cq_tdata(((32 * 4) + 14) downto ((32 * 4) + 11)) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
 
                                   i_req_compl <= '0';
+                                  if p_in_m_axis_cq_tkeep(6) = '1' then
                                   i_reg_wr <= '1';
+                                  end if;
 
                               else
                                   i_req_compl <= '1';
 
                                   if (p_in_m_axis_cq_tdata(((32 * 4) + 14) downto ((32 * 4) + 11)) = C_PCIE3_PKT_TYPE_IO_WR_D) then
 
+                                    if p_in_m_axis_cq_tkeep(6) = '1' then
                                     i_reg_wr <= '1';
+                                    end if;
 
                                   elsif (p_in_m_axis_cq_tdata(((32 * 4) + 14) downto ((32 * 4) + 11)) = C_PCIE3_PKT_TYPE_IO_RD_ND)
                                      or (p_in_m_axis_cq_tdata(((32 * 4) + 14) downto ((32 * 4) + 11)) = C_PCIE3_PKT_TYPE_MEM_RD_ND)
@@ -497,7 +508,7 @@ if rising_edge(p_in_clk) then
               --#######################################
               --cq_tkeep(7 downto 0) = "11111000"
               --#######################################
-              elsif p_in_m_axis_cq_tkeep(7 downto 0) = "11111000" then
+              elsif p_in_m_axis_cq_tkeep(6 downto 0) = "1111000" then --elsif p_in_m_axis_cq_tkeep(7 downto 0) = "11111000" then
                     --Req Type
                     case p_in_m_axis_cq_tdata(((32 * 5) + 14) downto ((32 * 5) + 11)) is
                         -------------------------------------------------------------------------
@@ -511,10 +522,10 @@ if rising_edge(p_in_clk) then
 
                           i_m_axis_cq_tready <= '0';
 
-                          i_req_des_qword0((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_cq_tdata((32 * 4) - 1 downto (32 * 3));
-                          i_req_des_qword0((32 * 2) - 1 downto (32 * 1)) <= p_in_m_axis_cq_tdata((32 * 5) - 1 downto (32 * 4));
-                          i_req_des_qword1((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_cq_tdata((32 * 6) - 1 downto (32 * 5));
-                          i_req_des_qword1((32 * 2) - 1 downto (32 * 1)) <= p_in_m_axis_cq_tdata((32 * 7) - 1 downto (32 * 6));
+                          i_req_des(0) <= p_in_m_axis_cq_tdata((32 * 4) - 1 downto (32 * 3));
+                          i_req_des(1) <= p_in_m_axis_cq_tdata((32 * 5) - 1 downto (32 * 4));
+                          i_req_des(2) <= p_in_m_axis_cq_tdata((32 * 6) - 1 downto (32 * 5));
+                          i_req_des(3) <= p_in_m_axis_cq_tdata((32 * 7) - 1 downto (32 * 6));
 
                           i_req_attr <= p_in_m_axis_cq_tdata(((32 * 6) + 30) downto ((32 * 6) + 28));
                           i_req_tc   <= p_in_m_axis_cq_tdata(((32 * 6) + 27) downto ((32 * 6) + 25));
@@ -539,14 +550,18 @@ if rising_edge(p_in_clk) then
                               if (p_in_m_axis_cq_tdata(((32 * 5) + 14) downto ((32 * 5) + 11)) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
 
                                   i_req_compl <= '0';
+                                  if p_in_m_axis_cq_tkeep(7) = '1' then
                                   i_reg_wr <= '1';
+                                  end if;
 
                               else
                                   i_req_compl <= '1';
 
                                   if (p_in_m_axis_cq_tdata(((32 * 5) + 14) downto ((32 * 5) + 11)) = C_PCIE3_PKT_TYPE_IO_WR_D) then
 
+                                    if p_in_m_axis_cq_tkeep(7) = '1' then
                                     i_reg_wr <= '1';
+                                    end if;
 
                                   elsif (p_in_m_axis_cq_tdata(((32 * 5) + 14) downto ((32 * 5) + 11)) = C_PCIE3_PKT_TYPE_IO_RD_ND)
                                      or (p_in_m_axis_cq_tdata(((32 * 5) + 14) downto ((32 * 5) + 11)) = C_PCIE3_PKT_TYPE_MEM_RD_ND)
@@ -595,10 +610,10 @@ if rising_edge(p_in_clk) then
 
                           i_m_axis_cq_tready <= '0';
 
-                          i_req_des_qword0((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_cq_tdata((32 * 5) - 1 downto (32 * 4));
-                          i_req_des_qword0((32 * 2) - 1 downto (32 * 1)) <= p_in_m_axis_cq_tdata((32 * 6) - 1 downto (32 * 5));
-                          i_req_des_qword1((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_cq_tdata((32 * 7) - 1 downto (32 * 6));
-                          i_req_des_qword1((32 * 2) - 1 downto (32 * 1)) <= p_in_m_axis_cq_tdata((32 * 8) - 1 downto (32 * 7));
+                          i_req_des(0) <= p_in_m_axis_cq_tdata((32 * 5) - 1 downto (32 * 4));
+                          i_req_des(1) <= p_in_m_axis_cq_tdata((32 * 6) - 1 downto (32 * 5));
+                          i_req_des(2) <= p_in_m_axis_cq_tdata((32 * 7) - 1 downto (32 * 6));
+                          i_req_des(3) <= p_in_m_axis_cq_tdata((32 * 8) - 1 downto (32 * 7));
 
                           i_req_attr <= p_in_m_axis_cq_tdata(((32 * 7) + 30) downto ((32 * 7) + 28));
                           i_req_tc   <= p_in_m_axis_cq_tdata(((32 * 7) + 27) downto ((32 * 7) + 25));
@@ -676,10 +691,10 @@ if rising_edge(p_in_clk) then
 
                           i_m_axis_cq_tready <= '0';
 
-                          i_req_des_qword0((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_cq_tdata((32 * 6) - 1 downto (32 * 5));
-                          i_req_des_qword0((32 * 2) - 1 downto (32 * 1)) <= p_in_m_axis_cq_tdata((32 * 7) - 1 downto (32 * 6));
-                          i_req_des_qword1((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_cq_tdata((32 * 8) - 1 downto (32 * 7));
---                          i_req_des_qword1((32 * 2) - 1 downto (32 * 1)) <= p_in_m_axis_cq_tdata((32 * 9) - 1 downto (32 * 8));
+                          i_req_des(0) <= p_in_m_axis_cq_tdata((32 * 6) - 1 downto (32 * 5));
+                          i_req_des(1) <= p_in_m_axis_cq_tdata((32 * 7) - 1 downto (32 * 6));
+                          i_req_des(2) <= p_in_m_axis_cq_tdata((32 * 8) - 1 downto (32 * 7));
+--                          i_req_des(3) <= p_in_m_axis_cq_tdata((32 * 9) - 1 downto (32 * 8));
 
                           i_req_rid  <= p_in_m_axis_cq_tdata(((32 * 7) + 31) downto ((32 * 7) + 16));
                           i_req_pkt  <= p_in_m_axis_cq_tdata(((32 * 7) + 14) downto ((32 * 7) + 11));
@@ -721,8 +736,8 @@ if rising_edge(p_in_clk) then
 
                 i_m_axis_cq_tready <= '0';
 
-                i_req_des_qword0((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_cq_tdata((32 * 7) - 1 downto (32 * 6));
-                i_req_des_qword0((32 * 2) - 1 downto (32 * 1)) <= p_in_m_axis_cq_tdata((32 * 8) - 1 downto (32 * 7));
+                i_req_des(0) <= p_in_m_axis_cq_tdata((32 * 7) - 1 downto (32 * 6));
+                i_req_des(1) <= p_in_m_axis_cq_tdata((32 * 8) - 1 downto (32 * 7));
 
                 i_fsm_rx <= S_RX_CHK3;
 
@@ -730,7 +745,7 @@ if rising_edge(p_in_clk) then
 
                 i_m_axis_cq_tready <= '0';
 
-                i_req_des_qword0((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_cq_tdata((32 * 8) - 1 downto (32 * 7));
+                i_req_des(0) <= p_in_m_axis_cq_tdata((32 * 8) - 1 downto (32 * 7));
 
                 i_fsm_rx <= S_RX_CHK4;
 
@@ -757,7 +772,7 @@ if rising_edge(p_in_clk) then
 
                 if p_in_m_axis_cq_tkeep(7 downto 0) = "00000011" then
 
-                    i_req_des_qword1((32 * 2) - 1 downto (32 * 1)) <= p_in_m_axis_cq_tdata((32 * 1) - 1 downto (32 * 0));
+                    i_req_des(3) <= p_in_m_axis_cq_tdata((32 * 1) - 1 downto (32 * 0));
 
                     i_req_attr <= p_in_m_axis_cq_tdata(((32 * 0) + 30) downto ((32 * 0) + 28));
                     i_req_tc   <= p_in_m_axis_cq_tdata(((32 * 0) + 27) downto ((32 * 0) + 25));
@@ -807,10 +822,10 @@ if rising_edge(p_in_clk) then
         when S_RX_CHK3 =>
 
             if p_in_m_axis_cq_tvalid = '1' then
-                if p_in_m_axis_cq_tkeep(7 downto 0) = "00000111" then
+                if p_in_m_axis_cq_tkeep(1 downto 0) = "11" then --if p_in_m_axis_cq_tkeep(7 downto 0) = "00000111" then
 
-                    i_req_des_qword1((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_cq_tdata((32 * 1) - 1 downto (32 * 0));
-                    i_req_des_qword1((32 * 2) - 1 downto (32 * 1)) <= p_in_m_axis_cq_tdata((32 * 2) - 1 downto (32 * 1));
+                    i_req_des(2) <= p_in_m_axis_cq_tdata((32 * 1) - 1 downto (32 * 0));
+                    i_req_des(3) <= p_in_m_axis_cq_tdata((32 * 2) - 1 downto (32 * 1));
 
                     --Req Type
                     case p_in_m_axis_cq_tdata(((32 * 0) + 14) downto ((32 * 0) + 11)) is
@@ -835,8 +850,10 @@ if rising_edge(p_in_clk) then
                           i_req_pkt  <= p_in_m_axis_cq_tdata(((32 * 0) + 14) downto ((32 * 0) + 11));
                           i_req_len  <= p_in_m_axis_cq_tdata(((32 * 0) + 10) downto ((32 * 0) +  0)); --Length data payload (DW)
 
-                          i_req_addr <= i_req_des_qword0(((32 * 0) + 12) downto ((32 * 0) + 2)) & "00";
-                          i_req_at   <= i_req_des_qword0(((32 * 0) +  1) downto ((32 * 0) + 0));
+                          if p_in_m_axis_cq_tkeep(2) = '1' then
+                          i_req_addr <= i_req_des(0)(12 downto 2) & "00";
+                          i_req_at   <= i_req_des(0)( 1 downto 0);
+                          end if;
 
                           --Check length data payload (DW)
                           if UNSIGNED(p_in_m_axis_cq_tdata(((32 * 0) + 10) downto ((32 * 0) + 0))) = TO_UNSIGNED(16#01#, 11) then
@@ -901,11 +918,11 @@ if rising_edge(p_in_clk) then
         when S_RX_CHK4 =>
 
             if p_in_m_axis_cq_tvalid = '1' then
-                if p_in_m_axis_cq_tkeep(7 downto 0) = "00001111" then
+                if p_in_m_axis_cq_tkeep(2 downto 0) = "111" then --if p_in_m_axis_cq_tkeep(7 downto 0) = "00001111" then
 
-                    i_req_des_qword0((32 * 2) - 1 downto (32 * 1)) <= p_in_m_axis_cq_tdata((32 * 1) - 1 downto (32 * 0));
-                    i_req_des_qword1((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_cq_tdata((32 * 2) - 1 downto (32 * 1));
-                    i_req_des_qword1((32 * 2) - 1 downto (32 * 1)) <= p_in_m_axis_cq_tdata((32 * 3) - 1 downto (32 * 2));
+                    i_req_des(1) <= p_in_m_axis_cq_tdata((32 * 1) - 1 downto (32 * 0));
+                    i_req_des(2) <= p_in_m_axis_cq_tdata((32 * 2) - 1 downto (32 * 1));
+                    i_req_des(3) <= p_in_m_axis_cq_tdata((32 * 3) - 1 downto (32 * 2));
 
                     --Req Type
                     case p_in_m_axis_cq_tdata(((32 * 1) + 14) downto ((32 * 1) + 11)) is
@@ -930,14 +947,16 @@ if rising_edge(p_in_clk) then
                           i_req_pkt  <= p_in_m_axis_cq_tdata(((32 * 1) + 14) downto ((32 * 1) + 11));
                           i_req_len  <= p_in_m_axis_cq_tdata(((32 * 1) + 10) downto ((32 * 1) +  0)); --Length data payload (DW)
 
-                          i_req_addr <= i_req_des_qword0(((32 * 0) + 12) downto ((32 * 0) + 2)) & "00";
-                          i_req_at   <= i_req_des_qword0(((32 * 0) +  1) downto ((32 * 0) + 0));
+                          i_req_addr <= i_req_des(0)(12 downto 2) & "00";
+                          i_req_at   <= i_req_des(0)( 1 downto 0);
 
                           --Check length data payload (DW)
                           if UNSIGNED(p_in_m_axis_cq_tdata(((32 * 1) + 10) downto ((32 * 1) + 0))) = TO_UNSIGNED(16#01#, 11) then
 
+                              if p_in_m_axis_cq_tkeep(3) = '1' then
                               i_reg_d    <= p_in_m_axis_cq_tdata((32 * 4) - 1 downto (32 * 3));
                               i_reg_wrbe <= p_in_m_axis_cq_tuser((8 + (4 * 4)) - 1 downto (8 + (4 * 3)));
+                              end if;
 
                               --Compl
                               if (p_in_m_axis_cq_tdata(((32 * 1) + 14) downto ((32 * 1) + 11)) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
