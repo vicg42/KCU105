@@ -47,7 +47,7 @@ vlog -64 -incr -work gtwizard_ultrascale_v1_5  +incdir+../testbanch/pcie3_core/s
 vcom -64 -93 -work xil_defaultlib   \
 "../../../../../lib/common/hw/lib/vicg/vicg_common_pkg.vhd" \
 "../../../../../lib/common/hw/lib/vicg/reduce_pack.vhd" \
-"../../src/prj_cfg.vhd" \
+"../testbanch/prj_cfg_sim.vhd" \
 "../../src/prj_def.vhd" \
 "../../src/pcie/pcie_pkg.vhd" \
 "../../src/pcie/pcie_uv7_unit_pkg.vhd" \
