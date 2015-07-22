@@ -170,6 +170,7 @@ reg        [(REM_WIDTH - 1):0]               pcie_tlp_rem;
 /* Local Variables */
 
 integer                         i, j, k;
+reg     [31:0]                  USR_DATA;
 reg     [7:0]                   DATA_STORE [4095:0];
 reg     [31:0]                  ADDRESS_32_L;
 reg     [31:0]                  ADDRESS_32_H;
@@ -2754,6 +2755,7 @@ end
                 $display("[%t] :  interface is MIA", $realtime);
                 $finish(1);
             end
+            $display("[%t] : TSK_TX_IO_WRITE : Data =  %x", $realtime, data_);
             //-----------------------------------------------------------------------\\
             TSK_TX_SYNCHRONIZE(0, 0, 0, `SYNC_RQ_RDY);
             //-----------------------------------------------------------------------\\
