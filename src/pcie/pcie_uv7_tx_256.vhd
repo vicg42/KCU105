@@ -148,8 +148,8 @@ begin --architecture behavioral of pcie_tx
 p_out_compl_done <= i_compl_done;
 
 --AXI-S Completer Competion Interface
-p_out_s_axis_cc_tdata  <= std_logic_vector(RESIZE(UNSIGNED(i_s_axis_cc_tdata), 256));--i_s_axis_cc_tdata;--
-p_out_s_axis_cc_tkeep  <= std_logic_vector(RESIZE(UNSIGNED(i_s_axis_cc_tkeep), 8)) ; --i_s_axis_cc_tkeep;--
+p_out_s_axis_cc_tdata  <= std_logic_vector(RESIZE(UNSIGNED(i_s_axis_cc_tdata), 256));
+p_out_s_axis_cc_tkeep  <= std_logic_vector(RESIZE(UNSIGNED(i_s_axis_cc_tkeep), 8)) ;
 p_out_s_axis_cc_tlast  <= i_s_axis_cc_tlast ;
 p_out_s_axis_cc_tvalid <= i_s_axis_cc_tvalid;
 p_out_s_axis_cc_tuser  <= i_s_axis_cc_tuser ;
