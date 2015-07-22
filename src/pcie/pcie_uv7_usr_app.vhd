@@ -68,7 +68,7 @@ signal i_reg_bar          : std_logic;
 signal i_reg_adr          : unsigned(4 downto 0);
 
 signal v_reg_firmware     : std_logic_vector(C_HREG_FRMWARE_LAST_BIT downto 0);
-type TReg is array (1 to 15) of std_logic_vector(31 downto 0);
+type TReg is array (1 to 18) of std_logic_vector(31 downto 0);
 signal v_reg              : TReg;
 
 
@@ -90,7 +90,7 @@ wr : process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
   if p_in_rst_n = '0' then
-    for i in 1 to (v_reg'length - 1) loop
+    for i in 1 to v_reg'length loop
     v_reg(i) <= (others => '0');
     end loop;
 
@@ -98,21 +98,25 @@ if rising_edge(p_in_clk) then
 
     if p_in_reg_wr = '1' then
       if i_reg_bar = '1' then
-          if    i_reg_adr = TO_UNSIGNED(C_HREG_CTRL      , 5) then v_reg(1) <= p_in_reg_din;
-          elsif i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_ADR, 5) then v_reg(2) <= p_in_reg_din;
-          elsif i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_LEN, 5) then v_reg(3) <= p_in_reg_din;
-          elsif i_reg_adr = TO_UNSIGNED(C_HREG_DEV_CTRL  , 5) then v_reg(4) <= p_in_reg_din;
-          elsif i_reg_adr = TO_UNSIGNED(C_HREG_DEV_STATUS, 5) then v_reg(5) <= p_in_reg_din;
-          elsif i_reg_adr = TO_UNSIGNED(C_HREG_IRQ       , 5) then v_reg(6) <= p_in_reg_din;
-          elsif i_reg_adr = TO_UNSIGNED(C_HREG_MEM_ADR   , 5) then v_reg(7) <= p_in_reg_din;
-          elsif i_reg_adr = TO_UNSIGNED(C_HREG_MEM_CTRL  , 5) then v_reg(8) <= p_in_reg_din;
-          elsif i_reg_adr = TO_UNSIGNED(C_HREG_FG_FRMRK  , 5) then v_reg(9) <= p_in_reg_din;
-          elsif i_reg_adr = TO_UNSIGNED(C_HREG_PCIE      , 5) then v_reg(10) <= p_in_reg_din;
-          elsif i_reg_adr = TO_UNSIGNED(C_HREG_FUNC      , 5) then v_reg(11) <= p_in_reg_din;
-          elsif i_reg_adr = TO_UNSIGNED(C_HREG_FUNCPRM   , 5) then v_reg(12) <= p_in_reg_din;
-          elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST0      , 5) then v_reg(13) <= p_in_reg_din;
-          elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST1      , 5) then v_reg(14) <= p_in_reg_din;
-          elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST2      , 5) then v_reg(15) <= p_in_reg_din;
+          if    i_reg_adr = TO_UNSIGNED(1 , 5) then v_reg(1) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(2 , 5) then v_reg(2) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(3 , 5) then v_reg(3) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(4 , 5) then v_reg(4) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(5 , 5) then v_reg(5) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(6 , 5) then v_reg(6) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(7 , 5) then v_reg(7) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(8 , 5) then v_reg(8) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(9 , 5) then v_reg(9) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(10, 5) then v_reg(10) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(11, 5) then v_reg(11) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(12, 5) then v_reg(12) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(13, 5) then v_reg(13) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(14, 5) then v_reg(14) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(15, 5) then v_reg(15) <= p_in_reg_din;
+
+          elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST0, 5) then v_reg(16) <= p_in_reg_din;
+          elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST1, 5) then v_reg(17) <= p_in_reg_din;
+
           end if;
       end if;
     end if;
@@ -154,21 +158,24 @@ if rising_edge(p_in_clk) then
             txd(C_HREG_PCIE_NEG_MAX_RD_REQ_M_BIT downto C_HREG_PCIE_NEG_MAX_RD_REQ_L_BIT)
                 := p_in_pcie_prm.max_rd_req(2 downto 0);
 
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_CTRL      , 5) then txd := v_reg(1);
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_ADR, 5) then txd := v_reg(2);
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_LEN, 5) then txd := v_reg(3);
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_DEV_CTRL  , 5) then txd := v_reg(4);
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_DEV_STATUS, 5) then txd := v_reg(5);
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_IRQ       , 5) then txd := v_reg(6);
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_MEM_ADR   , 5) then txd := v_reg(7);
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_MEM_CTRL  , 5) then txd := v_reg(8);
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_FG_FRMRK  , 5) then txd := v_reg(9);
+        elsif i_reg_adr = TO_UNSIGNED(1 , 5) then txd := v_reg(1);
+        elsif i_reg_adr = TO_UNSIGNED(2 , 5) then txd := v_reg(2);
+        elsif i_reg_adr = TO_UNSIGNED(3 , 5) then txd := v_reg(3);
+        elsif i_reg_adr = TO_UNSIGNED(4 , 5) then txd := v_reg(4);
+        elsif i_reg_adr = TO_UNSIGNED(5 , 5) then txd := v_reg(5);
+        elsif i_reg_adr = TO_UNSIGNED(6 , 5) then txd := v_reg(6);
+        elsif i_reg_adr = TO_UNSIGNED(7 , 5) then txd := v_reg(7);
+        elsif i_reg_adr = TO_UNSIGNED(8 , 5) then txd := v_reg(8);
+        elsif i_reg_adr = TO_UNSIGNED(9 , 5) then txd := v_reg(9);
+        elsif i_reg_adr = TO_UNSIGNED(10, 5) then txd := v_reg(10);
+        elsif i_reg_adr = TO_UNSIGNED(11, 5) then txd := v_reg(11);
+        elsif i_reg_adr = TO_UNSIGNED(12, 5) then txd := v_reg(12);
 
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_FUNC      , 5) then txd := v_reg(11);
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_FUNCPRM   , 5) then txd := v_reg(12);
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST0      , 5) then txd := v_reg(13);
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST1      , 5) then txd := v_reg(14);
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST2      , 5) then txd := v_reg(15);
+        elsif i_reg_adr = TO_UNSIGNED(14, 5) then txd := v_reg(14);
+        elsif i_reg_adr = TO_UNSIGNED(15, 5) then txd := v_reg(15);
+
+        elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST0, 5) then txd := v_reg(16);
+        elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST1, 5) then txd := v_reg(17);
         end if;
 
       end if;
@@ -196,7 +203,8 @@ p_out_dev_wr    <= '0';
 p_out_dev_rd    <= '0';
 p_out_dev_opt   <= (others => '0');
 
-p_out_tst <= (others => '0');
+p_out_tst(4 downto 0) <= std_logic_vector(i_reg_adr);
+p_out_tst(127 downto 5) <= (others => '0');
 
 
 end architecture behavioral;

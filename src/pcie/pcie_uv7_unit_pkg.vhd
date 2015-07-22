@@ -255,7 +255,7 @@ end component pcie_usr_app;
 component dbgcs_ila_pcie is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(649 downto 0)
+probe0 : in std_logic_vector(33 downto 0)
 );
 end component dbgcs_ila_pcie;
 
