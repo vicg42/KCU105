@@ -221,9 +221,9 @@ sys_reset : IN STD_LOGIC;
 pcie_perstn1_in : IN STD_LOGIC;
 pcie_perstn0_out : OUT STD_LOGIC;
 pcie_perstn1_out : OUT STD_LOGIC;
-int_qpll1lock_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-int_qpll1outrefclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-int_qpll1outclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0)
+int_qpll1lock_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+int_qpll1outrefclk_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+int_qpll1outclk_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0)
 );
 END component pcie3_core;
 

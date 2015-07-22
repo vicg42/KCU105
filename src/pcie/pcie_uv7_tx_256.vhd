@@ -75,31 +75,15 @@ p_in_req_compl    : in  std_logic;
 p_in_req_compl_ur : in  std_logic;
 p_out_compl_done  : out std_logic;
 
-p_in_req_type : in  std_logic_vector(3 downto 0);
-p_in_req_tc   : in  std_logic_vector(2 downto 0);
-p_in_req_td   : in  std_logic;
-p_in_req_ep   : in  std_logic;
-p_in_req_attr : in  std_logic_vector(1 downto 0);
-p_in_req_len  : in  std_logic_vector(10 downto 0);
-p_in_req_rid  : in  std_logic_vector(15 downto 0);
-p_in_req_tag  : in  std_logic_vector(7 downto 0);
-p_in_req_be   : in  std_logic_vector(7 downto 0);
-p_in_req_addr : in  std_logic_vector(12 downto 0);
-p_in_req_at   : in  std_logic_vector(1 downto 0);
+p_in_req_prm      : in TPCIE_reqprm;
 
 p_in_completer_id : in  std_logic_vector(15 downto 0);
-
-p_in_req_des_qword0      : in  std_logic_vector(63 downto 0);
-p_in_req_des_qword1      : in  std_logic_vector(63 downto 0);
-p_in_req_des_tph_present : in  std_logic;
-p_in_req_des_tph_type    : in  std_logic_vector(1 downto 0);
-p_in_req_des_tph_st_tag  : in  std_logic_vector(7 downto 0);
 
 --usr app
 p_in_ureg_do   : in  std_logic_vector(31 downto 0);
 
 --DBG
-p_out_tst : out std_logic_vector(69 downto 0);
+p_out_tst : out std_logic_vector(279 downto 0);
 
 --system
 p_in_clk   : in  std_logic;
@@ -111,37 +95,51 @@ architecture behavioral of pcie_tx is
 
 type TFsmTx_state is (
 S_TX_IDLE  ,
-S_TX_CPL   ,
-S_TX_CPL_2
+S_TX_CPL
 );
 signal i_fsm_tx              : TFsmTx_state;
 
 signal i_s_axis_cc_tparity: std_logic_vector(31 downto 0) := (others => '0');
 
-signal i_s_axis_cc_tdata  : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-signal i_s_axis_cc_tkeep  : std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+signal i_s_axis_cc_tdata  : std_logic_vector(127 downto 0);
+signal i_s_axis_cc_tkeep  : std_logic_vector(3 downto 0);
 signal i_s_axis_cc_tlast  : std_logic;
 signal i_s_axis_cc_tvalid : std_logic;
 signal i_s_axis_cc_tuser  : std_logic_vector(32 downto 0);
 
-signal i_s_axis_rq_tdata  : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-signal i_s_axis_rq_tkeep  : std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-signal i_s_axis_rq_tlast  : std_logic;
-signal i_s_axis_rq_tvalid : std_logic;
-signal i_s_axis_rq_tuser  : std_logic_vector(59 downto 0);
+--signal i_s_axis_rq_tdata  : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+--signal i_s_axis_rq_tkeep  : std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+--signal i_s_axis_rq_tlast  : std_logic;
+--signal i_s_axis_rq_tvalid : std_logic;
+--signal i_s_axis_rq_tuser  : std_logic_vector(59 downto 0);
 
-signal i_cfg_msg_transmit      : std_logic;
-signal i_cfg_msg_transmit_type : std_logic_vector(2 downto 0);
-signal i_cfg_msg_transmit_data : std_logic_vector(31 downto 0);
+--signal i_cfg_msg_transmit      : std_logic;
+--signal i_cfg_msg_transmit_type : std_logic_vector(2 downto 0);
+--signal i_cfg_msg_transmit_data : std_logic_vector(31 downto 0);
 
 signal i_compl_done       : std_logic;
+
+type TReq is record
+pkt  : std_logic_vector(3 downto 0);
+tc   : std_logic_vector(2 downto 0);
+attr : std_logic_vector(2 downto 0);
+len  : std_logic_vector(10 downto 0);
+rid  : std_logic_vector(15 downto 0);
+tag  : std_logic_vector(7 downto 0);
+addr : std_logic_vector(12 downto 0);
+at   : std_logic_vector(1 downto 0);
+end record;
+
+signal i_req              : TReq;
+
+signal i_req_be           : std_logic_vector(7 downto 0);
 
 --signal i_lower_addr_tmp     : std_logic_vector(6 downto 0);
 signal i_lower_addr       : std_logic_vector(6 downto 0);
 
 signal sr_req_compl       : std_logic_vector(0 to 1);
 
-signal tst_fsm_tx         : unsigned(1 downto 0);
+signal tst_fsm_tx         : std_logic;
 
 
 
@@ -150,18 +148,18 @@ begin --architecture behavioral of pcie_tx
 p_out_compl_done <= i_compl_done;
 
 --AXI-S Completer Competion Interface
-p_out_s_axis_cc_tdata  <= i_s_axis_cc_tdata ;
-p_out_s_axis_cc_tkeep  <= i_s_axis_cc_tkeep ;
+p_out_s_axis_cc_tdata  <= std_logic_vector(RESIZE(UNSIGNED(i_s_axis_cc_tdata), 256));--i_s_axis_cc_tdata;--
+p_out_s_axis_cc_tkeep  <= std_logic_vector(RESIZE(UNSIGNED(i_s_axis_cc_tkeep), 8)) ; --i_s_axis_cc_tkeep;--
 p_out_s_axis_cc_tlast  <= i_s_axis_cc_tlast ;
 p_out_s_axis_cc_tvalid <= i_s_axis_cc_tvalid;
 p_out_s_axis_cc_tuser  <= i_s_axis_cc_tuser ;
 
 --AXI-S Requester Request Interface
-p_out_s_axis_rq_tdata  <= i_s_axis_rq_tdata ;
-p_out_s_axis_rq_tkeep  <= i_s_axis_rq_tkeep ;
-p_out_s_axis_rq_tlast  <= i_s_axis_rq_tlast ;
-p_out_s_axis_rq_tvalid <= i_s_axis_rq_tvalid;
-p_out_s_axis_rq_tuser  <= i_s_axis_rq_tuser ;
+p_out_s_axis_rq_tdata  <= (others => '0');--i_s_axis_rq_tdata ;
+p_out_s_axis_rq_tkeep  <= (others => '0');--i_s_axis_rq_tkeep ;
+p_out_s_axis_rq_tlast  <= '0';--i_s_axis_rq_tlast ;
+p_out_s_axis_rq_tvalid <= '0';--i_s_axis_rq_tvalid;
+p_out_s_axis_rq_tuser  <= (others => '0');--i_s_axis_rq_tuser ;
 
 --TX Message Interface
 p_out_cfg_msg_transmit      <= '0';
@@ -170,43 +168,33 @@ p_out_cfg_msg_transmit_data <= (others => '0');
 
 p_out_cfg_fc_sel <= (others => '0');
 
-----Present address and byte enable to memory module
---process(p_in_clk)
---begin
---if (p_in_rst_n = '0') then
---  i_rd_addr <= (others => '0');
---  i_rd_be   <= (others => '0');
---else
---  if p_in_req_compl_wd = '1' then
---    if i_dword_count = (i_dword_count'range => '0') then
---      i_rd_addr <= UNSIGNED(p_in_req_addr(12 downto 0);
---      i_rd_be   <= p_in_req_be(3 downto 0);
---    end if;
---
---  else
---    i_rd_addr <= UNSIGNED(p_in_req_addr(12 downto 2)) + 1;
---    i_rd_be   <= p_in_req_be(7 downto 4);
---
---  end if;
---end if;
---end process;
+i_req.attr <= p_in_req_prm.desc(3)(30 downto 28);
+i_req.tc   <= p_in_req_prm.desc(3)(27 downto 25);
+i_req.tag  <= p_in_req_prm.desc(3)( 7 downto  0);
+i_req.rid  <= p_in_req_prm.desc(2)(31 downto 16);
+i_req.pkt  <= p_in_req_prm.desc(2)(14 downto 11);
+i_req.len  <= p_in_req_prm.desc(2)(10 downto  0);
+i_req.addr <= p_in_req_prm.desc(0)(12 downto  2) & "00";
+i_req.at   <= p_in_req_prm.desc(0)( 1 downto  0);
+
+i_req_be  <= p_in_req_prm.last_be & p_in_req_prm.first_be;
 
 --Calculate lower address based on  byte enable
-process (p_in_req_be, p_in_req_addr)
+process (i_req_be, i_req.addr)
 begin
-  case p_in_req_be(3 downto 0) is
+  case i_req_be(3 downto 0) is
     when "0000" =>
-      i_lower_addr <= (p_in_req_addr(6 downto 2) & "00");
+      i_lower_addr <= (i_req.addr(6 downto 2) & "00");
     when "0001" | "0011" | "0101" | "0111" | "1001" | "1011" | "1101" | "1111" =>
-      i_lower_addr <= (p_in_req_addr(6 downto 2) & "00");
+      i_lower_addr <= (i_req.addr(6 downto 2) & "00");
     when "0010" | "0110" | "1010" | "1110" =>
-      i_lower_addr <= (p_in_req_addr(6 downto 2) & "01");
+      i_lower_addr <= (i_req.addr(6 downto 2) & "01");
     when "0100" | "1100" =>
-      i_lower_addr <= (p_in_req_addr(6 downto 2) & "10");
+      i_lower_addr <= (i_req.addr(6 downto 2) & "10");
     when "1000" =>
-      i_lower_addr <= (p_in_req_addr(6 downto 2) & "11");
+      i_lower_addr <= (i_req.addr(6 downto 2) & "11");
     when others =>
-      i_lower_addr <= (p_in_req_addr(6 downto 2) & "00");
+      i_lower_addr <= (i_req.addr(6 downto 2) & "00");
   end case;
 end process;
 
@@ -246,6 +234,7 @@ end if;
 end process;
 
 
+
 --Tx State Machine
 fsm : process(p_in_clk)
 begin
@@ -259,16 +248,6 @@ if rising_edge(p_in_clk) then
     i_s_axis_cc_tlast  <= '0';
     i_s_axis_cc_tvalid <= '0';
     i_s_axis_cc_tuser  <= (others => '0');
-
-    i_s_axis_rq_tdata  <= (others => '0');
-    i_s_axis_rq_tkeep  <= (others => '0');
-    i_s_axis_rq_tlast  <= '0';
-    i_s_axis_rq_tvalid <= '0';
-    i_s_axis_rq_tuser  <= (others => '0');
-
-    i_cfg_msg_transmit      <= '0';
-    i_cfg_msg_transmit_type <= (others => '0');
-    i_cfg_msg_transmit_data <= (others => '0');
 
     i_compl_done <= '0';
 
@@ -285,16 +264,6 @@ if rising_edge(p_in_clk) then
             i_s_axis_cc_tvalid <= '0';
             i_s_axis_cc_tuser  <= (others => '0');
 
-            i_s_axis_rq_tdata  <= (others => '0');
-            i_s_axis_rq_tkeep  <= (others => '0');
-            i_s_axis_rq_tlast  <= '0';
-            i_s_axis_rq_tvalid <= '0';
-            i_s_axis_rq_tuser  <= (others => '0');
-
-            i_cfg_msg_transmit      <= '0';
-            i_cfg_msg_transmit_type <= (others => '0');
-            i_cfg_msg_transmit_data <= (others => '0');
-
             i_compl_done <= '0';
 
             if p_in_req_compl = '1' then
@@ -308,73 +277,62 @@ if rising_edge(p_in_clk) then
         when S_TX_CPL =>
 
           if sr_req_compl(sr_req_compl'high) = '1' then
-            i_s_axis_cc_tvalid <= '1';
-            i_s_axis_cc_tlast  <= '0';
-            i_s_axis_cc_tkeep  <= std_logic_vector(TO_UNSIGNED(3, i_s_axis_cc_tkeep'length));
-
-            i_s_axis_cc_tdata(63 downto 48) <= p_in_req_rid;           --Requester ID - 16 bits
-            i_s_axis_cc_tdata(47)           <= '0';                    --Rsvd
-            i_s_axis_cc_tdata(46)           <= '0';                    --Posioned completion
-            i_s_axis_cc_tdata(45 downto 43) <= C_PCIE_COMPL_STATUS_SC; --Completion Status: SuccessFull completion
-
-            if (p_in_req_type = C_PCIE3_PKT_TYPE_IO_RD_ND) or
-               ((p_in_req_type = C_PCIE3_PKT_TYPE_MEM_RD_ND) and (p_in_req_len = (p_in_req_len'range => '0'))) then
-
-              i_s_axis_cc_tdata(42 downto 32) <= std_logic_vector(TO_UNSIGNED(1, 11));  --DWord Count
-
-            elsif (p_in_req_type = C_PCIE3_PKT_TYPE_IO_WR_D) then
-              i_s_axis_cc_tdata(42 downto 32) <= (others => '0');--DWord Count
-
-            else
-              i_s_axis_cc_tdata(42 downto 32) <= p_in_req_len;   --DWord Count
-
-            end if;
-
-            i_s_axis_cc_tdata(31 downto 30) <= (others => '0');        --Rsvd
-            i_s_axis_cc_tdata(29)           <= '0';                    --Locked Read Completion
-            i_s_axis_cc_tdata(28 downto 16) <= std_logic_vector(TO_UNSIGNED(4, 13)); --Byte Count
-            i_s_axis_cc_tdata(15 downto 10) <= (others => '0');        --Rsvd
-            i_s_axis_cc_tdata(9 downto 8)   <= p_in_req_at;            --Adress Type - 2 bits
-            i_s_axis_cc_tdata(7)            <= '0';                    --Rsvd
-            i_s_axis_cc_tdata(6 downto 0)   <= (others => '0');        --Starting address of the mem byte - 7 bits
-
-            if G_AXISTEN_IF_CC_PARITY_CHECK = 0 then
-              i_s_axis_cc_tuser <= (others => '0');
-            else
-              i_s_axis_cc_tuser <= std_logic_vector(RESIZE(UNSIGNED(i_s_axis_cc_tparity), i_s_axis_cc_tuser'length));
-            end if;
-
-            if p_in_s_axis_cc_tready = '1' then
-              i_fsm_tx <= S_TX_CPL_2;
-            end if;
-
-          end if;
-
-        when S_TX_CPL_2 =>
 
             i_s_axis_cc_tvalid <= '1';
             i_s_axis_cc_tlast  <= '1';
 
-            if (p_in_req_type = C_PCIE3_PKT_TYPE_MEM_RD_ND)
-                or (p_in_req_type = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND)
-                or (p_in_req_type = C_PCIE3_PKT_TYPE_IO_RD_ND) then
+            if (i_req.pkt = C_PCIE3_PKT_TYPE_MEM_RD_ND)
+                or (i_req.pkt = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND)
+                or (i_req.pkt = C_PCIE3_PKT_TYPE_IO_RD_ND) then
 
-              i_s_axis_cc_tdata(63 downto 32) <= p_in_ureg_do;
-              i_s_axis_cc_tkeep <= std_logic_vector(TO_UNSIGNED(3, i_s_axis_cc_tkeep'length));
+              i_s_axis_cc_tdata((32 * 4) - 1 downto (32 * 3)) <= p_in_ureg_do;
+              i_s_axis_cc_tkeep <= "1111";
 
             else
-              i_s_axis_cc_tdata(63 downto 32) <= (others => '0');
-              i_s_axis_cc_tkeep <= std_logic_vector(TO_UNSIGNED(1, i_s_axis_cc_tkeep'length));
+              i_s_axis_cc_tdata((32 * 4) - 1 downto (32 * 3)) <= (others => '0');
+              i_s_axis_cc_tkeep <= "0111";
 
             end if;
 
-            i_s_axis_cc_tdata(31)           <= '0';           -- Force ECRC
-            i_s_axis_cc_tdata(30 downto 28) <= std_logic_vector(RESIZE(UNSIGNED(p_in_req_attr), 3));
-            i_s_axis_cc_tdata(27 downto 25) <= p_in_req_tc;   --
-            i_s_axis_cc_tdata(24)           <= '0';           --Completer ID to control selection of Client Supplied Bus number
-            i_s_axis_cc_tdata(23 downto 16) <= p_in_completer_id(15 downto 8); --Completer Bus number - selected if Compl ID    = 1
-            i_s_axis_cc_tdata(15 downto 8)  <= p_in_completer_id(7 downto 0);  --Compl Dev / Func no - sel if Compl ID = 1
-            i_s_axis_cc_tdata(7 downto 0)   <= p_in_req_tag;  --Matching Request Tag
+            i_s_axis_cc_tdata((32 * 2) + 31)                      <= '0';       -- Force ECRC
+            i_s_axis_cc_tdata((32 * 2) + 30 downto (32 * 2) + 28) <= std_logic_vector(RESIZE(UNSIGNED(i_req.attr), 3));
+            i_s_axis_cc_tdata((32 * 2) + 27 downto (32 * 2) + 25) <= i_req.tc;  --
+            i_s_axis_cc_tdata((32 * 2) + 24)                      <= '0';       --Completer ID to control selection of Client Supplied Bus number
+            i_s_axis_cc_tdata((32 * 2) + 23 downto (32 * 2) + 16) <= p_in_completer_id(15 downto 8); --Completer Bus number - selected if Compl ID = 1
+            i_s_axis_cc_tdata((32 * 2) + 15 downto (32 * 2) +  8) <= p_in_completer_id(7 downto 0);  --Compl Dev / Func no - sel if Compl ID = 1
+            i_s_axis_cc_tdata((32 * 2) +  7 downto (32 * 2) +  0) <= i_req.tag; --Matching Request Tag
+
+            i_s_axis_cc_tdata((32 * 1) + 31 downto (32 * 1) + 16) <= i_req.rid; --Requester ID - 16 bits
+            i_s_axis_cc_tdata((32 * 1) + 15)                      <= '0';       --Rsvd
+            i_s_axis_cc_tdata((32 * 1) + 14)                      <= '0';       --Posioned completion
+            i_s_axis_cc_tdata((32 * 1) + 13 downto (32 * 1) + 11) <= C_PCIE_COMPL_STATUS_SC; --Completion Status: SuccessFull completion
+
+            if (i_req.pkt = C_PCIE3_PKT_TYPE_IO_RD_ND) or
+               ((i_req.pkt = C_PCIE3_PKT_TYPE_MEM_RD_ND) and (i_req.len = (i_req.len'range => '0'))) then
+
+              i_s_axis_cc_tdata((32 * 1) + 10 downto (32 * 1) + 0) <= std_logic_vector(TO_UNSIGNED(1, 11)); --DWord Count
+
+            elsif (i_req.pkt = C_PCIE3_PKT_TYPE_IO_WR_D) then
+              i_s_axis_cc_tdata((32 * 1) + 10 downto (32 * 1) + 0) <= (others => '0'); --DWord Count
+
+            else
+              i_s_axis_cc_tdata((32 * 1) + 10 downto (32 * 1) + 0) <= i_req.len; --DWord Count
+
+            end if;
+
+            i_s_axis_cc_tdata((32 * 0) + 31 downto (32 * 0) + 30) <= (others => '0');        --Rsvd
+            i_s_axis_cc_tdata((32 * 0) + 29)                      <= '0';                    --Locked Read Completion
+            i_s_axis_cc_tdata((32 * 0) + 28 downto (32 * 0) + 16) <= std_logic_vector(TO_UNSIGNED(4, 13)); --Byte Count
+            i_s_axis_cc_tdata((32 * 0) + 15 downto (32 * 0) + 10) <= (others => '0');        --Rsvd
+            i_s_axis_cc_tdata((32 * 0) +  9 downto (32 * 0) +  8) <= i_req.at;               --Adress Type - 2 bits
+            i_s_axis_cc_tdata((32 * 0) +  7)                      <= '0';                    --Rsvd
+
+            if ((i_req.pkt = C_PCIE3_PKT_TYPE_MEM_RD_ND) or (i_req.pkt = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND)) then
+              i_s_axis_cc_tdata((32 * 0) +  6 downto (32 * 0) +  0) <= i_lower_addr;
+            else
+              i_s_axis_cc_tdata((32 * 0) +  6 downto (32 * 0) +  0) <= (others => '0');
+            end if;
+
 
             if G_AXISTEN_IF_CC_PARITY_CHECK = 0 then
               i_s_axis_cc_tuser <= (others => '0');
@@ -387,6 +345,8 @@ if rising_edge(p_in_clk) then
               i_fsm_tx <= S_TX_IDLE;
             end if;
 
+          end if;
+
     end case; --case i_fsm_tx is
   end if;--p_in_rst_n
 end if;--p_in_clk
@@ -396,12 +356,18 @@ end process; --fsm
 --#######################################################################
 --DBG
 --#######################################################################
-tst_fsm_tx <= TO_UNSIGNED(16#01#,tst_fsm_tx'length) when i_fsm_tx = S_TX_CPL_2  else
-              TO_UNSIGNED(16#02#,tst_fsm_tx'length) when i_fsm_tx = S_TX_CPL    else
-              TO_UNSIGNED(16#00#,tst_fsm_tx'length); --i_fsm_tx = S_TX_IDLE       else
+tst_fsm_tx <= '1' when i_fsm_tx = S_TX_CPL  else '0';
 
-p_out_tst(1 downto 0) <= std_logic_vector(tst_fsm_tx);
-p_out_tst(69 downto 68) <= (others => '0');
+p_out_tst(0) <= tst_fsm_tx;
+p_out_tst(3 downto 1) <= (others => '0');
+p_out_tst(7 downto 4) <= (others => '0');
+
+p_out_tst(8) <= i_s_axis_cc_tvalid;
+p_out_tst(9) <= i_s_axis_cc_tlast;
+p_out_tst(10) <= p_in_s_axis_cc_tready;
+p_out_tst(266 downto 11)  <= std_logic_vector(RESIZE(UNSIGNED(i_s_axis_cc_tdata), 256));
+p_out_tst(274 downto 267) <= std_logic_vector(RESIZE(UNSIGNED(i_s_axis_cc_tkeep), 8));
+p_out_tst(279 downto 275) <= (others => '0');
 
 end architecture behavioral;
 

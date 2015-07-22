@@ -50,7 +50,7 @@
 //
 // Project    : Ultrascale FPGA Gen3 Integrated Block for PCI Express
 // File       : board.v
-// Version    : 4.0
+// Version    : 4.0 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //
@@ -103,8 +103,7 @@ module board;
   wire  [(LINK_WIDTH-1):0]  ep_pci_exp_txp;
   wire  [(LINK_WIDTH-1):0]  rp_pci_exp_txn;
   wire  [(LINK_WIDTH-1):0]  rp_pci_exp_txp;
-  wire  [3:0] rp_txn;
-  wire  [3:0] rp_txp;
+  
 
 
   //
@@ -122,18 +121,14 @@ module board;
     .sys_clk_p(rp_sys_clk_p),
     .sys_rst_n(sys_rst_n),
 
-
+  
     // PCI-Express Interface
     .pci_exp_txn(rp_pci_exp_txn),
     .pci_exp_txp(rp_pci_exp_txp),
     .pci_exp_rxn(ep_pci_exp_txn),
     .pci_exp_rxp(ep_pci_exp_txp)
-//    .pci_exp_txn({rp_txn,rp_pci_exp_txn}),
-//    .pci_exp_txp({rp_txp,rp_pci_exp_txp}),
-//    .pci_exp_rxn({4'b0,ep_pci_exp_txn}),
-//    .pci_exp_rxp({4'b0,ep_pci_exp_txp})
-
-
+  
+  
   );
   //------------------------------------------------------------------------------//
   // Simulation endpoint with PIO Slave
@@ -141,8 +136,7 @@ module board;
   //
   // PCI-Express Endpoint Instance
   //
-  //xilinx_pcie3_uscale_ep
-  pcie_uv7_main_sim
+  xilinx_pcie3_uscale_ep 
    EP (
     // SYS Inteface
     .sys_clk_n(ep_sys_clk_n),
@@ -155,7 +149,7 @@ module board;
     .pci_exp_txp(ep_pci_exp_txp),
     .pci_exp_rxn(rp_pci_exp_txn),
     .pci_exp_rxp(rp_pci_exp_txp)
-
+  
   );
 
 

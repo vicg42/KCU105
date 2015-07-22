@@ -18,13 +18,13 @@ vlib msim/gtwizard_ultrascale_v1_5
 vmap xil_defaultlib msim/xil_defaultlib
 vmap gtwizard_ultrascale_v1_5 msim/gtwizard_ultrascale_v1_5
 
-vlog -64 -incr -work xil_defaultlib  +incdir+../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/functional +incdir+../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/tests +incdir+../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/dsport \
+vlog -64 -incr -work xil_defaultlib  +incdir+../testbanch/pcie3_core/simulation/functional +incdir+../testbanch/pcie3_core/simulation/tests +incdir+../testbanch/pcie3_core/simulation/dsport \
 "../../src/pcie/pcie_uv7_irq.v" \
 "../../src/pcie/pcie_uv7_to_ctrl.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/dsport/pcie3_uscale_rp_core_top.v" \
+"../testbanch/pcie3_core/simulation/dsport/pcie3_uscale_rp_core_top.v" \
 
 
-vlog -64 -incr -work gtwizard_ultrascale_v1_5  +incdir+../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/functional +incdir+../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/tests +incdir+../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/dsport \
+vlog -64 -incr -work gtwizard_ultrascale_v1_5  +incdir+../testbanch/pcie3_core/simulation/functional +incdir+../testbanch/pcie3_core/simulation/tests +incdir+../testbanch/pcie3_core/simulation/dsport \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_bit_synchronizer.v" \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gthe3_cpll_cal.v" \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gthe3_cpll_cal_freq_counter.v" \
@@ -47,18 +47,18 @@ vlog -64 -incr -work gtwizard_ultrascale_v1_5  +incdir+../testbanch/pcie3_core_e
 vcom -64 -93 -work xil_defaultlib   \
 "../../../../../lib/common/hw/lib/vicg/vicg_common_pkg.vhd" \
 "../../../../../lib/common/hw/lib/vicg/reduce_pack.vhd" \
-"../../src/prj_cfg.vhd" \
+"../testbanch/prj_cfg_sim.vhd" \
 "../../src/prj_def.vhd" \
 "../../src/pcie/pcie_pkg.vhd" \
 "../../src/pcie/pcie_uv7_unit_pkg.vhd" \
-"../../src/pcie/pcie_uv7_rx.vhd" \
-"../../src/pcie/pcie_uv7_tx.vhd" \
+"../../src/pcie/pcie_uv7_rx_256.vhd" \
+"../../src/pcie/pcie_uv7_tx_256.vhd" \
 "../../src/pcie/pcie_uv7_usr_app.vhd" \
 "../../src/pcie/pcie_uv7_ctrl.vhd" \
 "../../src/pcie/pcie_uv7_main.vhd" \
 "../testbanch/pcie_uv7_main_sim.vhd" \
 
-vlog -64 -incr -work xil_defaultlib  +incdir+../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/functional +incdir+../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/tests +incdir+../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/dsport \
+vlog -64 -incr -work xil_defaultlib  +incdir+../testbanch/pcie3_core/simulation/functional +incdir+../testbanch/pcie3_core/simulation/tests +incdir+../testbanch/pcie3_core/simulation/dsport \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/source/pcie3_core_tph_tbl.v" \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/source/pcie3_core_pipe_lane.v" \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/source/pcie3_core_bram_16k.v" \
@@ -91,17 +91,17 @@ vcom -64 -93 -work xil_defaultlib  \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/trigger.vhd" \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/sim/pcie3_core.vhd" \
 
-vlog -64 -incr -work xil_defaultlib  +incdir+../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/functional +incdir+../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/tests +incdir+../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/dsport \
+vlog -64 -incr -work xil_defaultlib  +incdir+../testbanch/pcie3_core/simulation/functional +incdir+../testbanch/pcie3_core/simulation/tests +incdir+../testbanch/pcie3_core/simulation/dsport \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/imports/example_design/pcie_app_uscale.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/dsport/pci_exp_usrapp_cfg.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/functional/sys_clk_gen.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/dsport/pci_exp_usrapp_rx.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/dsport/pcie3_uscale_rp_top.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/dsport/pci_exp_usrapp_tx.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/dsport/pci_exp_usrapp_com.v" \
+"../testbanch/pcie3_core/simulation/dsport/pci_exp_usrapp_cfg.v" \
+"../testbanch/pcie3_core/simulation/functional/sys_clk_gen.v" \
+"../testbanch/pcie3_core/simulation/dsport/pci_exp_usrapp_rx.v" \
+"../testbanch/pcie3_core/simulation/dsport/pcie3_uscale_rp_top.v" \
+"../testbanch/pcie3_core/simulation/dsport/pci_exp_usrapp_tx.v" \
+"../testbanch/pcie3_core/simulation/dsport/pci_exp_usrapp_com.v" \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/imports/example_design/xilinx_pcie_uscale_ep.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/functional/sys_clk_gen_ds.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sim_1/imports/pcie3_core/pcie3_core/simulation/dsport/xilinx_pcie_uscale_rp.v" \
+"../testbanch/pcie3_core/simulation/functional/sys_clk_gen_ds.v" \
+"../testbanch/pcie3_core/simulation/dsport/xilinx_pcie_uscale_rp.v" \
 "../testbanch/usr_board.v" \
 
 # compile glbl module
