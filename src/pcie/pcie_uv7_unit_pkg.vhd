@@ -31,7 +31,6 @@ end component pio_to_ctrl;
 
 component pcie_rx
 generic(
---AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
 G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
 G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
 G_AXISTEN_IF_RC_STRADDLE         : integer := 0;
@@ -50,8 +49,9 @@ p_in_m_axis_cq_tlast      : in  std_logic;
 p_in_m_axis_cq_tvalid     : in  std_logic;
 p_in_m_axis_cq_tuser      : in  std_logic_vector(84 downto 0);
 p_in_m_axis_cq_tkeep      : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-p_in_pcie_cq_np_req_count : in  std_logic_vector(5 downto 0);
 p_out_m_axis_cq_tready    : out std_logic;
+
+p_in_pcie_cq_np_req_count : in  std_logic_vector(5 downto 0);
 p_out_pcie_cq_np_req      : out std_logic;
 
 -- Requester Completion Interface
@@ -67,12 +67,8 @@ p_in_cfg_msg_received      : in  std_logic;
 p_in_cfg_msg_received_type : in  std_logic_vector(4 downto 0);
 p_in_cfg_msg_data          : in  std_logic_vector(7 downto 0);
 
--- Memory Read data handshake with Completion
--- transmit unit. Transmit unit reponds to
--- req_compl assertion and responds with compl_done
--- assertion when a Completion w/ data is transmitted.
+--completion
 p_out_req_compl    : out std_logic := '0';
---p_out_req_compl_wd : out std_logic := '0';
 p_out_req_compl_ur : out std_logic := '0';
 p_in_compl_done    : in  std_logic;
 
@@ -96,15 +92,13 @@ end component pcie_rx;
 
 component pcie_tx
 generic (
---parameter [1 downto 0);AXISTEN_IF_WIDTH = 00,
 G_AXISTEN_IF_RQ_ALIGNMENT_MODE : string := "FALSE";
 G_AXISTEN_IF_CC_ALIGNMENT_MODE : string := "FALSE";
 G_AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
 G_AXISTEN_IF_RQ_PARITY_CHECK   : integer := 0;
 G_AXISTEN_IF_CC_PARITY_CHECK   : integer := 0;
 
---Do not modify the parameters below this line
-G_DATA_WIDTH : integer := 64; --(AXISTEN_IF_WIDTH[1]) ? 256 : (AXISTEN_IF_WIDTH[0])? 128 : 64,
+G_DATA_WIDTH : integer := 64;
 G_PARITY_WIDTH : integer := 64 /8 ;
 G_KEEP_WIDTH   : integer := 64 /32;
 G_STRB_WIDTH   : integer := 64 / 8
@@ -135,11 +129,11 @@ p_out_cfg_msg_transmit_data : out std_logic_vector(31 downto 0);
 --Tag availability and Flow control Information
 p_in_pcie_rq_tag          : in  std_logic_vector(5 downto 0);
 p_in_pcie_rq_tag_vld      : in  std_logic;
+p_in_pcie_rq_seq_num      : in  std_logic_vector(3 downto 0);
+p_in_pcie_rq_seq_num_vld  : in  std_logic;
 p_in_pcie_tfc_nph_av      : in  std_logic_vector(1 downto 0);
 p_in_pcie_tfc_npd_av      : in  std_logic_vector(1 downto 0);
 p_in_pcie_tfc_np_pl_empty : in  std_logic;
-p_in_pcie_rq_seq_num      : in  std_logic_vector(3 downto 0);
-p_in_pcie_rq_seq_num_vld  : in  std_logic;
 
 --Cfg Flow Control Information
 p_in_cfg_fc_ph   : in  std_logic_vector(7 downto 0);

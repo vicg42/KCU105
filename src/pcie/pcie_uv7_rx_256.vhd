@@ -130,15 +130,11 @@ p_out_req_compl_ur <= i_req_compl_ur;
 
 p_out_pcie_cq_np_req <= '1';
 
-p_out_m_axis_cq_tready <= i_m_axis_cq_tready;-- and i_m_axis_cq_tready2;
+p_out_m_axis_cq_tready <= i_m_axis_cq_tready;
 p_out_m_axis_rc_tready <= '1';--i_m_axis_rc_tready;
 
 
---gen_pload_byte_en : for i in 0 to i_pload_byte_en'length - 1 generate begin
---i_pload_byte_en(i) <= p_in_m_axis_cq_tuser(8 + (4 * i)) ;
---end generate gen_pload_byte_en;
-
-i_sop <= p_in_m_axis_cq_tuser(40);--not i_in_pkt_q and p_in_m_axis_cq_tvalid; --
+i_sop <= p_in_m_axis_cq_tuser(40);
 
 
 --Rx State Machine

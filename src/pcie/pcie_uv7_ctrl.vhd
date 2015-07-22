@@ -437,8 +437,9 @@ p_in_m_axis_cq_tlast      => p_in_m_axis_cq_tlast     ,
 p_in_m_axis_cq_tvalid     => p_in_m_axis_cq_tvalid    ,
 p_in_m_axis_cq_tuser      => p_in_m_axis_cq_tuser     ,
 p_in_m_axis_cq_tkeep      => p_in_m_axis_cq_tkeep     ,
-p_in_pcie_cq_np_req_count => p_in_pcie_cq_np_req_count,
 p_out_m_axis_cq_tready    => i_m_axis_cq_tready       ,
+
+p_in_pcie_cq_np_req_count => p_in_pcie_cq_np_req_count,
 p_out_pcie_cq_np_req      => p_out_pcie_cq_np_req     ,
 
 --Requester Completion Interface
@@ -518,11 +519,11 @@ p_out_cfg_msg_transmit_data => p_out_cfg_msg_transmit_data,
 --Tag availability and Flow control Information
 p_in_pcie_rq_tag          => p_in_pcie_rq_tag         ,
 p_in_pcie_rq_tag_vld      => p_in_pcie_rq_tag_vld     ,
+p_in_pcie_rq_seq_num      => p_in_pcie_rq_seq_num     ,
+p_in_pcie_rq_seq_num_vld  => p_in_pcie_rq_seq_num_vld ,
 p_in_pcie_tfc_nph_av      => p_in_pcie_tfc_nph_av     ,
 p_in_pcie_tfc_npd_av      => p_in_pcie_tfc_npd_av     ,
 p_in_pcie_tfc_np_pl_empty => p_in_pcie_tfc_np_pl_empty,
-p_in_pcie_rq_seq_num      => p_in_pcie_rq_seq_num     ,
-p_in_pcie_rq_seq_num_vld  => p_in_pcie_rq_seq_num_vld ,
 
 --Cfg Flow Control Information
 p_in_cfg_fc_ph   => p_in_cfg_fc_ph  ,
