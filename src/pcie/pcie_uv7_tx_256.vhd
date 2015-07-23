@@ -2,7 +2,7 @@
 --Engineer    : Golovachenko Victor
 --
 --Create Date : 08.07.2015 13:35:52
---Module Name : pcie_tx.vhd
+--Module Name : pcie_tx_cc.vhd
 --
 --Description :
 --
@@ -16,12 +16,10 @@ use work.reduce_pack.all;
 use work.vicg_common_pkg.all;
 use work.pcie_pkg.all;
 
-entity pcie_tx is
+entity pcie_tx_cc is
 generic (
-G_AXISTEN_IF_RQ_ALIGNMENT_MODE : string := "FALSE";
 G_AXISTEN_IF_CC_ALIGNMENT_MODE : string := "FALSE";
-G_AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
-G_AXISTEN_IF_RQ_PARITY_CHECK   : integer := 0;
+--G_AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
 G_AXISTEN_IF_CC_PARITY_CHECK   : integer := 0;
 
 G_DATA_WIDTH   : integer := 64     ;
@@ -38,14 +36,6 @@ p_out_s_axis_cc_tvalid : out std_logic;
 p_out_s_axis_cc_tuser  : out std_logic_vector(32 downto 0);
 p_in_s_axis_cc_tready  : in  std_logic;
 
---AXI-S Requester Request Interface
-p_out_s_axis_rq_tdata  : out std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_out_s_axis_rq_tkeep  : out std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-p_out_s_axis_rq_tlast  : out std_logic;
-p_out_s_axis_rq_tvalid : out std_logic;
-p_out_s_axis_rq_tuser  : out std_logic_vector(59 downto 0);
-p_in_s_axis_rq_tready  : in  std_logic;
-
 --TX Message Interface
 p_in_cfg_msg_transmit_done  : in  std_logic;
 p_out_cfg_msg_transmit      : out std_logic;
@@ -61,15 +51,6 @@ p_in_pcie_tfc_np_pl_empty : in  std_logic;
 p_in_pcie_rq_seq_num      : in  std_logic_vector(3 downto 0);
 p_in_pcie_rq_seq_num_vld  : in  std_logic;
 
---Cfg Flow Control Information
-p_in_cfg_fc_ph   : in  std_logic_vector(7 downto 0);
-p_in_cfg_fc_nph  : in  std_logic_vector(7 downto 0);
-p_in_cfg_fc_cplh : in  std_logic_vector(7 downto 0);
-p_in_cfg_fc_pd   : in  std_logic_vector(11 downto 0);
-p_in_cfg_fc_npd  : in  std_logic_vector(11 downto 0);
-p_in_cfg_fc_cpld : in  std_logic_vector(11 downto 0);
-p_out_cfg_fc_sel : out std_logic_vector(2 downto 0);
-
 --Completion
 p_in_req_compl    : in  std_logic;
 p_in_req_compl_ur : in  std_logic;
@@ -80,7 +61,7 @@ p_in_req_prm      : in TPCIE_reqprm;
 p_in_completer_id : in  std_logic_vector(15 downto 0);
 
 --usr app
-p_in_ureg_do   : in  std_logic_vector(31 downto 0);
+p_in_ureg_do : in  std_logic_vector(31 downto 0);
 
 --DBG
 p_out_tst : out std_logic_vector(279 downto 0);
@@ -89,9 +70,9 @@ p_out_tst : out std_logic_vector(279 downto 0);
 p_in_clk   : in  std_logic;
 p_in_rst_n : in  std_logic
 );
-end entity pcie_tx;
+end entity pcie_tx_cc;
 
-architecture behavioral of pcie_tx is
+architecture behavioral of pcie_tx_cc is
 
 type TFsmTx_state is (
 S_TX_IDLE  ,
@@ -106,12 +87,6 @@ signal i_s_axis_cc_tkeep  : std_logic_vector(3 downto 0);
 signal i_s_axis_cc_tlast  : std_logic;
 signal i_s_axis_cc_tvalid : std_logic;
 signal i_s_axis_cc_tuser  : std_logic_vector(32 downto 0);
-
---signal i_s_axis_rq_tdata  : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
---signal i_s_axis_rq_tkeep  : std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
---signal i_s_axis_rq_tlast  : std_logic;
---signal i_s_axis_rq_tvalid : std_logic;
---signal i_s_axis_rq_tuser  : std_logic_vector(59 downto 0);
 
 --signal i_cfg_msg_transmit      : std_logic;
 --signal i_cfg_msg_transmit_type : std_logic_vector(2 downto 0);
@@ -143,7 +118,7 @@ signal tst_fsm_tx         : std_logic;
 
 
 
-begin --architecture behavioral of pcie_tx
+begin --architecture behavioral of pcie_tx_cc
 
 p_out_compl_done <= i_compl_done;
 
@@ -153,13 +128,6 @@ p_out_s_axis_cc_tkeep  <= std_logic_vector(RESIZE(UNSIGNED(i_s_axis_cc_tkeep), 8
 p_out_s_axis_cc_tlast  <= i_s_axis_cc_tlast ;
 p_out_s_axis_cc_tvalid <= i_s_axis_cc_tvalid;
 p_out_s_axis_cc_tuser  <= i_s_axis_cc_tuser ;
-
---AXI-S Requester Request Interface
-p_out_s_axis_rq_tdata  <= (others => '0');--i_s_axis_rq_tdata ;
-p_out_s_axis_rq_tkeep  <= (others => '0');--i_s_axis_rq_tkeep ;
-p_out_s_axis_rq_tlast  <= '0';--i_s_axis_rq_tlast ;
-p_out_s_axis_rq_tvalid <= '0';--i_s_axis_rq_tvalid;
-p_out_s_axis_rq_tuser  <= (others => '0');--i_s_axis_rq_tuser ;
 
 --TX Message Interface
 p_out_cfg_msg_transmit      <= '0';

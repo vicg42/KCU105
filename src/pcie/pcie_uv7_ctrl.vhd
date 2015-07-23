@@ -400,6 +400,43 @@ p_in_reg_din   => i_ureg_di(31 downto 0),
 p_in_reg_wr    => i_ureg_wr,
 p_in_reg_rd    => i_ureg_rd,
 
+--Master mode
+--(PC->FPGA)
+p_in_txbuf_din     => (others => '0'), --: in    std_logic_vector(31 downto 0);
+p_in_txbuf_wr      => '0' , --: in    std_logic;
+p_in_txbuf_wr_last => '0' , --: in    std_logic;
+p_out_txbuf_full   => open,--: out   std_logic;
+--p_in_txbuf_din_be  : in    std_logic_vector(3 downto 0);
+
+--(PC<-FPGA)
+p_out_rxbuf_dout   => open,--: out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
+p_in_rxbuf_rd      => '0', --: in    std_logic;
+p_in_rxbuf_rd_last => '0', --: in    std_logic;
+p_out_rxbuf_empty  => open,--: out   std_logic;
+--p_in_tx_data_be    : in    std_logic_vector(3 downto 0);
+
+--DMATRN
+p_out_dmatrn_init  => open,--: out   std_logic;
+
+--MEMORY WRITE - DMATRN_WR (PC<-FPGA)
+p_out_mwr_en       => open,--: out   std_logic;
+p_in_mwr_done      => '0' ,--: in    std_logic;
+p_out_mwr_addr     => open,--: out   std_logic_vector(31 downto 0);
+p_out_mwr_len      => open,--: out   std_logic_vector(31 downto 0);
+
+--MEMORY READ - DMATRN_RD (PC->FPGA)
+p_out_mrd_en       => open,--: out   std_logic;
+p_out_mrd_addr     => open,--: out   std_logic_vector(31 downto 0);
+p_out_mrd_len      => open,--: out   std_logic_vector(31 downto 0);
+p_in_mrd_rcv_size  => (others => '0'),--: in    std_logic_vector(31 downto 0);
+p_in_mrd_rcv_err   => '0' ,--: in    std_logic;
+
+--IRQ
+p_out_irq_clr      => open,--: out   std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
+p_out_irq_set      => open,--: out   std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
+p_in_irq_status    => (others => '0'),--: in    std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
+
+--System
 p_in_clk   => i_trn_clk,
 p_in_rst_n => i_rst_n
 );

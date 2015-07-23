@@ -234,12 +234,49 @@ p_in_tst        : in    std_logic_vector(127 downto 0);
 p_in_pcie_prm  : in  TPCIE_cfgprm;
 
 --Target mode
-p_in_reg_adr   : in    std_logic_vector(7 downto 0);
-p_out_reg_dout : out   std_logic_vector(31 downto 0);
-p_in_reg_din   : in    std_logic_vector(31 downto 0);
-p_in_reg_wr    : in    std_logic;
-p_in_reg_rd    : in    std_logic;
+p_in_reg_adr   : in  std_logic_vector(7 downto 0);
+p_out_reg_dout : out std_logic_vector(31 downto 0);
+p_in_reg_din   : in  std_logic_vector(31 downto 0);
+p_in_reg_wr    : in  std_logic;
+p_in_reg_rd    : in  std_logic;
 
+--Master mode
+--(PC->FPGA)
+p_in_txbuf_din     : in    std_logic_vector(31 downto 0);
+p_in_txbuf_wr      : in    std_logic;
+p_in_txbuf_wr_last : in    std_logic;
+p_out_txbuf_full   : out   std_logic;
+--p_in_txbuf_din_be  : in    std_logic_vector(3 downto 0);
+
+--(PC<-FPGA)
+p_out_rxbuf_dout   : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
+p_in_rxbuf_rd      : in    std_logic;
+p_in_rxbuf_rd_last : in    std_logic;
+p_out_rxbuf_empty  : out   std_logic;
+--p_in_tx_data_be    : in    std_logic_vector(3 downto 0);
+
+--DMATRN
+p_out_dmatrn_init  : out   std_logic;
+
+--MEMORY WRITE - DMATRN_WR (PC<-FPGA)
+p_out_mwr_en       : out   std_logic;
+p_in_mwr_done      : in    std_logic;
+p_out_mwr_addr     : out   std_logic_vector(31 downto 0);
+p_out_mwr_len      : out   std_logic_vector(31 downto 0);
+
+--MEMORY READ - DMATRN_RD (PC->FPGA)
+p_out_mrd_en       : out   std_logic;
+p_out_mrd_addr     : out   std_logic_vector(31 downto 0);
+p_out_mrd_len      : out   std_logic_vector(31 downto 0);
+p_in_mrd_rcv_size  : in    std_logic_vector(31 downto 0);
+p_in_mrd_rcv_err   : in    std_logic;
+
+--IRQ
+p_out_irq_clr      : out   std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
+p_out_irq_set      : out   std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
+p_in_irq_status    : in    std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
+
+--System
 p_in_clk   : in    std_logic;
 p_in_rst_n : in    std_logic
 );

@@ -2,7 +2,7 @@
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 08.07.2015 13:35:52
--- Module Name : pcie_rx.vhd
+-- Module Name : pcie_rx_cq.vhd
 --
 -- Description :
 --
@@ -16,18 +16,14 @@ use work.reduce_pack.all;
 use work.vicg_common_pkg.all;
 use work.pcie_pkg.all;
 
-entity pcie_rx is
+entity pcie_rx_cq is
 generic (
 G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
-G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
-G_AXISTEN_IF_RC_STRADDLE         : integer := 0;
 G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
 G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1');
 
-G_DATA_WIDTH   : integer := 64     ;
-G_STRB_WIDTH   : integer := 64 / 8 ; -- TSTRB width
-G_KEEP_WIDTH   : integer := 64 / 32;
-G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
+G_DATA_WIDTH   : integer := 64;
+G_KEEP_WIDTH   : integer := 64 / 32
 );
 port(
 -- Completer Request Interface
@@ -36,17 +32,10 @@ p_in_m_axis_cq_tlast      : in  std_logic;
 p_in_m_axis_cq_tvalid     : in  std_logic;
 p_in_m_axis_cq_tuser      : in  std_logic_vector(84 downto 0);
 p_in_m_axis_cq_tkeep      : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-p_in_pcie_cq_np_req_count : in  std_logic_vector(5 downto 0);
 p_out_m_axis_cq_tready    : out std_logic;
-p_out_pcie_cq_np_req      : out std_logic;
 
--- Requester Completion Interface
-p_in_m_axis_rc_tdata    : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_in_m_axis_rc_tlast    : in  std_logic;
-p_in_m_axis_rc_tvalid   : in  std_logic;
-p_in_m_axis_rc_tkeep    : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-p_in_m_axis_rc_tuser    : in  std_logic_vector(74 downto 0);
-p_out_m_axis_rc_tready  : out std_logic;
+p_in_pcie_cq_np_req_count : in  std_logic_vector(5 downto 0);
+p_out_pcie_cq_np_req      : out std_logic;
 
 --RX Message Interface
 --This input is active only when the
@@ -75,9 +64,9 @@ p_out_tst : out std_logic_vector(31 downto 0);
 p_in_clk   : in  std_logic;
 p_in_rst_n : in  std_logic
 );
-end entity pcie_rx;
+end entity pcie_rx_cq;
 
-architecture behavioral of pcie_rx is
+architecture behavioral of pcie_rx_cq is
 
 type TFsmRx_state is (
 S_RX_IDLE,
@@ -110,7 +99,7 @@ signal tst_err               : std_logic_vector(1 downto 0);
 signal tst_fsm_rx            : std_logic;
 
 
-begin --architecture behavioral of pcie_rx
+begin --architecture behavioral of pcie_rx_cq
 
 
 p_out_ureg_wr <= i_reg_wr and i_reg_cs;
@@ -131,7 +120,7 @@ p_out_req_compl_ur <= i_req_compl_ur;
 p_out_pcie_cq_np_req <= '1';
 
 p_out_m_axis_cq_tready <= i_m_axis_cq_tready;
-p_out_m_axis_rc_tready <= '1';--i_m_axis_rc_tready;
+--p_out_m_axis_rc_tready <= '1';--i_m_axis_rc_tready;
 
 
 i_sop <= p_in_m_axis_cq_tuser(40);
