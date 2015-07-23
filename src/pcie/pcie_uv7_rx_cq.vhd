@@ -209,8 +209,7 @@ if rising_edge(p_in_clk) then
 
                               --if (target_fuction = 0) and ((bar_id = 0) or (bar_id = 1))
                               if (p_in_m_axis_cq_tdata(((32 * 3) + 15) downto ((32 * 3) +  8)) = "00000000") and
-                                 ((p_in_m_axis_cq_tdata(((32 * 3) + 18) downto ((32 * 3) + 16)) = "000") or
-                                  (p_in_m_axis_cq_tdata(((32 * 3) + 18) downto ((32 * 3) + 16)) = "001")) then
+                                 (UNSIGNED(p_in_m_axis_cq_tdata(((32 * 3) + 18) downto ((32 * 3) + 16))) <= TO_UNSIGNED(1, 3)) then
 
                                   i_reg_cs <= '1';
                               end if;

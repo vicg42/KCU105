@@ -73,19 +73,16 @@ p_out_rxbuf_empty  : out   std_logic;
 
 --DMATRN
 p_out_dmatrn_init  : out   std_logic;
+p_out_dma_prm      : out   TPCIE_dmaprm;
 
 --MEMORY WRITE - DMATRN_WR (PC<-FPGA)
-p_out_mwr_en       : out   std_logic;
-p_in_mwr_done      : in    std_logic;
-p_out_mwr_addr     : out   std_logic_vector(31 downto 0);
-p_out_mwr_len      : out   std_logic_vector(31 downto 0);
+p_out_dma_mwr_en   : out   std_logic;
+p_in_dma_mwr_done  : in    std_logic;
 
 --MEMORY READ - DMATRN_RD (PC->FPGA)
-p_out_mrd_en       : out   std_logic;
-p_out_mrd_addr     : out   std_logic_vector(31 downto 0);
-p_out_mrd_len      : out   std_logic_vector(31 downto 0);
-p_in_mrd_rcv_size  : in    std_logic_vector(31 downto 0);
-p_in_mrd_rcv_err   : in    std_logic;
+p_out_dma_mrd_en      : out   std_logic;
+p_in_dma_mrd_rcv_size : in    std_logic_vector(31 downto 0);
+p_in_dma_mrd_rcv_err  : in    std_logic;
 
 --IRQ
 p_out_irq_clr      : out   std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
@@ -218,14 +215,13 @@ p_out_hclk <= p_in_clk;
 p_out_dmatrn_init <= i_dmatrn_init;
 
 --MEMORY WRITE - DMATRN_WR (PC<-FPGA)
-p_out_mwr_en   <= i_dmatrn_work and i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
-p_out_mwr_addr <= i_dmatrn_adr(31 downto 0);
-p_out_mwr_len  <= i_dmatrn_len;
+p_out_dma_mwr_en  <= i_dmatrn_work and i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
 
 --MEMORY READ - DMATRN_RD (PC->FPGA)
-p_out_mrd_en   <= i_dmatrn_work and not i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
-p_out_mrd_addr <= i_dmatrn_adr(31 downto 0);
-p_out_mrd_len  <= i_dmatrn_len;
+p_out_dma_mrd_en  <= i_dmatrn_work and not i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
+
+p_out_dma_prm.addr <= i_dmatrn_adr(31 downto 0);
+p_out_dma_prm.len  <= i_dmatrn_len;
 
 --p_out_rd_metering       <= '1';
 
@@ -515,8 +511,8 @@ if rising_edge(p_in_clk) then
     if i_dmatrn_init = '1' then
       i_mrd_rcv_size_ok <= '0';
     else
-      if p_in_mrd_rcv_size(31 downto 0) /= (p_in_mrd_rcv_size'range => '0') then
-        if ("00" & i_dmatrn_len(31 downto 2)) = p_in_mrd_rcv_size(31 downto 0) then
+      if p_in_dma_mrd_rcv_size(31 downto 0) /= (p_in_dma_mrd_rcv_size'range => '0') then
+        if ("00" & i_dmatrn_len(31 downto 2)) = p_in_dma_mrd_rcv_size(31 downto 0) then
           i_mrd_rcv_size_ok <= '1';
         end if;
       end if;
@@ -906,7 +902,7 @@ p_out_tst(47 downto 32)   <= std_logic_vector(RESIZE(UNSIGNED(i_reg.tst1(7 downt
 p_out_tst(55 downto 48)   <= i_dmabuf_count;
 p_out_tst(57 downto 56)   <= i_dmatrn_mem_done;
 p_out_tst(61 downto 58)   <= i_hdev_adr;
-p_out_tst(62)             <= p_in_mrd_rcv_err;
+p_out_tst(62)             <= p_in_dma_mrd_rcv_err;
 p_out_tst(63)             <= i_reg_bar and (p_in_reg_wr or i_reg_rd);
 p_out_tst(95 downto 64)   <= (others => '0');
 p_out_tst(96)             <= i_irq_clr;

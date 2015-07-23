@@ -62,6 +62,12 @@ first_be : std_logic_vector(3 downto 0);
 last_be  : std_logic_vector(3 downto 0);
 end record;
 
+type TPCIE_dmaprm is record
+addr  : std_logic_vector(31 downto 0);
+len   : std_logic_vector(31 downto 0);
+end record;
+
+
 --Buffer of core PCI-Express:
 constant C_PCIE_BUF_NON_POSTED_QUEUE    : integer:=0;
 constant C_PCIE_BUF_POSTED_QUEUE        : integer:=1;

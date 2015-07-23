@@ -580,6 +580,8 @@ p_in_req_prm      => i_req_prm,
 
 p_in_completer_id => (others => '0'),
 
+p_in_pcie_prm => i_pcie_prm,
+
 --usr app
 p_in_ureg_do => i_ureg_do,
 
