@@ -177,11 +177,14 @@ if rising_edge(p_in_clk) then
     i_mem_tx_byte_remain <= (others => '0');
 
     i_mem_tpl_byte <= (others => '0');
+    i_mem_tpl_dw_rem <= (others => '0');
     i_mem_tpl_len <= (others => '0');
     i_mem_tpl_cnt <= (others => '0');
     i_mem_tpl_tag <= (others => '0');
     i_mem_tpl_last <= '0';
 
+    i_mwr_tpl_max_byte <= (others => '0');
+    i_mwr_work <= '0';
     i_mwr_done <= '0';
 
   else

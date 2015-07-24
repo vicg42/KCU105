@@ -259,6 +259,7 @@ reg     [7:0]                   expect_cfgwr_payload [3:0];
 reg                             expect_status;
 reg                             expect_finish_check;
 reg                             testError;
+reg                             usr_tstreg;
 
 assign user_lnk_up_n = ~user_lnk_up;
 
@@ -352,10 +353,13 @@ initial begin
   else begin
       // $display("[%t] %m: No TESTNAME specified!", $realtime);
       // $finish(2);
-      testname = "pio_writeReadBack_test0";
+      testname = "dma_test0";
+      //testname = "pio_writeReadBack_test0";
       //testname = "sample_smoke_test0";
       $display("Running default test {%0s}......", testname);
   end
+
+  usr_tstreg = 0;
 
   expect_status       = 0;
   expect_finish_check = 0;

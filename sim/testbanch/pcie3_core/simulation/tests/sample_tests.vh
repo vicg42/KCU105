@@ -611,3 +611,145 @@ begin
     $display("[%t] : Finished transmission of PCI-Express TLPs", $realtime);
     $finish;
 end
+
+
+else if(testname == "dma_test0")
+begin
+
+    // This test performs a 32 bit write to a 32 bit Memory space and performs a read back
+
+    board.RP.tx_usrapp.TSK_SIMULATION_TIMEOUT(10050);
+
+    board.RP.tx_usrapp.TSK_SYSTEM_INITIALIZATION;
+
+    board.RP.tx_usrapp.TSK_BAR_INIT;
+
+//--------------------------------------------------------------------------
+// Event : Testing BARs
+//--------------------------------------------------------------------------
+        for (board.RP.tx_usrapp.ii = 0; board.RP.tx_usrapp.ii <= 6; board.RP.tx_usrapp.ii =
+            board.RP.tx_usrapp.ii + 1) begin
+            if (board.RP.tx_usrapp.BAR_INIT_P_BAR_ENABLED[board.RP.tx_usrapp.ii] > 2'b00) // bar is enabled
+               case(board.RP.tx_usrapp.BAR_INIT_P_BAR_ENABLED[board.RP.tx_usrapp.ii])
+                   2'b01 : // IO SPACE
+                        begin
+                          $display("[%t] : Transmitting TLPs to IO Space BAR %x", $realtime, board.RP.tx_usrapp.ii);
+                        end
+
+                   2'b10 : // MEM 32 SPACE
+                        begin
+
+                          $display("[%t] : Config DMA to Memory 32 Space BAR %x", $realtime,
+                              board.RP.tx_usrapp.ii);
+
+                          //C_HREG_DEV_CTRL
+                          board.RP.tx_usrapp.USR_DATA[0] = 0;
+                          board.RP.tx_usrapp.USR_DATA[1] = 0; //DMA START
+                          board.RP.tx_usrapp.USR_DATA[2] = 0; //DMA DIR: 1/0 (PC<-FPGA) / (PC->FPGA)
+                          board.RP.tx_usrapp.USR_DATA[10:3] = 0; //idx Start buf DMA
+                          board.RP.tx_usrapp.USR_DATA[18:11] = 0; //Count buf
+                          board.RP.tx_usrapp.USR_DATA[22:19] = 0; //DEV NUM
+                          board.RP.tx_usrapp.USR_DATA[31:23] = 0;
+
+                          board.RP.tx_usrapp.DATA_STORE[0] = board.RP.tx_usrapp.USR_DATA[ 7: 0];
+                          board.RP.tx_usrapp.DATA_STORE[1] = board.RP.tx_usrapp.USR_DATA[15: 8];
+                          board.RP.tx_usrapp.DATA_STORE[2] = board.RP.tx_usrapp.USR_DATA[23:16];
+                          board.RP.tx_usrapp.DATA_STORE[3] = board.RP.tx_usrapp.USR_DATA[31:24];
+
+                          board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
+                              board.RP.tx_usrapp.DEFAULT_TC,
+                              11'd1, // Length (in DW)
+                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 4), // Address
+                              4'h0,  // Last DW Byte Enable
+                              4'hF,  // First DW Byte Enable
+                              1'b0); // Poisoned Data: Payload is invalid if set
+
+                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
+                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
+
+
+                          //SET C_HREG_DMAPRM_ADR
+                          board.RP.tx_usrapp.USR_DATA = 32'h0010_0000;
+
+                          board.RP.tx_usrapp.DATA_STORE[0] = board.RP.tx_usrapp.USR_DATA[ 7: 0];
+                          board.RP.tx_usrapp.DATA_STORE[1] = board.RP.tx_usrapp.USR_DATA[15: 8];
+                          board.RP.tx_usrapp.DATA_STORE[2] = board.RP.tx_usrapp.USR_DATA[23:16];
+                          board.RP.tx_usrapp.DATA_STORE[3] = board.RP.tx_usrapp.USR_DATA[31:24];
+
+                          board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
+                              board.RP.tx_usrapp.DEFAULT_TC,
+                              11'd1, // Length (in DW)
+                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 2), // Address
+                              4'h0,  // Last DW Byte Enable
+                              4'hF,  // First DW Byte Enable
+                              1'b0); // Poisoned Data: Payload is invalid if set
+
+                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
+                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
+
+
+                          //C_HREG_DMAPRM_LEN
+                          board.RP.tx_usrapp.USR_DATA = 256;//32'h0000_0100;
+
+                          board.RP.tx_usrapp.DATA_STORE[0] = board.RP.tx_usrapp.USR_DATA[ 7: 0];
+                          board.RP.tx_usrapp.DATA_STORE[1] = board.RP.tx_usrapp.USR_DATA[15: 8];
+                          board.RP.tx_usrapp.DATA_STORE[2] = board.RP.tx_usrapp.USR_DATA[23:16];
+                          board.RP.tx_usrapp.DATA_STORE[3] = board.RP.tx_usrapp.USR_DATA[31:24];
+
+                          board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
+                              board.RP.tx_usrapp.DEFAULT_TC,
+                              11'd1, // Length (in DW)
+                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 3), // Address
+                              4'h0,  // Last DW Byte Enable
+                              4'hF,  // First DW Byte Enable
+                              1'b0); // Poisoned Data: Payload is invalid if set
+
+                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
+                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
+
+
+                          //C_HREG_DEV_CTRL (Start DMA)
+                          board.RP.tx_usrapp.USR_DATA[0] = 0;
+                          board.RP.tx_usrapp.USR_DATA[1] = 1; //DMA START
+                          board.RP.tx_usrapp.USR_DATA[2] = 1; //DMA DIR: 1/0 (PC<-FPGA) / (PC->FPGA)
+                          board.RP.tx_usrapp.USR_DATA[10:3] = 0; //idx Start buf DMA
+                          board.RP.tx_usrapp.USR_DATA[18:11] = 0; //Count buf
+                          board.RP.tx_usrapp.USR_DATA[22:19] = 1; //DEV NUM
+                          board.RP.tx_usrapp.USR_DATA[31:23] = 0;
+
+                          board.RP.tx_usrapp.DATA_STORE[0] = board.RP.tx_usrapp.USR_DATA[ 7: 0];
+                          board.RP.tx_usrapp.DATA_STORE[1] = board.RP.tx_usrapp.USR_DATA[15: 8];
+                          board.RP.tx_usrapp.DATA_STORE[2] = board.RP.tx_usrapp.USR_DATA[23:16];
+                          board.RP.tx_usrapp.DATA_STORE[3] = board.RP.tx_usrapp.USR_DATA[31:24];
+
+                          board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
+                              board.RP.tx_usrapp.DEFAULT_TC,
+                              11'd1, // Length (in DW)
+                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 4), // Address
+                              4'h0,  // Last DW Byte Enable
+                              4'hF,  // First DW Byte Enable
+                              1'b0); // Poisoned Data: Payload is invalid if set
+
+                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
+                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
+
+
+                        wait (usr_tstreg == 1'b1);
+
+                     end
+                2'b11 : // MEM 64 SPACE
+                     begin
+                          $display("[%t] : Transmitting TLPs to Memory 64 Space BAR %x", $realtime,
+                              board.RP.tx_usrapp.ii);
+                     end
+                default : $display("Error case in usrapp_tx\n");
+            endcase
+
+         end
+	 if(testError==1'b0)
+            $display("[%t] : Test Completed Successfully",$realtime);
+
+
+    $display("[%t] : Finished transmission of PCI-Express TLPs", $realtime);
+    $finish;
+end
