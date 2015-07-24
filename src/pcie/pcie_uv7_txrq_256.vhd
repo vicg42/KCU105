@@ -36,12 +36,6 @@ p_out_s_axis_rq_tvalid : out std_logic;
 p_out_s_axis_rq_tuser  : out std_logic_vector(59 downto 0);
 p_in_s_axis_rq_tready  : in  std_logic;
 
-----TX Message Interface
---p_in_cfg_msg_transmit_done  : in  std_logic;
---p_out_cfg_msg_transmit      : out std_logic;
---p_out_cfg_msg_transmit_type : out std_logic_vector(2 downto 0);
---p_out_cfg_msg_transmit_data : out std_logic_vector(31 downto 0);
-
 --Tag availability and Flow control Information
 p_in_pcie_rq_tag          : in  std_logic_vector(5 downto 0);
 p_in_pcie_rq_tag_vld      : in  std_logic;
@@ -51,9 +45,9 @@ p_in_pcie_tfc_np_pl_empty : in  std_logic;
 p_in_pcie_rq_seq_num      : in  std_logic_vector(3 downto 0);
 p_in_pcie_rq_seq_num_vld  : in  std_logic;
 
-p_in_completer_id : in  std_logic_vector(15 downto 0);
+p_in_pcie_prm     : in  TPCIE_cfgprm;
 
-p_in_pcie_prm    : in  TPCIE_cfgprm;
+p_in_completer_id : in  std_logic_vector(15 downto 0);
 
 --usr app
 p_in_urxbuf_empty : in  std_logic;
@@ -138,8 +132,6 @@ p_out_s_axis_rq_tlast  <= i_s_axis_rq_tlast ;
 p_out_s_axis_rq_tuser  <= (others => '0');--i_s_axis_rq_tuser ;
 
 
-p_out_cfg_fc_sel <= (others => '0');
-
 
 --DMA initialization
 init : process(p_in_clk)
@@ -204,8 +196,6 @@ if rising_edge(p_in_clk) then
             i_s_axis_rq_tlast  <= '0';
             i_s_axis_rq_tvalid <= '0';
             i_s_axis_rq_tuser  <= (others => '0');
-
-            i_compl_done <= '0';
 
             if i_dma_init = '1' then
               if p_in_dma_mwr_en = '1' then
@@ -280,16 +270,16 @@ if rising_edge(p_in_clk) then
 
                 i_s_axis_rq_tvalid <= '1';
 
-                i_s_axis_rq_tdata((32 * 2) - 1 downto (32 * 0)) <= std_logic_vector(RESIZE(i_mem_adr_byte(31 downto 2), (32 * 2)) & "00");
+                i_s_axis_rq_tdata((32 * 2) - 1 downto (32 * 0)) <= std_logic_vector(RESIZE(i_mem_adr_byte(31 downto 2), (32 * 2) - 2) & "00");
 
                 i_s_axis_rq_tdata((32 * 2) + 10 downto (32 * 2) +  0) <= std_logic_vector(i_mem_tpl_dw(10 downto 0)); --DW count
-                i_s_axis_rq_tdata((32 * 2) + 14 downto (32 * 2) + 11) <= std_logic_vector(TO_UNSIGNED(C_PCIE3_PKT_TYPE_MEM_WR_D, 4)); --Req Type
+                i_s_axis_rq_tdata((32 * 2) + 14 downto (32 * 2) + 11) <= C_PCIE3_PKT_TYPE_MEM_WR_D; --Req Type
                 i_s_axis_rq_tdata((32 * 2) + 15) <= '0'; --Poisoned Request
                 i_s_axis_rq_tdata((32 * 2) + 31 downto (32 * 2) + 16) <= (others => '0'); --Req ID
 
                 i_s_axis_rq_tdata((32 * 3) +  7 downto (32 * 3) +  0) <= std_logic_vector(i_mem_tpl_tag(7 downto 0)); --Tag
                 i_s_axis_rq_tdata((32 * 3) + 23 downto (32 * 3) +  8) <= p_in_completer_id; --Completer ID
-                i_s_axis_rq_tdata((32 * 3) + 24) <= '0; --Requester ID Enable
+                i_s_axis_rq_tdata((32 * 3) + 24) <= '0'; --Requester ID Enable
                 i_s_axis_rq_tdata((32 * 3) + 27 downto (32 * 3) + 25) <= (others => '0');--Transaction Class (TC)
                 i_s_axis_rq_tdata((32 * 3) + 28) <= '0'; --Attr (No Snoop)
                 i_s_axis_rq_tdata((32 * 3) + 29) <= '0'; --Attr (Relaxed Ordering)
@@ -308,7 +298,7 @@ if rising_edge(p_in_clk) then
                 --Last DW Byte Enable (last_be)
                 if i_mem_tpl_dw = TO_UNSIGNED(16#01#, i_mem_tpl_dw'length)
                   and OR_reduce(i_mem_adr_byte(1 downto 0)) = '0' then
-                    i_trn_td(71 downto 68) <= "0000";
+                    i_s_axis_rq_tuser(7 downto 4) <= "0000";
                 else
                 case i_mem_tpl_byte(1 downto 0) is
                 when "00" => i_s_axis_rq_tuser(7 downto 4) <= "1111";
@@ -365,10 +355,10 @@ if rising_edge(p_in_clk) then
                       end if;
 
                       case (i_mem_tpl_dw_rem(1 downto 0)) is
-                      when => "11" => i_s_axis_rq_tkeep(7 downto 0) <= "00011111"; --i_mem_tpl_dw_rem = 7
-                      when => "10" => i_s_axis_rq_tkeep(7 downto 0) <= "00111111"; --i_mem_tpl_dw_rem = 6
-                      when => "01" => i_s_axis_rq_tkeep(7 downto 0) <= "01111111"; --i_mem_tpl_dw_rem = 5
-                      when => "00" => i_s_axis_rq_tkeep(7 downto 0) <= "11111111"; --i_mem_tpl_dw_rem = 4
+                      when "11" => i_s_axis_rq_tkeep(7 downto 0) <= "00011111"; --i_mem_tpl_dw_rem = 7
+                      when "10" => i_s_axis_rq_tkeep(7 downto 0) <= "00111111"; --i_mem_tpl_dw_rem = 6
+                      when "01" => i_s_axis_rq_tkeep(7 downto 0) <= "01111111"; --i_mem_tpl_dw_rem = 5
+                      when "00" => i_s_axis_rq_tkeep(7 downto 0) <= "11111111"; --i_mem_tpl_dw_rem = 4
                       when others => null;
                       end case;
 
@@ -396,7 +386,7 @@ if rising_edge(p_in_clk) then
 
         when S_TXRQ_MWR_DN =>
 
-            if p_in_s_axis_rq_tready = '1' and usr_rxbuf_empty_i = '0' then
+            if p_in_s_axis_rq_tready = '1' and p_in_urxbuf_empty = '0' then
 
                 i_s_axis_rq_tvalid <= '1';
 
@@ -434,10 +424,10 @@ if rising_edge(p_in_clk) then
                         i_s_axis_rq_tlast <= '1';
 
                         case (i_mem_tpl_dw_rem(1 downto 0)) is
-                        when => "11" => i_s_axis_rq_tkeep(7 downto 0) <= "00011111"; --i_mem_tpl_dw_rem = 7
-                        when => "10" => i_s_axis_rq_tkeep(7 downto 0) <= "00111111"; --i_mem_tpl_dw_rem = 6
-                        when => "01" => i_s_axis_rq_tkeep(7 downto 0) <= "01111111"; --i_mem_tpl_dw_rem = 5
-                        when => "00" => i_s_axis_rq_tkeep(7 downto 0) <= "11111111"; --i_mem_tpl_dw_rem = 4
+                        when "11" => i_s_axis_rq_tkeep(7 downto 0) <= "00011111"; --i_mem_tpl_dw_rem = 7
+                        when "10" => i_s_axis_rq_tkeep(7 downto 0) <= "00111111"; --i_mem_tpl_dw_rem = 6
+                        when "01" => i_s_axis_rq_tkeep(7 downto 0) <= "01111111"; --i_mem_tpl_dw_rem = 5
+                        when "00" => i_s_axis_rq_tkeep(7 downto 0) <= "11111111"; --i_mem_tpl_dw_rem = 4
                         when others => null;
                         end case;
 
@@ -455,7 +445,7 @@ if rising_edge(p_in_clk) then
 
                 end if;
 
-            elsif p_in_s_axis_rq_tready = '0' and usr_rxbuf_empty_i = '1' then
+            elsif p_in_s_axis_rq_tready = '0' and p_in_urxbuf_empty = '1' then
 
               i_s_axis_rq_tvalid <= '0';
 
@@ -486,10 +476,10 @@ if rising_edge(p_in_clk) then
                 i_s_axis_rq_tdata((32 * 8) - 1 downto (32 * 4)) <= (others => '0');
 
                 case (i_mem_tpl_dw_rem(1 downto 0)) is
-                when => "11" => i_s_axis_rq_tkeep(7 downto 0) <= "00000001"; --i_mem_tpl_dw_rem = 3
-                when => "10" => i_s_axis_rq_tkeep(7 downto 0) <= "00000011"; --i_mem_tpl_dw_rem = 2
-                when => "01" => i_s_axis_rq_tkeep(7 downto 0) <= "00000111"; --i_mem_tpl_dw_rem = 1
-                when => "00" => i_s_axis_rq_tkeep(7 downto 0) <= "00001111"; --i_mem_tpl_dw_rem = 0
+                when "11" => i_s_axis_rq_tkeep(7 downto 0) <= "00000001"; --i_mem_tpl_dw_rem = 3
+                when "10" => i_s_axis_rq_tkeep(7 downto 0) <= "00000011"; --i_mem_tpl_dw_rem = 2
+                when "01" => i_s_axis_rq_tkeep(7 downto 0) <= "00000111"; --i_mem_tpl_dw_rem = 1
+                when "00" => i_s_axis_rq_tkeep(7 downto 0) <= "00001111"; --i_mem_tpl_dw_rem = 0
                 when others => null;
                 end case;
 

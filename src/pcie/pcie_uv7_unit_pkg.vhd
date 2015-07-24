@@ -151,10 +151,24 @@ p_out_compl_done  : out std_logic;
 
 p_in_req_prm      : in TPCIE_reqprm;
 
+p_in_pcie_prm    : in  TPCIE_cfgprm;
+
 p_in_completer_id : in  std_logic_vector(15 downto 0);
 
 --usr app
-p_in_ureg_do   : in  std_logic_vector(31 downto 0);
+--usr app
+p_in_ureg_do      : in  std_logic_vector(31 downto 0);
+
+p_in_urxbuf_empty : in  std_logic;
+p_in_urxbuf_do    : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_out_urxbuf_rd   : out std_logic;
+p_out_urxbuf_last : out std_logic;
+
+--DMA
+p_in_dma_init      : in  std_logic;
+p_in_dma_prm       : in  TPCIE_dmaprm;
+p_in_dma_mwr_en    : in  std_logic;
+p_out_dma_mwr_done : out std_logic;
 
 --DBG
 p_out_tst : out std_logic_vector(279 downto 0);
@@ -257,19 +271,16 @@ p_out_rxbuf_empty  : out   std_logic;
 
 --DMATRN
 p_out_dmatrn_init  : out   std_logic;
+p_out_dma_prm      : out   TPCIE_dmaprm;
 
---MEMORY WRITE - DMATRN_WR (PC<-FPGA)
-p_out_mwr_en       : out   std_logic;
-p_in_mwr_done      : in    std_logic;
-p_out_mwr_addr     : out   std_logic_vector(31 downto 0);
-p_out_mwr_len      : out   std_logic_vector(31 downto 0);
+--DMA MEMWR (PC<-FPGA)
+p_out_dma_mwr_en   : out   std_logic;
+p_in_dma_mwr_done  : in    std_logic;
 
---MEMORY READ - DMATRN_RD (PC->FPGA)
-p_out_mrd_en       : out   std_logic;
-p_out_mrd_addr     : out   std_logic_vector(31 downto 0);
-p_out_mrd_len      : out   std_logic_vector(31 downto 0);
-p_in_mrd_rcv_size  : in    std_logic_vector(31 downto 0);
-p_in_mrd_rcv_err   : in    std_logic;
+--DMA MEMRD (PC->FPGA)
+p_out_dma_mrd_en      : out   std_logic;
+p_in_dma_mrd_rcv_size : in    std_logic_vector(31 downto 0);
+p_in_dma_mrd_rcv_err  : in    std_logic;
 
 --IRQ
 p_out_irq_clr      : out   std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);

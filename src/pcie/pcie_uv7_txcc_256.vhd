@@ -134,7 +134,7 @@ p_out_cfg_msg_transmit      <= '0';
 p_out_cfg_msg_transmit_type <= (others => '0');
 p_out_cfg_msg_transmit_data <= (others => '0');
 
-p_out_cfg_fc_sel <= (others => '0');
+--p_out_cfg_fc_sel <= (others => '0');
 
 i_req.attr <= p_in_req_prm.desc(3)(30 downto 28);
 i_req.tc   <= p_in_req_prm.desc(3)(27 downto 25);

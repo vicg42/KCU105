@@ -77,10 +77,23 @@ p_out_compl_done  : out std_logic;
 
 p_in_req_prm      : in TPCIE_reqprm;
 
+p_in_pcie_prm    : in  TPCIE_cfgprm;
+
 p_in_completer_id : in  std_logic_vector(15 downto 0);
 
 --usr app
-p_in_ureg_do   : in  std_logic_vector(31 downto 0);
+p_in_ureg_do      : in  std_logic_vector(31 downto 0);
+
+p_in_urxbuf_empty : in  std_logic;
+p_in_urxbuf_do    : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_out_urxbuf_rd   : out std_logic;
+p_out_urxbuf_last : out std_logic;
+
+--DMA
+p_in_dma_init      : in  std_logic;
+p_in_dma_prm       : in  TPCIE_dmaprm;
+p_in_dma_mwr_en    : in  std_logic;
+p_out_dma_mwr_done : out std_logic;
 
 --DBG
 p_out_tst : out std_logic_vector(279 downto 0);
@@ -151,6 +164,60 @@ p_in_rst_n : in  std_logic
 end component pcie_tx_cc;
 
 
+component pcie_tx_rq is
+generic (
+G_AXISTEN_IF_RQ_ALIGNMENT_MODE : string := "FALSE";
+G_AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
+G_AXISTEN_IF_RQ_PARITY_CHECK   : integer := 0;
+
+G_DATA_WIDTH   : integer := 64     ;
+G_STRB_WIDTH   : integer := 64 / 8 ; --TSTRB width
+G_KEEP_WIDTH   : integer := 64 / 32;
+G_PARITY_WIDTH : integer := 64 / 8   --TPARITY width
+);
+port(
+--AXI-S Requester Request Interface
+p_out_s_axis_rq_tdata  : out std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_out_s_axis_rq_tkeep  : out std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_s_axis_rq_tlast  : out std_logic;
+p_out_s_axis_rq_tvalid : out std_logic;
+p_out_s_axis_rq_tuser  : out std_logic_vector(59 downto 0);
+p_in_s_axis_rq_tready  : in  std_logic;
+
+--Tag availability and Flow control Information
+p_in_pcie_rq_tag          : in  std_logic_vector(5 downto 0);
+p_in_pcie_rq_tag_vld      : in  std_logic;
+p_in_pcie_tfc_nph_av      : in  std_logic_vector(1 downto 0);
+p_in_pcie_tfc_npd_av      : in  std_logic_vector(1 downto 0);
+p_in_pcie_tfc_np_pl_empty : in  std_logic;
+p_in_pcie_rq_seq_num      : in  std_logic_vector(3 downto 0);
+p_in_pcie_rq_seq_num_vld  : in  std_logic;
+
+p_in_completer_id : in  std_logic_vector(15 downto 0);
+
+p_in_pcie_prm    : in  TPCIE_cfgprm;
+
+--usr app
+p_in_urxbuf_empty : in  std_logic;
+p_in_urxbuf_do    : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_out_urxbuf_rd   : out std_logic;
+p_out_urxbuf_last : out std_logic;
+
+--DMA
+p_in_dma_init      : in  std_logic;
+p_in_dma_prm       : in  TPCIE_dmaprm;
+p_in_dma_mwr_en    : in  std_logic;
+p_out_dma_mwr_done : out std_logic;
+
+--DBG
+p_out_tst : out std_logic_vector(279 downto 0);
+
+--system
+p_in_clk   : in  std_logic;
+p_in_rst_n : in  std_logic
+);
+end component pcie_tx_rq;
+
 
 begin --architecture behavioral of pcie_tx
 
@@ -212,13 +279,61 @@ p_in_rst_n => p_in_rst_n
 
 
 
-p_out_s_axis_rq_tdata  <= (others => '0');
-p_out_s_axis_rq_tkeep  <= (others => '0');
-p_out_s_axis_rq_tlast  <= '0';
-p_out_s_axis_rq_tvalid <= '0';
-p_out_s_axis_rq_tuser  <= (others => '0');
+m_tx_rq : pcie_tx_rq
+generic map(
+G_AXISTEN_IF_RQ_ALIGNMENT_MODE => G_AXISTEN_IF_RQ_ALIGNMENT_MODE,
+G_AXISTEN_IF_ENABLE_CLIENT_TAG => G_AXISTEN_IF_ENABLE_CLIENT_TAG,
+G_AXISTEN_IF_RQ_PARITY_CHECK   => G_AXISTEN_IF_RQ_PARITY_CHECK  ,
 
-p_out_cfg_fc_sel <= (pthers => '0');
+G_DATA_WIDTH   => G_DATA_WIDTH  ,
+G_STRB_WIDTH   => G_STRB_WIDTH  ,
+G_KEEP_WIDTH   => G_KEEP_WIDTH  ,
+G_PARITY_WIDTH => G_PARITY_WIDTH
+)
+port map(
+--AXI-S Requester Request Interface
+p_out_s_axis_rq_tdata  => p_out_s_axis_rq_tdata ,
+p_out_s_axis_rq_tkeep  => p_out_s_axis_rq_tkeep ,
+p_out_s_axis_rq_tlast  => p_out_s_axis_rq_tlast ,
+p_out_s_axis_rq_tvalid => p_out_s_axis_rq_tvalid,
+p_out_s_axis_rq_tuser  => p_out_s_axis_rq_tuser ,
+p_in_s_axis_rq_tready  => p_in_s_axis_rq_tready ,
+
+--Tag availability and Flow control Information
+p_in_pcie_rq_tag          => p_in_pcie_rq_tag         ,
+p_in_pcie_rq_tag_vld      => p_in_pcie_rq_tag_vld     ,
+p_in_pcie_tfc_nph_av      => p_in_pcie_tfc_nph_av     ,
+p_in_pcie_tfc_npd_av      => p_in_pcie_tfc_npd_av     ,
+p_in_pcie_tfc_np_pl_empty => p_in_pcie_tfc_np_pl_empty,
+p_in_pcie_rq_seq_num      => p_in_pcie_rq_seq_num     ,
+p_in_pcie_rq_seq_num_vld  => p_in_pcie_rq_seq_num_vld ,
+
+p_in_completer_id => p_in_completer_id,
+
+p_in_pcie_prm    => p_in_pcie_prm,
+
+--usr app
+p_in_urxbuf_empty => p_in_urxbuf_empty,
+p_in_urxbuf_do    => p_in_urxbuf_do   ,
+p_out_urxbuf_rd   => p_out_urxbuf_rd  ,
+p_out_urxbuf_last => p_out_urxbuf_last,
+
+--DMA
+p_in_dma_init      => p_in_dma_init     ,
+p_in_dma_prm       => p_in_dma_prm      ,
+p_in_dma_mwr_en    => p_in_dma_mwr_en   ,
+p_out_dma_mwr_done => p_out_dma_mwr_done,
+
+--DBG
+p_out_tst => open,
+
+--system
+p_in_clk   => p_in_clk,
+p_in_rst_n => p_in_rst_n
+);
+
+
+p_out_cfg_fc_sel <= (others => '0');
 
 end architecture behavioral;
 

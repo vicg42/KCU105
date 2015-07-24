@@ -75,11 +75,11 @@ p_out_rxbuf_empty  : out   std_logic;
 p_out_dmatrn_init  : out   std_logic;
 p_out_dma_prm      : out   TPCIE_dmaprm;
 
---MEMORY WRITE - DMATRN_WR (PC<-FPGA)
+--DMA MEMWR (PC<-FPGA)
 p_out_dma_mwr_en   : out   std_logic;
 p_in_dma_mwr_done  : in    std_logic;
 
---MEMORY READ - DMATRN_RD (PC->FPGA)
+--DMA MEMRD (PC->FPGA)
 p_out_dma_mrd_en      : out   std_logic;
 p_in_dma_mrd_rcv_size : in    std_logic_vector(31 downto 0);
 p_in_dma_mrd_rcv_err  : in    std_logic;
@@ -520,8 +520,8 @@ if rising_edge(p_in_clk) then
 
     i_mrd_done <= i_mrd_rcv_size_ok and p_in_txbuf_wr_last;
 
-    sr_mwr_done <= p_in_mwr_done;
-    i_mwr_done <= p_in_mwr_done and not sr_mwr_done;
+    sr_mwr_done <= p_in_dma_mwr_done;
+    i_mwr_done <= p_in_dma_mwr_done and not sr_mwr_done;
 
     --DMATRN <-> MEM_CTRL
     if UNSIGNED(i_hdev_adr) = TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length)
