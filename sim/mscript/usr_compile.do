@@ -14,9 +14,11 @@ vlib msim
 
 vlib msim/xil_defaultlib
 vlib msim/gtwizard_ultrascale_v1_5
+vlib msim/blk_mem_gen_v8_2
 
 vmap xil_defaultlib msim/xil_defaultlib
 vmap gtwizard_ultrascale_v1_5 msim/gtwizard_ultrascale_v1_5
+vmap blk_mem_gen_v8_2 msim/blk_mem_gen_v8_2
 
 vlog -64 -incr -work xil_defaultlib  +incdir+../testbanch/pcie3_core/simulation/functional +incdir+../testbanch/pcie3_core/simulation/tests +incdir+../testbanch/pcie3_core/simulation/dsport \
 "../../src/pcie/pcie_uv7_irq.v" \
@@ -44,6 +46,12 @@ vlog -64 -incr -work gtwizard_ultrascale_v1_5  +incdir+../testbanch/pcie3_core/s
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/sim/pcie3_core_gt_gtwizard_top.v" \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/sim/pcie3_core_gt.v" \
 
+vcom -64 -93 -work blk_mem_gen_v8_2  \
+"../testbanch/bram_dma_params_example/bram_dma_params_example.srcs/sources_1/ip/bram_dma_params/blk_mem_gen_v8_2/simulation/blk_mem_gen_v8_2.vhd" \
+
+vcom -64 -93 -work xil_defaultlib   \
+"../testbanch/bram_dma_params_example/bram_dma_params_example.srcs/sources_1/ip/bram_dma_params/sim/bram_dma_params.vhd" \
+
 vcom -64 -93 -work xil_defaultlib   \
 "../../../../../lib/common/hw/lib/vicg/vicg_common_pkg.vhd" \
 "../../../../../lib/common/hw/lib/vicg/reduce_pack.vhd" \
@@ -51,8 +59,11 @@ vcom -64 -93 -work xil_defaultlib   \
 "../../src/prj_def.vhd" \
 "../../src/pcie/pcie_pkg.vhd" \
 "../../src/pcie/pcie_uv7_unit_pkg.vhd" \
-"../../src/pcie/pcie_uv7_rx_256.vhd" \
-"../../src/pcie/pcie_uv7_tx_256.vhd" \
+"../../src/pcie/pcie_uv7_rx.vhd" \
+"../../src/pcie/pcie_uv7_rxcq_256.vhd" \
+"../../src/pcie/pcie_uv7_tx.vhd" \
+"../../src/pcie/pcie_uv7_txrq_256.vhd" \
+"../../src/pcie/pcie_uv7_txcc_256.vhd" \
 "../../src/pcie/pcie_uv7_usr_app.vhd" \
 "../../src/pcie/pcie_uv7_ctrl.vhd" \
 "../../src/pcie/pcie_uv7_main.vhd" \
