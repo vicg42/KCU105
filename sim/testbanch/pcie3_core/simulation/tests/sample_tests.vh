@@ -689,7 +689,7 @@ begin
 
 
                           //C_HREG_DMAPRM_LEN
-                          board.RP.tx_usrapp.USR_DATA = 256;//32'h0000_0100;
+                          board.RP.tx_usrapp.USR_DATA = 1024;
 
                           board.RP.tx_usrapp.DATA_STORE[0] = board.RP.tx_usrapp.USR_DATA[ 7: 0];
                           board.RP.tx_usrapp.DATA_STORE[1] = board.RP.tx_usrapp.USR_DATA[15: 8];

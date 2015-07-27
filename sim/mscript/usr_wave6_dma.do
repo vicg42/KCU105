@@ -38,7 +38,7 @@ add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_current_speed
 add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_negotiated_width
 add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_max_payload
 add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_max_read_req
-add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_function_status
+add wave -noupdate -expand /board/EP/m_main/m_ctrl/p_in_cfg_function_status
 add wave -noupdate -divider USR_APP
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/p_in_clk
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/p_in_rst_n
@@ -51,6 +51,12 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/i_reg_rd
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/i_reg_bar
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/i_reg_adr
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/i_reg
+add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/p_in_dma_mwr_done
+add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/i_mrd_done
+add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/sr_mwr_done
+add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/i_mwr_done
+add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/sr_dmatrn_done
+add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/i_dmatrn_mem_done
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/i_dma_start
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/sr_dma_start
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/i_dmatrn_len
@@ -67,23 +73,24 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/i_hw_dmaprm_adr
 add wave -noupdate -radix hexadecimal /board/EP/m_main/m_ctrl/m_usr_app/i_hw_dmaprm_dout
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/i_hw_dmaprm_rd(0)
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/sr_hw_dmaprm_cnt
-add wave -noupdate -expand /board/EP/m_main/m_ctrl/m_usr_app/p_out_dma_prm
+add wave -noupdate -childformat {{/board/EP/m_main/m_ctrl/m_usr_app/p_out_dma_prm.len -radix unsigned}} -expand -subitemconfig {/board/EP/m_main/m_ctrl/m_usr_app/p_out_dma_prm.len {-radix unsigned}} /board/EP/m_main/m_ctrl/m_usr_app/p_out_dma_prm
 add wave -noupdate -divider TXRQ
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_s_axis_rq_tdata
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_s_axis_rq_tkeep
-add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_s_axis_rq_tlast
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_s_axis_rq_tvalid
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_s_axis_rq_tlast
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_s_axis_rq_tuser
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_in_s_axis_rq_tready
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/sr_usr_rxbuf_do
 add wave -noupdate -color {Medium Slate Blue} -itemcolor Gold /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_fsm_txrq
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_dma_init
 add wave -noupdate -radix decimal /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mem_adr_byte
-add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mem_tx_byte
-add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mem_tx_byte_remain
-add wave -noupdate -radix decimal /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mem_tpl_cnt
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mem_tpl_byte
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mem_tpl_dw
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mem_tx_byte
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mem_tx_byte_remain
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mem_tpl_len
+add wave -noupdate -radix decimal /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mem_tpl_cnt
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mem_tpl_tag
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mem_tpl_last
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mem_tpl_dw_rem
@@ -93,6 +100,7 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mwr_done
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_in_urxbuf_do
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_urxbuf_rd
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_urxbuf_last
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_in_urxbuf_empty
 add wave -noupdate -divider RX_ENGENE
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_clk
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_rst_n
@@ -143,4 +151,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {184366243 ps} {184457083 ps}
+WaveRestoreZoom {183229342 ps} {185711262 ps}
