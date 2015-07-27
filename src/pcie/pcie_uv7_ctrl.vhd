@@ -245,10 +245,9 @@ signal i_m_axis_rc_tready      : std_logic;
 
 signal i_interrupt_done        : std_logic;
 
-signal i_gen_transaction       : std_logic;
-signal i_gen_leg_intr          : std_logic;
-signal i_gen_msi_intr          : std_logic;
-signal i_gen_msix_intr         : std_logic;
+signal i_uapp_irq_clr          : std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
+signal i_uapp_irq_set          : std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
+signal i_uapp_irq_status       : std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
 
 --signal tst_in                  : std_logic_vector(127 downto 0);
 
@@ -441,9 +440,9 @@ p_in_dma_mrd_rcv_size => (others => '0'),
 p_in_dma_mrd_rcv_err  => '0',
 
 --IRQ
-p_out_irq_clr      => open,--: out   std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
-p_out_irq_set      => open,--: out   std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
-p_in_irq_status    => (others => '0'),--: in    std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
+p_out_irq_clr      => i_uapp_irq_clr,
+p_out_irq_set      => i_uapp_irq_set,
+p_in_irq_status    => i_uapp_irq_status,
 
 --System
 p_in_clk   => i_trn_clk,
@@ -616,38 +615,50 @@ p_in_rst_n => i_rst_n
 
 
 
-------------------------------------------
-----
-------------------------------------------
---m_irq : pcie_irq
---port map(
---user_clk => i_trn_clk,
---reset_n  => i_rst_n,
+----------------------------------------
 --
-----Trigger to generate interrupts (to / from Mem access Block)
---gen_leg_intr   => i_gen_leg_intr ,
---gen_msi_intr   => i_gen_msi_intr ,
---gen_msix_intr  => i_gen_msix_intr,
---interrupt_done => i_interrupt_done, --: out std_logic; --Indicates whether interrupt is done or in process
---
-----Legacy Interrupt Interface
---cfg_interrupt_sent => p_in_cfg_interrupt_sent, --: in  std_logic; --Core asserts this signal when it sends out a Legacy interrupt
---cfg_interrupt_int  => p_out_cfg_interrupt_int, --: out std_logic_vector(3 downto 0); --4 Bits for INTA, INTB, INTC, INTD (assert or deassert)
---
-----MSI Interrupt Interface
---cfg_interrupt_msi_enable => p_in_cfg_interrupt_msi_enable(0),
---cfg_interrupt_msi_sent   => p_in_cfg_interrupt_msi_sent     ,
---cfg_interrupt_msi_fail   => p_in_cfg_interrupt_msi_fail     ,
---cfg_interrupt_msi_int    => p_out_cfg_interrupt_msi_int     ,
---
-----MSI-X Interrupt Interface
---cfg_interrupt_msix_enable  => p_in_cfg_interrupt_msix_enable  ,
---cfg_interrupt_msix_sent    => p_in_cfg_interrupt_msix_sent    ,
---cfg_interrupt_msix_fail    => p_in_cfg_interrupt_msix_fail    ,
---cfg_interrupt_msix_int     => p_out_cfg_interrupt_msix_int    ,
---cfg_interrupt_msix_address => p_out_cfg_interrupt_msix_address,
---cfg_interrupt_msix_data    => p_out_cfg_interrupt_msix_data
---);
+----------------------------------------
+m_irq : pcie_irq
+port map (
+-----------------------------
+--Usr Ctrl
+-----------------------------
+p_in_irq_clr         => i_uapp_irq_clr   ,
+p_in_irq_set         => i_uapp_irq_set   ,
+p_out_irq_status     => i_uapp_irq_status,
+
+-----------------------------
+--PCIE Port
+-----------------------------
+p_in_cfg_msi         => p_in_cfg_interrupt_msi_enable(0),
+p_in_cfg_irq_rdy     => p_in_cfg_interrupt_sent,
+p_out_cfg_irq        => i_pcie_irq,
+p_out_cfg_irq_assert => i_pcie_irq_assert,
+
+-------------------------------
+----DBG
+-------------------------------
+--p_in_tst             : in   std_logic_vector(31 downto 0);
+--p_out_tst            : out  std_logic_vector(31 downto 0);
+
+-----------------------------
+--SYSTEM
+-----------------------------
+p_in_clk => i_trn_clk,
+p_in_rst_n => i_rst_n
+);
+
+--bit(0) - PCI_EXPRESS_LEGACY_INTA
+--bit(1) - PCI_EXPRESS_LEGACY_INTB
+--bit(2) - PCI_EXPRESS_LEGACY_INTC
+--bit(3) - PCI_EXPRESS_LEGACY_INTD
+p_out_cfg_interrupt_int(0) <= i_pcie_irq;
+p_out_cfg_interrupt_int(p_out_cfg_interrupt_int'high downto 1) <= (others => '0');
+
+--bit(0) - Function 0
+--bit(1) - Function 1
+p_out_cfg_interrupt_pending(0) <= i_pcie_irq_assert;
+p_out_cfg_interrupt_pending(p_out_cfg_interrupt_pending'high downto 1) <= (others => '0');
 
 
 ----------------------------------------
@@ -674,8 +685,6 @@ cfg_power_state_change_ack       => p_out_cfg_power_state_change_ack
 --#############################################
 
 -- Interrupt Interface Signals
-p_out_cfg_interrupt_int                 <= (others => '0');
-p_out_cfg_interrupt_pending             <= (others => '0');
 p_out_cfg_interrupt_msi_select          <= (others => '0');
 p_out_cfg_interrupt_msi_int             <= (others => '0');
 p_out_cfg_interrupt_msi_pending_status  <= (others => '0');
