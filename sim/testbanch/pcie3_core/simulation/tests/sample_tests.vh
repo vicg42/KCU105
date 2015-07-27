@@ -642,6 +642,29 @@ begin
                           $display("[%t] : Config DMA to Memory 32 Space BAR %x", $realtime,
                               board.RP.tx_usrapp.ii);
 
+                          //C_HREG_IRQ (DMA IRQ EN)
+                          board.RP.tx_usrapp.USR_DATA[3:0] = 0;//NUM IRQ
+                          board.RP.tx_usrapp.USR_DATA[12:4] = 0;
+                          board.RP.tx_usrapp.USR_DATA[13] = 1; //IRQ_EN_WBIT
+                          board.RP.tx_usrapp.USR_DATA[31:14] = 0;
+
+                          board.RP.tx_usrapp.DATA_STORE[0] = board.RP.tx_usrapp.USR_DATA[ 7: 0];
+                          board.RP.tx_usrapp.DATA_STORE[1] = board.RP.tx_usrapp.USR_DATA[15: 8];
+                          board.RP.tx_usrapp.DATA_STORE[2] = board.RP.tx_usrapp.USR_DATA[23:16];
+                          board.RP.tx_usrapp.DATA_STORE[3] = board.RP.tx_usrapp.USR_DATA[31:24];
+
+                          board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
+                              board.RP.tx_usrapp.DEFAULT_TC,
+                              11'd1, // Length (in DW)
+                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 7), // Address
+                              4'h0,  // Last DW Byte Enable
+                              4'hF,  // First DW Byte Enable
+                              1'b0); // Poisoned Data: Payload is invalid if set
+
+                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
+                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
+
+
                           //C_HREG_DEV_CTRL
                           board.RP.tx_usrapp.USR_DATA[0] = 0;
                           board.RP.tx_usrapp.USR_DATA[1] = 0; //DMA START

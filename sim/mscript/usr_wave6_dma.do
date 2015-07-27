@@ -39,6 +39,18 @@ add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_negotiated_width
 add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_max_payload
 add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_max_read_req
 add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_function_status
+add wave -noupdate -divider IRQ
+add wave -noupdate /board/EP/m_main/m_ctrl/p_out_cfg_interrupt_int
+add wave -noupdate /board/EP/m_main/m_ctrl/p_out_cfg_interrupt_pending
+add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_interrupt_sent
+add wave -noupdate -expand /board/EP/m_main/m_ctrl/m_usr_app/i_irq_en
+add wave -noupdate /board/EP/m_main/m_ctrl/m_irq/p_in_cfg_msi
+add wave -noupdate /board/EP/m_main/m_ctrl/m_irq/p_in_cfg_irq_rdy
+add wave -noupdate /board/EP/m_main/m_ctrl/m_irq/p_out_cfg_irq
+add wave -noupdate /board/EP/m_main/m_ctrl/m_irq/p_out_cfg_irq_assert
+add wave -noupdate /board/EP/m_main/m_ctrl/m_irq/p_in_irq_clr
+add wave -noupdate /board/EP/m_main/m_ctrl/m_irq/p_in_irq_set
+add wave -noupdate /board/EP/m_main/m_ctrl/m_irq/p_out_irq_status
 add wave -noupdate -divider USR_APP
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/p_in_clk
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/p_in_rst_n
@@ -95,7 +107,6 @@ add wave -noupdate -radix decimal /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mem_tpl
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mem_tpl_tag
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mem_tpl_last
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mem_tpl_dw_rem
-add wave -noupdate -radix unsigned /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mwr_tpl_max_byte
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mwr_work
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mwr_done
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_in_urxbuf_do
@@ -136,9 +147,9 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_out_s_axis_cc_tvalid
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_out_s_axis_cc_tuser
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_in_s_axis_cc_tready
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors
+WaveRestoreCursors {{Cursor 1} {0 ps} 0}
 quietly wave cursor active 0
-configure wave -namecolwidth 232
+configure wave -namecolwidth 197
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
 configure wave -signalnamewidth 1
@@ -152,4 +163,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {184526648 ps} {184566751 ps}
+WaveRestoreZoom {184836382 ps} {185112410 ps}
