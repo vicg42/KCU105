@@ -411,6 +411,8 @@ if rising_edge(p_in_clk) then
             txd(C_HREG_PCIE_NEG_MAX_RD_REQ_M_BIT downto C_HREG_PCIE_NEG_MAX_RD_REQ_L_BIT)
                 := p_in_pcie_prm.max_rd_req(2 downto 0);
 
+            txd(C_HREG_PCIE_MASTER_EN_BIT) := p_in_pcie_prm.master_en(0);
+
             txd(C_HREG_PCIE_SPEED_TESTING_BIT) := i_pcie_testing;
 
         elsif i_reg_adr = TO_UNSIGNED(C_HREG_MEM_ADR, 5) then

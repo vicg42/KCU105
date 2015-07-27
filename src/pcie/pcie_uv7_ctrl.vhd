@@ -245,6 +245,9 @@ signal i_m_axis_rc_tready      : std_logic;
 
 signal i_interrupt_done        : std_logic;
 
+signal i_pcie_irq              : std_logic;
+signal i_pcie_irq_assert       : std_logic;
+
 signal i_uapp_irq_clr          : std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
 signal i_uapp_irq_set          : std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
 signal i_uapp_irq_status       : std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
@@ -254,7 +257,7 @@ signal i_uapp_irq_status       : std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0)
 signal tst_uapp_out            : std_logic_vector(127 downto 0);
 signal tst_rx_out              : std_logic_vector(31 downto 0);
 signal tst_tx_out              : std_logic_vector(279 downto 0);
-signal i_dbg_probe             : std_logic_vector(33 downto 0);
+signal i_dbg_probe             : std_logic_vector(41 downto 0);
 
 attribute keep : string;
 attribute keep of i_trn_clk : signal is "true";
@@ -293,6 +296,8 @@ reg_rd          : std_logic;
 --fsm_rx          : std_logic_vector(3 downto 0);
 --fsm_tx          : std_logic_vector(3 downto 0);
 rx_err          : std_logic_vector(1 downto 0);
+
+cfg_function_status : std_logic_vector(7 downto 0);
 end record;
 
 signal i_dbg_pcie            : TPCIE_dbg;
@@ -370,9 +375,9 @@ i_pcie_prm.max_rd_req <= std_logic_vector(RESIZE(UNSIGNED(p_in_cfg_max_read_req)
 i_pcie_prm.master_en(0) <= p_in_cfg_function_status(2);
 
 
-----------------------------------------
+--######################################
 --
-----------------------------------------
+--######################################
 m_usr_app : pcie_usr_app
 generic map(
 G_DBG => "OFF"
@@ -451,9 +456,11 @@ p_in_rst_n => i_rst_n
 
 p_out_tst <= tst_uapp_out;
 
-----------------------------------------
+
+
+--######################################
 --
-----------------------------------------
+--######################################
 gen_cq_trdy : for i in 0 to p_out_m_axis_cq_tready'length - 1 generate begin
 p_out_m_axis_cq_tready(i) <= i_m_axis_cq_tready;
 end generate gen_cq_trdy;
@@ -522,9 +529,10 @@ p_in_rst_n => i_rst_n
 );
 
 
-----------------------------------------
+
+--######################################
 --
-----------------------------------------
+--######################################
 m_tx : pcie_tx
 generic map (
 G_AXISTEN_IF_RQ_ALIGNMENT_MODE => G_AXISTEN_IF_RQ_ALIGNMENT_MODE,
@@ -615,9 +623,9 @@ p_in_rst_n => i_rst_n
 
 
 
-----------------------------------------
+--######################################
 --
-----------------------------------------
+--######################################
 m_irq : pcie_irq
 port map (
 -----------------------------
@@ -661,9 +669,10 @@ p_out_cfg_interrupt_pending(0) <= i_pcie_irq_assert;
 p_out_cfg_interrupt_pending(p_out_cfg_interrupt_pending'high downto 1) <= (others => '0');
 
 
-----------------------------------------
+
+--######################################
 --
-----------------------------------------
+--######################################
 i_req_completion <= i_req_compl or i_req_compl_ur;
 i_completion_done <= i_compl_done;-- or i_interrupt_done;
 
@@ -680,10 +689,10 @@ cfg_power_state_change_ack       => p_out_cfg_power_state_change_ack
 );
 
 
+
 --#############################################
 --DBG
 --#############################################
-
 -- Interrupt Interface Signals
 p_out_cfg_interrupt_msi_select          <= (others => '0');
 p_out_cfg_interrupt_msi_int             <= (others => '0');
@@ -708,9 +717,9 @@ begin
 
 --##########################
 --rx
-process(i_trn_clk)
-begin
-if rising_edge(i_trn_clk) then
+--process(i_trn_clk)
+--begin
+--if rising_edge(i_trn_clk) then
 --i_dbg_pcie.m_axi_cq_tdata(255 downto 0) <= p_in_m_axis_cq_tdata;--std_logic_vector(RESIZE(UNSIGNED(p_in_m_axis_cq_tdata), 256));
 i_dbg_pcie.m_axi_cq_tkeep(7 downto 0)   <= p_in_m_axis_cq_tkeep;--std_logic_vector(RESIZE(UNSIGNED(p_in_m_axis_cq_tkeep), 8));
 i_dbg_pcie.m_axi_cq_tvalid              <= p_in_m_axis_cq_tvalid;
@@ -742,8 +751,10 @@ i_dbg_pcie.reg_rd <= i_ureg_rd;
 --i_dbg_pcie.fsm_rx(3 downto 0) <= tst_rx_out(3 downto 0);
 --i_dbg_pcie.fsm_tx(3 downto 0) <= tst_tx_out(3 downto 0);
 i_dbg_pcie.rx_err(1 downto 0) <= tst_rx_out(5 downto 4);
-end if;
-end process;
+
+i_dbg_pcie.cfg_function_status <= p_in_cfg_function_status;
+--end if;
+--end process;
 
 
 --##########################
@@ -771,6 +782,8 @@ i_dbg_probe(17 downto 16) <= i_dbg_pcie.rx_err(1 downto 0);
 
 i_dbg_probe(25 downto 18) <= i_dbg_pcie.m_axi_cq_tkeep(7 downto 0)  ;
 i_dbg_probe(33 downto 26) <= i_dbg_pcie.s_axi_cc_tkeep(7 downto 0)  ;
+
+i_dbg_probe(41 downto 34) <= i_dbg_pcie.cfg_function_status(7 downto 0);
 
 --i_dbg_probe(127 downto 0)   <= i_dbg_pcie.m_axi_cq_tdata(159 downto 0);
 --

@@ -181,38 +181,33 @@ p_in_rst_n : in  std_logic
 end component pcie_tx;
 
 component pcie_irq
-generic (
-TCQ : integer := 1
-);
-port (
-user_clk : in  std_logic; --User Clock
-reset_n  : in  std_logic; --User Reset
+port(
+-----------------------------
+--Usr Ctrl
+-----------------------------
+p_in_irq_clr         : in   std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
+p_in_irq_set         : in   std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
+p_out_irq_status     : out  std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
 
---Trigger to generate interrupts (to / from Mem access Block)
-gen_leg_intr   : in  std_logic; --Generate Legacy Interrupts
-gen_msi_intr   : in  std_logic; --Generate MSI Interrupts
-gen_msix_intr  : in  std_logic; --Generate MSI-X Interrupts
-interrupt_done : out std_logic; --Indicates whether interrupt is done or in process
+-----------------------------
+--PCIE Port
+-----------------------------
+p_in_cfg_msi         : in   std_logic;
+p_in_cfg_irq_rdy     : in   std_logic;
+p_out_cfg_irq        : out  std_logic;
+p_out_cfg_irq_assert : out  std_logic;
 
---Legacy Interrupt Interface
-cfg_interrupt_sent : in  std_logic; --Core asserts this signal when it sends out a Legacy interrupt
-cfg_interrupt_int  : out std_logic_vector(3 downto 0); --4 Bits for INTA, INTB, INTC, INTD (assert or deassert)
+-------------------------------
+----DBG
+-------------------------------
+--p_in_tst             : in   std_logic_vector(31 downto 0);
+--p_out_tst            : out  std_logic_vector(31 downto 0);
 
---MSI Interrupt Interface
-cfg_interrupt_msi_enable : in  std_logic;
-cfg_interrupt_msi_sent   : in  std_logic;
-cfg_interrupt_msi_fail   : in  std_logic;
-
-cfg_interrupt_msi_int    : out std_logic_vector(31 downto 0);
-
---MSI-X Interrupt Interface
-cfg_interrupt_msix_enable : in  std_logic;
-cfg_interrupt_msix_sent   : in  std_logic;
-cfg_interrupt_msix_fail   : in  std_logic;
-
-cfg_interrupt_msix_int    : out std_logic;
-cfg_interrupt_msix_address: out std_logic_vector(63 downto 0);
-cfg_interrupt_msix_data   : out std_logic_vector(31 downto 0)
+-----------------------------
+--SYSTEM
+-----------------------------
+p_in_clk             : in   std_logic;
+p_in_rst_n           : in   std_logic
 );
 end component pcie_irq;
 
@@ -298,7 +293,7 @@ end component pcie_usr_app;
 component dbgcs_ila_pcie is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(33 downto 0)
+probe0 : in std_logic_vector(41 downto 0)
 );
 end component dbgcs_ila_pcie;
 

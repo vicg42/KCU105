@@ -117,14 +117,7 @@ constant C_HREG_IRQ_STATUS_M_RBIT             : integer := 31;
 --field C_HREG_IRQ_NUM - interrupt numbers:
 constant C_HIRQ_PCIE_DMA                      : integer := 0;--DONE
 constant C_HIRQ_CFG                           : integer := 1;--RxD RDY
-constant C_HIRQ_FG_VCH0                       : integer := 2;--Frame RDY
-constant C_HIRQ_FG_VCH1                       : integer := 3;--Frame RDY
-constant C_HIRQ_SDI_CARRIER0                  : integer := 4;
-constant C_HIRQ_SDI_CARRIER1                  : integer := 5;
-constant C_HIRQ_BTN0                          : integer := 6;
-constant C_HIRQ_BTN1                          : integer := 7;
-constant C_HIRQ_BTN2                          : integer := 8;
-constant C_HIRQ_COUNT                         : integer := C_HIRQ_BTN2 + 1;
+constant C_HIRQ_COUNT                         : integer := C_HIRQ_CFG + 1;
 constant C_HIRQ_COUNT_MAX                     : integer := pwr(2, (C_HREG_IRQ_NUM_M_WBIT - C_HREG_IRQ_NUM_L_WBIT + 1));
 
 
@@ -150,7 +143,9 @@ constant C_HREG_PCIE_NEG_MAX_PAYLOAD_L_BIT    : integer := 15;
 constant C_HREG_PCIE_NEG_MAX_PAYLOAD_M_BIT    : integer := 17;
 constant C_HREG_PCIE_NEG_MAX_RD_REQ_L_BIT     : integer := 18;
 constant C_HREG_PCIE_NEG_MAX_RD_REQ_M_BIT     : integer := 20;
---constant RESERV                             : integer := 27...21;
+--constant RESERV                             : integer := 23...21;
+constant C_HREG_PCIE_MASTER_EN_BIT            : integer := 24;
+--constant RESERV                             : integer := 27...25;
 constant C_HREG_PCIE_SPEED_TESTING_BIT        : integer := 28;
 constant C_HREG_PCIE_LAST_BIT                 : integer := C_HREG_PCIE_SPEED_TESTING_BIT;
 
