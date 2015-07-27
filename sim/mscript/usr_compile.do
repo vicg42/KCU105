@@ -44,13 +44,10 @@ vlog -64 -incr -work gtwizard_ultrascale_v1_5  +incdir+../testbanch/pcie3_core/s
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/sim/pcie3_core_gt_gthe3_common_wrapper.v" \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/sim/pcie3_core_gt_gtwizard_gthe3.v" \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/sim/pcie3_core_gt_gtwizard_top.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/sim/pcie3_core_gt.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/sim/pcie3_core_gt.v"
 
-vcom -64 -93 -work blk_mem_gen_v8_2  \
-"../testbanch/bram_dma_params_example/bram_dma_params_example.srcs/sources_1/ip/bram_dma_params/blk_mem_gen_v8_2/simulation/blk_mem_gen_v8_2.vhd" \
-
-vcom -64 -93 -work xil_defaultlib   \
-"../testbanch/bram_dma_params_example/bram_dma_params_example.srcs/sources_1/ip/bram_dma_params/sim/bram_dma_params.vhd" \
+vcom -64 -93 -work blk_mem_gen_v8_2 "../../vv/prj/kcu105.srcs/sources_1/ip/bram_dma_params/blk_mem_gen_v8_2/simulation/blk_mem_gen_v8_2.vhd"
+vcom -64 -93 -work xil_defaultlib   "../../vv/prj/kcu105.srcs/sources_1/ip/bram_dma_params/sim/bram_dma_params.vhd"
 
 vcom -64 -93 -work xil_defaultlib   \
 "../../../../../lib/common/hw/lib/vicg/vicg_common_pkg.vhd" \
@@ -67,7 +64,7 @@ vcom -64 -93 -work xil_defaultlib   \
 "../../src/pcie/pcie_uv7_usr_app.vhd" \
 "../../src/pcie/pcie_uv7_ctrl.vhd" \
 "../../src/pcie/pcie_uv7_main.vhd" \
-"../testbanch/pcie_uv7_main_sim.vhd" \
+"../testbanch/pcie_uv7_main_sim.vhd"
 
 vlog -64 -incr -work xil_defaultlib  +incdir+../testbanch/pcie3_core/simulation/functional +incdir+../testbanch/pcie3_core/simulation/tests +incdir+../testbanch/pcie3_core/simulation/dsport \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/source/pcie3_core_tph_tbl.v" \
@@ -96,11 +93,11 @@ vlog -64 -incr -work xil_defaultlib  +incdir+../testbanch/pcie3_core/simulation/
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/source/pcie3_core_pcie3_uscale_top.v" \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/source/pcie3_core_phy_sync_cell.v" \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/source/pcie3_core_rxcdrhold.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/source/pcie3_core_pcie3_uscale_core_top.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/source/pcie3_core_pcie3_uscale_core_top.v"
 
 vcom -64 -93 -work xil_defaultlib  \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/trigger.vhd" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/sim/pcie3_core.vhd" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/sim/pcie3_core.vhd"
 
 vlog -64 -incr -work xil_defaultlib  +incdir+../testbanch/pcie3_core/simulation/functional +incdir+../testbanch/pcie3_core/simulation/tests +incdir+../testbanch/pcie3_core/simulation/dsport \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/imports/example_design/pcie_app_uscale.v" \
@@ -113,7 +110,7 @@ vlog -64 -incr -work xil_defaultlib  +incdir+../testbanch/pcie3_core/simulation/
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/imports/example_design/xilinx_pcie_uscale_ep.v" \
 "../testbanch/pcie3_core/simulation/functional/sys_clk_gen_ds.v" \
 "../testbanch/pcie3_core/simulation/dsport/xilinx_pcie_uscale_rp.v" \
-"../testbanch/usr_board.v" \
+"../testbanch/usr_board.v"
 
 # compile glbl module
 vlog -work xil_defaultlib "glbl.v"

@@ -18,8 +18,8 @@ vlib msim/blk_mem_gen_v8_2
 vmap blk_mem_gen_v8_2 msim/blk_mem_gen_v8_2
 
 vcom -64 -93 -work blk_mem_gen_v8_2 "../../vv/prj/kcu105.srcs/sources_1/ip/bram_dma_params/blk_mem_gen_v8_2/simulation/blk_mem_gen_v8_2.vhd"
-#vcom -64 -93 -work xil_defaultlib "../../vv/prj/kcu105.srcs/sources_1/ip/bram_dma_params/sim/bram_dma_params.vhd"
-vcom -64 -93 -work xil_defaultlib "../testbanch/bram_dma_params.vhd"
+vcom -64 -93 -work xil_defaultlib "../../vv/prj/kcu105.srcs/sources_1/ip/bram_dma_params/sim/bram_dma_params.vhd"
+#vcom -64 -93 -work xil_defaultlib "../testbanch/bram_dma_params.vhd"
 vcom -64 -93 -work xil_defaultlib "../testbanch/bram_sim.vhd"
 vlog -work xil_defaultlib "glbl.v"
 
