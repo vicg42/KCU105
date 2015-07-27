@@ -60,6 +60,7 @@ p_in_dma_init      : in  std_logic;
 p_in_dma_prm       : in  TPCIE_dmaprm;
 p_in_dma_mwr_en    : in  std_logic;
 p_out_dma_mwr_done : out std_logic;
+p_in_dma_mrd_en    : in  std_logic;
 
 --DBG
 p_out_tst : out std_logic_vector(279 downto 0);
@@ -74,11 +75,15 @@ architecture behavioral of pcie_tx_rq is
 
 type TFsmTxRq_state is (
 S_TXRQ_IDLE  ,
+
 S_TXRQ_MWR_C0,--calc
 S_TXRQ_MWR_C1,
 S_TXRQ_MWR_D0,--data first
 S_TXRQ_MWR_DN,--data n
-S_TXRQ_MWR_DE --data end
+S_TXRQ_MWR_DE,--data end
+
+S_TXRQ_MRD_C0,
+S_TXRQ_MRD_N
 );
 signal i_fsm_txrq           : TFsmTxRq_state;
 
@@ -106,9 +111,10 @@ signal i_mem_tpl_tag        : unsigned( 7 downto 0);--marker of send tpl
 signal i_mem_tpl_last       : std_logic;
 signal i_mem_tpl_dw_rem     : unsigned(10 downto 0);
 
-signal i_mwr_tpl_max_byte   : unsigned(10 downto 0);
+signal i_mem_tpl_max_byte   : unsigned(10 downto 0);
 signal i_mwr_work           : std_logic;
 signal i_mwr_done           : std_logic;
+signal i_mrd_done           : std_logic;
 
 signal tst_fsm_tx         : std_logic;
 
@@ -145,7 +151,7 @@ if rising_edge(p_in_clk) then
     if p_in_dma_init = '1' then
         i_dma_init <= '1';
     else
-        if (i_fsm_txrq = S_TXRQ_MWR_C0) then --or (i_fsm_txrq = S_TXRQ_MRD_QW00) then
+        if (i_fsm_txrq = S_TXRQ_MWR_C0) or (i_fsm_txrq = S_TXRQ_MRD_C0) then
           i_dma_init <= '0';
         end if;
     end if;
@@ -184,9 +190,10 @@ if rising_edge(p_in_clk) then
     i_mem_tpl_tag <= (others => '0');
     i_mem_tpl_last <= '0';
 
-    i_mwr_tpl_max_byte <= (others => '0');
+    i_mem_tpl_max_byte <= (others => '0');
     i_mwr_work <= '0';
     i_mwr_done <= '0';
+    i_mrd_done <= '0';
 
   else
 
@@ -209,11 +216,14 @@ if rising_edge(p_in_clk) then
 
                 if i_dma_init = '1' then
 
+                  --max 1024 because pcie_core support max value 1024 (max_payload)
                   case p_in_pcie_prm.max_payload is
-                  when C_PCIE_MAX_PAYLOAD_1024_BYTE => i_mwr_tpl_max_byte <= TO_UNSIGNED(1024, i_mwr_tpl_max_byte'length);
-                  when C_PCIE_MAX_PAYLOAD_512_BYTE  => i_mwr_tpl_max_byte <= TO_UNSIGNED(512 , i_mwr_tpl_max_byte'length);
-                  when C_PCIE_MAX_PAYLOAD_256_BYTE  => i_mwr_tpl_max_byte <= TO_UNSIGNED(256 , i_mwr_tpl_max_byte'length);
-                  when C_PCIE_MAX_PAYLOAD_128_BYTE  => i_mwr_tpl_max_byte <= TO_UNSIGNED(128 , i_mwr_tpl_max_byte'length);
+--                  when C_PCIE_MAX_PAYLOAD_4096_BYTE => i_mem_tpl_max_byte <= TO_UNSIGNED(4096, i_mem_tpl_max_byte'length);
+--                  when C_PCIE_MAX_PAYLOAD_2048_BYTE => i_mem_tpl_max_byte <= TO_UNSIGNED(2048, i_mem_tpl_max_byte'length);
+                  when C_PCIE_MAX_PAYLOAD_1024_BYTE => i_mem_tpl_max_byte <= TO_UNSIGNED(1024, i_mem_tpl_max_byte'length);
+                  when C_PCIE_MAX_PAYLOAD_512_BYTE  => i_mem_tpl_max_byte <= TO_UNSIGNED(512 , i_mem_tpl_max_byte'length);
+                  when C_PCIE_MAX_PAYLOAD_256_BYTE  => i_mem_tpl_max_byte <= TO_UNSIGNED(256 , i_mem_tpl_max_byte'length);
+                  when C_PCIE_MAX_PAYLOAD_128_BYTE  => i_mem_tpl_max_byte <= TO_UNSIGNED(128 , i_mem_tpl_max_byte'length);
                   when others => null;
                   end case;
 
@@ -228,10 +238,33 @@ if rising_edge(p_in_clk) then
                   i_fsm_txrq <= S_TXRQ_MWR_C0;
                 end if;
 
+            elsif p_in_dma_mrd_en = '1' and i_mrd_done = '0' then --p_in_pcie_prm.master_en(0) = '1'
+                if i_dma_init = '1' then
+
+                  case p_in_pcie_prm.max_rd_req is
+--                  when C_PCIE_MAX_RD_REQ_4096_BYTE => i_mem_tpl_max_byte <= TO_UNSIGNED(4096, i_mem_tpl_max_byte'length);
+--                  when C_PCIE_MAX_RD_REQ_2048_BYTE => i_mem_tpl_max_byte <= TO_UNSIGNED(2048, i_mem_tpl_max_byte'length);
+                  when C_PCIE_MAX_RD_REQ_1024_BYTE => i_mem_tpl_max_byte <= TO_UNSIGNED(1024, i_mem_tpl_max_byte'length);
+                  when C_PCIE_MAX_RD_REQ_512_BYTE  => i_mem_tpl_max_byte <= TO_UNSIGNED(512, i_mem_tpl_max_byte'length);
+                  when C_PCIE_MAX_RD_REQ_256_BYTE  => i_mem_tpl_max_byte <= TO_UNSIGNED(256, i_mem_tpl_max_byte'length);
+                  when C_PCIE_MAX_RD_REQ_128_BYTE  => i_mem_tpl_max_byte <= TO_UNSIGNED(128, i_mem_tpl_max_byte'length);
+                  when others => null;
+                  end case;
+
+                  i_mem_adr_byte <= UNSIGNED(p_in_dma_prm.addr);
+                  i_mem_tx_byte_remain <= UNSIGNED(p_in_dma_prm.len);
+
+                else
+                  i_mem_tx_byte_remain <= UNSIGNED(p_in_dma_prm.len) - i_mem_tx_byte;
+                end if;
+
+                i_fsm_txrq <= S_TXRQ_MRD_C0;
+
             else
 
                 if i_dma_init = '1' then
                   i_mwr_done <= '0';
+                  i_mrd_done <= '0';
                 end if;
 
             end if;
@@ -241,11 +274,11 @@ if rising_edge(p_in_clk) then
         --#######################################################################
         when S_TXRQ_MWR_C0 =>
 
-            if i_mem_tx_byte_remain > RESIZE(i_mwr_tpl_max_byte, i_mem_tx_byte_remain'length) then
+            if i_mem_tx_byte_remain > RESIZE(i_mem_tpl_max_byte, i_mem_tx_byte_remain'length) then
                 i_mem_tpl_last <= '0';
-                i_mem_tpl_byte <= i_mwr_tpl_max_byte;
+                i_mem_tpl_byte <= i_mem_tpl_max_byte;
 
-                i_mem_tpl_len <= RESIZE(i_mwr_tpl_max_byte(i_mem_tpl_len'high downto log2(G_DATA_WIDTH / 8)), i_mem_tpl_len'length);
+                i_mem_tpl_len <= RESIZE(i_mem_tpl_max_byte(i_mem_tpl_len'high downto log2(G_DATA_WIDTH / 8)), i_mem_tpl_len'length);
             else
                 i_mem_tpl_last <= '1';
                 i_mem_tpl_byte <= i_mem_tx_byte_remain(i_mem_tpl_byte'range);
@@ -509,6 +542,104 @@ if rising_edge(p_in_clk) then
 
             end if;
         --END: MWr , +data
+
+
+
+        --#######################################################################
+        --MRd, no data  (PC<-FPGA)
+        --#######################################################################
+        when S_TXRQ_MRD_C0 =>
+
+          if i_mem_tx_byte_remain > RESIZE(i_mem_tpl_max_byte, i_mem_tx_byte_remain'length) then
+              i_mem_tpl_last <= '0';
+              i_mem_tpl_byte <= i_mem_tpl_max_byte;
+          else
+              i_mem_tpl_last <= '1';
+              i_mem_tpl_byte <= i_mem_tx_byte_remain(i_mem_tpl_byte'range);
+          end if;
+
+          i_fsm_txrq <= S_TXRQ_MRD_N;
+        --end S_TXRQ_MRD_C0 :
+
+        when S_TXRQ_MRD_N =>
+
+            if p_in_s_axis_rq_tready = '1' then
+--i_s_axis_rq_tuser  : std_logic_vector(59 downto 0);
+
+                i_s_axis_rq_tdata((32 * 2) - 1 downto (32 * 0)) <= std_logic_vector(RESIZE(i_mem_adr_byte(31 downto 2), (32 * 2) - 2) & "00");
+
+                i_s_axis_rq_tdata((32 * 2) + 10 downto (32 * 2) +  0) <= std_logic_vector(i_mem_tpl_dw(10 downto 0)); --DW count
+                i_s_axis_rq_tdata((32 * 2) + 14 downto (32 * 2) + 11) <= C_PCIE3_PKT_TYPE_MEM_RD_ND; --Req Type
+                i_s_axis_rq_tdata((32 * 2) + 15) <= '0'; --Poisoned Request
+                i_s_axis_rq_tdata((32 * 2) + 31 downto (32 * 2) + 16) <= (others => '0'); --Req ID
+
+                i_s_axis_rq_tdata((32 * 3) +  7 downto (32 * 3) +  0) <= std_logic_vector(i_mem_tpl_tag(7 downto 0)); --Tag
+                i_s_axis_rq_tdata((32 * 3) + 23 downto (32 * 3) +  8) <= p_in_completer_id; --Completer ID
+                i_s_axis_rq_tdata((32 * 3) + 24) <= '0'; --Requester ID Enable
+                i_s_axis_rq_tdata((32 * 3) + 27 downto (32 * 3) + 25) <= (others => '0');--Transaction Class (TC)
+                i_s_axis_rq_tdata((32 * 3) + 28) <= '0'; --Attr (No Snoop)
+                i_s_axis_rq_tdata((32 * 3) + 29) <= '0'; --Attr (Relaxed Ordering)
+                i_s_axis_rq_tdata((32 * 3) + 30) <= '0'; --Attr (ID-Based Ordering)
+                i_s_axis_rq_tdata((32 * 3) + 31) <= '0'; --Force ECRC
+
+                i_s_axis_rq_tdata((32 * 8) - 1 downto (32 * 4)) <= (others => '0');
+
+                i_s_axis_rq_tkeep(7 downto 0) <= "00001111";
+
+                i_s_axis_rq_tvalid <= '1';
+                i_s_axis_rq_tlast <= '1';
+
+                --1st DW Byte Enable (first_be)
+                case i_mem_adr_byte(1 downto 0) is
+                when "00" => i_s_axis_rq_tuser(3 downto 0) <= "1111";
+                when "01" => i_s_axis_rq_tuser(3 downto 0) <= "1110";
+                when "10" => i_s_axis_rq_tuser(3 downto 0) <= "1100";
+                when "11" => i_s_axis_rq_tuser(3 downto 0) <= "1000";
+                when others => null;
+                end case;
+
+                --Last DW Byte Enable (last_be)
+                if i_mem_tpl_dw = TO_UNSIGNED(16#01#, i_mem_tpl_dw'length)
+                  and OR_reduce(i_mem_adr_byte(1 downto 0)) = '0' then
+                    i_s_axis_rq_tuser(7 downto 4) <= "0000";
+                else
+                case i_mem_tpl_byte(1 downto 0) is
+                when "00" => i_s_axis_rq_tuser(7 downto 4) <= "1111";
+                when "01" => i_s_axis_rq_tuser(7 downto 4) <= "0001";
+                when "10" => i_s_axis_rq_tuser(7 downto 4) <= "0011";
+                when "11" => i_s_axis_rq_tuser(7 downto 4) <= "0111";
+                when others => null;
+                end case;
+                end if;
+
+                i_s_axis_rq_tuser(10 downto 8) <= (others => '0');--addr_offset; ################  ????????????????  ##################
+                i_s_axis_rq_tuser(11) <= '0';--Discontinue;
+
+                i_s_axis_rq_tuser(12)           <= '0';            --TPH_present;
+                i_s_axis_rq_tuser(14 downto 13) <= (others => '0');--TPH_type;
+                i_s_axis_rq_tuser(15)           <= '0';            --TPH_indirect_tag_en;
+                i_s_axis_rq_tuser(23 downto 16) <= (others => '0');--TPH_st_tag;
+
+                i_s_axis_rq_tuser(27 downto 24) <= (others => '0');--seq_num[3:0];
+
+                i_s_axis_rq_tuser(59 downto 28) <= (others => '0');--parity[31:0];
+
+
+                i_mem_adr_byte <= i_mem_adr_byte + RESIZE(i_mem_tpl_byte, i_mem_adr_byte'length);
+
+                i_mem_tpl_tag <= i_mem_tpl_tag + 1;
+
+                if i_mem_tpl_last = '1' then
+                  i_mem_tx_byte <= (others => '0');
+                  i_mrd_done <= '1';
+                else
+                  i_mem_tx_byte <= i_mem_tx_byte + RESIZE(i_mem_tpl_byte, i_mem_tx_byte'length);
+                end if;
+
+                i_fsm_txrq <= S_TXRQ_IDLE;
+
+            end if;
+        --end S_TXRQ_MRD_N
 
     end case; --case i_fsm_txrq is
   end if;--p_in_rst_n

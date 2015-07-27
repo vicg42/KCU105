@@ -238,6 +238,7 @@ signal i_dma_init              : std_logic;
 signal i_dma_prm               : TPCIE_dmaprm;
 signal i_dma_mwr_en            : std_logic;
 signal i_dma_mwr_done          : std_logic;
+signal i_dma_mrd_en            : std_logic;
 
 signal i_m_axis_cq_tready      : std_logic;
 signal i_m_axis_rc_tready      : std_logic;
@@ -435,7 +436,7 @@ p_out_dma_mwr_en   => i_dma_mwr_en  ,
 p_in_dma_mwr_done  => i_dma_mwr_done,
 
 --DMA MEMRD (PC->FPGA)
-p_out_dma_mrd_en      => open,
+p_out_dma_mrd_en      => i_dma_mrd_en,
 p_in_dma_mrd_rcv_size => (others => '0'),
 p_in_dma_mrd_rcv_err  => '0',
 
@@ -603,6 +604,7 @@ p_in_dma_init      => i_dma_init    ,
 p_in_dma_prm       => i_dma_prm     ,
 p_in_dma_mwr_en    => i_dma_mwr_en  ,
 p_out_dma_mwr_done => i_dma_mwr_done,
+p_in_dma_mrd_en    => i_dma_mrd_en  ,
 
 --DBG
 p_out_tst => tst_tx_out,

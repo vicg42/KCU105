@@ -94,6 +94,7 @@ p_in_dma_init      : in  std_logic;
 p_in_dma_prm       : in  TPCIE_dmaprm;
 p_in_dma_mwr_en    : in  std_logic;
 p_out_dma_mwr_done : out std_logic;
+p_in_dma_mrd_en    : in  std_logic;
 
 --DBG
 p_out_tst : out std_logic_vector(279 downto 0);
@@ -208,6 +209,7 @@ p_in_dma_init      : in  std_logic;
 p_in_dma_prm       : in  TPCIE_dmaprm;
 p_in_dma_mwr_en    : in  std_logic;
 p_out_dma_mwr_done : out std_logic;
+p_in_dma_mrd_en    : in  std_logic;
 
 --DBG
 p_out_tst : out std_logic_vector(279 downto 0);
@@ -323,6 +325,7 @@ p_in_dma_init      => p_in_dma_init     ,
 p_in_dma_prm       => p_in_dma_prm      ,
 p_in_dma_mwr_en    => p_in_dma_mwr_en   ,
 p_out_dma_mwr_done => p_out_dma_mwr_done,
+p_in_dma_mrd_en    => p_in_dma_mrd_en   ,
 
 --DBG
 p_out_tst => open,
