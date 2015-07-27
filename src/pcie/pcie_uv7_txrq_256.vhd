@@ -74,8 +74,8 @@ architecture behavioral of pcie_tx_rq is
 
 type TFsmTxRq_state is (
 S_TXRQ_IDLE  ,
-S_TXRQ_MWR_C1,--calc
-S_TXRQ_MWR_C2,
+S_TXRQ_MWR_C0,--calc
+S_TXRQ_MWR_C1,
 S_TXRQ_MWR_D0,--data first
 S_TXRQ_MWR_DN,--data n
 S_TXRQ_MWR_DE --data end
@@ -145,7 +145,7 @@ if rising_edge(p_in_clk) then
     if p_in_dma_init = '1' then
         i_dma_init <= '1';
     else
-        if (i_fsm_txrq = S_TXRQ_MWR_C1) then --or (i_fsm_txrq = S_TXRQ_MRD_QW00) then
+        if (i_fsm_txrq = S_TXRQ_MWR_C0) then --or (i_fsm_txrq = S_TXRQ_MRD_QW00) then
           i_dma_init <= '0';
         end if;
     end if;
@@ -225,7 +225,7 @@ if rising_edge(p_in_clk) then
                 end if;
 
                 if p_in_urxbuf_empty = '0' then
-                  i_fsm_txrq <= S_TXRQ_MWR_C1;
+                  i_fsm_txrq <= S_TXRQ_MWR_C0;
                 end if;
 
             else
@@ -239,7 +239,7 @@ if rising_edge(p_in_clk) then
         --#######################################################################
         --MWr , +data (PC<-FPGA) FPGA is PCIe master
         --#######################################################################
-        when S_TXRQ_MWR_C1 =>
+        when S_TXRQ_MWR_C0 =>
 
             if i_mem_tx_byte_remain > RESIZE(i_mwr_tpl_max_byte, i_mem_tx_byte_remain'length) then
                 i_mem_tpl_last <= '0';
@@ -255,11 +255,11 @@ if rising_edge(p_in_clk) then
                                     & OR_reduce(i_mem_tx_byte_remain(log2(G_DATA_WIDTH / 8) - 1 downto 0)));
             end if;
 
-            i_fsm_txrq <= S_TXRQ_MWR_C2;
-          --end S_TXRQ_MWR_C1
+            i_fsm_txrq <= S_TXRQ_MWR_C1;
+          --end S_TXRQ_MWR_C0
 
 
-        when S_TXRQ_MWR_C2 =>
+        when S_TXRQ_MWR_C1 =>
 
             i_mwr_work <= '1';
 
@@ -267,7 +267,7 @@ if rising_edge(p_in_clk) then
                                  & TO_UNSIGNED(0, (log2(G_DATA_WIDTH / 8) - 2))) - i_mem_tpl_dw;
 
             i_fsm_txrq <= S_TXRQ_MWR_D0;
-        --end S_TXRQ_MWR_C2
+        --end S_TXRQ_MWR_C1
 
 
         when S_TXRQ_MWR_D0 =>
