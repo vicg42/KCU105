@@ -38,7 +38,7 @@ add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_current_speed
 add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_negotiated_width
 add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_max_payload
 add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_max_read_req
-add wave -noupdate -expand /board/EP/m_main/m_ctrl/p_in_cfg_function_status
+add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_function_status
 add wave -noupdate -divider USR_APP
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/p_in_clk
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/p_in_rst_n
@@ -51,7 +51,6 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/i_reg_rd
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/i_reg_bar
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/i_reg_adr
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/i_reg
-add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/p_in_dma_mwr_done
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/i_mrd_done
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/sr_mwr_done
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/i_mwr_done
@@ -73,7 +72,9 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/i_hw_dmaprm_adr
 add wave -noupdate -radix hexadecimal /board/EP/m_main/m_ctrl/m_usr_app/i_hw_dmaprm_dout
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/i_hw_dmaprm_rd(0)
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/sr_hw_dmaprm_cnt
-add wave -noupdate -childformat {{/board/EP/m_main/m_ctrl/m_usr_app/p_out_dma_prm.len -radix unsigned}} -expand -subitemconfig {/board/EP/m_main/m_ctrl/m_usr_app/p_out_dma_prm.len {-radix unsigned}} /board/EP/m_main/m_ctrl/m_usr_app/p_out_dma_prm
+add wave -noupdate -childformat {{/board/EP/m_main/m_ctrl/m_usr_app/p_out_dma_prm.len -radix unsigned}} -expand -subitemconfig {/board/EP/m_main/m_ctrl/m_usr_app/p_out_dma_prm.len {-height 15 -radix unsigned}} /board/EP/m_main/m_ctrl/m_usr_app/p_out_dma_prm
+add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/p_out_dma_mwr_en
+add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/p_in_dma_mwr_done
 add wave -noupdate -divider TXRQ
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_s_axis_rq_tdata
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_s_axis_rq_tkeep
@@ -135,7 +136,7 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_out_s_axis_cc_tvalid
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_out_s_axis_cc_tuser
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_in_s_axis_cc_tready
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {0 ps} 0}
+WaveRestoreCursors
 quietly wave cursor active 0
 configure wave -namecolwidth 232
 configure wave -valuecolwidth 100
@@ -151,4 +152,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {183229342 ps} {185711262 ps}
+WaveRestoreZoom {184526648 ps} {184566751 ps}
