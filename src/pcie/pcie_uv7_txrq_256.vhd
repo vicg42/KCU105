@@ -194,11 +194,14 @@ if rising_edge(p_in_clk) then
         --
         --#######################################################################
         when S_TXRQ_IDLE =>
+
             i_s_axis_rq_tdata  <= (others => '0');
             i_s_axis_rq_tkeep  <= (others => '0');
             i_s_axis_rq_tlast  <= '0';
             i_s_axis_rq_tvalid <= '0';
             i_s_axis_rq_tuser  <= (others => '0');
+
+            i_mem_tpl_last <= '0';
 
             if i_dma_init = '1' then
               if p_in_dma_mwr_en = '1' then
@@ -234,6 +237,7 @@ if rising_edge(p_in_clk) then
 
             i_fsm_txrq <= S_TXRQ_MWR_C1;
         --end S_TXRQ_MWR_C0
+
 
         when S_TXRQ_MWR_C1 =>
 
@@ -348,26 +352,31 @@ if rising_edge(p_in_clk) then
 
                       i_mem_tpl_cnt <= (others => '0');
 
-                      if i_mem_tpl_last = '1' then
-                        i_mem_tx_byte <= (others => '0');
-                        i_mem_tpl_tag <= (others => '0');
-                        i_mwr_done <= '1';
-                      else
-                        i_mem_tx_byte <= i_mem_tx_byte + RESIZE(i_mem_tpl_byte, i_mem_tx_byte'length);
-                        i_mem_tpl_tag <= i_mem_tpl_tag + 1;
-                      end if;
-
                       case (i_mem_tpl_dw_rem(1 downto 0)) is
-                      when "11" => i_s_axis_rq_tkeep(7 downto 0) <= "00011111"; --i_mem_tpl_dw_rem = 7
-                      when "10" => i_s_axis_rq_tkeep(7 downto 0) <= "00111111"; --i_mem_tpl_dw_rem = 6
-                      when "01" => i_s_axis_rq_tkeep(7 downto 0) <= "01111111"; --i_mem_tpl_dw_rem = 5
-                      when "00" => i_s_axis_rq_tkeep(7 downto 0) <= "11111111"; --i_mem_tpl_dw_rem = 4
+                      when "11" => i_s_axis_rq_tkeep(7 downto 4) <= "0001"; --i_mem_tpl_dw_rem = 7
+                      when "10" => i_s_axis_rq_tkeep(7 downto 4) <= "0011"; --i_mem_tpl_dw_rem = 6
+                      when "01" => i_s_axis_rq_tkeep(7 downto 4) <= "0111"; --i_mem_tpl_dw_rem = 5
+                      when "00" => i_s_axis_rq_tkeep(7 downto 4) <= "1111"; --i_mem_tpl_dw_rem = 4
                       when others => null;
                       end case;
 
+                      i_s_axis_rq_tkeep(3 downto 0) <= "1111";
+
                       i_s_axis_rq_tlast <= '1';
 
-                      i_fsm_txrq <= S_TXRQ_IDLE;
+                      i_mem_tpl_tag <= i_mem_tpl_tag + 1;
+
+                      if i_mem_tpl_last = '1' then
+                        i_mem_tx_byte <= (others => '0');
+                        i_mwr_done <= '1';
+
+                        i_fsm_txrq <= S_TXRQ_IDLE; --DMA(MEMWR) - done
+
+                      else
+                        i_mem_tx_byte <= i_mem_tx_byte + RESIZE(i_mem_tpl_byte, i_mem_tx_byte'length);
+
+                        i_fsm_txrq <= S_TXRQ_MWR_C0; --go to next tpl
+                      end if;
 
                     end if;
 
@@ -413,28 +422,32 @@ if rising_edge(p_in_clk) then
 
                     else
 
-                        if i_mem_tpl_last = '1' then
-                          i_mem_tx_byte <= (others => '0');
-                          i_mem_tpl_tag <= (others => '0');
-                          i_mwr_done <= '1';
-                        else
-                          i_mem_tx_byte <= i_mem_tx_byte + RESIZE(i_mem_tpl_byte, i_mem_tx_byte'length);
-                          i_mem_tpl_tag <= i_mem_tpl_tag + 1;
-                        end if;
-
                         i_mem_tpl_cnt <= (others => '0');
 
-                        i_s_axis_rq_tlast <= '1';
-
                         case (i_mem_tpl_dw_rem(1 downto 0)) is
-                        when "11" => i_s_axis_rq_tkeep(7 downto 0) <= "00011111"; --i_mem_tpl_dw_rem = 7
-                        when "10" => i_s_axis_rq_tkeep(7 downto 0) <= "00111111"; --i_mem_tpl_dw_rem = 6
-                        when "01" => i_s_axis_rq_tkeep(7 downto 0) <= "01111111"; --i_mem_tpl_dw_rem = 5
-                        when "00" => i_s_axis_rq_tkeep(7 downto 0) <= "11111111"; --i_mem_tpl_dw_rem = 4
+                        when "11" => i_s_axis_rq_tkeep(7 downto 4) <= "0001"; --i_mem_tpl_dw_rem = 7
+                        when "10" => i_s_axis_rq_tkeep(7 downto 4) <= "0011"; --i_mem_tpl_dw_rem = 6
+                        when "01" => i_s_axis_rq_tkeep(7 downto 4) <= "0111"; --i_mem_tpl_dw_rem = 5
+                        when "00" => i_s_axis_rq_tkeep(7 downto 4) <= "1111"; --i_mem_tpl_dw_rem = 4
                         when others => null;
                         end case;
 
-                        i_fsm_txrq <= S_TXRQ_IDLE;
+                        i_s_axis_rq_tkeep(3 downto 0) <= "1111";
+
+                        i_s_axis_rq_tlast <= '1';
+
+                        i_mem_tpl_tag <= i_mem_tpl_tag + 1;
+
+                        if i_mem_tpl_last = '1' then
+                          i_mem_tx_byte <= (others => '0');
+                          i_mwr_done <= '1';
+
+                           i_fsm_txrq <= S_TXRQ_IDLE; --DMA(MEMWR) - done
+                        else
+                          i_mem_tx_byte <= i_mem_tx_byte + RESIZE(i_mem_tpl_byte, i_mem_tx_byte'length);
+
+                          i_fsm_txrq <= S_TXRQ_MWR_C0; --go to next tpl
+                        end if;
 
                     end if;
 
@@ -466,30 +479,35 @@ if rising_edge(p_in_clk) then
 
                 i_mem_tpl_cnt <= (others => '0');
 
-                if i_mem_tpl_last = '1' then
-                  i_mem_tx_byte <= (others => '0');
-                  i_mem_tpl_tag <= (others => '0');
-                  i_mwr_done <= '1';
-                else
-                  i_mem_tx_byte <= i_mem_tx_byte + RESIZE(i_mem_tpl_byte, i_mem_tx_byte'length);
-                  i_mem_tpl_tag <= i_mem_tpl_tag + 1;
-                end if;
-
                 i_s_axis_rq_tdata((32 * 4) - 1 downto (32 * 0)) <= std_logic_vector(sr_usr_rxbuf_do((32 * 4) - 1 downto (32 * 0)));
                 i_s_axis_rq_tdata((32 * 8) - 1 downto (32 * 4)) <= (others => '0');
 
                 case (i_mem_tpl_dw_rem(1 downto 0)) is
-                when "11" => i_s_axis_rq_tkeep(7 downto 0) <= "00000001"; --i_mem_tpl_dw_rem = 3
-                when "10" => i_s_axis_rq_tkeep(7 downto 0) <= "00000011"; --i_mem_tpl_dw_rem = 2
-                when "01" => i_s_axis_rq_tkeep(7 downto 0) <= "00000111"; --i_mem_tpl_dw_rem = 1
-                when "00" => i_s_axis_rq_tkeep(7 downto 0) <= "00001111"; --i_mem_tpl_dw_rem = 0
+                when "11" => i_s_axis_rq_tkeep(3 downto 0) <= "0001"; --i_mem_tpl_dw_rem = 3
+                when "10" => i_s_axis_rq_tkeep(3 downto 0) <= "0011"; --i_mem_tpl_dw_rem = 2
+                when "01" => i_s_axis_rq_tkeep(3 downto 0) <= "0111"; --i_mem_tpl_dw_rem = 1
+                when "00" => i_s_axis_rq_tkeep(3 downto 0) <= "1111"; --i_mem_tpl_dw_rem = 0
                 when others => null;
                 end case;
+
+                i_s_axis_rq_tkeep(7 downto 4) <= "0000";
 
                 i_s_axis_rq_tvalid <= '1';
                 i_s_axis_rq_tlast <= '1';
 
-                i_fsm_txrq <= S_TXRQ_IDLE;
+                i_mem_tpl_tag <= i_mem_tpl_tag + 1;
+
+                if i_mem_tpl_last = '1' then
+                  i_mem_tx_byte <= (others => '0');
+                  i_mwr_done <= '1';
+
+                  i_fsm_txrq <= S_TXRQ_IDLE; --DMA(MEMWR) - done
+
+                else
+                  i_mem_tx_byte <= i_mem_tx_byte + RESIZE(i_mem_tpl_byte, i_mem_tx_byte'length);
+
+                  i_fsm_txrq <= S_TXRQ_MWR_C0; --go to next tpl
+                end if;
 
             end if;
         --END: MWr , +data
