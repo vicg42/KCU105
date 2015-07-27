@@ -45,6 +45,7 @@ type TPCIE_cfgprm is record
 link_width  : std_logic_vector(5 downto 0);--Count link PCI-Express negotiation with PC
 max_payload : std_logic_vector(2 downto 0);--max_payload_size negotiation with PC
 max_rd_req  : std_logic_vector(2 downto 0);--Max read request size for the device when acting as the Requester
+master_en   : std_logic_vector(0 downto 0);
 end record;
 
 type TPCIEDesc is array (0 to 3) of std_logic_vector(31 downto 0);

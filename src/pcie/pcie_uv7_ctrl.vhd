@@ -367,6 +367,7 @@ p_out_cfg_hot_reset_out <= '0';
 i_pcie_prm.link_width <= std_logic_vector(RESIZE(UNSIGNED(p_in_cfg_negotiated_width), i_pcie_prm.link_width'length));
 i_pcie_prm.max_payload <= std_logic_vector(RESIZE(UNSIGNED(p_in_cfg_max_payload), i_pcie_prm.max_payload'length));
 i_pcie_prm.max_rd_req <= std_logic_vector(RESIZE(UNSIGNED(p_in_cfg_max_read_req), i_pcie_prm.max_rd_req'length));
+i_pcie_prm.master_en(0) <= p_in_cfg_function_status(2);
 
 
 ----------------------------------------

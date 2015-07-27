@@ -74,8 +74,7 @@ architecture behavioral of pcie_tx_rq is
 
 type TFsmTxRq_state is (
 S_TXRQ_IDLE  ,
-S_TXRQ_MWR_C0,--calc
-S_TXRQ_MWR_C1,
+S_TXRQ_MWR_C1,--calc
 S_TXRQ_MWR_C2,
 S_TXRQ_MWR_D0,--data first
 S_TXRQ_MWR_DN,--data n
@@ -95,17 +94,19 @@ signal i_urxbuf_rd          : std_logic;
 signal i_dma_init           : std_logic;
 
 signal i_mem_adr_byte       : unsigned(31 downto 0);
-signal i_mem_tx_byte        : unsigned(31 downto 0); --
-signal i_mem_tx_byte_remain : unsigned(31 downto 0);
-signal i_mem_tpl_cnt        : unsigned(12 downto 0);
-signal i_mem_tpl_byte       : unsigned(12 downto 0);
-signal i_mem_tpl_dw         : unsigned(12 downto 0);-- := TO_UNSIGNED(128, 13);
-signal i_mem_tpl_len        : unsigned(12 downto 0);
-signal i_mem_tpl_tag        : unsigned( 7 downto 0);
-signal i_mem_tpl_last       : std_logic;
-signal i_mem_tpl_dw_rem     : unsigned(12 downto 0);
 
-signal i_mwr_tpl_max_byte   : unsigned(12 downto 0);
+signal i_mem_tx_byte        : unsigned(31 downto 0);
+signal i_mem_tx_byte_remain : unsigned(31 downto 0);
+
+signal i_mem_tpl_byte       : unsigned(10 downto 0);
+signal i_mem_tpl_dw         : unsigned(10 downto 0);
+signal i_mem_tpl_len        : unsigned(10 downto 0);
+signal i_mem_tpl_cnt        : unsigned(10 downto 0);
+signal i_mem_tpl_tag        : unsigned( 7 downto 0);--marker of send tpl
+signal i_mem_tpl_last       : std_logic;
+signal i_mem_tpl_dw_rem     : unsigned(10 downto 0);
+
+signal i_mwr_tpl_max_byte   : unsigned(10 downto 0);
 signal i_mwr_work           : std_logic;
 signal i_mwr_done           : std_logic;
 
@@ -201,72 +202,71 @@ if rising_edge(p_in_clk) then
             i_s_axis_rq_tvalid <= '0';
             i_s_axis_rq_tuser  <= (others => '0');
 
+            i_mwr_work <= '0';
             i_mem_tpl_last <= '0';
 
-            if i_dma_init = '1' then
-              if p_in_dma_mwr_en = '1' then
-                i_mwr_done <= '0';
-                i_fsm_txrq <= S_TXRQ_MWR_C0;
-              end if;
-            end if;
+            if p_in_dma_mwr_en = '1' and i_mwr_done = '0' then --p_in_pcie_prm.master_en(0) = '1'
 
+                if i_dma_init = '1' then
+
+                  case p_in_pcie_prm.max_payload is
+                  when C_PCIE_MAX_PAYLOAD_1024_BYTE => i_mwr_tpl_max_byte <= TO_UNSIGNED(1024, i_mwr_tpl_max_byte'length);
+                  when C_PCIE_MAX_PAYLOAD_512_BYTE  => i_mwr_tpl_max_byte <= TO_UNSIGNED(512 , i_mwr_tpl_max_byte'length);
+                  when C_PCIE_MAX_PAYLOAD_256_BYTE  => i_mwr_tpl_max_byte <= TO_UNSIGNED(256 , i_mwr_tpl_max_byte'length);
+                  when C_PCIE_MAX_PAYLOAD_128_BYTE  => i_mwr_tpl_max_byte <= TO_UNSIGNED(128 , i_mwr_tpl_max_byte'length);
+                  when others => null;
+                  end case;
+
+                  i_mem_adr_byte <= UNSIGNED(p_in_dma_prm.addr);
+                  i_mem_tx_byte_remain <= UNSIGNED(p_in_dma_prm.len);
+
+                else
+                  i_mem_tx_byte_remain <= UNSIGNED(p_in_dma_prm.len) - i_mem_tx_byte;
+                end if;
+
+                if p_in_urxbuf_empty = '0' then
+                  i_fsm_txrq <= S_TXRQ_MWR_C1;
+                end if;
+
+            else
+
+                if i_dma_init = '1' then
+                  i_mwr_done <= '0';
+                end if;
+
+            end if;
 
         --#######################################################################
         --MWr , +data (PC<-FPGA) FPGA is PCIe master
         --#######################################################################
-        when S_TXRQ_MWR_C0 =>
-
-            if i_dma_init = '1' then
-
-              case p_in_pcie_prm.max_payload is
-              when C_PCIE_MAX_PAYLOAD_4096_BYTE => i_mwr_tpl_max_byte <= TO_UNSIGNED(4096, i_mwr_tpl_max_byte'length);
-              when C_PCIE_MAX_PAYLOAD_2048_BYTE => i_mwr_tpl_max_byte <= TO_UNSIGNED(2048, i_mwr_tpl_max_byte'length);
-              when C_PCIE_MAX_PAYLOAD_1024_BYTE => i_mwr_tpl_max_byte <= TO_UNSIGNED(1024, i_mwr_tpl_max_byte'length);
-              when C_PCIE_MAX_PAYLOAD_512_BYTE  => i_mwr_tpl_max_byte <= TO_UNSIGNED(512 , i_mwr_tpl_max_byte'length);
-              when C_PCIE_MAX_PAYLOAD_256_BYTE  => i_mwr_tpl_max_byte <= TO_UNSIGNED(256 , i_mwr_tpl_max_byte'length);
-              when C_PCIE_MAX_PAYLOAD_128_BYTE  => i_mwr_tpl_max_byte <= TO_UNSIGNED(128 , i_mwr_tpl_max_byte'length);
-              when others => null;
-              end case;
-
-              i_mem_adr_byte <= UNSIGNED(p_in_dma_prm.addr);
-              i_mem_tx_byte_remain <= UNSIGNED(p_in_dma_prm.len);
-
-            else
-              i_mem_tx_byte_remain <= UNSIGNED(p_in_dma_prm.len) - i_mem_tx_byte;
-            end if;
-
-            i_fsm_txrq <= S_TXRQ_MWR_C1;
-        --end S_TXRQ_MWR_C0
-
-
         when S_TXRQ_MWR_C1 =>
 
-          if i_mem_tx_byte_remain > RESIZE(i_mwr_tpl_max_byte, i_mem_tx_byte_remain'length) then
-              i_mem_tpl_last <= '0';
-              i_mem_tpl_byte <= i_mwr_tpl_max_byte;
+            if i_mem_tx_byte_remain > RESIZE(i_mwr_tpl_max_byte, i_mem_tx_byte_remain'length) then
+                i_mem_tpl_last <= '0';
+                i_mem_tpl_byte <= i_mwr_tpl_max_byte;
 
-              i_mem_tpl_len <= RESIZE(i_mwr_tpl_max_byte(i_mem_tpl_len'high downto log2(G_DATA_WIDTH / 8)), i_mem_tpl_len'length);
-          else
-              i_mem_tpl_last <= '1';
-              i_mem_tpl_byte <= i_mem_tx_byte_remain(i_mem_tpl_byte'range);
+                i_mem_tpl_len <= RESIZE(i_mwr_tpl_max_byte(i_mem_tpl_len'high downto log2(G_DATA_WIDTH / 8)), i_mem_tpl_len'length);
+            else
+                i_mem_tpl_last <= '1';
+                i_mem_tpl_byte <= i_mem_tx_byte_remain(i_mem_tpl_byte'range);
 
-              i_mem_tpl_len <= RESIZE(i_mem_tx_byte_remain(i_mem_tpl_len'high downto log2(G_DATA_WIDTH / 8)), i_mem_tpl_len'length)
-                              + (TO_UNSIGNED(0, i_mem_tpl_len'length - 2)
-                                  & OR_reduce(i_mem_tx_byte_remain(log2(G_DATA_WIDTH / 8) - 1 downto 0)));
-          end if;
+                i_mem_tpl_len <= RESIZE(i_mem_tx_byte_remain(i_mem_tpl_len'high downto log2(G_DATA_WIDTH / 8)), i_mem_tpl_len'length)
+                                + (TO_UNSIGNED(0, i_mem_tpl_len'length - 2)
+                                    & OR_reduce(i_mem_tx_byte_remain(log2(G_DATA_WIDTH / 8) - 1 downto 0)));
+            end if;
 
-          i_fsm_txrq <= S_TXRQ_MWR_C2;
-        --end S_TXRQ_MWR_C1
+            i_fsm_txrq <= S_TXRQ_MWR_C2;
+          --end S_TXRQ_MWR_C1
 
 
         when S_TXRQ_MWR_C2 =>
 
-          i_mwr_work <= '1';
+            i_mwr_work <= '1';
 
-          i_mem_tpl_dw_rem <= (i_mem_tpl_len(i_mem_tpl_len'high - (log2(G_DATA_WIDTH / 8) - 2) downto 0)
-                               & TO_UNSIGNED(0, (log2(G_DATA_WIDTH / 8) - 2))) - i_mem_tpl_dw;
+            i_mem_tpl_dw_rem <= (i_mem_tpl_len(i_mem_tpl_len'high - (log2(G_DATA_WIDTH / 8) - 2) downto 0)
+                                 & TO_UNSIGNED(0, (log2(G_DATA_WIDTH / 8) - 2))) - i_mem_tpl_dw;
 
-          i_fsm_txrq <= S_TXRQ_MWR_D0;
+            i_fsm_txrq <= S_TXRQ_MWR_D0;
         --end S_TXRQ_MWR_C2
 
 
@@ -370,13 +370,12 @@ if rising_edge(p_in_clk) then
                         i_mem_tx_byte <= (others => '0');
                         i_mwr_done <= '1';
 
-                        i_fsm_txrq <= S_TXRQ_IDLE; --DMA(MEMWR) - done
-
                       else
                         i_mem_tx_byte <= i_mem_tx_byte + RESIZE(i_mem_tpl_byte, i_mem_tx_byte'length);
 
-                        i_fsm_txrq <= S_TXRQ_MWR_C0; --go to next tpl
                       end if;
+
+                      i_fsm_txrq <= S_TXRQ_IDLE;
 
                     end if;
 
@@ -442,12 +441,12 @@ if rising_edge(p_in_clk) then
                           i_mem_tx_byte <= (others => '0');
                           i_mwr_done <= '1';
 
-                           i_fsm_txrq <= S_TXRQ_IDLE; --DMA(MEMWR) - done
                         else
                           i_mem_tx_byte <= i_mem_tx_byte + RESIZE(i_mem_tpl_byte, i_mem_tx_byte'length);
 
-                          i_fsm_txrq <= S_TXRQ_MWR_C0; --go to next tpl
                         end if;
+
+                        i_fsm_txrq <= S_TXRQ_IDLE;
 
                     end if;
 
@@ -501,13 +500,12 @@ if rising_edge(p_in_clk) then
                   i_mem_tx_byte <= (others => '0');
                   i_mwr_done <= '1';
 
-                  i_fsm_txrq <= S_TXRQ_IDLE; --DMA(MEMWR) - done
-
                 else
                   i_mem_tx_byte <= i_mem_tx_byte + RESIZE(i_mem_tpl_byte, i_mem_tx_byte'length);
 
-                  i_fsm_txrq <= S_TXRQ_MWR_C0; --go to next tpl
                 end if;
+
+                i_fsm_txrq <= S_TXRQ_IDLE;
 
             end if;
         --END: MWr , +data
