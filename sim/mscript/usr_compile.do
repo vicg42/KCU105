@@ -56,7 +56,6 @@ vcom -64 -93 -work xil_defaultlib   \
 "../../src/prj_def.vhd" \
 "../../src/pcie/pcie_pkg.vhd" \
 "../../src/pcie/pcie_uv7_unit_pkg.vhd" \
-"../../src/pcie/pcie_uv7_irq_dev.vhd" \
 "../../src/pcie/pcie_uv7_irq.vhd" \
 "../../src/pcie/pcie_uv7_rx.vhd" \
 "../../src/pcie/pcie_uv7_rxcq_256.vhd" \

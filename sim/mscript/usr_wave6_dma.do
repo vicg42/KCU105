@@ -43,14 +43,17 @@ add wave -noupdate -divider IRQ
 add wave -noupdate /board/EP/m_main/m_ctrl/p_out_cfg_interrupt_int
 add wave -noupdate /board/EP/m_main/m_ctrl/p_out_cfg_interrupt_pending
 add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_interrupt_sent
-add wave -noupdate -expand /board/EP/m_main/m_ctrl/m_usr_app/i_irq_en
 add wave -noupdate /board/EP/m_main/m_ctrl/m_irq/p_in_cfg_msi
 add wave -noupdate /board/EP/m_main/m_ctrl/m_irq/p_in_cfg_irq_rdy
 add wave -noupdate /board/EP/m_main/m_ctrl/m_irq/p_out_cfg_irq
 add wave -noupdate /board/EP/m_main/m_ctrl/m_irq/p_out_cfg_irq_assert
 add wave -noupdate /board/EP/m_main/m_ctrl/m_irq/p_in_irq_clr
 add wave -noupdate /board/EP/m_main/m_ctrl/m_irq/p_in_irq_set
-add wave -noupdate /board/EP/m_main/m_ctrl/m_irq/p_out_irq_status
+add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/i_irq_status_clr
+add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/i_irq_clr
+add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/i_irq_en
+add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/i_irq_set
+add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/i_irq_status
 add wave -noupdate -divider USR_APP
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/p_in_clk
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/p_in_rst_n
@@ -163,4 +166,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {184836382 ps} {185112410 ps}
+WaveRestoreZoom {737774 ps} {1013802 ps}
