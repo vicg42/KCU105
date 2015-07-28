@@ -118,6 +118,9 @@ signal g_usr_highclk       : std_logic;
 
 signal i_test_led          : std_logic_vector(0 downto 0);
 
+signal i_host_dev_status   : std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
+
+
 
 begin --architecture struct
 
@@ -155,7 +158,7 @@ p_out_dev_din        => open,
 p_in_dev_dout        => (others => '0'),
 p_out_dev_wr         => open,
 p_out_dev_rd         => open,
-p_in_dev_status      => (others => '0'),
+p_in_dev_status      => i_host_dev_status,
 p_in_dev_irq         => (others => '0'),
 p_in_dev_opt         => (others => '0'),
 p_out_dev_opt        => open,
@@ -174,6 +177,11 @@ p_out_tst            => open,
 p_in_pcie_phy        => pin_in_pcie_phy ,
 p_out_pcie_phy       => pin_out_pcie_phy
 );
+
+
+i_host_dev_status(C_HREG_DEV_STATUS_CFG_RDY_BIT) <= '1';
+
+i_host_dev_status(C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT) <= '1';
 
 
 --#########################################

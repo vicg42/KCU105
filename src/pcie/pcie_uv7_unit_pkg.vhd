@@ -185,9 +185,9 @@ port(
 -----------------------------
 --Usr Ctrl
 -----------------------------
-p_in_irq_clr         : in   std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
-p_in_irq_set         : in   std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
-p_out_irq_status     : out  std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
+p_in_irq_clr         : in   std_logic;
+p_in_irq_set         : in   std_logic;
+p_out_irq_ack        : out  std_logic;
 
 -----------------------------
 --PCIE Port
@@ -212,7 +212,7 @@ p_in_rst_n           : in   std_logic
 end component pcie_irq;
 
 
-component pcie_usr_app is
+component pcie_usr_app
 generic(
 G_DBG : string := "OFF"
 );
@@ -279,9 +279,9 @@ p_in_dma_mrd_rcv_size : in    std_logic_vector(31 downto 0);
 p_in_dma_mrd_rcv_err  : in    std_logic;
 
 --IRQ
-p_out_irq_clr      : out   std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
-p_out_irq_set      : out   std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
-p_in_irq_status    : in    std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
+p_out_irq_clr      : out   std_logic;
+p_out_irq_set      : out   std_logic;
+p_in_irq_ack       : in    std_logic;
 
 --System
 p_in_clk   : in    std_logic;

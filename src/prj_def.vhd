@@ -108,7 +108,8 @@ constant C_HREG_IRQ_NUM_L_WBIT                : integer := 0; --IRQ source
 constant C_HREG_IRQ_NUM_M_WBIT                : integer := 3;
 constant C_HREG_IRQ_EN_WBIT                   : integer := 13;
 constant C_HREG_IRQ_DIS_WBIT                  : integer := 14;
-constant C_HREG_IRQ_CLR_WBIT                  : integer := 15;
+constant C_HREG_IRQ_STATUS_CLR_WBIT           : integer := 15;
+constant C_HREG_IRQ_CLR_WBIT                  : integer := 16;
 constant C_HREG_IRQ_LAST_WBIT                 : integer := C_HREG_IRQ_CLR_WBIT;
 
 constant C_HREG_IRQ_STATUS_L_RBIT             : integer := 0; --Status active irq

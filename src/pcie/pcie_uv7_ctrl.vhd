@@ -248,9 +248,9 @@ signal i_interrupt_done        : std_logic;
 signal i_pcie_irq              : std_logic;
 signal i_pcie_irq_assert       : std_logic;
 
-signal i_uapp_irq_clr          : std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
-signal i_uapp_irq_set          : std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
-signal i_uapp_irq_status       : std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
+signal i_uapp_irq_clr          : std_logic;
+signal i_uapp_irq_set          : std_logic;
+signal i_uapp_irq_ack          : std_logic;
 
 --signal tst_in                  : std_logic_vector(127 downto 0);
 
@@ -447,7 +447,7 @@ p_in_dma_mrd_rcv_err  => '0',
 --IRQ
 p_out_irq_clr      => i_uapp_irq_clr,
 p_out_irq_set      => i_uapp_irq_set,
-p_in_irq_status    => i_uapp_irq_status,
+p_in_irq_ack       => i_uapp_irq_ack,
 
 --System
 p_in_clk   => i_trn_clk,
@@ -631,9 +631,9 @@ port map (
 -----------------------------
 --Usr Ctrl
 -----------------------------
-p_in_irq_clr         => i_uapp_irq_clr   ,
-p_in_irq_set         => i_uapp_irq_set   ,
-p_out_irq_status     => i_uapp_irq_status,
+p_in_irq_clr         => i_uapp_irq_clr,
+p_in_irq_set         => i_uapp_irq_set,
+p_out_irq_ack        => i_uapp_irq_ack,
 
 -----------------------------
 --PCIE Port
@@ -660,12 +660,12 @@ p_in_rst_n => i_rst_n
 --bit(1) - PCI_EXPRESS_LEGACY_INTB
 --bit(2) - PCI_EXPRESS_LEGACY_INTC
 --bit(3) - PCI_EXPRESS_LEGACY_INTD
-p_out_cfg_interrupt_int(0) <= i_pcie_irq;
+p_out_cfg_interrupt_int(0) <= i_pcie_irq_assert;
 p_out_cfg_interrupt_int(p_out_cfg_interrupt_int'high downto 1) <= (others => '0');
 
 --bit(0) - Function 0
 --bit(1) - Function 1
-p_out_cfg_interrupt_pending(0) <= i_pcie_irq_assert;
+p_out_cfg_interrupt_pending(0) <= i_pcie_irq;
 p_out_cfg_interrupt_pending(p_out_cfg_interrupt_pending'high downto 1) <= (others => '0');
 
 

@@ -20,9 +20,9 @@ port(
 -----------------------------
 --Usr Ctrl
 -----------------------------
-p_in_irq_clr         : in   std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
-p_in_irq_set         : in   std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
-p_out_irq_status     : out  std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
+p_in_irq_clr         : in   std_logic;
+p_in_irq_set         : in   std_logic;
+p_out_irq_ack        : out  std_logic;
 
 -----------------------------
 --PCIE Port
@@ -48,78 +48,101 @@ end entity pcie_irq;
 
 architecture behavioral of pcie_irq is
 
-component pcie_irq_dev
-port(
------------------------------
---Usr Ctrl
------------------------------
-p_in_irq_set         : in   std_logic;
-p_in_irq_clr         : in   std_logic;
-p_out_irq_status     : out  std_logic;
-
------------------------------
---PCIE Port
------------------------------
-p_in_cfg_msi         : in   std_logic;
-p_in_cfg_irq_rdy     : in   std_logic;
-p_out_cfg_irq        : out  std_logic;
-p_out_cfg_irq_assert : out  std_logic;
-
--------------------------------
-----DBG
--------------------------------
---p_in_tst             : in  std_logic_vector(31 downto 0);
---p_out_tst            : out std_logic_vector(31 downto 0);
-
------------------------------
---SYSTEM
------------------------------
-p_in_clk             : in   std_logic;
-p_in_rst_n           : in   std_logic
+type fsm_state is (
+S_IRQ_IDLE,
+S_IRQ_ASSERT_DONE,
+S_IRQ_WAIT_CLR,
+S_IRQ_DEASSERT_DONE
 );
-end component;
+signal fsm_cs: fsm_state;
 
-
-signal i_cfg_irq         : std_logic_vector(C_HIRQ_COUNT - 1 downto 0);
-signal i_cfg_irq_assert  : std_logic_vector(C_HIRQ_COUNT - 1 downto 0);
+signal i_irq_ack     : std_logic;
+signal i_irq_assert  : std_logic;
+signal i_irq         : std_logic;
 
 
 begin --architecture behavioral
 
+p_out_irq_ack <= i_irq_ack;
 
---bit(0) - PCI_EXPRESS_LEGACY_INTA
---bit(1) - PCI_EXPRESS_LEGACY_INTB
---bit(2) - PCI_EXPRESS_LEGACY_INTC
---bit(3) - PCI_EXPRESS_LEGACY_INTD
-p_out_cfg_irq <= OR_reduce(i_cfg_irq(C_HIRQ_COUNT - 1 downto C_HIRQ_PCIE_DMA));
+p_out_cfg_irq_assert <= i_irq_assert;
+p_out_cfg_irq        <= i_irq;
 
-p_out_cfg_irq_assert <= OR_reduce(i_cfg_irq_assert(C_HIRQ_COUNT - 1 downto C_HIRQ_PCIE_DMA));
 
-gen_ch: for ch in C_HIRQ_PCIE_DMA to C_HIRQ_COUNT - 1 generate
+process(p_in_clk)
+begin
+if rising_edge(p_in_clk) then
+  if p_in_rst_n = '0' then
 
-m_irq_dev : pcie_irq_dev
-port map(
---USER Ctrl
-p_in_irq_set         => p_in_irq_set(ch),
-p_in_irq_clr         => p_in_irq_clr(ch),
-p_out_irq_status     => p_out_irq_status(ch),
+    i_irq_ack    <= '0';
+    i_irq_assert <= '0';
+    i_irq        <= '0';
+    fsm_cs <= S_IRQ_IDLE;
 
---PCIE Port
-p_in_cfg_msi         => p_in_cfg_msi,
-p_in_cfg_irq_rdy     => p_in_cfg_irq_rdy,
-p_out_cfg_irq        => i_cfg_irq(ch),
-p_out_cfg_irq_assert => i_cfg_irq_assert(ch),
+  else
 
-----DBG
---p_in_tst  => (others => '0'),
---p_out_tst => open,--i_tst_out(ch),
+    case fsm_cs is
 
---SYSTEM
-p_in_clk             => p_in_clk,
-p_in_rst_n           => p_in_rst_n
-);
+      ----------------------------------
+      --
+      ----------------------------------
+      when S_IRQ_IDLE =>
 
-end generate gen_ch;
+        if p_in_irq_set = '1' then
+          i_irq        <= '1';
+          i_irq_assert <= '1';--ASSERT IRQ
+          fsm_cs <= S_IRQ_ASSERT_DONE;
+        end if;
+
+      ----------------------------------
+      --
+      ----------------------------------
+      when S_IRQ_ASSERT_DONE =>
+
+        --Wait acknowledge from CORE
+        if p_in_cfg_irq_rdy = '1' then
+          i_irq <= '0';
+          i_irq_ack <= '1';
+          fsm_cs <= S_IRQ_WAIT_CLR;
+        end if;
+
+      ----------------------------------
+      --
+      ----------------------------------
+      when S_IRQ_WAIT_CLR =>
+
+        i_irq_ack <= '0';
+
+        if p_in_irq_clr = '1' then
+          if p_in_cfg_msi = '1' then
+          --Interrupt mode MSI
+            i_irq        <= '0';
+            i_irq_assert <= '0';--DEASSERT IRQ
+            fsm_cs <= S_IRQ_IDLE;
+          else
+          --Interrupt mode Legacy
+            i_irq        <= '1';
+            i_irq_assert <= '0';--DEASSERT IRQ
+            fsm_cs <= S_IRQ_DEASSERT_DONE;
+          end if;
+        end if;
+
+      ----------------------------------
+      --
+      ----------------------------------
+      when S_IRQ_DEASSERT_DONE =>
+
+        --Wait acknowledge from CORE
+        if p_in_cfg_irq_rdy = '1' then
+          i_irq_assert <= '0';
+          i_irq        <= '0';
+          fsm_cs <= S_IRQ_IDLE;
+        end if;
+
+    end case;
+  end if;
+end if;
+end process;
 
 
 --###############################

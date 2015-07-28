@@ -15,7 +15,7 @@ use work.vicg_common_pkg.all;
 
 package prj_cfg is
 
-constant C_PCFG_FIRMWARE_VERSION       : integer := 16#0002#;
+constant C_PCFG_FIRMWARE_VERSION       : integer := 16#0003#;
 
 constant C_PCFG_BOARD                  : string := "KCU105";
 
@@ -32,7 +32,7 @@ constant C_PCFG_FG_VCH_COUNT           : integer := 2; --Count Video channels
 constant C_PCFG_VSYN_ACTIVE            : std_logic := '1'; --select active level of strobe video synhronization (HS,VS)
 
 --Memory Controller
-constant C_PCFG_MEMCTRL_BANK_SIZE      : integer := 4; --max 7: 0-8MB, 1-16MB, 2-32MB, 3-64MB, 4-128MB, ...
+constant C_PCFG_MEMCTRL_BANK_SIZE      : integer := 6; --max 7: 0-8MB, 1-16MB, 2-32MB, 3-64MB, 4-128MB, ...
 constant C_PCFG_MEMARB_CH_COUNT        : integer := 2 + C_PCFG_FG_VCH_COUNT; --CH0(HOST)
                                                                              -- + CH1(FrameGrabber Read)
                                                                              -- + CH2(FrameGrabber Writer) + ...
