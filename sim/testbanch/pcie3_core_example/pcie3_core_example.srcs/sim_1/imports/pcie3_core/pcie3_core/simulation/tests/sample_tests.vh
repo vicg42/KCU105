@@ -50,7 +50,7 @@
 //
 // Project    : Ultrascale FPGA Gen3 Integrated Block for PCI Express
 // File       : sample_tests.vh
-// Version    : 4.0
+// Version    : 4.0 
 //-----------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
@@ -67,9 +67,9 @@ begin
 
 
 
-
-    $display("[%t] : Expected Device/Vendor ID = %x", $realtime, DEV_VEN_ID);
-
+    
+    $display("[%t] : Expected Device/Vendor ID = %x", $realtime, DEV_VEN_ID); 
+    
     //--------------------------------------------------------------------------
     // Read core configuration space via PCIe fabric interface
     //--------------------------------------------------------------------------
@@ -79,7 +79,7 @@ begin
     TSK_TX_TYPE0_CONFIGURATION_READ(DEFAULT_TAG, 12'h0, 4'hF);
     TSK_WAIT_FOR_READ_DATA;
     if  (P_READ_DATA != DEV_VEN_ID) begin
-        $display("[%t] : TEST FAILED --- Data Error Mismatch, Write Data %x != Read Data %x", $realtime,
+        $display("[%t] : TEST FAILED --- Data Error Mismatch, Write Data %x != Read Data %x", $realtime, 
                                     DEV_VEN_ID, P_READ_DATA);
     end
     else begin
@@ -128,9 +128,9 @@ fork
     // List Rx TLP expections
     //---------------------------------------------------------------------------
   begin
-    test_vars[0] = 0;
-
-    $display("[%t] : Expected Device/Vendor ID = %x", $realtime, DEV_VEN_ID);
+    test_vars[0] = 0;                                                                                                                         
+                                          
+    $display("[%t] : Expected Device/Vendor ID = %x", $realtime, DEV_VEN_ID);                                              
 
     expect_cpld_payload[0] = DEV_VEN_ID[31:24];
     expect_cpld_payload[1] = DEV_VEN_ID[23:16];
@@ -155,11 +155,11 @@ fork
       expect_status //expect_status;
     );
 
-    if (expect_status)
-      test_vars[0] = test_vars[0] + 1;
+    if (expect_status) 
+      test_vars[0] = test_vars[0] + 1;      
   end
 join
-
+  
   expect_finish_check = 1;
 
   if (test_vars[0] == 1) begin
@@ -268,69 +268,14 @@ begin
                           // Event : Memory Write 32 bit TLP
                           //--------------------------------------------------------------------------
 
-                          board.RP.tx_usrapp.DATA_STORE[0] = 8'h01;
-                          board.RP.tx_usrapp.DATA_STORE[1] = 8'h02;
-                          board.RP.tx_usrapp.DATA_STORE[2] = 8'h03;
-                          board.RP.tx_usrapp.DATA_STORE[3] = 8'h04;
+                          board.RP.tx_usrapp.DATA_STORE[0] = 8'h04;
+                          board.RP.tx_usrapp.DATA_STORE[1] = 8'h03;
+                          board.RP.tx_usrapp.DATA_STORE[2] = 8'h02;
+                          board.RP.tx_usrapp.DATA_STORE[3] = 8'h01;
 
                           board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
-                              board.RP.tx_usrapp.DEFAULT_TC,
-                              11'd1, // Length (in DW)
-                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h80 + (4 * 0), // Address
-                              4'h0, // Last DW Byte Enable
-                              4'hF, // First DW Byte Enable
-                              1'b0); // Poisoned Data: Payload is invalid if set
-                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
-                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
-
-
-
-                          board.RP.tx_usrapp.DATA_STORE[0] = 8'h05;
-                          board.RP.tx_usrapp.DATA_STORE[1] = 8'h06;
-                          board.RP.tx_usrapp.DATA_STORE[2] = 8'h07;
-                          board.RP.tx_usrapp.DATA_STORE[3] = 8'h08;
-
-                          board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
-                              board.RP.tx_usrapp.DEFAULT_TC,
-                              11'd1, // Length (in DW)
-                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h80 + (4 * 1), // Address
-                              4'h0, // Last DW Byte Enable
-                              4'hF, // First DW Byte Enable
-                              1'b0); // Poisoned Data: Payload is invalid if set
-                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
-                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
-
-
-
-                          board.RP.tx_usrapp.DATA_STORE[0] = 8'h09;
-                          board.RP.tx_usrapp.DATA_STORE[1] = 8'h0A;
-                          board.RP.tx_usrapp.DATA_STORE[2] = 8'h0B;
-                          board.RP.tx_usrapp.DATA_STORE[3] = 8'h0C;
-
-                          board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
-                              board.RP.tx_usrapp.DEFAULT_TC,
-                              11'd1, // Length (in DW)
-                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h80 + (4 * 2), // Address
-                              4'h0, // Last DW Byte Enable
-                              4'hF, // First DW Byte Enable
-                              1'b0); // Poisoned Data: Payload is invalid if set
-                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
-                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
-
-
-
-                          board.RP.tx_usrapp.DATA_STORE[0] = 8'h0D;
-                          board.RP.tx_usrapp.DATA_STORE[1] = 8'h0E;
-                          board.RP.tx_usrapp.DATA_STORE[2] = 8'h0F;
-                          board.RP.tx_usrapp.DATA_STORE[3] = 8'h10;
-
-                          board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
-                              board.RP.tx_usrapp.DEFAULT_TC,
-                              11'd1, // Length (in DW)
-                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h80 + (4 * 3), // Address
-                              4'h0, // Last DW Byte Enable
-                              4'hF, // First DW Byte Enable
-                              1'b0); // Poisoned Data: Payload is invalid if set
+                              board.RP.tx_usrapp.DEFAULT_TC, 11'd1,
+                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h10, 4'h0, 4'hF, 1'b0);
                           board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
                           board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
 
@@ -343,18 +288,15 @@ begin
                          board.RP.tx_usrapp.P_READ_DATA = 32'hffff_ffff;
                           fork
                              board.RP.tx_usrapp.TSK_TX_MEMORY_READ_32(board.RP.tx_usrapp.DEFAULT_TAG,
-                                 board.RP.tx_usrapp.DEFAULT_TC,
-                                 11'd1,
-                                 board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h80 + (4 * 0), // Address
-                                 4'h0,
-                                 4'hF);
+                                 board.RP.tx_usrapp.DEFAULT_TC, 11'd1,
+                                 board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h10, 4'h0, 4'hF);
                              board.RP.tx_usrapp.TSK_WAIT_FOR_READ_DATA;
                           join
                           if  (board.RP.tx_usrapp.P_READ_DATA != {board.RP.tx_usrapp.DATA_STORE[3],
                              board.RP.tx_usrapp.DATA_STORE[2], board.RP.tx_usrapp.DATA_STORE[1],
                              board.RP.tx_usrapp.DATA_STORE[0] })
                              begin
-                               //testError=1'b1;
+			       testError=1'b1;
                                $display("[%t] : Test FAILED --- Data Error Mismatch, Write Data %x != Read Data %x",
                                     $realtime, {board.RP.tx_usrapp.DATA_STORE[3],board.RP.tx_usrapp.DATA_STORE[2],
                                      board.RP.tx_usrapp.DATA_STORE[1],board.RP.tx_usrapp.DATA_STORE[0]},
@@ -370,40 +312,6 @@ begin
 
                           board.RP.tx_usrapp.TSK_TX_CLK_EAT(10);
                           board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
-
-
-                         // make sure P_READ_DATA has known initial value
-                         board.RP.tx_usrapp.P_READ_DATA = 32'hffff_ffff;
-                          fork
-                             board.RP.tx_usrapp.TSK_TX_MEMORY_READ_32(board.RP.tx_usrapp.DEFAULT_TAG,
-                                 board.RP.tx_usrapp.DEFAULT_TC,
-                                 11'd1,
-                                 board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h80 + (4 * 1),
-                                 4'h0,
-                                 4'hF);
-                             board.RP.tx_usrapp.TSK_WAIT_FOR_READ_DATA;
-                          join
-                          if  (board.RP.tx_usrapp.P_READ_DATA != {board.RP.tx_usrapp.DATA_STORE[3],
-                             board.RP.tx_usrapp.DATA_STORE[2], board.RP.tx_usrapp.DATA_STORE[1],
-                             board.RP.tx_usrapp.DATA_STORE[0] })
-                             begin
-                               testError=1'b1;
-                               $display("[%t] : Test FAILED --- Data Error Mismatch, Write Data %x != Read Data %x",
-                                    $realtime, {board.RP.tx_usrapp.DATA_STORE[3],board.RP.tx_usrapp.DATA_STORE[2],
-                                     board.RP.tx_usrapp.DATA_STORE[1],board.RP.tx_usrapp.DATA_STORE[0]},
-                                     board.RP.tx_usrapp.P_READ_DATA);
-
-                             end
-                          else
-                             begin
-                               $display("[%t] : Test PASSED --- Write Data: %x successfully received",
-                                   $realtime, board.RP.tx_usrapp.P_READ_DATA);
-                             end
-
-
-                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(10);
-                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
-
 
                      end
                 2'b11 : // MEM 64 SPACE
