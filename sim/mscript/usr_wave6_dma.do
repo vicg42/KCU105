@@ -7,19 +7,15 @@ quietly virtual signal -install /board/EP/m_main/m_ctrl/m_rx { /board/EP/m_main/
 quietly virtual signal -install /board/EP/m_main/m_ctrl/m_rx { /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(63 downto 32)} m_axis_tdata_63_32
 quietly virtual signal -install /board/EP/m_main/m_ctrl/m_rx { /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(31 downto 0)} m_axis_tdata_31_0
 quietly WaveActivateNextPane {} 0
-add wave -noupdate /board/i
+add wave -noupdate /glbl/GSR
 add wave -noupdate /board/sys_rst_n
 add wave -noupdate /board/ep_sys_clk
 add wave -noupdate /board/rp_sys_clk
-add wave -noupdate /board/ep_pci_exp_txn
-add wave -noupdate /board/ep_pci_exp_txp
-add wave -noupdate /board/rp_pci_exp_txn
-add wave -noupdate /board/rp_pci_exp_txp
-add wave -noupdate /board/rp_sys_clk_n
-add wave -noupdate /board/rp_sys_clk_p
-add wave -noupdate /board/ep_sys_clk_n
-add wave -noupdate /board/ep_sys_clk_p
-add wave -noupdate /glbl/GSR
+add wave -noupdate -divider RP
+add wave -noupdate /board/RP/cfg_msg_received
+add wave -noupdate /board/RP/cfg_msg_received_type
+add wave -noupdate /board/RP/cfg_msg_received_data
+add wave -noupdate -divider EP
 add wave -noupdate /board/EP/pci_exp_txp
 add wave -noupdate /board/EP/pci_exp_txn
 add wave -noupdate /board/EP/pci_exp_rxp
@@ -152,10 +148,10 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_in_s_axis_cc_tready
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {0 ps} 0}
 quietly wave cursor active 0
-configure wave -namecolwidth 197
+configure wave -namecolwidth 427
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
-configure wave -signalnamewidth 1
+configure wave -signalnamewidth 0
 configure wave -snapdistance 10
 configure wave -datasetprefix 0
 configure wave -rowmargin 4
@@ -166,4 +162,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {737774 ps} {1013802 ps}
+WaveRestoreZoom {737774 ps} {943496 ps}
