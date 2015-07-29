@@ -3571,7 +3571,7 @@ end
 
     // Program PCI Command Register
 
-        TSK_TX_TYPE0_CONFIGURATION_WRITE(DEFAULT_TAG, 12'h04, 32'h00000003, 4'h1);
+        TSK_TX_TYPE0_CONFIGURATION_WRITE(DEFAULT_TAG, 12'h04, 32'h00000003, 4'h1); //Memory Space Enable, IO Space enable + Bus Master
         DEFAULT_TAG = DEFAULT_TAG + 1;
         TSK_TX_CLK_EAT(100);
 
