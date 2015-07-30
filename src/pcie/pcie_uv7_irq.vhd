@@ -101,7 +101,7 @@ if rising_edge(p_in_clk) then
 
         --Wait acknowledge from CORE
         if p_in_cfg_irq_rdy = '1' then
-          i_irq <= '0';
+--          i_irq <= '0';
           i_irq_ack <= '1';
           fsm_cs <= S_IRQ_WAIT_CLR;
         end if;
@@ -121,7 +121,7 @@ if rising_edge(p_in_clk) then
             fsm_cs <= S_IRQ_IDLE;
           else
           --Interrupt mode Legacy
-            i_irq        <= '1';
+            i_irq        <= '0';
             i_irq_assert <= '0';--DEASSERT IRQ
             fsm_cs <= S_IRQ_DEASSERT_DONE;
           end if;

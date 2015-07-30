@@ -660,12 +660,12 @@ p_in_rst_n => i_rst_n
 --bit(1) - PCI_EXPRESS_LEGACY_INTB
 --bit(2) - PCI_EXPRESS_LEGACY_INTC
 --bit(3) - PCI_EXPRESS_LEGACY_INTD
-p_out_cfg_interrupt_int(0) <= i_pcie_irq_assert;
+p_out_cfg_interrupt_int(0) <= i_pcie_irq;
 p_out_cfg_interrupt_int(p_out_cfg_interrupt_int'high downto 1) <= (others => '0');
 
 --bit(0) - Function 0
 --bit(1) - Function 1
-p_out_cfg_interrupt_pending(0) <= i_pcie_irq;
+p_out_cfg_interrupt_pending(0) <= i_pcie_irq_assert;
 p_out_cfg_interrupt_pending(p_out_cfg_interrupt_pending'high downto 1) <= (others => '0');
 
 
