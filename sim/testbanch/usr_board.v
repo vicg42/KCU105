@@ -192,6 +192,15 @@ module board;
   end
 
   initial begin
+    #109050;
+    $display("[%t] : Enable MEM, I/O, Bus Master Enable bit in RP", $realtime);
+    RP.cfg_usrapp.TSK_READ_CFG_DW(32'h00000001);
+    RP.cfg_usrapp.TSK_WRITE_CFG_DW(32'h00000001, 32'h00000007, 4'b1110);
+    RP.cfg_usrapp.TSK_READ_CFG_DW(32'h00000001);
+    $display("[%t] : Enable MEM, I/O, Bus Master Enable bit in RP", $realtime);
+  end
+
+  initial begin
 
     if ($test$plusargs ("dump_all")) begin
 
