@@ -1,15 +1,3 @@
-###############################################################################
-#Configutarion params
-###############################################################################
-set_property CONFIG_VOLTAGE 1.8 [current_design]
-set_property CFGBVS GND [current_design]
-
-set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
-set_property BITSTREAM.CONFIG.EXTMASTERCCLK_EN div-1 [current_design]
-set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 8 [current_design]
-set_property BITSTREAM.CONFIG.SPI_FALL_EDGE YES [current_design ]
-
-
 ###################################
 #USR Port
 ###################################
@@ -84,6 +72,17 @@ set_property IOSTANDARD LVCMOS18 [get_ports {pin_in_pcie_phy[rst_n]}]
 
 set_property LOC AB6 [get_cells m_host/m_refclk_ibuf]
 
+
+###############################################################################
+#Configutarion params
+###############################################################################
+set_property CONFIG_VOLTAGE 1.8 [current_design]
+set_property CFGBVS GND [current_design]
+
+set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
+set_property BITSTREAM.CONFIG.EXTMASTERCCLK_EN div-1 [current_design]
+set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 8 [current_design]
+set_property BITSTREAM.CONFIG.SPI_FALL_EDGE YES [current_design ]
 
 ###############################################################################
 #Debug

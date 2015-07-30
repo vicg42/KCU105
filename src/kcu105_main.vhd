@@ -207,8 +207,8 @@ p_in_clk   => g_usrclk(0),
 p_in_rst   => i_usrclk_rst
 );
 
-pin_out_led(0) <= i_test_led(0);
-pin_out_led(5 downto 1) <= pin_in_btn(4 downto 0);
+pin_out_led(0) <= pin_in_btn(0);
+pin_out_led(5 downto 1) <= pin_in_btn(4 downto 1) & i_test_led(0);
 pin_out_led(7 downto 6) <= (others => '0');
 
 
