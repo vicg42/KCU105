@@ -7,6 +7,5 @@ set_property PROGRAM.FILE {../firmware/kcu105_main.bit} [lindex [get_hw_devices]
 #set_property PROBES.FILE {../vv/debug_nets.ltx} [lindex [get_hw_devices] 0]
 current_hw_device [lindex [get_hw_devices] 0]
 refresh_hw_device [lindex [get_hw_devices] 0]
-
 program_hw_devices [lindex [get_hw_devices] 0]
 disconnect_hw_server localhost:3121
