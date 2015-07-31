@@ -6,6 +6,10 @@ quietly virtual signal -install /board/EP/m_main/m_ctrl/m_rx { /board/EP/m_main/
 quietly virtual signal -install /board/EP/m_main/m_ctrl/m_rx { /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(63 downto 32)} m_axis_cq_tdata_32_63
 quietly virtual signal -install /board/EP/m_main/m_ctrl/m_rx { /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(63 downto 32)} m_axis_tdata_63_32
 quietly virtual signal -install /board/EP/m_main/m_ctrl/m_rx { /board/EP/m_main/m_ctrl/m_rx/p_in_m_axis_cq_tdata(31 downto 0)} m_axis_tdata_31_0
+quietly virtual signal -install /board/EP/m_main/m_ctrl/m_tx/m_tx_rq { /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_s_axis_rq_tdata(63 downto 0)} p_out_s_axis_rq_tdata_63_0
+quietly virtual signal -install /board/EP/m_main/m_ctrl/m_tx/m_tx_rq { /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_s_axis_rq_tdata(127 downto 64)} p_out_s_axis_rq_tdata_127_64
+quietly virtual signal -install /board/EP/m_main/m_ctrl/m_tx/m_tx_rq { /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_s_axis_rq_tdata(191 downto 128)} p_out_s_axis_rq_tdata_191_128
+quietly virtual signal -install /board/EP/m_main/m_ctrl/m_tx/m_tx_rq { /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_s_axis_rq_tdata(255 downto 192)} p_out_s_axis_rq_tdata_255_192
 quietly WaveActivateNextPane {} 0
 add wave -noupdate /glbl/GSR
 add wave -noupdate /board/sys_rst_n
@@ -86,7 +90,12 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/sr_hw_dmaprm_cnt
 add wave -noupdate -childformat {{/board/EP/m_main/m_ctrl/m_usr_app/p_out_dma_prm.len -radix unsigned}} -expand -subitemconfig {/board/EP/m_main/m_ctrl/m_usr_app/p_out_dma_prm.len {-height 15 -radix unsigned}} /board/EP/m_main/m_ctrl/m_usr_app/p_out_dma_prm
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/p_out_dma_mwr_en
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/p_in_dma_mwr_done
+add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/tst_mem_dcnt
 add wave -noupdate -divider TXRQ
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_s_axis_rq_tdata_63_0
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_s_axis_rq_tdata_127_64
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_s_axis_rq_tdata_191_128
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_s_axis_rq_tdata_255_192
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_s_axis_rq_tdata
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_s_axis_rq_tkeep
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_s_axis_rq_tvalid
@@ -148,10 +157,10 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_in_s_axis_cc_tready
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {0 ps} 0}
 quietly wave cursor active 0
-configure wave -namecolwidth 427
+configure wave -namecolwidth 363
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
-configure wave -signalnamewidth 0
+configure wave -signalnamewidth 1
 configure wave -snapdistance 10
 configure wave -datasetprefix 0
 configure wave -rowmargin 4
@@ -162,4 +171,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {737774 ps} {943496 ps}
+WaveRestoreZoom {184795832 ps} {184807780 ps}
