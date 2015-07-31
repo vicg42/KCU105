@@ -828,16 +828,18 @@ end generate gen_usrd_x128;
 --Generator test data (counter)
 process(p_in_rst_n, i_usr_grst, p_in_clk)
 begin
-if p_in_rst_n = '0' or i_usr_grst = '1' then
-  for i in 0 to (tst_mem_dcnt'length / 8) - 1 loop
-  tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i) <= TO_UNSIGNED(i, 8);
-  end loop;
-elsif rising_edge(p_in_clk) then
-  if p_in_rxbuf_rd = '1' and UNSIGNED(i_hdev_adr) = TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length) then
+if rising_edge(p_in_clk) then
+  if p_in_rst_n = '0' or i_usr_grst = '1' then
     for i in 0 to (tst_mem_dcnt'length / 8) - 1 loop
-    tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i) <= tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i)
-                                               + TO_UNSIGNED((tst_mem_dcnt'length / 8), 8);
+    tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i) <= TO_UNSIGNED(i, 8);
     end loop;
+  else
+    if p_in_rxbuf_rd = '1' and UNSIGNED(i_hdev_adr) = TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length) then
+      for i in 0 to (tst_mem_dcnt'length / 8) - 1 loop
+      tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i) <= tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i)
+                                                 + TO_UNSIGNED((tst_mem_dcnt'length / 8), 8);
+      end loop;
+    end if;
   end if;
 end if;
 end process;
