@@ -120,6 +120,7 @@ signal i_test_led          : std_logic_vector(0 downto 0);
 
 signal i_host_dev_status   : std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
 
+signal tst_out_host        : std_logic_vector(255 downto 0);
 
 
 begin --architecture struct
@@ -169,7 +170,7 @@ p_out_dev_opt        => open,
 p_out_usr_tst        => open,
 p_in_usr_tst         => (others => '0'),
 p_in_tst             => (others => '0'),
-p_out_tst            => open,
+p_out_tst            => tst_out_host,
 
 ---------------------------------------------------------
 --System Port
@@ -207,9 +208,10 @@ p_in_clk   => g_usrclk(0),
 p_in_rst   => i_usrclk_rst
 );
 
-pin_out_led(0) <= pin_in_btn(0);
-pin_out_led(5 downto 1) <= pin_in_btn(4 downto 1) & i_test_led(0);
-pin_out_led(7 downto 6) <= (others => '0');
+pin_out_led(0) <= i_test_led(0);
+pin_out_led(1) <= tst_out_host(0);--i_user_lnk_up
+pin_out_led(6 downto 2) <= pin_in_btn(4 downto 0);
+pin_out_led(7 downto 7) <= (others => '0');
 
 
 

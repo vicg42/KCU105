@@ -907,7 +907,8 @@ p_in_user_lnk_up => i_user_lnk_up
 --#############################################
 --DBG
 --#############################################
-p_out_tst <= (others => '0');
+p_out_tst(0) <= i_user_lnk_up;
+p_out_tst(p_out_tst'high downto 1) <= (others => '0');
 
 
 end architecture behavioral;
