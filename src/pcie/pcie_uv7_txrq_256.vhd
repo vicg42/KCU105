@@ -136,7 +136,7 @@ p_out_s_axis_rq_tdata  <= i_s_axis_rq_tdata ;
 p_out_s_axis_rq_tkeep  <= i_s_axis_rq_tkeep ;
 p_out_s_axis_rq_tvalid <= i_s_axis_rq_tvalid;
 p_out_s_axis_rq_tlast  <= i_s_axis_rq_tlast ;
-p_out_s_axis_rq_tuser  <= (others => '0');--i_s_axis_rq_tuser ;
+p_out_s_axis_rq_tuser  <= i_s_axis_rq_tuser ;
 
 
 
@@ -212,7 +212,7 @@ if rising_edge(p_in_clk) then
             i_mwr_work <= '0';
             i_mem_tpl_last <= '0';
 
-            if p_in_dma_mwr_en = '1' and i_mwr_done = '0' then --p_in_pcie_prm.master_en(0) = '1'
+            if p_in_dma_mwr_en = '1' and i_mwr_done = '0' and p_in_pcie_prm.master_en(0) = '1' then
 
                 if i_dma_init = '1' then
 
@@ -238,7 +238,7 @@ if rising_edge(p_in_clk) then
                   i_fsm_txrq <= S_TXRQ_MWR_C0;
                 end if;
 
-            elsif p_in_dma_mrd_en = '1' and i_mrd_done = '0' then --p_in_pcie_prm.master_en(0) = '1'
+            elsif p_in_dma_mrd_en = '1' and i_mrd_done = '0' and p_in_pcie_prm.master_en(0) = '1' then
                 if i_dma_init = '1' then
 
                   case p_in_pcie_prm.max_rd_req is
@@ -306,7 +306,6 @@ if rising_edge(p_in_clk) then
         when S_TXRQ_MWR_D0 =>
 
             if i_urxbuf_rd = '1' then
---i_s_axis_rq_tuser  : std_logic_vector(59 downto 0);
 
                 i_s_axis_rq_tvalid <= '1';
 
@@ -564,7 +563,6 @@ if rising_edge(p_in_clk) then
         when S_TXRQ_MRD_N =>
 
             if p_in_s_axis_rq_tready = '1' then
---i_s_axis_rq_tuser  : std_logic_vector(59 downto 0);
 
                 i_s_axis_rq_tdata((32 * 2) - 1 downto (32 * 0)) <= std_logic_vector(RESIZE(i_mem_adr_byte(31 downto 2), (32 * 2) - 2) & "00");
 
