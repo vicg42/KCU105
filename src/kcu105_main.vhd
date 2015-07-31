@@ -28,6 +28,12 @@ pin_in_btn          : in    std_logic_vector(4 downto 0);
 pin_out_led         : out   std_logic_vector(7 downto 0);
 
 --------------------------------------------------
+--FMC
+--------------------------------------------------
+pin_out_led_hpc     : out   std_logic_vector(3 downto 0);
+pin_out_led_lpc     : out   std_logic_vector(3 downto 0);
+
+--------------------------------------------------
 --PCIE
 --------------------------------------------------
 pin_in_pcie_phy     : in    TPCIE_pinin;
@@ -213,6 +219,16 @@ pin_out_led(1) <= tst_out_host(0);--i_user_lnk_up
 pin_out_led(6 downto 2) <= pin_in_btn(4 downto 0);
 pin_out_led(7 downto 7) <= (others => '0');
 
+
+pin_out_led_hpc(0) <= i_test_led(0);
+pin_out_led_hpc(1) <= i_test_led(0);
+pin_out_led_hpc(2) <= i_test_led(0);
+pin_out_led_hpc(3) <= i_test_led(0);
+
+pin_out_led_lpc(0) <= i_test_led(0);
+pin_out_led_lpc(1) <= i_test_led(0);
+pin_out_led_lpc(2) <= i_test_led(0);
+pin_out_led_lpc(3) <= i_test_led(0);
 
 
 end architecture struct;

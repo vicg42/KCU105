@@ -53,6 +53,30 @@ set_property IOSTANDARD LVCMOS18 [get_ports {pin_out_led[6]}]
 set_property IOSTANDARD LVCMOS18 [get_ports {pin_out_led[7]}]
 
 
+#FMC HPC (Board FMC CAMERALINK)
+set_property PACKAGE_PIN D20 [get_ports {pin_out_led_hpc[0]}]
+set_property PACKAGE_PIN G20 [get_ports {pin_out_led_hpc[1]}]
+set_property PACKAGE_PIN H21 [get_ports {pin_out_led_hpc[2]}]
+set_property PACKAGE_PIN B21 [get_ports {pin_out_led_hpc[3]}]
+
+set_property IOSTANDARD LVCMOS18 [get_ports {pin_out_led_hpc[0]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {pin_out_led_hpc[1]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {pin_out_led_hpc[2]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {pin_out_led_hpc[3]}]
+
+
+#FMC LPC (Board FMC 105)
+set_property PACKAGE_PIN W30 [get_ports {pin_out_led_lpc[0]}]
+set_property PACKAGE_PIN Y30 [get_ports {pin_out_led_lpc[1]}]
+set_property PACKAGE_PIN W33 [get_ports {pin_out_led_lpc[2]}]
+set_property PACKAGE_PIN Y33 [get_ports {pin_out_led_lpc[3]}]
+
+set_property IOSTANDARD LVCMOS18 [get_ports {pin_out_led_lpc[0]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {pin_out_led_lpc[1]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {pin_out_led_lpc[2]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {pin_out_led_lpc[3]}]
+
+
 ###############################################################################
 #PCI-Express
 ###############################################################################
