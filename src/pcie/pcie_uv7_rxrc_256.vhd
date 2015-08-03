@@ -39,6 +39,7 @@ p_in_m_axis_rc_tuser    : in  std_logic_vector(74 downto 0);
 p_out_m_axis_rc_tready  : out std_logic;
 
 --Completion
+p_in_rq_prm : in  TRQParam;
 
 --usr app
 p_out_utxbuf_di   : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
@@ -160,12 +161,14 @@ if rising_edge(p_in_clk) then
                   if p_in_m_axis_rc_tkeep(i) = '1' then
                       if (i = 3) then
                         pkt.h_rxdone := '1';
+                        pkt.h_lastpos := TO_UNSIGNED(i, pkt.h_pos'length - 1);
                       end if;
 
                       if (i < 3) then
                         pkt.h(i) := p_in_m_axis_rc_tdata((32 * (1 + i)) - 1 downto (32 * i));
                       else
-                        pkt.d(i) := p_in_m_axis_rc_tdata((32 * (1 + i)) - 1 downto (32 * i));
+                        pkt.d(i - 3) := p_in_m_axis_rc_tdata((32 * (1 + i)) - 1 downto (32 * i));
+
                       end if;
 
                   end if;
@@ -187,16 +190,28 @@ if rising_edge(p_in_clk) then
                         i_cpld_tlp_cnt <= (others => '0');
                           cpld_tlp_work := '1';
 
-                        --Check DW Count
-                        if i_cpld_tpl_dw > TO_UNSIGNED(5, 11) then
-                          i_fsm_rx <= S_RX_DN;
+                        if pkt.h_lastpos = TO_UNSIGNED(7, pkt.h_lastpos'length - 1) then
+
+                          i_fsm_rx <= S_RX_D0;
 
                         else
-                            if p_in_m_axis_rc_tlast = '1' then
-                                cpld_tlp_dlast := '1';
-                              i_cpld_total_size_byte <= i_cpld_total_size_byte + i_cpld_tpl_byte;
+                            --Check DW Count
+                            if i_cpld_tpl_dw > TO_UNSIGNED(5, 11) then
+                              i_fsm_rx <= S_RX_DN;
+
+                            else
+                                if p_in_m_axis_rc_tlast = '1' then
+                                    cpld_tlp_dlast := '1';
+
+                                  if p_in_dma_prm.len = (i_cpld_total_size_byte + i_cpld_tpl_byte) then
+                                    i_mrd_done <= '1';
+                                  else
+                                    i_mrd_done <= '0';
+                                    i_cpld_total_size_byte <= i_cpld_total_size_byte + i_cpld_tpl_byte;
+                                  end if;
+
+                                end if;
                             end if;
-                        end if;
 
                     else
     --                  --Check Error Code
@@ -224,6 +239,12 @@ if rising_edge(p_in_clk) then
 
             if i_m_axis_rc_tready = '1' then
 
+                if dwe_calc_done = '1' then;
+                  dwe_cnt := 0;
+                end if;
+
+                  dwe_calc_done := '0';
+
                 i_pkt.d(0) <= sr_m_axis_rc_tdata((32 * 4) - 1 downto (32 * 3));
                 i_pkt.d(1) <= sr_m_axis_rc_tdata((32 * 5) - 1 downto (32 * 4));
                 i_pkt.d(2) <= sr_m_axis_rc_tdata((32 * 6) - 1 downto (32 * 5));
@@ -236,9 +257,28 @@ if rising_edge(p_in_clk) then
 
                 sr_m_axis_rc_tdata((32 * 7) - 1 downto (32 * 0)) <= p_in_m_axis_rc_tdata((32 * 7) - 1 downto (32 * 0));
 
+                for i in 0 to p_in_m_axis_rc_tkeep'length - 1 loop
+                  if p_in_m_axis_rc_tkeep(i) = '1' then
+                      dwe_cnt := dwe_cnt + 1;
+                      if (i = p_in_m_axis_rc_tkeep'length - 1) then
+                        dwe_calc_done := '1';
+                      end if;
+                  end if;
+                end loop;
 
                 if p_in_m_axis_rc_tlast = '1' then
-                  i_cpld_total_size_byte <= i_cpld_total_size_byte + UNSIGNED(pkt.h(0)(28 downto 16));
+                    cpld_tlp_dlast := '1';
+
+                    if dwe_cnt
+
+
+                  if p_in_dma_prm.len = (i_cpld_total_size_byte + i_cpld_tpl_byte) then
+                    i_mrd_done <= '1';
+                  else
+                    i_mrd_done <= '0';
+                    i_cpld_total_size_byte <= i_cpld_total_size_byte + i_cpld_tpl_byte;
+                  end if;
+
                 end if;
 
             end if;
