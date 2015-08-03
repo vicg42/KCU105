@@ -167,9 +167,9 @@ if rising_edge(p_in_clk) then
                         if i_cpld_tpl_dw = TO_UNSIGNED(1, i_cpld_tpl_dw'length) then
 
                               for i in 3 to p_in_m_axis_rc_tkeep'length - 1 loop
-                                if p_in_m_axis_rc_tkeep(i) = '1' then
-                                sr_m_axis_rc_tdata((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
-                                end if;
+                              if p_in_m_axis_rc_tkeep(i) = '1' then
+                              sr_m_axis_rc_tdata((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
+                              end if;
                               end loop;
 
                         elsif i_cpld_tpl_dw = TO_UNSIGNED(2, i_cpld_tpl_dw'length) then
@@ -221,14 +221,8 @@ if rising_edge(p_in_clk) then
                         else
 
                               for i in 3 to p_in_m_axis_rc_tkeep'length - 1 loop
-                                sr_m_axis_rc_tdata((32 * (i - (3 - 1))) - 1 downto (32 * (i - 3))) <= p_in_m_axis_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
+                              sr_m_axis_rc_tdata((32 * (i - (3 - 1))) - 1 downto (32 * (i - 3))) <= p_in_m_axis_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
                               end loop;
-
---                              sr_m_axis_rc_tdata((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_rc_tdata((32 * 4) - 1 downto (32 * 3));
---                              sr_m_axis_rc_tdata((32 * 2) - 1 downto (32 * 1)) <= p_in_m_axis_rc_tdata((32 * 5) - 1 downto (32 * 4));
---                              sr_m_axis_rc_tdata((32 * 3) - 1 downto (32 * 2)) <= p_in_m_axis_rc_tdata((32 * 6) - 1 downto (32 * 5));
---                              sr_m_axis_rc_tdata((32 * 4) - 1 downto (32 * 3)) <= p_in_m_axis_rc_tdata((32 * 7) - 1 downto (32 * 6));
---                              sr_m_axis_rc_tdata((32 * 5) - 1 downto (32 * 4)) <= p_in_m_axis_rc_tdata((32 * 8) - 1 downto (32 * 7));
                               sr_m_axis_rc_tdata((32 * 6) - 1 downto (32 * 5)) <= (others => '0');
                               sr_m_axis_rc_tdata((32 * 7) - 1 downto (32 * 6)) <= (others => '0');
                               sr_m_axis_rc_tdata((32 * 8) - 1 downto (32 * 7)) <= (others => '0');
@@ -246,9 +240,9 @@ if rising_edge(p_in_clk) then
                         if i_cpld_tpl_dw = TO_UNSIGNED(1, i_cpld_tpl_dw'length) then
 
                               for i in 4 to p_in_m_axis_rc_tkeep'length - 1 loop
-                                if p_in_m_axis_rc_tkeep(i) = '1' then
-                                sr_m_axis_rc_tdata((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
-                                end if;
+                              if p_in_m_axis_rc_tkeep(i) = '1' then
+                              sr_m_axis_rc_tdata((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
+                              end if;
                               end loop;
 
                         elsif i_cpld_tpl_dw = TO_UNSIGNED(2, i_cpld_tpl_dw'length) then
@@ -284,13 +278,8 @@ if rising_edge(p_in_clk) then
                         else
 
                               for i in 4 to p_in_m_axis_rc_tkeep'length - 1 loop
-                                sr_m_axis_rc_tdata((32 * (i - (4 - 1))) - 1 downto (32 * (i - 4))) <= p_in_m_axis_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
+                              sr_m_axis_rc_tdata((32 * (i - (4 - 1))) - 1 downto (32 * (i - 4))) <= p_in_m_axis_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
                               end loop;
-
---                              sr_m_axis_rc_tdata((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_rc_tdata((32 * 5) - 1 downto (32 * 4));
---                              sr_m_axis_rc_tdata((32 * 2) - 1 downto (32 * 1)) <= p_in_m_axis_rc_tdata((32 * 6) - 1 downto (32 * 5));
---                              sr_m_axis_rc_tdata((32 * 3) - 1 downto (32 * 2)) <= p_in_m_axis_rc_tdata((32 * 7) - 1 downto (32 * 6));
---                              sr_m_axis_rc_tdata((32 * 4) - 1 downto (32 * 3)) <= p_in_m_axis_rc_tdata((32 * 8) - 1 downto (32 * 7));
                               sr_m_axis_rc_tdata((32 * 5) - 1 downto (32 * 4)) <= (others => '0');
                               sr_m_axis_rc_tdata((32 * 6) - 1 downto (32 * 5)) <= (others => '0');
                               sr_m_axis_rc_tdata((32 * 7) - 1 downto (32 * 6)) <= (others => '0');
@@ -310,9 +299,9 @@ if rising_edge(p_in_clk) then
                         if i_cpld_tpl_dw = TO_UNSIGNED(1, i_cpld_tpl_dw'length) then
 
                               for i in 5 to p_in_m_axis_rc_tkeep'length - 1 loop
-                                if p_in_m_axis_rc_tkeep(i) = '1' then
-                                sr_m_axis_rc_tdata((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
-                                end if;
+                              if p_in_m_axis_rc_tkeep(i) = '1' then
+                              sr_m_axis_rc_tdata((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
+                              end if;
                               end loop;
 
                         elsif i_cpld_tpl_dw = TO_UNSIGNED(2, i_cpld_tpl_dw'length) then
@@ -336,12 +325,8 @@ if rising_edge(p_in_clk) then
                         else
 
                               for i in 5 to p_in_m_axis_rc_tkeep'length - 1 loop
-                                sr_m_axis_rc_tdata((32 * (i - (5 - 1))) - 1 downto (32 * (i - 5))) <= p_in_m_axis_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
+                              sr_m_axis_rc_tdata((32 * (i - (5 - 1))) - 1 downto (32 * (i - 5))) <= p_in_m_axis_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
                               end loop;
-
---                              sr_m_axis_rc_tdata((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_rc_tdata((32 * 6) - 1 downto (32 * 5));
---                              sr_m_axis_rc_tdata((32 * 2) - 1 downto (32 * 1)) <= p_in_m_axis_rc_tdata((32 * 7) - 1 downto (32 * 6));
---                              sr_m_axis_rc_tdata((32 * 3) - 1 downto (32 * 2)) <= p_in_m_axis_rc_tdata((32 * 8) - 1 downto (32 * 7));
                               sr_m_axis_rc_tdata((32 * 4) - 1 downto (32 * 3)) <= (others => '0');
                               sr_m_axis_rc_tdata((32 * 5) - 1 downto (32 * 4)) <= (others => '0');
                               sr_m_axis_rc_tdata((32 * 6) - 1 downto (32 * 5)) <= (others => '0');
@@ -361,9 +346,9 @@ if rising_edge(p_in_clk) then
                         if i_cpld_tpl_dw = TO_UNSIGNED(1, i_cpld_tpl_dw'length) then
 
                               for i in 6 to p_in_m_axis_rc_tkeep'length - 1 loop
-                                if p_in_m_axis_rc_tkeep(i) = '1' then
-                                sr_m_axis_rc_tdata((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
-                                end if;
+                              if p_in_m_axis_rc_tkeep(i) = '1' then
+                              sr_m_axis_rc_tdata((32 * 1) - 1 downto (32 * 0)) <= p_in_m_axis_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
+                              end if;
                               end loop;
 
                         else
@@ -403,12 +388,20 @@ if rising_edge(p_in_clk) then
                       pkt.h(1) := p_in_m_axis_rc_tdata((32 * 7) - 1 downto (32 * 6));
                       pkt.h(2) := p_in_m_axis_rc_tdata((32 * 8) - 1 downto (32 * 7));
 
+                      sr_m_axis_rc_tdata((32 * 8) - 1 downto (32 * 0)) <= (others => '0');
+
+
                   elsif p_in_m_axis_rc_tkeep(7 downto 6) = "11" then
                       pkt.h(0) := p_in_m_axis_rc_tdata((32 * 6) - 1 downto (32 * 5));
                       pkt.h(1) := p_in_m_axis_rc_tdata((32 * 7) - 1 downto (32 * 6));
 
+                      sr_m_axis_rc_tdata((32 * 8) - 1 downto (32 * 0)) <= (others => '0');
+
+
                   elsif p_in_m_axis_rc_tkeep(7) = '1' then
                       pkt.h(0) := p_in_m_axis_rc_tdata((32 * 6) - 1 downto (32 * 5));
+
+                      sr_m_axis_rc_tdata((32 * 8) - 1 downto (32 * 0)) <= (others => '0');
 
                   end if;
 
