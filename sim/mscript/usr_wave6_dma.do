@@ -157,7 +157,7 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_in_s_axis_cc_tready
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {0 ps} 0}
 quietly wave cursor active 0
-configure wave -namecolwidth 363
+configure wave -namecolwidth 197
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
 configure wave -signalnamewidth 1
@@ -171,4 +171,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {184795832 ps} {184807780 ps}
+WaveRestoreZoom {988650 ps} {1002829 ps}
