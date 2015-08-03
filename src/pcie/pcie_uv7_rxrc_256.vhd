@@ -63,7 +63,7 @@ S_RX_WAIT
 );
 signal i_fsm_rx              : TFsmRx_state;
 
-signal i_sof_0               : std_logic;
+signal i_sof                 : std_logic_vector(1 downto 0);
 
 signal i_m_axis_cq_tready    : std_logic := '0';
 signal i_m_axis_rc_tready    : std_logic := '1';
@@ -102,17 +102,22 @@ p_out_m_axis_rc_tready <= i_m_axis_rc_tready;
 i_m_axis_rc_tready <= not p_in_utxbuf_full;
 
 
-i_sof_0 <= p_in_m_axis_rc_tuser(32);
---i_sof_1 <= p_in_m_axis_rc_tuser(33);
+i_sof(0) <= p_in_m_axis_rc_tuser(32);
+i_sof(1) <= p_in_m_axis_rc_tuser(33);
 --i_eof_0 <= p_in_m_axis_rc_tuser(37 downto 34);
 --i_eof_1 <= p_in_m_axis_rc_tuser(41 downto 38);
 
 i_disc <= p_in_m_axis_rc_tuser(42);
 
 
+
+i_cpld_tpl_byte <= UNSIGNED(pkt.h(0)(28 downto 16)); --Byte Count
+i_cpld_tpl_dw <= UNSIGNED(pkt.h(1)(10 downto 0)); --Length data payload (DW)
+
 --Rx State Machine
 fsm : process(p_in_clk)
 variable err_out : std_logic_vector(tst_err'range);
+variable pkt : TRxCPLD;
 begin
 if rising_edge(p_in_clk) then
   if p_in_rst_n = '0' then
@@ -121,9 +126,14 @@ if rising_edge(p_in_clk) then
 
     i_m_axis_cq_tready <= '0';
 
+    pkt.h_rxdone := '0';
 
-    i_first_be <= (others => '0');
-    i_last_be <= (others => '0');
+    for i in 0 to pkt.h'length - 1 loop
+    pkt.h(i) := (others => '0');
+    end loop;
+    for i in 0 to pkt.d'length - 1 loop
+    pkt.d(i) := (others => '0');
+    end loop;
 
     tst_err <= (others => '0'); err_out := (others => '0');
 
@@ -139,41 +149,97 @@ if rising_edge(p_in_clk) then
 
             err_out := (others => '0');
 
-            if i_sof_0 = '1' and i_m_axis_rc_tready = '1' then
+            cpld_tlp_work := '0';
+            cpld_tlp_dlast := '0';
 
-              i_first_be <= p_in_m_axis_cq_tuser(3 downto 0);
-              i_last_be <= p_in_m_axis_cq_tuser(7 downto 4);
+            pkt.h_rxdone := '0';
 
-              --Check Completion Status
-              if (p_in_m_axis_rc_tdata((32 * 1) + 13 downto (32 * 1) + 11) /= "000" ) then
+            if i_sof(0) = '1' and i_sof(1) = '0' and i_m_axis_rc_tready = '1' then
 
-                err_out(0) := '1';
-                --p_in_m_axis_rc_tdata((32 * 0) + 15 downto (32 * 0) + 12);--Completion error code
+                for i in 0 to p_in_m_axis_rc_tkeep'length - 1 loop
+                  if p_in_m_axis_rc_tkeep(i) = '1' then
+                      if (i = 3) then
+                        pkt.h_rxdone := '1';
+                      end if;
 
-              else
+                      if (i < 3) then
+                        pkt.h(i) := p_in_m_axis_rc_tdata((32 * (1 + i)) - 1 downto (32 * i));
+                      else
+                        pkt.d(i) := p_in_m_axis_rc_tdata((32 * (1 + i)) - 1 downto (32 * i));
+                      end if;
 
-              --Check Dword count
-              if (UNSIGNED(p_in_m_axis_rc_tdata((32 * 1) + 10 downto (32 * 1) + 0)) > TO_UNSIGNED(5, 11) ) then
-              else
-              end if;
+                  end if;
+                end loop;
 
+
+                if pkt.h_rxdone = '1' then
+
+                    --Check Completion Status
+                    if pkt.h(1)(13 downto 11) = "000" then
+
+                        i_cpld_tpl_byte_count <= i_cpld_tpl_byte; --Byte Count
+                        i_cpld_tpl_dw_count <= i_cpld_tpl_dw;
+
+                        i_cpld_tpl_len <= RESIZE(i_cpld_tpl_byte(i_cpld_tpl_byte'high downto log2(G_DATA_WIDTH / 8)), i_cpld_tpl_len'length)
+                                        + (TO_UNSIGNED(0, i_cpld_tpl_len'length - 2)
+                                            & OR_reduce(i_cpld_tpl_byte(log2(G_DATA_WIDTH / 8) - 1 downto 0)));
+
+                        i_cpld_tlp_cnt <= (others => '0');
+                          cpld_tlp_work := '1';
+
+                        --Check DW Count
+                        if i_cpld_tpl_dw > TO_UNSIGNED(5, 11) then
+                          i_fsm_rx <= S_RX_DN;
+
+                        else
+                            if p_in_m_axis_rc_tlast = '1' then
+                                cpld_tlp_dlast := '1';
+                              i_cpld_total_size_byte <= i_cpld_total_size_byte + i_cpld_tpl_byte;
+                            end if;
+                        end if;
+
+                    else
+    --                  --Check Error Code
+    --                  if pkt.h(1)(15 downto 12) = ""
+    --                  end if;
+                    end if;
+
+                end if;
 
             end if;
+
+            i_cpld_tlp_work := cpld_tlp_work;
+            i_cpld_tlp_dlast <= cpld_tlp_dlast;
+
+            i_pkt.h <= pkt.h;
+            i_pkt.d <= pkt.d;
+
+            sr_m_axis_rc_tdata((32 * 7) - 1 downto (32 * 0)) <= p_in_m_axis_rc_tdata((32 * 7) - 1 downto (32 * 0));
+
 
         --#######################################################################
         --
         --#######################################################################
-        when S_RX_WAIT =>
+        when S_RX_DN =>
 
-            i_reg_wr <= '0';
-            i_reg_rd <= '0';
-            i_req_compl <= '0';
-            i_req_compl_ur <= '0';
+            if i_m_axis_rc_tready = '1' then
 
-            if p_in_compl_done = '1' or i_req_compl = '0' then
+                i_pkt.d(0) <= sr_m_axis_rc_tdata((32 * 4) - 1 downto (32 * 3));
+                i_pkt.d(1) <= sr_m_axis_rc_tdata((32 * 5) - 1 downto (32 * 4));
+                i_pkt.d(2) <= sr_m_axis_rc_tdata((32 * 6) - 1 downto (32 * 5));
+                i_pkt.d(3) <= sr_m_axis_rc_tdata((32 * 7) - 1 downto (32 * 6));
+                i_pkt.d(4) <= sr_m_axis_rc_tdata((32 * 8) - 1 downto (32 * 7));
 
-              i_m_axis_cq_tready <= '1';
-              i_fsm_rx <= S_RX_IDLE;
+                i_pkt.d(5) <= p_in_m_axis_rc_tdata((32 * 1) - 1 downto (32 * 0));
+                i_pkt.d(6) <= p_in_m_axis_rc_tdata((32 * 2) - 1 downto (32 * 1));
+                i_pkt.d(7) <= p_in_m_axis_rc_tdata((32 * 3) - 1 downto (32 * 2));
+
+                sr_m_axis_rc_tdata((32 * 7) - 1 downto (32 * 0)) <= p_in_m_axis_rc_tdata((32 * 7) - 1 downto (32 * 0));
+
+
+                if p_in_m_axis_rc_tlast = '1' then
+                  i_cpld_total_size_byte <= i_cpld_total_size_byte + UNSIGNED(pkt.h(0)(28 downto 16));
+                end if;
 
             end if;
 
