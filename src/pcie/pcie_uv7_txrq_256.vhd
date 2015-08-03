@@ -160,7 +160,9 @@ end if;
 end process;--init
 
 
-i_mem_tpl_dw <= RESIZE(i_mem_tpl_byte(i_mem_tpl_byte'high downto 2), i_mem_tpl_dw'length);
+i_mem_tpl_dw <= RESIZE(i_mem_tpl_byte(i_mem_tpl_byte'high downto 2), i_mem_tpl_dw'length)
+                  + (TO_UNSIGNED(0, i_mem_tpl_dw'length - 2)
+                      & OR_reduce(i_mem_tpl_byte(log2(32 / 8) - 1 downto 0)));
 
 --Tx State Machine
 fsm : process(p_in_clk)
@@ -325,19 +327,23 @@ if rising_edge(p_in_clk) then
                 i_s_axis_rq_tdata((32 * 3) + 30) <= '0'; --Attr (ID-Based Ordering)
                 i_s_axis_rq_tdata((32 * 3) + 31) <= '0'; --Force ECRC
 
+                --First DW BE, Last DW BE - only for address divided 32 byte
                 --1st DW Byte Enable (first_be)
-                case i_mem_adr_byte(1 downto 0) is
+                if i_mem_tpl_dw = TO_UNSIGNED(16#01#, i_mem_tpl_dw'length) then
+                case i_mem_tpl_byte(1 downto 0) is
                 when "00" => i_s_axis_rq_tuser(3 downto 0) <= "1111";
-                when "01" => i_s_axis_rq_tuser(3 downto 0) <= "1110";
-                when "10" => i_s_axis_rq_tuser(3 downto 0) <= "1100";
-                when "11" => i_s_axis_rq_tuser(3 downto 0) <= "1000";
+                when "01" => i_s_axis_rq_tuser(3 downto 0) <= "0001";
+                when "10" => i_s_axis_rq_tuser(3 downto 0) <= "0011";
+                when "11" => i_s_axis_rq_tuser(3 downto 0) <= "0111";
                 when others => null;
                 end case;
+                else
+                i_s_axis_rq_tuser(3 downto 0) <= "1111";
+                end if;
 
                 --Last DW Byte Enable (last_be)
-                if i_mem_tpl_dw = TO_UNSIGNED(16#01#, i_mem_tpl_dw'length)
-                  and OR_reduce(i_mem_adr_byte(1 downto 0)) = '0' then
-                    i_s_axis_rq_tuser(7 downto 4) <= "0000";
+                if i_mem_tpl_dw = TO_UNSIGNED(16#01#, i_mem_tpl_dw'length) then
+                i_s_axis_rq_tuser(7 downto 4) <= "0000";
                 else
                 case i_mem_tpl_byte(1 downto 0) is
                 when "00" => i_s_axis_rq_tuser(7 downto 4) <= "1111";
@@ -348,7 +354,7 @@ if rising_edge(p_in_clk) then
                 end case;
                 end if;
 
-                i_s_axis_rq_tuser(10 downto 8) <= (others => '0');--addr_offset; ################  ????????????????  ##################
+                i_s_axis_rq_tuser(10 downto 8) <= (others => '0');--addr_offset; Used only in addres-alogen mode
                 i_s_axis_rq_tuser(11) <= '0';--Discontinue;
 
                 i_s_axis_rq_tuser(12)           <= '0';            --TPH_present;
@@ -372,7 +378,7 @@ if rising_edge(p_in_clk) then
 
                     i_mwr_work <= '0';
 
-                    if i_mem_tpl_dw_rem(2) = '0' then --if i_mem_tpl_dw_rem(3 downto 0) < TO_UNSIGNED(4, 4) then
+                    if i_mem_tpl_dw_rem(3 downto 0) < TO_UNSIGNED(4, 4) then
 
                       i_s_axis_rq_tlast <= '0';
 
@@ -443,7 +449,7 @@ if rising_edge(p_in_clk) then
 
                     i_mwr_work <= '0';
 
-                    if i_mem_tpl_dw_rem(2) = '0' then --if i_mem_tpl_dw_rem(3 downto 0) < TO_UNSIGNED(4, 4) then
+                    if i_mem_tpl_dw_rem(3 downto 0) < TO_UNSIGNED(4, 4) then
 
                       i_s_axis_rq_tlast <= '0';
 
