@@ -123,6 +123,7 @@ p_in_cfg_current_speed    : in   std_logic_vector(2 downto 0);
 p_in_cfg_max_payload      : in   std_logic_vector(2 downto 0);
 p_in_cfg_max_read_req     : in   std_logic_vector(2 downto 0);
 p_in_cfg_function_status  : in   std_logic_vector(7 downto 0);
+p_in_cfg_rcb_status       : in   std_logic_vector(1 downto 0);
 
 -- Error Reporting Interface
 p_in_cfg_err_cor_out      : in   std_logic;
@@ -239,6 +240,7 @@ signal i_dma_prm               : TPCIE_dmaprm;
 signal i_dma_mwr_en            : std_logic;
 signal i_dma_mwr_done          : std_logic;
 signal i_dma_mrd_en            : std_logic;
+signal i_dma_mrd_done          : std_logic;
 
 signal i_m_axis_cq_tready      : std_logic;
 signal i_m_axis_rc_tready      : std_logic;
@@ -257,47 +259,22 @@ signal i_uapp_irq_ack          : std_logic;
 signal tst_uapp_out            : std_logic_vector(127 downto 0);
 signal tst_rx_out              : std_logic_vector(31 downto 0);
 signal tst_tx_out              : std_logic_vector(279 downto 0);
-signal i_dbg_probe             : std_logic_vector(41 downto 0);
+signal i_dbg_probe             : std_logic_vector(269 downto 0);
 
 attribute keep : string;
 attribute keep of i_trn_clk : signal is "true";
 
+type TDBG_darray is array (0 to G_KEEP_WIDTH - 1) of std_logic_vector(31 downto 0);
+
 type TPCIE_dbg is record
---rx
---m_axi_cq_tdata  : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-m_axi_cq_tkeep  : std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-m_axi_cq_tvalid : std_logic                                  ;
-m_axi_cq_tlast  : std_logic                                  ;
-m_axi_cq_tready : std_logic;
---m_axi_cq_tuser  : std_logic_vector(84 downto 0)
+m_axi_rc_tdata  : TDBG_darray;
+m_axi_rc_tkeep  : std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+m_axi_rc_tvalid : std_logic;
+m_axi_rc_tlast  : std_logic;
+m_axi_rc_tready : std_logic;
 
---tx
---s_axi_cc_tdata  : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-s_axi_cc_tkeep  : std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-s_axi_cc_tvalid : std_logic                                  ;
-s_axi_cc_tlast  : std_logic                                  ;
-s_axi_cc_tready : std_logic;
---s_axi_cc_tuser  : std_logic_vector(32 downto 0)
-
---completion
-req_compl       : std_logic;
-req_compl_ur    : std_logic;
-compl_done      : std_logic;
-
---user reg
-reg_a           : std_logic_vector(4 downto 0);
---reg_di          : std_logic_vector(31 downto 0);
---reg_do          : std_logic_vector(31 downto 0);
---reg_wrbe        : std_logic_vector(3 downto 0);
-reg_wr          : std_logic;
-reg_rd          : std_logic;
-
---others
---fsm_rx          : std_logic_vector(3 downto 0);
---fsm_tx          : std_logic_vector(3 downto 0);
-rx_err          : std_logic_vector(1 downto 0);
-
-cfg_function_status : std_logic_vector(7 downto 0);
+m_axi_rc_sop    : std_logic_vector(1 downto 0);
+m_axi_rc_disc   : std_logic;
 end record;
 
 signal i_dbg_pcie            : TPCIE_dbg;
@@ -443,6 +420,7 @@ p_in_dma_mwr_done  => i_dma_mwr_done,
 p_out_dma_mrd_en      => i_dma_mrd_en,
 p_in_dma_mrd_rcv_size => (others => '0'),
 p_in_dma_mrd_rcv_err  => '0',
+p_in_dma_mrd_done     => i_dma_mrd_done,
 
 --IRQ
 p_out_irq_clr      => i_uapp_irq_clr,
@@ -612,6 +590,7 @@ p_in_dma_prm       => i_dma_prm     ,
 p_in_dma_mwr_en    => i_dma_mwr_en  ,
 p_out_dma_mwr_done => i_dma_mwr_done,
 p_in_dma_mrd_en    => i_dma_mrd_en  ,
+p_out_dma_mrd_done => i_dma_mrd_done,
 
 --DBG
 p_out_tst => tst_tx_out,
@@ -720,70 +699,40 @@ begin
 --process(i_trn_clk)
 --begin
 --if rising_edge(i_trn_clk) then
---i_dbg_pcie.m_axi_cq_tdata(255 downto 0) <= p_in_m_axis_cq_tdata;--std_logic_vector(RESIZE(UNSIGNED(p_in_m_axis_cq_tdata), 256));
-i_dbg_pcie.m_axi_cq_tkeep(7 downto 0)   <= p_in_m_axis_cq_tkeep;--std_logic_vector(RESIZE(UNSIGNED(p_in_m_axis_cq_tkeep), 8));
-i_dbg_pcie.m_axi_cq_tvalid              <= p_in_m_axis_cq_tvalid;
-i_dbg_pcie.m_axi_cq_tlast               <= p_in_m_axis_cq_tlast;
-i_dbg_pcie.m_axi_cq_tready              <= i_m_axis_cq_tready;
---m_axi_cq_tuser  : std_logic_vector(84 downto 0)              ;--in
+gen_dbg_di : for i in 0 to G_KEEP_WIDTH - 1 generate begin
+i_dbg_pcie.m_axi_rc_tdata(i) <= p_in_m_axis_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
+end generate gen_dbg_di;
+i_dbg_pcie.m_axi_rc_tkeep(7 downto 0)   <= p_in_m_axis_rc_tkeep;
+i_dbg_pcie.m_axi_rc_tvalid              <= p_in_m_axis_rc_tvalid;
+i_dbg_pcie.m_axi_rc_tlast               <= p_in_m_axis_rc_tlast;
+i_dbg_pcie.m_axi_rc_tready              <= i_m_axis_rc_tready;
 
---tx
---i_dbg_pcie.s_axi_cc_tdata(255 downto 0) <= tst_tx_out(266 downto 11);--  <= i_s_axis_cc_tdata;
-i_dbg_pcie.s_axi_cc_tkeep(7 downto 0)   <= tst_tx_out(274 downto 267);-- <= i_s_axis_cc_tkeep;
-i_dbg_pcie.s_axi_cc_tvalid <= tst_tx_out(8) ;-- <= i_s_axis_cc_tvalid;
-i_dbg_pcie.s_axi_cc_tlast  <= tst_tx_out(9) ;-- <= i_s_axis_cc_tlast;
-i_dbg_pcie.s_axi_cc_tready <= tst_tx_out(10);-- <= p_in_s_axis_cc_tready;
---s_axi_cc_tuser  : std_logic_vector(32 downto 0)              ;--out
+i_dbg_pcie.m_axi_rc_sop(0)              <= p_in_m_axis_rc_tuser(32);
+i_dbg_pcie.m_axi_rc_sop(1)              <= p_in_m_axis_rc_tuser(33);
+i_dbg_pcie.m_axi_rc_disc                <= p_in_m_axis_rc_tuser(42);
 
---completion
-i_dbg_pcie.req_compl    <= i_req_compl   ;
-i_dbg_pcie.req_compl_ur <= i_req_compl_ur;
-i_dbg_pcie.compl_done   <= i_compl_done  ;
 
---user reg
-i_dbg_pcie.reg_a(4 downto 0) <= tst_uapp_out(4 downto 0);
---i_dbg_pcie.reg_di(31 downto 0) <= i_ureg_di;
---i_dbg_pcie.reg_do(31 downto 0) <= i_ureg_do;
-i_dbg_pcie.reg_wr <= i_ureg_wr;
-i_dbg_pcie.reg_rd <= i_ureg_rd;
-
---others
---i_dbg_pcie.fsm_rx(3 downto 0) <= tst_rx_out(3 downto 0);
---i_dbg_pcie.fsm_tx(3 downto 0) <= tst_tx_out(3 downto 0);
-i_dbg_pcie.rx_err(1 downto 0) <= tst_rx_out(5 downto 4);
-
-i_dbg_pcie.cfg_function_status <= p_in_cfg_function_status;
 --end if;
 --end process;
 
 
 --##########################
 --rx
-i_dbg_probe(0)            <= i_dbg_pcie.m_axi_cq_tvalid             ;
-i_dbg_probe(1)            <= i_dbg_pcie.m_axi_cq_tlast              ;
-i_dbg_probe(2)            <= i_dbg_pcie.m_axi_cq_tready             ;
+i_dbg_probe(0)            <= i_dbg_pcie.m_axi_rc_tvalid;
+i_dbg_probe(1)            <= i_dbg_pcie.m_axi_rc_tlast ;
+i_dbg_probe(2)            <= i_dbg_pcie.m_axi_rc_tready;
 
---tx
-i_dbg_probe(3)            <= i_dbg_pcie.s_axi_cc_tvalid             ;
-i_dbg_probe(4)            <= i_dbg_pcie.s_axi_cc_tlast              ;
-i_dbg_probe(5)            <= i_dbg_pcie.s_axi_cc_tready             ;
+i_dbg_probe(3)            <= i_dbg_pcie.m_axi_rc_sop(0);
+i_dbg_probe(4)            <= i_dbg_pcie.m_axi_rc_sop(1);
+i_dbg_probe(5)            <= i_dbg_pcie.m_axi_rc_disc  ;
 
---completion
-i_dbg_probe(6)            <= i_dbg_pcie.req_compl   ;
-i_dbg_probe(7)            <= i_dbg_pcie.req_compl_ur;
-i_dbg_probe(8)            <= i_dbg_pcie.compl_done  ;
+i_dbg_probe(13 downto 6) <= i_dbg_pcie.m_axi_rc_tkeep(7 downto 0);
 
---user reg
-i_dbg_probe(9)            <= i_dbg_pcie.reg_wr             ;
-i_dbg_probe(10)           <= i_dbg_pcie.reg_rd             ;
-i_dbg_probe(15 downto 11) <= i_dbg_pcie.reg_a(4 downto 0);
+gen_dbg_do : for i in 0 to G_KEEP_WIDTH - 1 generate begin
+i_dbg_probe(((32 * (i + 1)) + 14) - 1 downto ((32 * i) + 14)) <= i_dbg_pcie.m_axi_rc_tdata(i);
+end generate gen_dbg_do;
+--i_dbg_probe(269 downto 14) <= i_dbg_pcie.m_axi_rc_tdata(i);
 
-i_dbg_probe(17 downto 16) <= i_dbg_pcie.rx_err(1 downto 0);
-
-i_dbg_probe(25 downto 18) <= i_dbg_pcie.m_axi_cq_tkeep(7 downto 0)  ;
-i_dbg_probe(33 downto 26) <= i_dbg_pcie.s_axi_cc_tkeep(7 downto 0)  ;
-
-i_dbg_probe(41 downto 34) <= i_dbg_pcie.cfg_function_status(7 downto 0);
 
 --i_dbg_probe(127 downto 0)   <= i_dbg_pcie.m_axi_cq_tdata(159 downto 0);
 --

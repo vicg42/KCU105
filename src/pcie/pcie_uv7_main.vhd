@@ -333,6 +333,7 @@ p_in_cfg_current_speed    : in   std_logic_vector(2 downto 0);
 p_in_cfg_max_payload      : in   std_logic_vector(2 downto 0);
 p_in_cfg_max_read_req     : in   std_logic_vector(2 downto 0);
 p_in_cfg_function_status  : in   std_logic_vector(7 downto 0);
+p_in_cfg_rcb_status       : in   std_logic_vector(1 downto 0);
 
 -- Error Reporting Interface
 p_in_cfg_err_cor_out      : in   std_logic;
@@ -516,6 +517,7 @@ signal i_cfg_current_speed                : std_logic_vector(2 downto 0);
 signal i_cfg_max_payload                  : std_logic_vector(2 downto 0) := (others => '0');
 signal i_cfg_max_read_req                 : std_logic_vector(2 downto 0) := (others => '0');
 signal i_cfg_function_status              : std_logic_vector(15 downto 0):= (others => '0');
+signal i_cfg_rcb_status                   : std_logic_vector(3 downto 0);
 --signal i_cfg_function_power_state         : std_logic_vector(11 downto 0);
 --signal i_cfg_vf_status                    : std_logic_vector(15 downto 0);
 --signal i_cfg_vf_power_state               : std_logic_vector(23 downto 0);
@@ -627,7 +629,7 @@ cfg_err_fatal_out           => i_cfg_err_fatal_out   ,--: OUT STD_LOGIC;
 cfg_local_error             => open                  ,--: OUT STD_LOGIC;
 cfg_ltr_enable              => open                  ,--: OUT STD_LOGIC;
 cfg_ltssm_state             => open                  ,--: OUT STD_LOGIC_VECTOR(5 DOWNTO 0);
-cfg_rcb_status              => open                  ,--: OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
+cfg_rcb_status              => i_cfg_rcb_status      ,--: OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
 cfg_dpa_substate_change     => open                  ,--: OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
 cfg_obff_enable             => i_cfg_obff_enable     ,--: OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
 cfg_pl_status_change        => open                  ,--: OUT STD_LOGIC;
@@ -828,6 +830,7 @@ p_in_cfg_current_speed    => i_cfg_current_speed   ,
 p_in_cfg_max_payload      => i_cfg_max_payload     ,
 p_in_cfg_max_read_req     => i_cfg_max_read_req    ,
 p_in_cfg_function_status  => i_cfg_function_status(7 downto 0),
+p_in_cfg_rcb_status       => i_cfg_rcb_status(1 downto 0),
 
 -- Error Reporting Interface
 p_in_cfg_err_cor_out      => i_cfg_err_cor_out       ,
