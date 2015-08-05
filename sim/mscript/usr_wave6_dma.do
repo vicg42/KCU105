@@ -117,6 +117,7 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mem_tpl_last
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mem_tpl_dw_rem
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mwr_work
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mwr_done
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/i_mwr_done
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_in_urxbuf_do
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_urxbuf_rd
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_urxbuf_last
@@ -171,4 +172,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {988650 ps} {1002829 ps}
+WaveRestoreZoom {175742144 ps} {194212800 ps}

@@ -668,7 +668,7 @@ begin
                           //C_HREG_DEV_CTRL
                           board.RP.tx_usrapp.USR_DATA[0] = 0;
                           board.RP.tx_usrapp.USR_DATA[1] = 0; //DMA START
-                          board.RP.tx_usrapp.USR_DATA[2] = 0; //DMA DIR: 1/0 (PC<-FPGA) / (PC->FPGA)
+                          board.RP.tx_usrapp.USR_DATA[2] = 1; //DMA DIR: 1/0 (PC<-FPGA) / (PC->FPGA)
                           board.RP.tx_usrapp.USR_DATA[10:3] = 0; //idx Start buf DMA
                           board.RP.tx_usrapp.USR_DATA[18:11] = 0; //Count buf
                           board.RP.tx_usrapp.USR_DATA[22:19] = 0; //DEV NUM
@@ -712,7 +712,7 @@ begin
 
 
                           //C_HREG_DMAPRM_LEN
-                          board.RP.tx_usrapp.USR_DATA = 17;
+                          board.RP.tx_usrapp.USR_DATA = 512;
 
                           board.RP.tx_usrapp.DATA_STORE[0] = board.RP.tx_usrapp.USR_DATA[ 7: 0];
                           board.RP.tx_usrapp.DATA_STORE[1] = board.RP.tx_usrapp.USR_DATA[15: 8];
