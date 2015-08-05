@@ -61,6 +61,7 @@ p_in_dma_prm       : in  TPCIE_dmaprm;
 p_in_dma_mwr_en    : in  std_logic;
 p_out_dma_mwr_done : out std_logic;
 p_in_dma_mrd_en    : in  std_logic;
+p_out_dma_mrd_done : out std_logic;
 
 --DBG
 p_out_tst : out std_logic_vector(279 downto 0);
@@ -122,7 +123,7 @@ signal tst_fsm_tx         : std_logic;
 
 begin --architecture behavioral of pcie_tx_rq
 
-
+p_out_dma_mrd_done <= i_mrd_done;
 p_out_dma_mwr_done <= i_mwr_done;
 
 i_urxbuf_rd <= (p_in_s_axis_rq_tready and not p_in_urxbuf_empty);
@@ -593,19 +594,23 @@ if rising_edge(p_in_clk) then
                 i_s_axis_rq_tvalid <= '1';
                 i_s_axis_rq_tlast <= '1';
 
+                --First DW BE, Last DW BE - only for address divided 32 byte
                 --1st DW Byte Enable (first_be)
-                case i_mem_adr_byte(1 downto 0) is
+                if i_mem_tpl_dw = TO_UNSIGNED(16#01#, i_mem_tpl_dw'length) then
+                case i_mem_tpl_byte(1 downto 0) is
                 when "00" => i_s_axis_rq_tuser(3 downto 0) <= "1111";
-                when "01" => i_s_axis_rq_tuser(3 downto 0) <= "1110";
-                when "10" => i_s_axis_rq_tuser(3 downto 0) <= "1100";
-                when "11" => i_s_axis_rq_tuser(3 downto 0) <= "1000";
+                when "01" => i_s_axis_rq_tuser(3 downto 0) <= "0001";
+                when "10" => i_s_axis_rq_tuser(3 downto 0) <= "0011";
+                when "11" => i_s_axis_rq_tuser(3 downto 0) <= "0111";
                 when others => null;
                 end case;
+                else
+                i_s_axis_rq_tuser(3 downto 0) <= "1111";
+                end if;
 
                 --Last DW Byte Enable (last_be)
-                if i_mem_tpl_dw = TO_UNSIGNED(16#01#, i_mem_tpl_dw'length)
-                  and OR_reduce(i_mem_adr_byte(1 downto 0)) = '0' then
-                    i_s_axis_rq_tuser(7 downto 4) <= "0000";
+                if i_mem_tpl_dw = TO_UNSIGNED(16#01#, i_mem_tpl_dw'length) then
+                i_s_axis_rq_tuser(7 downto 4) <= "0000";
                 else
                 case i_mem_tpl_byte(1 downto 0) is
                 when "00" => i_s_axis_rq_tuser(7 downto 4) <= "1111";
