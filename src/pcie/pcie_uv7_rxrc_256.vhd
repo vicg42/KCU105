@@ -71,12 +71,6 @@ signal i_fsm_rx              : TFsmRx_state;
 
 signal i_sof                 : std_logic_vector(1 downto 0);
 
-type TRxCPLH is array (0 to 1) of std_logic_vector(31 downto 0);
-type TRxCPLD is record
-h_rxdone : std_logic;
-h : TRxCPLH;
-end record;
-
 signal i_dma_init            : std_logic;
 signal i_mrd_done            : std_logic;
 
@@ -85,16 +79,15 @@ signal i_cpld_byte_cnt       : unsigned(31 downto 0);
 signal i_cpld_byte_t         : unsigned(12 downto 0);
 signal i_cpld_byte           : unsigned(12 downto 0);
 signal i_cpld_dw_t           : unsigned(10 downto 0);
-signal i_cpld_dw             : unsigned(10 downto 0);
 signal i_cpld_dw_rem         : unsigned(10 downto 0);
 signal i_cpld_len            : unsigned(10 downto 0);
-signal i_cpld_len_t          : unsigned(10 downto 0);
+
 signal i_m_axis_rc_tready    : std_logic;
 
-type TData is array (0 to 7) of std_logic_vector(31 downto 0);
-signal sr_axi_data           : TData; --std_logic_vector(p_in_m_axis_rc_tdata'range);
-signal i_axi_data            : TData; --std_logic_vector(p_in_m_axis_rc_tdata'range);
-signal i_utxbuf_di           : TData; --std_logic_vector(p_in_m_axis_rc_tdata'range);
+type TData is array (0 to G_KEEP_WIDTH - 1) of std_logic_vector(31 downto 0);
+signal sr_axi_data           : TData;
+signal i_axi_data            : TData;
+signal i_utxbuf_di           : TData;
 
 signal tst_err               : std_logic_vector(1 downto 0);
 signal tst_fsm_rx            : std_logic;
@@ -113,9 +106,9 @@ i_utxbuf_di(1) <= sr_axi_data(4);
 i_utxbuf_di(2) <= sr_axi_data(5);
 i_utxbuf_di(3) <= sr_axi_data(6);
 i_utxbuf_di(4) <= sr_axi_data(7);
-i_utxbuf_di(5) <= i_axi_data(0);--p_in_m_axis_rc_tdata((32 * 1) - 1 downto (32 * 0));
-i_utxbuf_di(6) <= i_axi_data(1);--p_in_m_axis_rc_tdata((32 * 2) - 1 downto (32 * 1));
-i_utxbuf_di(7) <= i_axi_data(2);--p_in_m_axis_rc_tdata((32 * 3) - 1 downto (32 * 2));
+i_utxbuf_di(5) <= i_axi_data(0);
+i_utxbuf_di(6) <= i_axi_data(1);
+i_utxbuf_di(7) <= i_axi_data(2);
 
 p_out_utxbuf_di((32 * 1) - 1 downto (32 * 0)) <= i_utxbuf_di(0);
 p_out_utxbuf_di((32 * 2) - 1 downto (32 * 1)) <= i_utxbuf_di(1);
@@ -126,7 +119,7 @@ p_out_utxbuf_di((32 * 6) - 1 downto (32 * 5)) <= i_utxbuf_di(5);
 p_out_utxbuf_di((32 * 7) - 1 downto (32 * 6)) <= i_utxbuf_di(6);
 p_out_utxbuf_di((32 * 8) - 1 downto (32 * 7)) <= i_utxbuf_di(7);
 
-p_out_utxbuf_wr   <= i_cpld_tlp_work;--: out  std_logic;
+p_out_utxbuf_wr   <= i_cpld_tlp_work;
 p_out_utxbuf_last <= '0';--: out  std_logic;
 
 p_out_dma_mrd_done <= i_mrd_done;
@@ -164,8 +157,8 @@ end if;
 end process;--init
 
 
-i_cpld_byte_t <= UNSIGNED(i_axi_data(0)(28 downto 16)); --Byte Count
-i_cpld_dw_t <= UNSIGNED(i_axi_data(1)(10 downto 0)); --Length data payload (DW)
+i_cpld_byte_t <= UNSIGNED(i_axi_data(0)(28 downto 16)); --CPLD Byte Count
+i_cpld_dw_t <= UNSIGNED(i_axi_data(1)(10 downto 0)); --CPLD Length data payload (DW)
 i_cpld_len <= RESIZE(i_cpld_dw_t(10 downto log2(G_DATA_WIDTH / 32)), i_cpld_len'length)
             + (TO_UNSIGNED(0, i_cpld_len'length - 2)
                 & OR_reduce(i_cpld_dw_t(log2(G_DATA_WIDTH / 32) - 1 downto 0)));
