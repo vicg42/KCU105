@@ -58,18 +58,18 @@ p_in_reg_rd    : in  std_logic;
 
 --Master mode
 --(PC->FPGA)
-p_in_txbuf_din     : in    std_logic_vector(31 downto 0);
-p_in_txbuf_wr      : in    std_logic;
-p_in_txbuf_wr_last : in    std_logic;
-p_out_txbuf_full   : out   std_logic;
---p_in_txbuf_din_be  : in    std_logic_vector(3 downto 0);
+--p_in_txbuf_dbe   : in    std_logic_vector(3 downto 0);
+p_in_txbuf_di    : in    std_logic_vector(31 downto 0);
+p_in_txbuf_wr    : in    std_logic;
+p_in_txbuf_last  : in    std_logic;
+p_out_txbuf_full : out   std_logic;
 
 --(PC<-FPGA)
-p_out_rxbuf_dout   : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
-p_in_rxbuf_rd      : in    std_logic;
-p_in_rxbuf_rd_last : in    std_logic;
-p_out_rxbuf_empty  : out   std_logic;
---p_in_tx_data_be    : in    std_logic_vector(3 downto 0);
+--p_in_rxbuf_dbe    : in    std_logic_vector(3 downto 0);
+p_out_rxbuf_do    : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
+p_in_rxbuf_rd     : in    std_logic;
+p_in_rxbuf_last   : in    std_logic;
+p_out_rxbuf_empty : out   std_logic;
 
 --DMATRN
 p_out_dmatrn_init  : out   std_logic;
@@ -81,6 +81,7 @@ p_in_dma_mwr_done  : in    std_logic;
 
 --DMA MEMRD (PC->FPGA)
 p_out_dma_mrd_en      : out   std_logic;
+p_in_dma_mrd_done     : in    std_logic;
 p_in_dma_mrd_rcv_size : in    std_logic_vector(31 downto 0);
 p_in_dma_mrd_rcv_err  : in    std_logic;
 
@@ -154,6 +155,7 @@ signal i_dmatrn_work               : std_logic;
 signal i_dmatrn_done               : std_logic;
 signal i_dmatrn_mrd_done           : std_logic;
 signal i_dmatrn_mwr_done           : std_logic;
+signal sr_mrd_done                 : std_logic;
 signal i_mrd_done                  : std_logic;
 signal sr_mwr_done                 : std_logic;
 signal i_mwr_done                  : std_logic;
@@ -495,6 +497,7 @@ if rising_edge(p_in_clk) then
     sr_memtrn_done <= (others => '0');
     i_memtrn_done <= '0';
 
+    sr_mrd_done <= '0';
     i_mrd_done <= '0';
 
     sr_mwr_done <= '0';
@@ -513,7 +516,11 @@ if rising_edge(p_in_clk) then
       end if;
     end if ;
 
-    i_mrd_done <= i_mrd_rcv_size_ok and p_in_txbuf_wr_last;
+--    i_mrd_done <= i_mrd_rcv_size_ok and p_in_txbuf_last;
+
+    sr_mrd_done <= p_in_dma_mrd_done;
+    i_mrd_done <= p_in_dma_mrd_done and not sr_mrd_done;
+
 
     sr_mwr_done <= p_in_dma_mwr_done;
     i_mwr_done <= p_in_dma_mwr_done and not sr_mwr_done;
@@ -727,9 +734,9 @@ end generate gen_irq;
 ---------------------------------------------------------------------
 --User devices CTRL
 ---------------------------------------------------------------------
---p_out_rxbuf_dout <= p_in_dev_dout;
+--p_out_rxbuf_do <= p_in_dev_dout;
 ----                      when UNSIGNED(i_hdev_adr) /= TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length) else tst_mem_dcnt_swap;
-p_out_rxbuf_dout <= std_logic_vector(tst_mem_dcnt_swap);
+p_out_rxbuf_do <= std_logic_vector(tst_mem_dcnt_swap);
 
 p_out_txbuf_full <= p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_FULL_BIT) and not i_pcie_testing;
 p_out_rxbuf_empty <= p_in_dev_opt(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) and not i_pcie_testing;
@@ -741,19 +748,19 @@ p_out_dev_din <= i_txbuf_din(p_out_dev_din'range);
 
 gen_usrd_x32 : if C_HDEV_DWIDTH = 32 generate
 begin
-i_txbuf_din <= std_logic_vector(RESIZE(UNSIGNED(p_in_txbuf_din), i_txbuf_din'length));
+i_txbuf_din <= std_logic_vector(RESIZE(UNSIGNED(p_in_txbuf_di), i_txbuf_din'length));
 i_txbuf_wr <= p_in_txbuf_wr;
 end generate gen_usrd_x32;
 
 
 gen_usrd_x64 : if C_HDEV_DWIDTH = 64 generate
 begin
-i_mrd_rcv_last_dw <= i_mrd_rcv_size_ok and p_in_txbuf_wr_last and p_in_txbuf_wr;
+i_mrd_rcv_last_dw <= i_mrd_rcv_size_ok and p_in_txbuf_last and p_in_txbuf_wr;
 
-i_txbuf_din(32*2 - 1 downto 32*1) <= p_in_txbuf_din;
-i_txbuf_din(32*1 - 1 downto 32*0) <= p_in_txbuf_din when (i_mrd_rcv_last_dw = '1' and i_txbuf_wr_sel(0) = '0')
+i_txbuf_din(32*2 - 1 downto 32*1) <= p_in_txbuf_di;
+i_txbuf_din(32*1 - 1 downto 32*0) <= p_in_txbuf_di when (i_mrd_rcv_last_dw = '1' and i_txbuf_wr_sel(0) = '0')
                                                     else sr_txbuf_din(0);
-i_txbuf_wr <= (i_txbuf_wr_sel(0) and p_in_txbuf_wr) or (i_mrd_rcv_size_ok and p_in_txbuf_wr_last);
+i_txbuf_wr <= (i_txbuf_wr_sel(0) and p_in_txbuf_wr) or (i_mrd_rcv_size_ok and p_in_txbuf_last);
 process(p_in_clk)
 begin
   if rising_edge(p_in_clk) then
@@ -762,7 +769,7 @@ begin
     else
       if p_in_txbuf_wr = '1' then
         i_txbuf_wr_sel(0) <= not i_txbuf_wr_sel(0);
-        sr_txbuf_din(0) <= p_in_txbuf_din;
+        sr_txbuf_din(0) <= p_in_txbuf_di;
       end if;
     end if;
   end if;
@@ -772,17 +779,17 @@ end generate gen_usrd_x64;
 
 gen_usrd_x128 : if C_HDEV_DWIDTH = 128 generate
 begin
-i_mrd_rcv_last_dw <= i_mrd_rcv_size_ok and p_in_txbuf_wr_last and p_in_txbuf_wr;
+i_mrd_rcv_last_dw <= i_mrd_rcv_size_ok and p_in_txbuf_last and p_in_txbuf_wr;
 
-i_txbuf_din(32*4 - 1 downto 32*3) <= p_in_txbuf_din;
-i_txbuf_din(32*3 - 1 downto 32*2) <= p_in_txbuf_din when (i_mrd_rcv_last_dw = '1'
+i_txbuf_din(32*4 - 1 downto 32*3) <= p_in_txbuf_di;
+i_txbuf_din(32*3 - 1 downto 32*2) <= p_in_txbuf_di when (i_mrd_rcv_last_dw = '1'
                                                       and ((i_txbuf_wr_sel(1 downto 0) = TO_UNSIGNED(0, 2))
                                                         or (i_txbuf_wr_sel(1 downto 0) = TO_UNSIGNED(1, 2))
                                                         or (i_txbuf_wr_sel(1 downto 0) = TO_UNSIGNED(2, 2))) )
 
                                                     else sr_txbuf_din(0);
 
-i_txbuf_din(32*2 - 1 downto 32*1) <= p_in_txbuf_din when (i_mrd_rcv_last_dw = '1'
+i_txbuf_din(32*2 - 1 downto 32*1) <= p_in_txbuf_di when (i_mrd_rcv_last_dw = '1'
                                                       and ((i_txbuf_wr_sel(1 downto 0) = TO_UNSIGNED(0, 2))
                                                         or (i_txbuf_wr_sel(1 downto 0) = TO_UNSIGNED(1, 2))) )
 
@@ -792,7 +799,7 @@ i_txbuf_din(32*2 - 1 downto 32*1) <= p_in_txbuf_din when (i_mrd_rcv_last_dw = '1
 
                                                     else sr_txbuf_din(1);
 
-i_txbuf_din(32*1 - 1 downto 32*0) <= p_in_txbuf_din when (i_mrd_rcv_last_dw = '1'
+i_txbuf_din(32*1 - 1 downto 32*0) <= p_in_txbuf_di when (i_mrd_rcv_last_dw = '1'
                                                       and (i_txbuf_wr_sel(1 downto 0) = TO_UNSIGNED(0, 2)) )
 
                                                     else sr_txbuf_din(0)
@@ -805,7 +812,7 @@ i_txbuf_din(32*1 - 1 downto 32*0) <= p_in_txbuf_din when (i_mrd_rcv_last_dw = '1
 
                                                     else sr_txbuf_din(2);
 
-i_txbuf_wr <= (AND_reduce(i_txbuf_wr_sel(1 downto 0)) and p_in_txbuf_wr) or (i_mrd_rcv_size_ok and p_in_txbuf_wr_last);
+i_txbuf_wr <= (AND_reduce(i_txbuf_wr_sel(1 downto 0)) and p_in_txbuf_wr) or (i_mrd_rcv_size_ok and p_in_txbuf_last);
 process(p_in_clk)
 begin
   if rising_edge(p_in_clk) then
@@ -818,7 +825,7 @@ begin
         else
         i_txbuf_wr_sel <= i_txbuf_wr_sel + 1;
         end if;
-        sr_txbuf_din <= p_in_txbuf_din & sr_txbuf_din(0 to 1);
+        sr_txbuf_din <= p_in_txbuf_di & sr_txbuf_din(0 to 1);
       end if;
     end if;
   end if;
@@ -920,8 +927,8 @@ p_out_tst(122)            <= '0';
 p_out_tst(123)            <= '0';
 p_out_tst(124)            <= '0';
 p_out_tst(125)            <= i_txbuf_wr or p_in_rxbuf_rd;
-p_out_tst(126)            <= p_in_rxbuf_rd_last;
-p_out_tst(127)            <= p_in_txbuf_wr_last;
+p_out_tst(126)            <= p_in_rxbuf_last;
+p_out_tst(127)            <= p_in_txbuf_last;
 
 
 process(p_in_clk)

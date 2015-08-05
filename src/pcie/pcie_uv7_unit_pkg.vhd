@@ -74,20 +74,33 @@ p_in_compl_done    : in  std_logic;
 
 p_out_req_prm      : out TPCIE_reqprm;
 
+--DMA
+p_in_dma_init      : in  std_logic;
+p_in_dma_prm       : in  TPCIE_dmaprm;
+p_in_dma_mrd_en    : in  std_logic;
+p_out_dma_mrd_done : out std_logic;
+
 --usr app
 p_out_ureg_di  : out std_logic_vector(31 downto 0);
 p_out_ureg_wrbe: out std_logic_vector(3 downto 0);
 p_out_ureg_wr  : out std_logic;
 p_out_ureg_rd  : out std_logic;
 
+--p_out_utxbuf_be   : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_utxbuf_di   : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_out_utxbuf_wr   : out  std_logic;
+p_out_utxbuf_last : out  std_logic;
+p_in_utxbuf_full  : in   std_logic;
+
 --DBG
-p_out_tst : out std_logic_vector(31 downto 0);
+p_out_tst : out std_logic_vector(63 downto 0);
 
 --system
 p_in_clk   : in  std_logic;
 p_in_rst_n : in  std_logic
 );
 end component pcie_rx;
+
 
 
 component pcie_tx
@@ -170,6 +183,7 @@ p_in_dma_prm       : in  TPCIE_dmaprm;
 p_in_dma_mwr_en    : in  std_logic;
 p_out_dma_mwr_done : out std_logic;
 p_in_dma_mrd_en    : in  std_logic;
+p_out_dma_mrd_done : out std_logic;
 
 --DBG
 p_out_tst : out std_logic_vector(279 downto 0);
@@ -252,18 +266,18 @@ p_in_reg_rd    : in  std_logic;
 
 --Master mode
 --(PC->FPGA)
-p_in_txbuf_din     : in    std_logic_vector(31 downto 0);
-p_in_txbuf_wr      : in    std_logic;
-p_in_txbuf_wr_last : in    std_logic;
-p_out_txbuf_full   : out   std_logic;
---p_in_txbuf_din_be  : in    std_logic_vector(3 downto 0);
+--p_in_txbuf_dbe   : in    std_logic_vector(3 downto 0);
+p_in_txbuf_di    : in    std_logic_vector(31 downto 0);
+p_in_txbuf_wr    : in    std_logic;
+p_in_txbuf_last  : in    std_logic;
+p_out_txbuf_full : out   std_logic;
 
 --(PC<-FPGA)
-p_out_rxbuf_dout   : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
-p_in_rxbuf_rd      : in    std_logic;
-p_in_rxbuf_rd_last : in    std_logic;
-p_out_rxbuf_empty  : out   std_logic;
---p_in_tx_data_be    : in    std_logic_vector(3 downto 0);
+--p_in_rxbuf_dbe    : in    std_logic_vector(3 downto 0);
+p_out_rxbuf_do    : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
+p_in_rxbuf_rd     : in    std_logic;
+p_in_rxbuf_last   : in    std_logic;
+p_out_rxbuf_empty : out   std_logic;
 
 --DMATRN
 p_out_dmatrn_init  : out   std_logic;
@@ -277,6 +291,7 @@ p_in_dma_mwr_done  : in    std_logic;
 p_out_dma_mrd_en      : out   std_logic;
 p_in_dma_mrd_rcv_size : in    std_logic_vector(31 downto 0);
 p_in_dma_mrd_rcv_err  : in    std_logic;
+p_in_dma_mrd_done     : in    std_logic;
 
 --IRQ
 p_out_irq_clr      : out   std_logic;
@@ -293,7 +308,7 @@ end component pcie_usr_app;
 component dbgcs_ila_pcie is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(41 downto 0)
+probe0 : in std_logic_vector(269 downto 0)
 );
 end component dbgcs_ila_pcie;
 
