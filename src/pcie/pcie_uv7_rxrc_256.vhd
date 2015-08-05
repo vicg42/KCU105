@@ -45,6 +45,7 @@ p_in_dma_mrd_en    : in  std_logic;
 p_out_dma_mrd_done : out std_logic;
 
 --usr app
+--p_out_utxbuf_be   : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
 p_out_utxbuf_di   : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_out_utxbuf_wr   : out  std_logic;
 p_out_utxbuf_last : out  std_logic;
@@ -84,6 +85,8 @@ signal i_cpld_len            : unsigned(10 downto 0);
 
 signal i_m_axis_rc_tready    : std_logic;
 
+type TByteEn is array (0 to (G_DATA_WIDTH / 8) - 1) of std_logic_vector(3 downto 0);
+signal sr_axi_be             : TByteEn;
 type TData is array (0 to G_KEEP_WIDTH - 1) of std_logic_vector(31 downto 0);
 signal sr_axi_data           : TData;
 signal i_axi_data            : TData;
@@ -100,7 +103,6 @@ gen : for i in 0 to 7 generate begin
 i_axi_data(i) <= p_in_m_axis_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
 end generate;
 
-
 i_utxbuf_di(0) <= sr_axi_data(3);
 i_utxbuf_di(1) <= sr_axi_data(4);
 i_utxbuf_di(2) <= sr_axi_data(5);
@@ -110,15 +112,9 @@ i_utxbuf_di(5) <= i_axi_data(0);
 i_utxbuf_di(6) <= i_axi_data(1);
 i_utxbuf_di(7) <= i_axi_data(2);
 
-p_out_utxbuf_di((32 * 1) - 1 downto (32 * 0)) <= i_utxbuf_di(0);
-p_out_utxbuf_di((32 * 2) - 1 downto (32 * 1)) <= i_utxbuf_di(1);
-p_out_utxbuf_di((32 * 3) - 1 downto (32 * 2)) <= i_utxbuf_di(2);
-p_out_utxbuf_di((32 * 4) - 1 downto (32 * 3)) <= i_utxbuf_di(3);
-p_out_utxbuf_di((32 * 5) - 1 downto (32 * 4)) <= i_utxbuf_di(4);
-p_out_utxbuf_di((32 * 6) - 1 downto (32 * 5)) <= i_utxbuf_di(5);
-p_out_utxbuf_di((32 * 7) - 1 downto (32 * 6)) <= i_utxbuf_di(6);
-p_out_utxbuf_di((32 * 8) - 1 downto (32 * 7)) <= i_utxbuf_di(7);
-
+gen_utxbuf : for i in 0 to i_utxbuf_di'length - 1 generate begin
+p_out_utxbuf_di((32 * (i + 1)) - 1 downto (32 * i)) <= i_utxbuf_di(i);
+end generate gen_utxbuf;
 p_out_utxbuf_wr   <= i_cpld_tlp_work;
 p_out_utxbuf_last <= '0';--: out  std_logic;
 
@@ -172,8 +168,11 @@ if rising_edge(p_in_clk) then
 
     i_fsm_rx <= S_RX_IDLE;
 
-    for i in 0 to p_in_m_axis_rc_tkeep'length - 1 loop
+    for i in 0 to sr_axi_data'length - 1 loop
     sr_axi_data(i) <= (others => '0');
+    end loop;
+    for i in 0 to sr_axi_be'length - 1 loop
+    sr_axi_be(i) <= (others => '0');
     end loop;
 
     i_m_axis_rc_tready <= '0';
@@ -195,7 +194,7 @@ if rising_edge(p_in_clk) then
 
             i_cpld_tlp_work <= '0';
 
-            if p_in_dma_mrd_en = '1' and p_in_utxbuf_full = '0' then
+            if p_in_dma_mrd_en = '1' and i_mrd_done = '0' and p_in_utxbuf_full = '0' then
 
               if i_dma_init = '1' then
               i_cpld_byte_cnt <= UNSIGNED(p_in_dma_prm.len);
@@ -204,6 +203,10 @@ if rising_edge(p_in_clk) then
               i_m_axis_rc_tready <= '1';
               i_fsm_rx <= S_RX_DH;
 
+            else
+              if i_dma_init = '1' then
+                i_mrd_done <= '0';
+              end if;
             end if;
 
         --#######################################################################
@@ -218,8 +221,9 @@ if rising_edge(p_in_clk) then
 
                 if p_in_m_axis_rc_tkeep(2 downto 0) = "111" then
 
-                      for i in 3 to p_in_m_axis_rc_tkeep'length - 1 loop
+                      for i in 3 to sr_axi_data'length - 1 loop
                       sr_axi_data(i) <= i_axi_data(i); --user data
+                      sr_axi_be(i) <= p_in_m_axis_rc_tuser((i * 4) + 3 downto (i * 4));
                       end loop;
 
                       --Check Completion Status
@@ -277,7 +281,10 @@ if rising_edge(p_in_clk) then
 
             if p_in_m_axis_rc_tvalid = '1' and p_in_utxbuf_full = '0' then
 
-                sr_axi_data <= i_axi_data;
+                for i in 0 to sr_axi_be'length - 1 loop
+                sr_axi_data(i) <= i_axi_data(i); --user data
+                sr_axi_be(i) <= p_in_m_axis_rc_tuser((i * 4) + 3 downto (i * 4));
+                end loop;
 
                 if p_in_m_axis_rc_tlast = '1' then
 
