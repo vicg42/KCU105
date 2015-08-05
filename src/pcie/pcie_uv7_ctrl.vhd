@@ -231,9 +231,16 @@ signal i_ureg_wr               : std_logic;
 signal i_ureg_rd               : std_logic;
 
 signal i_urxbuf_empty          : std_logic;
+--signal i_urxbuf_dbe             : std_logic_vector();
 signal i_urxbuf_do             : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 signal i_urxbuf_rd             : std_logic;
 signal i_urxbuf_last           : std_logic;
+
+signal i_utxbuf_full           : std_logic;
+--signal i_utxbuf_dbe            : std_logic_vector();
+signal i_utxbuf_di             : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+signal i_utxbuf_wr             : std_logic;
+signal i_utxbuf_last           : std_logic;
 
 signal i_dma_init              : std_logic;
 signal i_dma_prm               : TPCIE_dmaprm;
@@ -257,7 +264,7 @@ signal i_uapp_irq_ack          : std_logic;
 --signal tst_in                  : std_logic_vector(127 downto 0);
 
 signal tst_uapp_out            : std_logic_vector(127 downto 0);
-signal tst_rx_out              : std_logic_vector(31 downto 0);
+signal tst_rx_out              : std_logic_vector(63 downto 0);
 signal tst_tx_out              : std_logic_vector(279 downto 0);
 signal i_dbg_probe             : std_logic_vector(269 downto 0);
 
@@ -395,22 +402,23 @@ p_in_reg_rd    => i_ureg_rd,
 
 --Master mode
 --(PC->FPGA)
-p_in_txbuf_din     => (others => '0'), --: in    std_logic_vector(31 downto 0);
-p_in_txbuf_wr      => '0' , --: in    std_logic;
-p_in_txbuf_wr_last => '0' , --: in    std_logic;
-p_out_txbuf_full   => open,--: out   std_logic;
---p_in_txbuf_din_be  : in    std_logic_vector(3 downto 0);
+--p_in_txbuf_dbe   =>
+p_in_txbuf_di    => i_utxbuf_di  ,
+p_in_txbuf_wr    => i_utxbuf_wr  ,
+p_in_txbuf_last  => i_utxbuf_last,
+p_out_txbuf_full => i_utxbuf_full,
+
 
 --(PC<-FPGA)
-p_out_rxbuf_dout   => i_urxbuf_do   ,
-p_in_rxbuf_rd      => i_urxbuf_rd   ,
-p_in_rxbuf_rd_last => i_urxbuf_last ,
-p_out_rxbuf_empty  => i_urxbuf_empty,
---p_in_tx_data_be    : in    std_logic_vector(3 downto 0);
+--p_in_rxbuf_dbe    =>
+p_out_rxbuf_do    => i_urxbuf_do   ,
+p_in_rxbuf_rd     => i_urxbuf_rd   ,
+p_in_rxbuf_last   => i_urxbuf_last ,
+p_out_rxbuf_empty => i_urxbuf_empty,
 
 --DMATRN
-p_out_dmatrn_init  => i_dma_init    ,
-p_out_dma_prm      => i_dma_prm     ,
+p_out_dmatrn_init => i_dma_init,
+p_out_dma_prm     => i_dma_prm ,
 
 --DMA MEMWR (PC<-FPGA)
 p_out_dma_mwr_en   => i_dma_mwr_en  ,
@@ -492,11 +500,23 @@ p_in_compl_done    => i_compl_done   ,
 
 p_out_req_prm      => i_req_prm,
 
+--DMA
+p_in_dma_init      => i_dma_init  ,
+p_in_dma_prm       => i_dma_prm   ,
+p_in_dma_mrd_en    => i_dma_mrd_en,
+p_out_dma_mrd_done => i_dma_mrd_done,
+
 --usr app
 p_out_ureg_di  => i_ureg_di  ,
 p_out_ureg_wrbe=> i_ureg_wrbe,
 p_out_ureg_wr  => i_ureg_wr  ,
 p_out_ureg_rd  => i_ureg_rd  ,
+
+--p_out_utxbuf_be   => i_utxbuf_dbe
+p_out_utxbuf_di   => i_utxbuf_di  ,
+p_out_utxbuf_wr   => i_utxbuf_wr  ,
+p_out_utxbuf_last => i_utxbuf_last,
+p_in_utxbuf_full  => i_utxbuf_full,
 
 --DBG
 p_out_tst => tst_rx_out,
@@ -590,7 +610,7 @@ p_in_dma_prm       => i_dma_prm     ,
 p_in_dma_mwr_en    => i_dma_mwr_en  ,
 p_out_dma_mwr_done => i_dma_mwr_done,
 p_in_dma_mrd_en    => i_dma_mrd_en  ,
-p_out_dma_mrd_done => i_dma_mrd_done,
+p_out_dma_mrd_done => open,--i_dma_mrd_done,
 
 --DBG
 p_out_tst => tst_tx_out,

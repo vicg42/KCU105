@@ -267,7 +267,7 @@ p_in_reg_rd    : in  std_logic;
 --Master mode
 --(PC->FPGA)
 --p_in_txbuf_dbe   : in    std_logic_vector(3 downto 0);
-p_in_txbuf_di    : in    std_logic_vector(31 downto 0);
+p_in_txbuf_di    : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 p_in_txbuf_wr    : in    std_logic;
 p_in_txbuf_last  : in    std_logic;
 p_out_txbuf_full : out   std_logic;

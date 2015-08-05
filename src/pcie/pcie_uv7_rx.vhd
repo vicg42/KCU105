@@ -60,14 +60,26 @@ p_in_compl_done    : in  std_logic;
 
 p_out_req_prm      : out TPCIE_reqprm;
 
+--DMA
+p_in_dma_init      : in  std_logic;
+p_in_dma_prm       : in  TPCIE_dmaprm;
+p_in_dma_mrd_en    : in  std_logic;
+p_out_dma_mrd_done : out std_logic;
+
 --usr app
 p_out_ureg_di  : out std_logic_vector(31 downto 0);
 p_out_ureg_wrbe: out std_logic_vector(3 downto 0);
 p_out_ureg_wr  : out std_logic;
 p_out_ureg_rd  : out std_logic;
 
+--p_out_utxbuf_be   : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_utxbuf_di   : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_out_utxbuf_wr   : out  std_logic;
+p_out_utxbuf_last : out  std_logic;
+p_in_utxbuf_full  : in   std_logic;
+
 --DBG
-p_out_tst : out std_logic_vector(31 downto 0);
+p_out_tst : out std_logic_vector(63 downto 0);
 
 --system
 p_in_clk   : in  std_logic;
@@ -126,6 +138,50 @@ p_in_rst_n : in  std_logic
 end component pcie_rx_cq;
 
 
+component pcie_rx_rc
+generic (
+G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
+G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
+G_AXISTEN_IF_RC_STRADDLE         : integer := 0;
+G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
+G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1');
+
+G_DATA_WIDTH   : integer := 64     ;
+G_STRB_WIDTH   : integer := 64 / 8 ; -- TSTRB width
+G_KEEP_WIDTH   : integer := 64 / 32;
+G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
+);
+port(
+-- Requester Completion Interface
+p_in_m_axis_rc_tdata    : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_in_m_axis_rc_tlast    : in  std_logic;
+p_in_m_axis_rc_tvalid   : in  std_logic;
+p_in_m_axis_rc_tkeep    : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_m_axis_rc_tuser    : in  std_logic_vector(74 downto 0);
+p_out_m_axis_rc_tready  : out std_logic;
+
+--Completion
+p_in_dma_init      : in  std_logic;
+p_in_dma_prm       : in  TPCIE_dmaprm;
+p_in_dma_mrd_en    : in  std_logic;
+p_out_dma_mrd_done : out std_logic;
+
+--usr app
+--p_out_utxbuf_be   : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_utxbuf_di   : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_out_utxbuf_wr   : out  std_logic;
+p_out_utxbuf_last : out  std_logic;
+p_in_utxbuf_full  : in   std_logic;
+
+--DBG
+p_out_tst : out std_logic_vector(31 downto 0);
+
+--system
+p_in_clk   : in  std_logic;
+p_in_rst_n : in  std_logic
+);
+end component pcie_rx_rc;
+
 
 begin --architecture behavioral of pcie_rx
 
@@ -170,7 +226,7 @@ p_out_ureg_wr   => p_out_ureg_wr  ,
 p_out_ureg_rd   => p_out_ureg_rd  ,
 
 --DBG
-p_out_tst => p_out_tst,
+p_out_tst => p_out_tst(31 downto 0),
 
 --system
 p_in_clk   => p_in_clk,
@@ -178,7 +234,50 @@ p_in_rst_n => p_in_rst_n
 );
 
 
-p_out_m_axis_rc_tready <= '0';
+m_rx_rc : pcie_rx_rc
+generic map(
+G_AXISTEN_IF_CQ_ALIGNMENT_MODE   => G_AXISTEN_IF_CQ_ALIGNMENT_MODE  ,
+G_AXISTEN_IF_RC_ALIGNMENT_MODE   => G_AXISTEN_IF_RC_ALIGNMENT_MODE  ,
+G_AXISTEN_IF_RC_STRADDLE         => G_AXISTEN_IF_RC_STRADDLE        ,
+G_AXISTEN_IF_ENABLE_RX_MSG_INTFC => G_AXISTEN_IF_ENABLE_RX_MSG_INTFC,
+G_AXISTEN_IF_ENABLE_MSG_ROUTE    => G_AXISTEN_IF_ENABLE_MSG_ROUTE   ,
+
+G_DATA_WIDTH   => G_DATA_WIDTH  ,
+G_STRB_WIDTH   => G_STRB_WIDTH  ,
+G_KEEP_WIDTH   => G_KEEP_WIDTH  ,
+G_PARITY_WIDTH => G_PARITY_WIDTH
+)
+port map(
+-- Requester Completion Interface
+p_in_m_axis_rc_tdata   => p_in_m_axis_rc_tdata  ,
+p_in_m_axis_rc_tlast   => p_in_m_axis_rc_tlast  ,
+p_in_m_axis_rc_tvalid  => p_in_m_axis_rc_tvalid ,
+p_in_m_axis_rc_tkeep   => p_in_m_axis_rc_tkeep  ,
+p_in_m_axis_rc_tuser   => p_in_m_axis_rc_tuser  ,
+p_out_m_axis_rc_tready => p_out_m_axis_rc_tready,
+
+--Completion
+p_in_dma_init      => p_in_dma_init     ,
+p_in_dma_prm       => p_in_dma_prm      ,
+p_in_dma_mrd_en    => p_in_dma_mrd_en   ,
+p_out_dma_mrd_done => p_out_dma_mrd_done,
+
+--usr app
+--p_out_utxbuf_be   : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_utxbuf_di   => p_out_utxbuf_di  ,
+p_out_utxbuf_wr   => p_out_utxbuf_wr  ,
+p_out_utxbuf_last => p_out_utxbuf_last,
+p_in_utxbuf_full  => p_in_utxbuf_full ,
+
+--DBG
+p_out_tst => p_out_tst(63 downto 32),
+
+--system
+p_in_clk   => p_in_clk,
+p_in_rst_n => p_in_rst_n
+);
+
+--p_out_m_axis_rc_tready <= '1';
 
 end architecture behavioral;
 

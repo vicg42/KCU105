@@ -21,7 +21,6 @@ vmap gtwizard_ultrascale_v1_5 msim/gtwizard_ultrascale_v1_5
 vmap blk_mem_gen_v8_2 msim/blk_mem_gen_v8_2
 
 vlog -64 -incr -work xil_defaultlib  +incdir+../testbanch/pcie3_core/simulation/functional +incdir+../testbanch/pcie3_core/simulation/tests +incdir+../testbanch/pcie3_core/simulation/dsport \
-"../../src/pcie/pcie_uv7_irq.v" \
 "../../src/pcie/pcie_uv7_to_ctrl.v" \
 "../testbanch/pcie3_core/simulation/dsport/pcie3_uscale_rp_core_top.v" \
 
@@ -59,6 +58,7 @@ vcom -64 -93 -work xil_defaultlib   \
 "../../src/pcie/pcie_uv7_irq.vhd" \
 "../../src/pcie/pcie_uv7_rx.vhd" \
 "../../src/pcie/pcie_uv7_rxcq_256.vhd" \
+"../../src/pcie/pcie_uv7_rxrc_256.vhd" \
 "../../src/pcie/pcie_uv7_tx.vhd" \
 "../../src/pcie/pcie_uv7_txrq_256.vhd" \
 "../../src/pcie/pcie_uv7_txcc_256.vhd" \
