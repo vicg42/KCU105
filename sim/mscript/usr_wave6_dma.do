@@ -39,6 +39,7 @@ add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_negotiated_width
 add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_max_payload
 add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_max_read_req
 add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_function_status
+add wave -noupdate /board/EP/m_main/m_ctrl/p_in_cfg_rcb_status
 add wave -noupdate -divider IRQ
 add wave -noupdate /board/EP/m_main/m_ctrl/p_out_cfg_interrupt_int
 add wave -noupdate /board/EP/m_main/m_ctrl/p_out_cfg_interrupt_pending
@@ -92,6 +93,9 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/p_out_dma_mwr_en
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/p_in_dma_mwr_done
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/tst_mem_dcnt
 add wave -noupdate -divider TXRQ
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_in_pcie_tfc_nph_av
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_in_pcie_tfc_npd_av
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_in_pcie_tfc_np_pl_empty
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_s_axis_rq_tdata_63_0
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_s_axis_rq_tdata_127_64
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_s_axis_rq_tdata_191_128
@@ -172,4 +176,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {175742144 ps} {194212800 ps}
+WaveRestoreZoom {0 ps} {18470656 ps}
