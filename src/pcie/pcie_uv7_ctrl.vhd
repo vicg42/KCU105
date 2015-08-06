@@ -248,6 +248,7 @@ signal i_dma_mwr_en            : std_logic;
 signal i_dma_mwr_done          : std_logic;
 signal i_dma_mrd_en            : std_logic;
 signal i_dma_mrd_done          : std_logic;
+signal i_dma_mrd_rxdwcount     : std_logic_vector(31 downto 0);
 
 signal i_m_axis_cq_tready      : std_logic;
 signal i_m_axis_rc_tready      : std_logic;
@@ -265,7 +266,7 @@ signal i_uapp_irq_ack          : std_logic;
 
 signal tst_uapp_out            : std_logic_vector(127 downto 0);
 signal tst_rx_out              : std_logic_vector(63 downto 0);
-signal tst_tx_out              : std_logic_vector(279 downto 0);
+signal tst_tx_out              : std_logic_vector((280 * 2) - 1 downto (280 * 0));
 signal i_dbg_probe             : std_logic_vector(269 downto 0);
 
 attribute keep : string;
@@ -274,6 +275,10 @@ attribute keep of i_trn_clk : signal is "true";
 type TDBG_darray is array (0 to G_KEEP_WIDTH - 1) of std_logic_vector(31 downto 0);
 
 type TPCIE_dbg is record
+m_axi_rq_tvalid : std_logic;
+m_axi_rq_tlast  : std_logic;
+m_axi_rq_tready : std_logic;
+
 m_axi_rc_tdata  : TDBG_darray;
 m_axi_rc_tkeep  : std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
 m_axi_rc_tvalid : std_logic;
@@ -282,6 +287,8 @@ m_axi_rc_tready : std_logic;
 
 m_axi_rc_sop    : std_logic_vector(1 downto 0);
 m_axi_rc_disc   : std_logic;
+
+mrd_rxdwcount   : std_logic_vector(31 downto 0);
 end record;
 
 signal i_dbg_pcie            : TPCIE_dbg;
@@ -505,6 +512,7 @@ p_in_dma_init      => i_dma_init  ,
 p_in_dma_prm       => i_dma_prm   ,
 p_in_dma_mrd_en    => i_dma_mrd_en,
 p_out_dma_mrd_done => i_dma_mrd_done,
+p_out_dma_mrd_rxdwcount => i_dma_mrd_rxdwcount,
 
 --usr app
 p_out_ureg_di  => i_ureg_di  ,
@@ -611,6 +619,7 @@ p_in_dma_mwr_en    => i_dma_mwr_en  ,
 p_out_dma_mwr_done => i_dma_mwr_done,
 p_in_dma_mrd_en    => i_dma_mrd_en  ,
 p_out_dma_mrd_done => open,--i_dma_mrd_done,
+p_in_dma_mrd_rxdwcount => i_dma_mrd_rxdwcount,
 
 --DBG
 p_out_tst => tst_tx_out,
@@ -719,9 +728,10 @@ begin
 --process(i_trn_clk)
 --begin
 --if rising_edge(i_trn_clk) then
-gen_dbg_di : for i in 0 to G_KEEP_WIDTH - 1 generate begin
-i_dbg_pcie.m_axi_rc_tdata(i) <= p_in_m_axis_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
-end generate gen_dbg_di;
+
+--gen_dbg_di : for i in 0 to G_KEEP_WIDTH - 1 generate begin
+--i_dbg_pcie.m_axi_rc_tdata(i) <= p_in_m_axis_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
+--end generate gen_dbg_di;
 i_dbg_pcie.m_axi_rc_tkeep(7 downto 0)   <= p_in_m_axis_rc_tkeep;
 i_dbg_pcie.m_axi_rc_tvalid              <= p_in_m_axis_rc_tvalid;
 i_dbg_pcie.m_axi_rc_tlast               <= p_in_m_axis_rc_tlast;
@@ -731,7 +741,11 @@ i_dbg_pcie.m_axi_rc_sop(0)              <= p_in_m_axis_rc_tuser(32);
 i_dbg_pcie.m_axi_rc_sop(1)              <= p_in_m_axis_rc_tuser(33);
 i_dbg_pcie.m_axi_rc_disc                <= p_in_m_axis_rc_tuser(42);
 
+i_dbg_pcie.m_axi_rq_tvalid <= tst_tx_out((280 * 1) + 8);
+i_dbg_pcie.m_axi_rq_tlast  <= tst_tx_out((280 * 1) + 9);
+i_dbg_pcie.m_axi_rq_tready <= tst_tx_out((280 * 1) + 10);
 
+i_dbg_pcie.mrd_rxdwcount <= i_dma_mrd_rxdwcount;
 --end if;
 --end process;
 
@@ -748,10 +762,17 @@ i_dbg_probe(5)            <= i_dbg_pcie.m_axi_rc_disc  ;
 
 i_dbg_probe(13 downto 6) <= i_dbg_pcie.m_axi_rc_tkeep(7 downto 0);
 
-gen_dbg_do : for i in 0 to G_KEEP_WIDTH - 1 generate begin
-i_dbg_probe(((32 * (i + 1)) + 14) - 1 downto ((32 * i) + 14)) <= i_dbg_pcie.m_axi_rc_tdata(i);
-end generate gen_dbg_do;
+--gen_dbg_do : for i in 0 to G_KEEP_WIDTH - 1 generate begin
+--i_dbg_probe(((32 * (i + 1)) + 14) - 1 downto ((32 * i) + 14)) <= i_dbg_pcie.m_axi_rc_tdata(i);
+--end generate gen_dbg_do;
 --i_dbg_probe(269 downto 14) <= i_dbg_pcie.m_axi_rc_tdata(i);
+
+
+i_dbg_probe(14)            <= i_dbg_pcie.m_axi_rq_tvalid;
+i_dbg_probe(15)            <= i_dbg_pcie.m_axi_rq_tlast ;
+i_dbg_probe(16)            <= i_dbg_pcie.m_axi_rq_tready;
+
+i_dbg_probe(48 downto 17) <= i_dbg_pcie.mrd_rxdwcount;
 
 
 --i_dbg_probe(127 downto 0)   <= i_dbg_pcie.m_axi_cq_tdata(159 downto 0);
@@ -775,7 +796,7 @@ end generate gen_dbg_do;
 m_dbg_pcie : dbgcs_ila_pcie
 port map (
 clk => i_trn_clk,
-probe0 => i_dbg_probe
+probe0 => i_dbg_probe(48 downto 0)
 );
 
 end generate gen_dbgcs_on;

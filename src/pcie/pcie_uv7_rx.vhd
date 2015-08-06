@@ -65,6 +65,7 @@ p_in_dma_init      : in  std_logic;
 p_in_dma_prm       : in  TPCIE_dmaprm;
 p_in_dma_mrd_en    : in  std_logic;
 p_out_dma_mrd_done : out std_logic;
+p_out_dma_mrd_rxdwcount : out std_logic_vector(31 downto 0);
 
 --usr app
 p_out_ureg_di  : out std_logic_vector(31 downto 0);
@@ -165,6 +166,7 @@ p_in_dma_init      : in  std_logic;
 p_in_dma_prm       : in  TPCIE_dmaprm;
 p_in_dma_mrd_en    : in  std_logic;
 p_out_dma_mrd_done : out std_logic;
+p_out_dma_mrd_rxdwcount : out std_logic_vector(31 downto 0);
 
 --usr app
 --p_out_utxbuf_be   : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
@@ -261,6 +263,7 @@ p_in_dma_init      => p_in_dma_init     ,
 p_in_dma_prm       => p_in_dma_prm      ,
 p_in_dma_mrd_en    => p_in_dma_mrd_en   ,
 p_out_dma_mrd_done => p_out_dma_mrd_done,
+p_out_dma_mrd_rxdwcount => p_out_dma_mrd_rxdwcount,
 
 --usr app
 --p_out_utxbuf_be   : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);

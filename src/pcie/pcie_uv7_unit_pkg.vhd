@@ -79,6 +79,7 @@ p_in_dma_init      : in  std_logic;
 p_in_dma_prm       : in  TPCIE_dmaprm;
 p_in_dma_mrd_en    : in  std_logic;
 p_out_dma_mrd_done : out std_logic;
+p_out_dma_mrd_rxdwcount : out std_logic_vector(31 downto 0);
 
 --usr app
 p_out_ureg_di  : out std_logic_vector(31 downto 0);
@@ -184,9 +185,10 @@ p_in_dma_mwr_en    : in  std_logic;
 p_out_dma_mwr_done : out std_logic;
 p_in_dma_mrd_en    : in  std_logic;
 p_out_dma_mrd_done : out std_logic;
+p_in_dma_mrd_rxdwcount : in std_logic_vector(31 downto 0);
 
 --DBG
-p_out_tst : out std_logic_vector(279 downto 0);
+p_out_tst : out std_logic_vector((280 * 2) - 1 downto (280 * 0));
 
 --system
 p_in_clk   : in  std_logic;
@@ -308,7 +310,7 @@ end component pcie_usr_app;
 component dbgcs_ila_pcie is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(269 downto 0)
+probe0 : in std_logic_vector(48 downto 0)
 );
 end component dbgcs_ila_pcie;
 

@@ -62,6 +62,7 @@ p_in_dma_mwr_en    : in  std_logic;
 p_out_dma_mwr_done : out std_logic;
 p_in_dma_mrd_en    : in  std_logic;
 p_out_dma_mrd_done : out std_logic;
+p_in_dma_mrd_rxdwcount : in  std_logic_vector(31 downto 0);
 
 --DBG
 p_out_tst : out std_logic_vector(279 downto 0);
@@ -84,7 +85,8 @@ S_TXRQ_MWR_DN,--data n
 S_TXRQ_MWR_DE,--data end
 
 S_TXRQ_MRD_C0,
-S_TXRQ_MRD_N
+S_TXRQ_MRD_N,
+S_TXRQ_CPLD_WAIT
 );
 signal i_fsm_txrq           : TFsmTxRq_state;
 
@@ -101,6 +103,7 @@ signal i_dma_init           : std_logic;
 
 signal i_mem_adr_byte       : unsigned(31 downto 0);
 
+signal i_mem_tx_dw          : unsigned(31 downto 0);
 signal i_mem_tx_byte        : unsigned(31 downto 0);
 signal i_mem_tx_byte_remain : unsigned(31 downto 0);
 
@@ -641,19 +644,38 @@ if rising_edge(p_in_clk) then
                 if i_mem_tpl_last = '1' then
                   i_mem_tx_byte <= (others => '0');
                   i_mrd_done <= '1';
+                  i_fsm_txrq <= S_TXRQ_IDLE;
                 else
                   i_mem_tx_byte <= i_mem_tx_byte + RESIZE(i_mem_tpl_byte, i_mem_tx_byte'length);
+                  i_fsm_txrq <= S_TXRQ_CPLD_WAIT;
                 end if;
-
-                i_fsm_txrq <= S_TXRQ_IDLE;
 
             end if;
         --end S_TXRQ_MRD_N
+
+        when S_TXRQ_CPLD_WAIT =>
+
+          i_s_axis_rq_tdata  <= (others => '0');
+          i_s_axis_rq_tkeep  <= (others => '0');
+          i_s_axis_rq_tlast  <= '0';
+          i_s_axis_rq_tvalid <= '0';
+          i_s_axis_rq_tuser  <= (others => '0');
+
+          i_mwr_work <= '0';
+          i_mem_tpl_last <= '0';
+
+          if i_mem_tx_dw = UNSIGNED(p_in_dma_mrd_rxdwcount) then
+            i_fsm_txrq <= S_TXRQ_IDLE;
+          end if;
 
     end case; --case i_fsm_txrq is
   end if;--p_in_rst_n
 end if;--p_in_clk
 end process; --fsm
+
+i_mem_tx_dw <= RESIZE(i_mem_tx_byte(i_mem_tx_byte'high downto log2(32 / 8)), i_mem_tx_dw'length)
+                + (TO_UNSIGNED(0, i_mem_tx_dw'length - 2)
+                    & OR_reduce(i_mem_tx_byte(log2(32 / 8) - 1 downto 0)));
 
 
 --#######################################################################

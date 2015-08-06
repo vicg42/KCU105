@@ -96,9 +96,10 @@ p_in_dma_mwr_en    : in  std_logic;
 p_out_dma_mwr_done : out std_logic;
 p_in_dma_mrd_en    : in  std_logic;
 p_out_dma_mrd_done : out std_logic;
+p_in_dma_mrd_rxdwcount : in  std_logic_vector(31 downto 0);
 
 --DBG
-p_out_tst : out std_logic_vector(279 downto 0);
+p_out_tst : out std_logic_vector((280 * 2) - 1 downto (280 * 0));
 
 --system
 p_in_clk   : in  std_logic;
@@ -157,7 +158,7 @@ p_in_completer_id : in  std_logic_vector(15 downto 0);
 p_in_ureg_do   : in  std_logic_vector(31 downto 0);
 
 --DBG
-p_out_tst : out std_logic_vector(279 downto 0);
+p_out_tst : out std_logic_vector((280 * 1) - 1 downto (280 * 0));
 
 --system
 p_in_clk   : in  std_logic;
@@ -212,9 +213,10 @@ p_in_dma_mwr_en    : in  std_logic;
 p_out_dma_mwr_done : out std_logic;
 p_in_dma_mrd_en    : in  std_logic;
 p_out_dma_mrd_done : out std_logic;
+p_in_dma_mrd_rxdwcount : in  std_logic_vector(31 downto 0);
 
 --DBG
-p_out_tst : out std_logic_vector(279 downto 0);
+p_out_tst : out std_logic_vector((280 * 2) - 1 downto (280 * 1));
 
 --system
 p_in_clk   : in  std_logic;
@@ -274,7 +276,7 @@ p_in_completer_id => p_in_completer_id,
 p_in_ureg_do => p_in_ureg_do,
 
 --DBG
-p_out_tst => p_out_tst,
+p_out_tst => p_out_tst((280 * 1) - 1 downto (280 * 0)),
 
 --system
 p_in_clk   => p_in_clk,
@@ -329,9 +331,10 @@ p_in_dma_mwr_en    => p_in_dma_mwr_en   ,
 p_out_dma_mwr_done => p_out_dma_mwr_done,
 p_in_dma_mrd_en    => p_in_dma_mrd_en   ,
 p_out_dma_mrd_done => p_out_dma_mrd_done,
+p_in_dma_mrd_rxdwcount => p_in_dma_mrd_rxdwcount,
 
 --DBG
-p_out_tst => open,
+p_out_tst => p_out_tst((280 * 2) - 1 downto (280 * 1)),
 
 --system
 p_in_clk   => p_in_clk,
