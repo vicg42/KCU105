@@ -52,7 +52,8 @@ p_out_tst            : out   std_logic_vector(255 downto 0);
 --System Port
 ---------------------------------------------------------
 p_in_pcie_phy        : in    TPCIE_pinin;
-p_out_pcie_phy       : out   TPCIE_pinout
+p_out_pcie_phy       : out   TPCIE_pinout;
+p_out_pcie_rst_n     : out   std_logic
 );
 end entity pcie_main;
 
@@ -904,6 +905,8 @@ p_in_user_clk    => i_user_clk   ,
 p_in_user_reset  => i_user_reset ,
 p_in_user_lnk_up => i_user_lnk_up
 );
+
+p_out_pcie_rst_n <= p_in_pcie_phy.rst_n;
 
 
 
