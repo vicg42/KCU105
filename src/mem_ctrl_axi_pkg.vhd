@@ -19,25 +19,25 @@ use work.mem_glob_pkg.all;
 
 package mem_ctrl_pkg is
 
-constant C_AXIS_IDWIDTH    : integer := 4;
-constant C_AXIM_IDWIDTH    : integer := 8;
+constant C_AXIS_IDWIDTH    : integer := 2;
+constant C_AXIM_IDWIDTH    : integer := 4;
 
 constant C_AXI_AWIDTH      : integer := 31;
-constant C_AXIM_DWIDTH     : integer := C_PCGF_PCIE_DWIDTH;
+constant C_AXIM_DWIDTH     : integer := 512;
 
 type TAXIS_DWIDTH is array (0 to C_MEMCH_COUNT_MAX - 1) of integer;
 ------------------------------------------------------------------------------------------------------------
 --                              slave num   | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12| 13| 14| 15|
 ------------------------------------------------------------------------------------------------------------
 constant C_AXIS_DWIDTH     : TAXIS_DWIDTH := (
-C_PCGF_PCIE_DWIDTH,
-C_PCGF_PCIE_DWIDTH,
-C_PCGF_PCIE_DWIDTH,
-C_PCGF_PCIE_DWIDTH,
-C_PCGF_PCIE_DWIDTH,
-C_PCGF_PCIE_DWIDTH,
-C_PCGF_PCIE_DWIDTH,
-C_PCGF_PCIE_DWIDTH);
+512,
+512,
+512,
+512,
+512,
+512,
+512,
+512);
 
 constant C_MEM_ARB_CH_COUNT  : integer := C_PCFG_MEMARB_CH_COUNT;
 
@@ -209,7 +209,7 @@ c0_ddr4_s_axi_rid     : out std_logic_vector(C_AXIM_IDWIDTH - 1 downto 0);
 c0_ddr4_s_axi_rdata   : out std_logic_vector(C_AXIM_DWIDTH - 1 downto 0);
 c0_ddr4_s_axi_rresp   : out std_logic_vector(1 downto 0);
 c0_ddr4_s_axi_rlast   : out std_logic;
-c0_ddr4_s_axi_rvalid  : out std_logic
+c0_ddr4_s_axi_rvalid  : out std_logic;
 c0_ddr4_s_axi_rready  : in std_logic;
 
 -- ddr4 physical interface
