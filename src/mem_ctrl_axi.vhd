@@ -58,7 +58,6 @@ signal i_mmcm_locked : std_logic_vector(C_MEM_BANK_COUNT - 1 downto 0);
 begin --architecture synth
 
 p_out_sys.clk <= i_clk(0);
-p_out_sys.gusrclk_locked <= OR_reduce(i_mmcm_locked);
 
 gen_bank : for i in 0 to C_MEM_BANK_COUNT - 1 generate
 
