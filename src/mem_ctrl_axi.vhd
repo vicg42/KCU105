@@ -39,7 +39,7 @@ p_inout_phymem : inout TMEMCTRL_pininouts;
 --System
 ------------------------------------
 p_out_sys      : out   TMEMCTRL_sysout;
-p_in_sys       : in    TMEMCTRL_sysin
+p_in_sys       : in    TMEMCTRL_pinins
 );
 end entity mem_ctrl;
 
@@ -123,7 +123,7 @@ c0_ddr4_cs_n     => p_out_phymem  (i).cs_n    ,--: out STD_LOGIC_VECTOR ( 0 to 0
 c0_ddr4_ck_t     => p_out_phymem  (i).ck_t    ,--: out STD_LOGIC_VECTOR ( 0 to 0 );
 c0_ddr4_ck_c     => p_out_phymem  (i).ck_c    ,--: out STD_LOGIC_VECTOR ( 0 to 0 );
 c0_ddr4_reset_n  => p_out_phymem  (i).reset_n ,--: out STD_LOGIC;
-c0_ddr4_dm_dbi_n => p_out_phymem  (i).dm_dbi_n,--: inout STD_LOGIC_VECTOR ( 7 downto 0 );
+c0_ddr4_dm_dbi_n => p_inout_phymem(i).dm_dbi_n,--: inout STD_LOGIC_VECTOR ( 7 downto 0 );
 c0_ddr4_dq       => p_inout_phymem(i).dq      ,--: inout STD_LOGIC_VECTOR ( 63 downto 0 );
 c0_ddr4_dqs_c    => p_inout_phymem(i).dqs_c   ,--: inout STD_LOGIC_VECTOR ( 7 downto 0 );
 c0_ddr4_dqs_t    => p_inout_phymem(i).dqs_t   ,--: inout STD_LOGIC_VECTOR ( 7 downto 0 );
@@ -135,14 +135,14 @@ c0_init_calib_complete => p_out_status.rdy(i),--: out STD_LOGIC;
 c0_ddr4_aresetn         => i_aresetn(i)      ,--: in STD_LOGIC;
 c0_ddr4_ui_clk_sync_rst => i_rst(i)          ,--: out STD_LOGIC;
 c0_ddr4_ui_clk          => i_clk(i)          ,--: out STD_LOGIC;
-addn_ui_clkout1         => open              ,--: out STD_LOGIC;
-addn_ui_clkout2         => open              ,--: out STD_LOGIC;
+addn_ui_clkout1         => open              ,--: out STD_LOGIC; --200MHz
+addn_ui_clkout2         => open              ,--: out STD_LOGIC; --150MHz
 dbg_clk                 => open              ,--: out STD_LOGIC;
 
 --System
-c0_sys_clk_p => p_in_sys.clk_p ,--: in STD_LOGIC;
-c0_sys_clk_n => p_in_sys.clk_n ,--: in STD_LOGIC;
-sys_rst      => p_in_sys.rst    --: in STD_LOGIC
+c0_sys_clk_p => p_in_sys(i).clk_p ,--: in STD_LOGIC;
+c0_sys_clk_n => p_in_sys(i).clk_n ,--: in STD_LOGIC;
+sys_rst      => p_in_sys(i).rst    --: in STD_LOGIC
 );
 
 process(i_clk(i))

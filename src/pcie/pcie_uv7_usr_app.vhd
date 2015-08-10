@@ -200,12 +200,6 @@ signal i_dev_drdy                  : std_logic;
 
 signal i_mem_adr                   : unsigned(31 - log2(C_HDEV_DWIDTH / 8) downto 0) := (others => '0');
 
-signal sr_rxbuf_rd_last            : std_logic;
-Type TSR_txbuf_di is array (0 to 2) of std_logic_vector(31 downto 0);
-signal sr_txbuf_din                : TSR_txbuf_di;
-signal i_txbuf_din                 : std_logic_vector(255 downto 0);
-signal i_txbuf_wr                  : std_logic;
-signal i_txbuf_wr_sel              : unsigned(1 downto 0);
 signal i_pcie_testing              : std_logic;
 signal tst_mem_dcnt,tst_mem_dcnt_swap : unsigned(C_HDEV_DWIDTH - 1 downto 0);
 
@@ -468,7 +462,7 @@ if rising_edge(p_in_clk) then
 end if;--p_in_rst_n,
 end process;--Reg Read
 
-i_pcie_testing <= '1';--i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
+i_pcie_testing <= i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 
 ----------------------------------------------------------------------------------------------
 --Master mode. DMA ctrl
@@ -734,9 +728,9 @@ end generate gen_irq;
 ---------------------------------------------------------------------
 --User devices CTRL
 ---------------------------------------------------------------------
---p_out_rxbuf_do <= p_in_dev_dout;
-----                      when UNSIGNED(i_hdev_adr) /= TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length) else tst_mem_dcnt_swap;
-p_out_rxbuf_do <= std_logic_vector(tst_mem_dcnt_swap);
+p_out_rxbuf_do <= p_in_dev_dout;
+--                      when UNSIGNED(i_hdev_adr) /= TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length) else tst_mem_dcnt_swap;
+--p_out_rxbuf_do <= std_logic_vector(tst_mem_dcnt_swap);
 
 p_out_txbuf_full <= p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_FULL_BIT) and not i_pcie_testing;
 p_out_rxbuf_empty <= p_in_dev_opt(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) and not i_pcie_testing;
@@ -746,29 +740,29 @@ p_out_dev_rd <= p_in_rxbuf_rd;
 p_out_dev_din <= p_in_txbuf_di;
 
 
---Generator test data (counter)
-process(p_in_rst_n, i_usr_grst, p_in_clk)
-begin
-if rising_edge(p_in_clk) then
-  if p_in_rst_n = '0' or i_usr_grst = '1' then
-    for i in 0 to (tst_mem_dcnt'length / 8) - 1 loop
-    tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i) <= TO_UNSIGNED(i, 8);
-    end loop;
-  else
-    if p_in_rxbuf_rd = '1' and UNSIGNED(i_hdev_adr) = TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length) then
-      for i in 0 to (tst_mem_dcnt'length / 8) - 1 loop
-      tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i) <= tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i)
-                                                 + TO_UNSIGNED((tst_mem_dcnt'length / 8), 8);
-      end loop;
-    end if;
-  end if;
-end if;
-end process;
---gen_swap : for i in 0 to (tst_mem_dcnt'length / 8) - 1 generate
---tst_mem_dcnt_swap(8 * (((tst_mem_dcnt'length / 8 - 1) - i) + 1) - 1
---                     downto 8 * ((tst_mem_dcnt'length / 8 - 1) - i)) <= tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i);
---end generate gen_swap;
-tst_mem_dcnt_swap <= tst_mem_dcnt;
+----Generator test data (counter)
+--process(p_in_rst_n, i_usr_grst, p_in_clk)
+--begin
+--if rising_edge(p_in_clk) then
+--  if p_in_rst_n = '0' or i_usr_grst = '1' then
+--    for i in 0 to (tst_mem_dcnt'length / 8) - 1 loop
+--    tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i) <= TO_UNSIGNED(i, 8);
+--    end loop;
+--  else
+--    if p_in_rxbuf_rd = '1' and UNSIGNED(i_hdev_adr) = TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length) then
+--      for i in 0 to (tst_mem_dcnt'length / 8) - 1 loop
+--      tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i) <= tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i)
+--                                                 + TO_UNSIGNED((tst_mem_dcnt'length / 8), 8);
+--      end loop;
+--    end if;
+--  end if;
+--end if;
+--end process;
+----gen_swap : for i in 0 to (tst_mem_dcnt'length / 8) - 1 generate
+----tst_mem_dcnt_swap(8 * (((tst_mem_dcnt'length / 8 - 1) - i) + 1) - 1
+----                     downto 8 * ((tst_mem_dcnt'length / 8 - 1) - i)) <= tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i);
+----end generate gen_swap;
+--tst_mem_dcnt_swap <= tst_mem_dcnt;
 
 --user device ctrl
 p_out_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT) <= (i_dmatrn_mrd_done and sr_dma_work) or i_dev_drdy;
@@ -794,7 +788,7 @@ begin
       i_mem_adr <= RESIZE(UNSIGNED(i_reg.mem_adr(i_reg.mem_adr'high downto log2(C_HDEV_DWIDTH / 8))), i_mem_adr'length);
     else
       if UNSIGNED(i_hdev_adr) = TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length)
-        and (p_in_rxbuf_rd = '1' or i_txbuf_wr = '1') then
+        and (p_in_rxbuf_rd = '1' or p_in_txbuf_wr = '1') then
 
         i_mem_adr <= i_mem_adr + 1;
 
@@ -840,7 +834,7 @@ p_out_tst(121)            <= '0';
 p_out_tst(122)            <= '0';
 p_out_tst(123)            <= '0';
 p_out_tst(124)            <= '0';
-p_out_tst(125)            <= i_txbuf_wr or p_in_rxbuf_rd;
+p_out_tst(125)            <= p_in_txbuf_wr or p_in_rxbuf_rd;
 p_out_tst(126)            <= p_in_rxbuf_last;
 p_out_tst(127)            <= p_in_txbuf_last;
 

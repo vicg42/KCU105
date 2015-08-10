@@ -20,13 +20,16 @@ use work.prj_cfg.all;
 use work.prj_def.all;
 use work.mem_ctrl_pkg.all;
 use work.mem_wr_pkg.all;
+use work.cfgdev_pkg.all;
+use work.kcu105_main_unit_pkg.all;
+
 
 entity kcu105_main is
 port(
 --------------------------------------------------
 --DBG
 --------------------------------------------------
-pin_in_btn          : in    std_logic_vector(4 downto 0);
+pin_in_btn          : in    std_logic_vector(3 downto 0);
 pin_out_led         : out   std_logic_vector(7 downto 0);
 
 --------------------------------------------------
@@ -40,6 +43,7 @@ pin_out_led_lpc     : out   std_logic_vector(3 downto 0);
 --------------------------------------------------
 pin_out_phymem      : out   TMEMCTRL_pinouts;
 pin_inout_phymem    : inout TMEMCTRL_pininouts;
+pin_in_phymem       : in    TMEMCTRL_pinins;
 
 --------------------------------------------------
 --PCIE
@@ -56,75 +60,6 @@ end entity kcu105_main;
 
 architecture struct of kcu105_main is
 
-component pcie_main is
-generic(
-G_DBGCS : string := "OFF"
-);
-port(
---------------------------------------------------------
---USR Port
---------------------------------------------------------
-p_out_hclk           : out   std_logic ;
-p_out_gctrl          : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
-
-p_out_dev_ctrl       : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
-p_out_dev_din        : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
-p_in_dev_dout        : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
-p_out_dev_wr         : out   std_logic;
-p_out_dev_rd         : out   std_logic;
-p_in_dev_status      : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
-p_in_dev_irq         : in    std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
-p_in_dev_opt         : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
-p_out_dev_opt        : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
-
---------------------------------------------------------
---DBG
---------------------------------------------------------
-p_out_usr_tst        : out   std_logic_vector(127 downto 0);
-p_in_usr_tst         : in    std_logic_vector(127 downto 0);
-p_in_tst             : in    std_logic_vector(31 downto 0);
-p_out_tst            : out   std_logic_vector(255 downto 0);
-
----------------------------------------------------------
---System Port
----------------------------------------------------------
-p_in_pcie_phy        : in    TPCIE_pinin;
-p_out_pcie_phy       : out   TPCIE_pinout
-);
-end component pcie_main;
-
-component fpga_test_01 is
-generic(
-G_BLINK_T05 : integer:=10#125#; -- 1/2 периода мигания светодиода.(время в ms)
-G_CLK_T05us : integer:=10#1000# -- кол-во периодов частоты порта p_in_clk
-                                -- укладывающиеся в 1/2 периода 1us
-);
-port
-(
-p_out_test_led : out   std_logic;
-p_out_test_done: out   std_logic;
-
-p_out_1us      : out   std_logic;
-p_out_1ms      : out   std_logic;
-p_out_1s       : out   std_logic;
--------------------------------
---System
--------------------------------
-p_in_clken     : in    std_logic;
-p_in_clk       : in    std_logic;
-p_in_rst       : in    std_logic
-);
-end component fpga_test_01;
-
-component clocks
-port(
-p_out_rst  : out   std_logic;
-p_out_gclk : out   std_logic_vector(7 downto 0);
-
-p_in_clkopt: in    std_logic_vector(3 downto 0);
-p_in_clk   : in    TRefClkPinIN
-);
-end component clocks;
 
 signal i_usrclk_rst                     : std_logic;
 signal g_usrclk                         : std_logic_vector(7 downto 0);
@@ -184,7 +119,6 @@ signal i_tmr_rst                        : std_logic;
 signal i_tmr_hirq                       : std_logic_vector(C_TMR_COUNT - 1 downto 0);
 signal i_tmr_en                         : std_logic_vector(C_TMR_COUNT - 1 downto 0);
 
-signal i_host_mem_rst                   : std_logic;
 signal i_host_mem_ctrl                  : TPce2Mem_Ctrl;
 signal i_host_mem_status                : TPce2Mem_Status;
 signal i_host_mem_tst_out               : std_logic_vector(31 downto 0);
@@ -202,7 +136,7 @@ signal i_arb_memout                     : TMemOUT;
 signal i_arb_mem_tst_out                : std_logic_vector(31 downto 0);
 
 signal i_mem_ctrl_status                : TMEMCTRL_status;
-signal i_mem_ctrl_sysin                 : TMEMCTRL_sysin;
+--signal i_mem_ctrl_sysin                 : TMEMCTRL_sysin;
 signal i_mem_ctrl_sysout                : TMEMCTRL_sysout;
 
 
@@ -215,7 +149,7 @@ begin --architecture struct
 --***********************************************************
 --RESET
 --***********************************************************
-i_mem_ctrl_sysin.rst <= not i_host_rst_n or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT) or i_host_gctrl(C_HREG_CTRL_RST_MEM_BIT);
+--i_mem_ctrl_sysin.rst <= not i_host_rst_n or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT) or i_host_gctrl(C_HREG_CTRL_RST_MEM_BIT);
 i_arb_mem_rst <= not OR_reduce(i_mem_ctrl_status.rdy);
 
 
@@ -231,6 +165,9 @@ p_in_clkopt => (others => '0'),
 --p_out_clk  => pin_out_refclk,
 p_in_clk   => pin_in_refclk
 );
+
+g_usr_highclk <= i_mem_ctrl_sysout.clk;
+
 
 
 --***********************************************************
@@ -366,7 +303,7 @@ p_out_tst         => i_host_mem_tst_out,
 --System
 -------------------------------
 p_in_clk         => g_usr_highclk,
-p_in_rst         => i_host_mem_rst
+p_in_rst         => i_arb_mem_rst
 );
 
 
@@ -433,7 +370,7 @@ p_inout_phymem  => pin_inout_phymem,
 --System
 ------------------------------------
 p_out_sys       => i_mem_ctrl_sysout,
-p_in_sys        => i_mem_ctrl_sysin
+p_in_sys        => pin_in_phymem
 );
 
 
@@ -463,8 +400,8 @@ p_in_rst   => i_usrclk_rst
 
 pin_out_led(0) <= i_test_led(0);
 pin_out_led(1) <= i_host_tst2_out(0);--i_user_lnk_up
-pin_out_led(6 downto 2) <= pin_in_btn(4 downto 0);
-pin_out_led(7 downto 7) <= (others => '0');
+pin_out_led(5 downto 2) <= pin_in_btn(3 downto 0);
+pin_out_led(7 downto 6) <= (others => '0');
 
 
 pin_out_led_hpc(0) <= i_test_led(0);
