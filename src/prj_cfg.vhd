@@ -33,7 +33,7 @@ constant C_PCFG_VSYN_ACTIVE            : std_logic := '1'; --select active level
 
 --Memory Controller
 constant C_PCFG_MEMCTRL_BANK_SIZE      : integer := 6; --max 7: 0-8MB, 1-16MB, 2-32MB, 3-64MB, 4-128MB, ..., 7-1GB
-constant C_PCFG_MEMARB_CH_COUNT        : integer := 2; --CH0(HOST)
+constant C_PCFG_MEMARB_CH_COUNT        : integer := 1; --CH0(HOST2MEM)
 
 
 end package prj_cfg;
