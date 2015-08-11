@@ -120,7 +120,7 @@ i_utxbuf_di(7) <= i_axi_data(2);
 gen_utxbuf : for i in 0 to i_utxbuf_di'length - 1 generate begin
 p_out_utxbuf_di((32 * (i + 1)) - 1 downto (32 * i)) <= i_utxbuf_di(i);
 end generate gen_utxbuf;
-p_out_utxbuf_wr   <= i_cpld_tlp_work;
+p_out_utxbuf_wr   <= i_cpld_tlp_work and not p_in_utxbuf_full;
 p_out_utxbuf_last <= '0';--: out  std_logic;
 
 p_out_dma_mrd_done <= i_mrd_done;
