@@ -200,7 +200,6 @@ signal i_dev_drdy                  : std_logic;
 
 signal i_mem_adr                   : unsigned(31 - log2(C_HDEV_DWIDTH / 8) downto 0) := (others => '0');
 
-signal i_pcie_testing              : std_logic;
 signal tst_mem_dcnt,tst_mem_dcnt_swap : unsigned(C_HDEV_DWIDTH - 1 downto 0);
 
 signal tst_cnt : unsigned(7 downto 0) := (others => '0');
@@ -402,7 +401,7 @@ if rising_edge(p_in_clk) then
 
             txd(C_HREG_PCIE_MASTER_EN_BIT) := p_in_pcie_prm.master_en(0);
 
-            txd(C_HREG_PCIE_SPEED_TESTING_BIT) := i_pcie_testing;
+            txd(C_HREG_PCIE_SPEED_TESTING_BIT) := i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 
         elsif i_reg_adr = TO_UNSIGNED(C_HREG_MEM_ADR, 5) then
             txd := std_logic_vector(RESIZE(UNSIGNED(i_reg.mem_adr), txd'length));
@@ -462,7 +461,6 @@ if rising_edge(p_in_clk) then
 end if;--p_in_rst_n,
 end process;--Reg Read
 
-i_pcie_testing <= i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 
 ----------------------------------------------------------------------------------------------
 --Master mode. DMA ctrl
@@ -470,13 +468,13 @@ i_pcie_testing <= i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 --TRN DONE: PC->FPGA
 i_dmatrn_mrd_done <= i_mrd_done
                       when UNSIGNED(i_hdev_adr) /= TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length)
-                            or i_pcie_testing = '1'
+                            or i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT) = '1'
                         else (not i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT)
                               and AND_reduce(i_dmatrn_mem_done));
 --TRN DONE: PC<-FPGA
 i_dmatrn_mwr_done <= i_mwr_done
                       when UNSIGNED(i_hdev_adr) /= TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length)
-                            or i_pcie_testing = '1'
+                            or i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT) = '1'
                         else ( i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT)
                               and AND_reduce(i_dmatrn_mem_done));
 
@@ -521,7 +519,7 @@ if rising_edge(p_in_clk) then
 
     --DMATRN <-> MEM_CTRL
     if UNSIGNED(i_hdev_adr) = TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length)
-      and i_pcie_testing /= '1' then
+      and i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT) /= '1' then
 
       if AND_reduce(i_dmatrn_mem_done) = '1' or i_dma_start = '1' then
         i_dmatrn_mem_done <= (others => '0');
@@ -732,8 +730,8 @@ p_out_rxbuf_do <= p_in_dev_dout;
 --                      when UNSIGNED(i_hdev_adr) /= TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length) else tst_mem_dcnt_swap;
 --p_out_rxbuf_do <= std_logic_vector(tst_mem_dcnt_swap);
 
-p_out_txbuf_full <= p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_FULL_BIT) and not i_pcie_testing;
-p_out_rxbuf_empty <= p_in_dev_opt(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) and not i_pcie_testing;
+p_out_txbuf_full <= p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_FULL_BIT) and not i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
+p_out_rxbuf_empty <= p_in_dev_opt(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) and not i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 
 p_out_dev_wr <= p_in_txbuf_wr;
 p_out_dev_rd <= p_in_rxbuf_rd;
@@ -770,7 +768,7 @@ p_out_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT) <= (i_dmatrn_mrd_done and sr_dma_work) 
 p_out_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT) <= sr_dma_start
                                       when UNSIGNED(i_hdev_adr) /= TO_UNSIGNED(C_HDEV_MEM
                                                                               , i_hdev_adr'length) else
-                                        i_dmatrn_init and not i_pcie_testing;
+                                        i_dmatrn_init and not i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 
 p_out_dev_ctrl(C_HREG_DEV_CTRL_LAST_BIT
               downto C_HREG_DEV_CTRL_DMA_START_BIT + 1) <= i_reg.dev_ctrl(C_HREG_DEV_CTRL_LAST_BIT
