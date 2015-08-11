@@ -80,7 +80,7 @@ end record;
 type TMEMCTRL_pinin is record
 clk_p : std_logic;
 clk_n : std_logic;
-rst   : std_logic;
+--rst   : std_logic;
 end record;
 
 type TMEMCTRL_sysout is record
@@ -124,7 +124,8 @@ p_inout_phymem : inout TMEMCTRL_pininouts;
 --System
 ------------------------------------
 p_out_sys      : out   TMEMCTRL_sysout;
-p_in_sys       : in    TMEMCTRL_pinins
+p_in_sys       : in    TMEMCTRL_pinins;
+p_in_rst       : in    std_logic
 );
 end component mem_ctrl;
 

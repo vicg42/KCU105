@@ -39,7 +39,8 @@ p_inout_phymem : inout TMEMCTRL_pininouts;
 --System
 ------------------------------------
 p_out_sys      : out   TMEMCTRL_sysout;
-p_in_sys       : in    TMEMCTRL_pinins
+p_in_sys       : in    TMEMCTRL_pinins;
+p_in_rst       : in    std_logic
 );
 end entity mem_ctrl;
 
@@ -142,7 +143,7 @@ dbg_clk                 => open              ,--: out STD_LOGIC;
 --System
 c0_sys_clk_p => p_in_sys(i).clk_p ,--: in STD_LOGIC;
 c0_sys_clk_n => p_in_sys(i).clk_n ,--: in STD_LOGIC;
-sys_rst      => p_in_sys(i).rst    --: in STD_LOGIC
+sys_rst      => p_in_rst
 );
 
 process(i_clk(i))

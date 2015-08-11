@@ -100,9 +100,9 @@ set_property LOC AB6 [get_cells m_host/m_refclk_ibuf]
 ###############################################################################
 #MEMCTRL
 ###############################################################################
-set_property PACKAGE_PIN AN8 [get_ports {pin_in_phymem[0][rst]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {pin_in_phymem[0][rst]}]
-set_property DRIVE 8 [ get_ports {pin_in_phymem[0][rst]}]
+#set_property PACKAGE_PIN AN8 [get_ports {pin_in_phymem[0][rst]}]
+#set_property IOSTANDARD LVCMOS18 [get_ports {pin_in_phymem[0][rst]}]
+#set_property DRIVE 8 [ get_ports {pin_in_phymem[0][rst]}]
 
 set_property PACKAGE_PIN AK17 [get_ports {pin_in_phymem[0][clk_p]}]
 set_property PACKAGE_PIN AK16 [get_ports {pin_in_phymem[0][clk_n]}]

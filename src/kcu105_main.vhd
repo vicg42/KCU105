@@ -136,7 +136,7 @@ signal i_arb_memout                     : TMemOUT;
 signal i_arb_mem_tst_out                : std_logic_vector(31 downto 0);
 
 signal i_mem_ctrl_status                : TMEMCTRL_status;
---signal i_mem_ctrl_sysin                 : TMEMCTRL_sysin;
+signal i_mem_ctrl_rst                   : std_logic;
 signal i_mem_ctrl_sysout                : TMEMCTRL_sysout;
 
 
@@ -149,7 +149,7 @@ begin --architecture struct
 --***********************************************************
 --RESET
 --***********************************************************
---i_mem_ctrl_sysin.rst <= not i_host_rst_n or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT) or i_host_gctrl(C_HREG_CTRL_RST_MEM_BIT);
+i_mem_ctrl_rst <= not i_host_rst_n or i_host_gctrl(C_HREG_CTRL_RST_MEM_BIT);--or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT)
 i_arb_mem_rst <= not OR_reduce(i_mem_ctrl_status.rdy);
 
 
@@ -370,7 +370,8 @@ p_inout_phymem  => pin_inout_phymem,
 --System
 ------------------------------------
 p_out_sys       => i_mem_ctrl_sysout,
-p_in_sys        => pin_in_phymem
+p_in_sys        => pin_in_phymem,
+p_in_rst        => i_mem_ctrl_rst
 );
 
 
