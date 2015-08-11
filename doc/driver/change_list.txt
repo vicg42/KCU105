@@ -1,0 +1,35 @@
+######################################
+1.IRQ (irq.c)
+######################################
+static irqreturn_t irq_handler
+(	int _1
+,	void * _2
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,19)
+,	struct pt_regs * _3
+#endif
+)
+{
+	atomic_inc(&l.s.irq);
+
+	size_t completes = 0, i;
+
+	for (i = 0; i < l.nsubsystems; ++i)
+	{
+		if ((irq_subsystem_arr[i].handler)() == IRQ_HANDLED)
+		{
+			++completes;
+			atomic_inc(&l.s.irq_arr[i]);
+		}
+	}
+
+	if (!completes)
+	{
+		atomic_inc(&l.s.unknown_irq);
+		return IRQ_NONE;
+	}
+	else{
+	reg_locked_set(m.pci.reg.irq_ctrl, LSD_RICB_IRQCLR); //add vicg!!!!
+	}
+
+	return IRQ_HANDLED;
+}
