@@ -33,3 +33,54 @@ static irqreturn_t irq_handler
 
 	return IRQ_HANDLED;
 }
+
+
+######################################
+1.MEM (mem.c)
+######################################
+int setup(void)
+{
+	// reset and wait "ready" mark
+
+	reg_lock();
+	reg_set(m.pci.reg.ctrl, reg_get(m.pci.reg.ctrl) | LSD_RCB_MEM_RESET); //change vicg
+	reg_unlock();
+
+	msleep(1);
+
+	reg_lock();
+	reg_set(m.pci.reg.ctrl, reg_get(m.pci.reg.ctrl) & ~LSD_RCB_MEM_RESET); //change vicg
+	reg_unlock();
+
+  msleep(1);
+
+	const unsigned long j0 = jiffies;
+
+	while (1)
+	{
+		if (reg_locked_get(m.pci.reg.dev.status) & LSD_RDSB_MEM_READY)
+			break;
+
+		if (jiffies_to_msecs(jiffies - j0) > 10000) //change vicg
+			return -EIO;
+
+		if (msleep_interruptible(1))
+			return -ERESTARTSYS;
+	}
+
+	// setup mem.ctrl
+
+	reg_lock();
+	{
+		u32 reg = reg_get(m.pci.reg.mem.ctrl);
+
+		reg &= ~(LSD_RMC_WR_SIZE | LSD_RMC_RD_SIZE);
+		reg |= (LSD_MEM_TRANS_WR << LSD_RMCO_WR_SIZE) & LSD_RMC_WR_SIZE;
+		reg |= (LSD_MEM_TRANS_RD << LSD_RMCO_RD_SIZE) & LSD_RMC_RD_SIZE;
+
+		reg_set(m.pci.reg.mem.ctrl, reg);
+	}
+	reg_unlock();
+
+	return 0;
+}
