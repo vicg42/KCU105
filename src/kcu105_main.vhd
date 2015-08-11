@@ -29,7 +29,7 @@ port(
 --------------------------------------------------
 --DBG
 --------------------------------------------------
-pin_in_btn          : in    std_logic_vector(3 downto 0);
+pin_in_btn          : in    std_logic_vector(4 downto 0);
 pin_out_led         : out   std_logic_vector(7 downto 0);
 
 --------------------------------------------------
@@ -141,6 +141,9 @@ signal i_mem_ctrl_sysout                : TMEMCTRL_sysout;
 
 
 signal i_test_led          : std_logic_vector(0 downto 0);
+signal sr_host_rst_n       : std_logic_vector(0 to 2) := (others => '1');
+signal i_det_pcie_rst      : std_logic := '0';
+
 
 
 begin --architecture struct
@@ -403,7 +406,7 @@ pin_out_led(0) <= i_test_led(0);
 pin_out_led(1) <= i_host_tst2_out(0);--i_user_lnk_up
 pin_out_led(2) <= OR_reduce(i_mem_ctrl_status.rdy);
 pin_out_led(6 downto 3) <= pin_in_btn(3 downto 0);
-pin_out_led(7 downto 7) <= (others => '0');
+pin_out_led(7) <= i_det_pcie_rst;
 
 
 pin_out_led_hpc(0) <= i_test_led(0);
@@ -415,6 +418,21 @@ pin_out_led_lpc(0) <= i_test_led(0);
 pin_out_led_lpc(1) <= i_test_led(0);
 pin_out_led_lpc(2) <= i_test_led(0);
 pin_out_led_lpc(3) <= i_test_led(0);
+
+
+process(g_usrclk(0))
+begin
+if rising_edge(g_usrclk(0)) then
+  sr_host_rst_n <= i_host_rst_n & sr_host_rst_n(0 to 1);
+
+  if pin_in_btn(4) = '1' and i_det_pcie_rst = '1' then
+    i_det_pcie_rst <= '0';
+  elsif sr_host_rst_n(1) = '1' and sr_host_rst_n(2) = '0' then
+    i_det_pcie_rst <= '1';
+  end if;
+
+end if;
+end process;
 
 
 end architecture struct;
