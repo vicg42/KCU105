@@ -400,8 +400,9 @@ p_in_rst   => i_usrclk_rst
 
 pin_out_led(0) <= i_test_led(0);
 pin_out_led(1) <= i_host_tst2_out(0);--i_user_lnk_up
-pin_out_led(5 downto 2) <= pin_in_btn(3 downto 0);
-pin_out_led(7 downto 6) <= (others => '0');
+pin_out_led(2) <= OR_reduce(i_mem_ctrl_status.rdy);
+pin_out_led(6 downto 3) <= pin_in_btn(3 downto 0);
+pin_out_led(7 downto 7) <= (others => '0');
 
 
 pin_out_led_hpc(0) <= i_test_led(0);
