@@ -42,6 +42,8 @@ int setup(void)
 {
 	// reset and wait "ready" mark
 
+if (!(reg_locked_get(m.pci.reg.dev.status) & LSD_RDSB_MEM_READY))
+{
 	reg_lock();
 	reg_set(m.pci.reg.ctrl, reg_get(m.pci.reg.ctrl) | LSD_RCB_MEM_RESET); //change vicg
 	reg_unlock();
@@ -67,7 +69,7 @@ int setup(void)
 		if (msleep_interruptible(1))
 			return -ERESTARTSYS;
 	}
-
+}
 	// setup mem.ctrl
 
 	reg_lock();
