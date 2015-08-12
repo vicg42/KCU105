@@ -203,6 +203,7 @@ signal i_mem_adr                   : unsigned(31 - log2(C_HDEV_DWIDTH / 8) downt
 signal tst_mem_dcnt,tst_mem_dcnt_swap : unsigned(C_HDEV_DWIDTH - 1 downto 0);
 
 signal tst_cnt : unsigned(7 downto 0) := (others => '0');
+signal tst_dmatrn_init : std_logic;
 
 
 begin --architecture behavioral
@@ -824,11 +825,8 @@ p_out_tst(96)             <= i_irq_status_clr;
 p_out_tst(100 downto 97)  <= std_logic_vector(RESIZE(UNSIGNED(i_reg.irq(C_HREG_IRQ_NUM_M_WBIT downto C_HREG_IRQ_NUM_L_WBIT)), 4));
 p_out_tst(108 downto 101) <= std_logic_vector(RESIZE(UNSIGNED(i_irq_status), 8));
 p_out_tst(116 downto 109) <= std_logic_vector(RESIZE(UNSIGNED(i_irq_set(C_HIRQ_COUNT - 1 downto 0)), 8));
-p_out_tst(117)            <= '0';
-p_out_tst(118)            <= '0';
-p_out_tst(119)            <= '0';
-p_out_tst(120)            <= '0';
-p_out_tst(121)            <= '0';
+p_out_tst(120 downto 117) <= i_reg.dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT); --(22..19)
+p_out_tst(121)            <= tst_dmatrn_init;
 p_out_tst(122)            <= '0';
 p_out_tst(123)            <= '0';
 p_out_tst(124)            <= '0';
@@ -843,6 +841,8 @@ if rising_edge(p_in_clk) then
   if i_irq_status(C_HIRQ_PCIE_DMA) = '1' then
       tst_cnt <= tst_cnt + 1;
   end if;
+
+  tst_dmatrn_init <= i_dmatrn_init;
 end if;
 end process;
 

@@ -18,9 +18,9 @@ package prj_cfg is
 constant C_PCFG_FIRMWARE_VERSION       : integer := 16#0007#;
 
 constant C_PCFG_BOARD                  : string := "KCU105";
+constant C_PCFG_MAIN_DBGCS             : string := "ON";
 
 --PCI-Express
-constant C_PCGF_PCIE_DBGCS             : string := "ON";
 constant C_PCGF_PCIE_LINK_WIDTH        : integer := 8; --if change count link than need regenerat core PCI-Express
 constant C_PCGF_PCIE_DWIDTH            : integer := 256;
 

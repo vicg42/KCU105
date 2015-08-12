@@ -60,7 +60,6 @@ end entity kcu105_main;
 
 architecture struct of kcu105_main is
 
-
 signal i_usrclk_rst                     : std_logic;
 signal g_usrclk                         : std_logic_vector(7 downto 0);
 signal g_usr_highclk                    : std_logic;
@@ -96,6 +95,7 @@ signal i_host_txbuf_empty               : THostDCtrl;
 signal i_host_tst_in                    : std_logic_vector(127 downto 0);
 signal i_host_tst_out                   : std_logic_vector(127 downto 0);
 signal i_host_tst2_out                  : std_logic_vector(255 downto 0);
+signal i_host_dbg                       : TPCIE_dbg;
 
 constant CI_CFG_DWIDTH                  : integer := 16;--bit
 signal i_cfg_rst                        : std_logic;
@@ -144,6 +144,39 @@ signal i_test_led          : std_logic_vector(0 downto 0);
 signal sr_host_rst_n       : std_logic_vector(0 to 2) := (others => '1');
 signal i_det_pcie_rst      : std_logic := '0';
 
+component dbgcs_ila_hostclk is
+port (
+clk : in std_logic;
+probe0 : in std_logic_vector(13 downto 0)
+);
+end component dbgcs_ila_hostclk;
+
+component dbgcs_ila_usr_highclk is
+port (
+clk : in std_logic;
+probe0 : in std_logic_vector(9 downto 0)
+);
+end component dbgcs_ila_usr_highclk;
+
+type TH2M_dbg is record
+mem_start   : std_logic;
+mem_done    : std_logic;
+mem_wr_fsm  : std_logic_vector(3 downto 0);
+rxbuf_empty : std_logic;
+rxbuf_full  : std_logic;
+txbuf_empty : std_logic;
+txbuf_full  : std_logic;
+end record;
+
+type TMAIN_dbg is record
+pcie : TPCIE_dbg;
+h2m  : TH2M_dbg;
+end record;
+
+signal i_dbg    : TMAIN_dbg;
+
+attribute mark_debug : string;
+attribute mark_debug of i_dbg  : signal is "true";
 
 
 begin --architecture struct
@@ -178,7 +211,7 @@ g_usr_highclk <= i_mem_ctrl_sysout.clk;
 --***********************************************************
 m_host : pcie_main
 generic map(
-G_DBGCS => C_PCGF_PCIE_DBGCS
+G_DBGCS => "OFF"
 )
 port map(
 --------------------------------------------------------
@@ -204,6 +237,7 @@ p_out_usr_tst   => open           ,
 p_in_usr_tst    => (others => '0'),
 p_in_tst        => (others => '0'),
 p_out_tst       => i_host_tst2_out,
+p_out_dbg       => i_host_dbg     ,
 
 ---------------------------------------------------------
 --System Port
@@ -434,5 +468,69 @@ if rising_edge(g_usrclk(0)) then
 end if;
 end process;
 
+
+
+--#############################################
+--DBGCS
+--#############################################
+gen_dbgcs_on : if strcmp(C_PCFG_MAIN_DBGCS, "ON") generate
+begin
+
+i_dbg.pcie <= i_host_dbg;
+
+i_dbg.h2m.mem_start   <= i_host_mem_tst_out(0)         ;-- <= i_mem_start;
+i_dbg.h2m.mem_done    <= i_host_mem_tst_out(1)         ;-- <= i_mem_done;
+i_dbg.h2m.mem_wr_fsm  <= i_host_mem_tst_out(5 downto 2);-- <= tst_mem_ctrl_out(5 downto 2);--m_mem_wr/tst_fsm_cs;
+i_dbg.h2m.rxbuf_empty <= i_host_mem_tst_out(6)         ;-- <= i_rxbuf_empty; --RAM->PCIE
+i_dbg.h2m.rxbuf_full  <= i_host_mem_tst_out(7)         ;-- <= i_rxbuf_full;  --RAM->PCIE
+i_dbg.h2m.txbuf_empty <= i_host_mem_tst_out(8)         ;-- <= i_txbuf_empty; --RAM<-PCIE
+i_dbg.h2m.txbuf_full  <= i_host_mem_tst_out(9)         ;-- <= i_txbuf_full;  --RAM<-PCIE
+
+
+--##########################
+m_dbg_hostclk : dbgcs_ila_hostclk
+port map (
+clk => g_host_clk,
+
+--pc <- fpga
+probe0(0) => i_dbg.pcie.axi_rq_tvalid,
+probe0(1) => i_dbg.pcie.axi_rq_tlast ,
+probe0(2) => i_dbg.pcie.axi_rq_tready,
+
+--pc -> fpga
+probe0(3) => i_dbg.pcie.axi_rc_tvalid,
+probe0(4) => i_dbg.pcie.axi_rc_tlast ,
+probe0(5) => i_dbg.pcie.axi_rc_tready,
+
+probe0(9 downto 6) => i_dbg.pcie.dev_num  ,
+probe0(10)         => i_dbg.pcie.dma_start,
+probe0(11)         => i_dbg.pcie.dma_irq  ,
+
+probe0(12) => '0',
+probe0(13) => '0'
+
+--probe0(13 downto 6) => i_dbg.pcie.m_axi_rc_tkeep(7 downto 0)
+
+--gen_dbg_do : for i in 0 to G_KEEP_WIDTH - 1 generate begin
+--probe0(((32 * (i + 1)) + 14) - 1 downto ((32 * i) + 14)) => i_dbg.pcie.m_axi_rc_tdata(i);
+--end generate gen_dbg_do;
+--probe0(269 downto 14) => i_dbg.pcie.m_axi_rc_tdata(i);
+);
+
+
+m_dbg_usr_highclk : dbgcs_ila_usr_highclk
+port map (
+clk => g_usr_highclk,
+
+probe0(0)          => i_dbg.h2m.mem_start  ,
+probe0(1)          => i_dbg.h2m.mem_done   ,
+probe0(5 downto 2) => i_dbg.h2m.mem_wr_fsm ,
+probe0(6)          => i_dbg.h2m.rxbuf_empty,--RAM->PCIE
+probe0(7)          => i_dbg.h2m.rxbuf_full ,--RAM->PCIE
+probe0(8)          => i_dbg.h2m.txbuf_empty,--RAM<-PCIE
+probe0(9)          => i_dbg.h2m.txbuf_full  --RAM<-PCIE
+);
+
+end generate gen_dbgcs_on;
 
 end architecture struct;

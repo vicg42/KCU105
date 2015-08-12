@@ -47,6 +47,7 @@ p_out_usr_tst        : out   std_logic_vector(127 downto 0);
 p_in_usr_tst         : in    std_logic_vector(127 downto 0);
 p_in_tst             : in    std_logic_vector(31 downto 0);
 p_out_tst            : out   std_logic_vector(255 downto 0);
+p_out_dbg            : out   TPCIE_dbg;
 
 ---------------------------------------------------------
 --System Port
@@ -265,6 +266,7 @@ p_in_dev_opt    : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
 p_out_dev_opt   : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
 
 --DBG
+p_out_dbg       : out   TPCIE_dbg;
 p_out_tst       : out   std_logic_vector(127 downto 0);
 p_in_tst        : in    std_logic_vector(127 downto 0);
 
@@ -762,6 +764,7 @@ p_in_dev_opt    => p_in_dev_opt   ,
 p_out_dev_opt   => p_out_dev_opt  ,
 
 --DBG
+p_out_dbg       => p_out_dbg,
 p_out_tst       => p_out_usr_tst,
 p_in_tst        => p_in_usr_tst ,
 

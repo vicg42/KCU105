@@ -307,12 +307,12 @@ p_in_rst_n : in    std_logic
 end component pcie_usr_app;
 
 
-component dbgcs_ila_pcie is
-port (
-clk : in std_logic;
-probe0 : in std_logic_vector(48 downto 0)
-);
-end component dbgcs_ila_pcie;
+--component dbgcs_ila_pcie is
+--port (
+--clk : in std_logic;
+--probe0 : in std_logic_vector(48 downto 0)
+--);
+--end component dbgcs_ila_pcie;
 
 end package pcie_unit_pkg;
 

@@ -80,6 +80,7 @@ p_out_usr_tst        : out   std_logic_vector(127 downto 0);
 p_in_usr_tst         : in    std_logic_vector(127 downto 0);
 p_in_tst             : in    std_logic_vector(31 downto 0);
 p_out_tst            : out   std_logic_vector(255 downto 0);
+p_out_dbg            : out   TPCIE_dbg;
 
 ---------------------------------------------------------
 --System Port

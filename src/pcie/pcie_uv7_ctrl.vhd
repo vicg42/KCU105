@@ -54,6 +54,7 @@ p_in_dev_opt    : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
 p_out_dev_opt   : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
 
 --DBG
+p_out_dbg       : out   TPCIE_dbg;
 p_out_tst       : out   std_logic_vector(127 downto 0);
 p_in_tst        : in    std_logic_vector(127 downto 0);
 
@@ -271,30 +272,6 @@ signal i_dbg_probe             : std_logic_vector(269 downto 0);
 
 attribute keep : string;
 attribute keep of i_trn_clk : signal is "true";
-
-type TDBG_darray is array (0 to G_KEEP_WIDTH - 1) of std_logic_vector(31 downto 0);
-
-type TPCIE_dbg is record
-m_axi_rq_tvalid : std_logic;
-m_axi_rq_tlast  : std_logic;
-m_axi_rq_tready : std_logic;
-
-m_axi_rc_tdata  : TDBG_darray;
-m_axi_rc_tkeep  : std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-m_axi_rc_tvalid : std_logic;
-m_axi_rc_tlast  : std_logic;
-m_axi_rc_tready : std_logic;
-
-m_axi_rc_sop    : std_logic_vector(1 downto 0);
-m_axi_rc_disc   : std_logic;
-
-mrd_rxdwcount   : std_logic_vector(31 downto 0);
-end record;
-
-signal i_dbg_pcie            : TPCIE_dbg;
-
-attribute mark_debug : string;
-attribute mark_debug of i_dbg_pcie  : signal is "true";
 
 
 
@@ -717,89 +694,25 @@ p_out_cfg_interrupt_msix_address        <= (others => '0');
 p_out_cfg_interrupt_msix_data           <= (others => '0');
 
 
---#############################################
---DBGCS
---#############################################
-gen_dbgcs_on : if strcmp(G_DBGCS, "ON") generate
-begin
-
---##########################
---rx
---process(i_trn_clk)
---begin
---if rising_edge(i_trn_clk) then
-
 --gen_dbg_di : for i in 0 to G_KEEP_WIDTH - 1 generate begin
---i_dbg_pcie.m_axi_rc_tdata(i) <= p_in_m_axis_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
+--p_out_dbg.m_axi_rc_tdata(i) <= p_in_m_axis_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
 --end generate gen_dbg_di;
-i_dbg_pcie.m_axi_rc_tkeep(7 downto 0)   <= p_in_m_axis_rc_tkeep;
-i_dbg_pcie.m_axi_rc_tvalid              <= p_in_m_axis_rc_tvalid;
-i_dbg_pcie.m_axi_rc_tlast               <= p_in_m_axis_rc_tlast;
-i_dbg_pcie.m_axi_rc_tready              <= i_m_axis_rc_tready;
+p_out_dbg.axi_rc_tkeep  <= p_in_m_axis_rc_tkeep;
+p_out_dbg.axi_rc_tvalid <= p_in_m_axis_rc_tvalid;
+p_out_dbg.axi_rc_tlast  <= p_in_m_axis_rc_tlast;
+p_out_dbg.axi_rc_tready <= i_m_axis_rc_tready;
 
-i_dbg_pcie.m_axi_rc_sop(0)              <= p_in_m_axis_rc_tuser(32);
-i_dbg_pcie.m_axi_rc_sop(1)              <= p_in_m_axis_rc_tuser(33);
-i_dbg_pcie.m_axi_rc_disc                <= p_in_m_axis_rc_tuser(42);
+p_out_dbg.axi_rq_tvalid <= tst_tx_out((280 * 1) + 8);
+p_out_dbg.axi_rq_tlast  <= tst_tx_out((280 * 1) + 9);
+p_out_dbg.axi_rq_tready <= tst_tx_out((280 * 1) + 10);
 
-i_dbg_pcie.m_axi_rq_tvalid <= tst_tx_out((280 * 1) + 8);
-i_dbg_pcie.m_axi_rq_tlast  <= tst_tx_out((280 * 1) + 9);
-i_dbg_pcie.m_axi_rq_tready <= tst_tx_out((280 * 1) + 10);
+p_out_dbg.dev_num   <= tst_uapp_out(120 downto 117);-- <= i_reg.dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT); --(22..19)
+p_out_dbg.dma_start <= tst_uapp_out(121);--            <= i_dma_start;
+p_out_dbg.dma_irq   <= tst_uapp_out(109);--tst_uapp_out(116 downto 109) <= std_logic_vector(RESIZE(UNSIGNED(i_irq_set(C_HIRQ_COUNT - 1 downto 0)), 8));
 
-i_dbg_pcie.mrd_rxdwcount <= i_dma_mrd_rxdwcount;
---end if;
---end process;
-
-
---##########################
---rx
-i_dbg_probe(0)            <= i_dbg_pcie.m_axi_rc_tvalid;
-i_dbg_probe(1)            <= i_dbg_pcie.m_axi_rc_tlast ;
-i_dbg_probe(2)            <= i_dbg_pcie.m_axi_rc_tready;
-
-i_dbg_probe(3)            <= i_dbg_pcie.m_axi_rc_sop(0);
-i_dbg_probe(4)            <= i_dbg_pcie.m_axi_rc_sop(1);
-i_dbg_probe(5)            <= i_dbg_pcie.m_axi_rc_disc  ;
-
-i_dbg_probe(13 downto 6) <= i_dbg_pcie.m_axi_rc_tkeep(7 downto 0);
-
---gen_dbg_do : for i in 0 to G_KEEP_WIDTH - 1 generate begin
---i_dbg_probe(((32 * (i + 1)) + 14) - 1 downto ((32 * i) + 14)) <= i_dbg_pcie.m_axi_rc_tdata(i);
---end generate gen_dbg_do;
---i_dbg_probe(269 downto 14) <= i_dbg_pcie.m_axi_rc_tdata(i);
-
-
-i_dbg_probe(14)            <= i_dbg_pcie.m_axi_rq_tvalid;
-i_dbg_probe(15)            <= i_dbg_pcie.m_axi_rq_tlast ;
-i_dbg_probe(16)            <= i_dbg_pcie.m_axi_rq_tready;
-
-i_dbg_probe(48 downto 17) <= i_dbg_pcie.mrd_rxdwcount;
-
-
---i_dbg_probe(127 downto 0)   <= i_dbg_pcie.m_axi_cq_tdata(159 downto 0);
---
---i_dbg_probe(266 downto 139) <= i_dbg_pcie.s_axi_cc_tdata(159 downto 0);
-
---i_dbg_probe(317 downto 286) <= i_dbg_pcie.reg_di(31 downto 0);
---i_dbg_probe(349 downto 318) <= i_dbg_pcie.reg_do(31 downto 0);
-
---others
-
---i_dbg_probe(359 downto 354) <= (others => '0');
-
-
---i_dbg_probe(606 downto 603) <= i_dbg_pcie.fsm_rx(3 downto 0);
---i_dbg_probe(610 downto 607) <= i_dbg_pcie.fsm_tx(3 downto 0);
---
---i_dbg_probe(649 downto 618) <= (others => '0');
-
-
-m_dbg_pcie : dbgcs_ila_pcie
-port map (
-clk => i_trn_clk,
-probe0 => i_dbg_probe(48 downto 0)
-);
-
-end generate gen_dbgcs_on;
+--p_out_dbg.axi_rc_sop(0) <= p_in_m_axis_rc_tuser(32);
+--p_out_dbg.axi_rc_sop(1) <= p_in_m_axis_rc_tuser(33);
+--p_out_dbg.axi_rc_disc   <= p_in_m_axis_rc_tuser(42);
 
 
 end architecture struct;
