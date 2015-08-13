@@ -61,7 +61,8 @@ p_out_tst            : out   std_logic_vector(255 downto 0);
 --System Port
 ---------------------------------------------------------
 p_in_pcie_phy        : in    TPCIE_pinin;
-p_out_pcie_phy       : out   TPCIE_pinout
+p_out_pcie_phy       : out   TPCIE_pinout;
+p_out_pcie_rst_n     : out   std_logic
 );
 end component pcie_main;
 
@@ -112,7 +113,8 @@ p_out_tst     => open,
 --System Port
 ---------------------------------------------------------
 p_in_pcie_phy  => p_in_pcie_phy ,
-p_out_pcie_phy => p_out_pcie_phy
+p_out_pcie_phy => p_out_pcie_phy,
+p_out_pcie_rst_n => open
 );
 
 
