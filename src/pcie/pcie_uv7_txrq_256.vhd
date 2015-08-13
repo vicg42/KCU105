@@ -29,12 +29,12 @@ G_PARITY_WIDTH : integer := 64 / 8   --TPARITY width
 );
 port(
 --AXI-S Requester Request Interface
-p_out_s_axis_rq_tdata  : out std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_out_s_axis_rq_tkeep  : out std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-p_out_s_axis_rq_tlast  : out std_logic;
-p_out_s_axis_rq_tvalid : out std_logic;
-p_out_s_axis_rq_tuser  : out std_logic_vector(59 downto 0);
-p_in_s_axis_rq_tready  : in  std_logic;
+p_out_axi_rq_tdata  : out std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_out_axi_rq_tkeep  : out std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_axi_rq_tlast  : out std_logic;
+p_out_axi_rq_tvalid : out std_logic;
+p_out_axi_rq_tuser  : out std_logic_vector(59 downto 0);
+p_in_axi_rq_tready  : in  std_logic;
 
 --Tag availability and Flow control Information
 p_in_pcie_rq_tag          : in  std_logic_vector(5 downto 0);
@@ -90,11 +90,11 @@ S_TXRQ_CPLD_WAIT
 );
 signal i_fsm_txrq           : TFsmTxRq_state;
 
-signal i_s_axis_rq_tdata    : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-signal i_s_axis_rq_tkeep    : std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-signal i_s_axis_rq_tlast    : std_logic;
-signal i_s_axis_rq_tvalid   : std_logic;
-signal i_s_axis_rq_tuser    : std_logic_vector(11 downto 0);
+signal i_axi_rq_tdata    : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+signal i_axi_rq_tkeep    : std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+signal i_axi_rq_tlast    : std_logic;
+signal i_axi_rq_tvalid   : std_logic;
+signal i_axi_rq_tuser    : std_logic_vector(11 downto 0);
 
 signal sr_usr_rxbuf_do      : std_logic_vector((32 * 4) - 1 downto 0);
 signal i_urxbuf_rd          : std_logic;
@@ -129,19 +129,19 @@ begin --architecture behavioral of pcie_tx_rq
 p_out_dma_mrd_done <= i_mrd_done;
 p_out_dma_mwr_done <= i_mwr_done;
 
-i_urxbuf_rd <= (p_in_s_axis_rq_tready and not p_in_urxbuf_empty);
+i_urxbuf_rd <= (p_in_axi_rq_tready and not p_in_urxbuf_empty);
 p_out_urxbuf_rd <= i_urxbuf_rd and i_mwr_work;
 p_out_urxbuf_last <= i_urxbuf_rd when i_mwr_work = '1'
                                         and i_mem_tpl_last = '1'
                                           and (i_mem_tpl_cnt = (i_mem_tpl_len - 1)) else '0';
 
 --AXI-S Requester Request Interface
-p_out_s_axis_rq_tdata  <= i_s_axis_rq_tdata ;
-p_out_s_axis_rq_tkeep  <= i_s_axis_rq_tkeep ;
-p_out_s_axis_rq_tvalid <= i_s_axis_rq_tvalid;
-p_out_s_axis_rq_tlast  <= i_s_axis_rq_tlast ;
-p_out_s_axis_rq_tuser(11 downto 0) <= i_s_axis_rq_tuser(11 downto 0);
-p_out_s_axis_rq_tuser(p_out_s_axis_rq_tuser'high downto 12) <= (others => '0');
+p_out_axi_rq_tdata  <= i_axi_rq_tdata ;
+p_out_axi_rq_tkeep  <= i_axi_rq_tkeep ;
+p_out_axi_rq_tvalid <= i_axi_rq_tvalid;
+p_out_axi_rq_tlast  <= i_axi_rq_tlast ;
+p_out_axi_rq_tuser(11 downto 0) <= i_axi_rq_tuser(11 downto 0);
+p_out_axi_rq_tuser(p_out_axi_rq_tuser'high downto 12) <= (others => '0');
 
 
 
@@ -177,11 +177,11 @@ if rising_edge(p_in_clk) then
 
     i_fsm_txrq <= S_TXRQ_IDLE;
 
-    i_s_axis_rq_tdata  <= (others => '0');
-    i_s_axis_rq_tkeep  <= (others => '0');
-    i_s_axis_rq_tlast  <= '0';
-    i_s_axis_rq_tvalid <= '0';
-    i_s_axis_rq_tuser  <= (others => '0');
+    i_axi_rq_tdata  <= (others => '0');
+    i_axi_rq_tkeep  <= (others => '0');
+    i_axi_rq_tlast  <= '0';
+    i_axi_rq_tvalid <= '0';
+    i_axi_rq_tuser  <= (others => '0');
 
     sr_usr_rxbuf_do <= (others => '0');
 
@@ -210,13 +210,13 @@ if rising_edge(p_in_clk) then
         --#######################################################################
         when S_TXRQ_IDLE =>
 
-          if (p_in_s_axis_rq_tready = '1') then
+          if (p_in_axi_rq_tready = '1') then
 
---            i_s_axis_rq_tdata  <= (others => '0');
-            i_s_axis_rq_tkeep  <= (others => '0');
-            i_s_axis_rq_tlast  <= '0';
-            i_s_axis_rq_tvalid <= '0';
-            i_s_axis_rq_tuser  <= (others => '0');
+--            i_axi_rq_tdata  <= (others => '0');
+            i_axi_rq_tkeep  <= (others => '0');
+            i_axi_rq_tlast  <= '0';
+            i_axi_rq_tvalid <= '0';
+            i_axi_rq_tuser  <= (others => '0');
 
             i_mwr_work <= '0';
             i_mem_tpl_last <= '0';
@@ -318,67 +318,67 @@ if rising_edge(p_in_clk) then
 
             if i_urxbuf_rd = '1' then
 
-                i_s_axis_rq_tvalid <= '1';
+                i_axi_rq_tvalid <= '1';
 
-                i_s_axis_rq_tdata((32 * 2) - 1 downto (32 * 0)) <= std_logic_vector(RESIZE(i_mem_adr_byte(31 downto 2), (32 * 2) - 2) & "00");
+                i_axi_rq_tdata((32 * 2) - 1 downto (32 * 0)) <= std_logic_vector(RESIZE(i_mem_adr_byte(31 downto 2), (32 * 2) - 2) & "00");
 
-                i_s_axis_rq_tdata((32 * 2) + 10 downto (32 * 2) +  0) <= std_logic_vector(i_mem_tpl_dw(10 downto 0)); --DW count
-                i_s_axis_rq_tdata((32 * 2) + 14 downto (32 * 2) + 11) <= C_PCIE3_PKT_TYPE_MEM_WR_D; --Req Type
-                i_s_axis_rq_tdata((32 * 2) + 15) <= '0'; --Poisoned Request
-                i_s_axis_rq_tdata((32 * 2) + 31 downto (32 * 2) + 16) <= (others => '0'); --Req ID
+                i_axi_rq_tdata((32 * 2) + 10 downto (32 * 2) +  0) <= std_logic_vector(i_mem_tpl_dw(10 downto 0)); --DW count
+                i_axi_rq_tdata((32 * 2) + 14 downto (32 * 2) + 11) <= C_PCIE3_PKT_TYPE_MEM_WR_D; --Req Type
+                i_axi_rq_tdata((32 * 2) + 15) <= '0'; --Poisoned Request
+                i_axi_rq_tdata((32 * 2) + 31 downto (32 * 2) + 16) <= (others => '0'); --Req ID
 
-                i_s_axis_rq_tdata((32 * 3) +  7 downto (32 * 3) +  0) <= std_logic_vector(i_mem_tpl_tag(7 downto 0)); --Tag
-                i_s_axis_rq_tdata((32 * 3) + 23 downto (32 * 3) +  8) <= p_in_completer_id; --Completer ID
-                i_s_axis_rq_tdata((32 * 3) + 24) <= '0'; --Requester ID Enable
-                i_s_axis_rq_tdata((32 * 3) + 27 downto (32 * 3) + 25) <= (others => '0');--Transaction Class (TC)
-                i_s_axis_rq_tdata((32 * 3) + 28) <= '0'; --Attr (No Snoop)
-                i_s_axis_rq_tdata((32 * 3) + 29) <= '0'; --Attr (Relaxed Ordering)
-                i_s_axis_rq_tdata((32 * 3) + 30) <= '0'; --Attr (ID-Based Ordering)
-                i_s_axis_rq_tdata((32 * 3) + 31) <= '0'; --Force ECRC
+                i_axi_rq_tdata((32 * 3) +  7 downto (32 * 3) +  0) <= std_logic_vector(i_mem_tpl_tag(7 downto 0)); --Tag
+                i_axi_rq_tdata((32 * 3) + 23 downto (32 * 3) +  8) <= p_in_completer_id; --Completer ID
+                i_axi_rq_tdata((32 * 3) + 24) <= '0'; --Requester ID Enable
+                i_axi_rq_tdata((32 * 3) + 27 downto (32 * 3) + 25) <= (others => '0');--Transaction Class (TC)
+                i_axi_rq_tdata((32 * 3) + 28) <= '0'; --Attr (No Snoop)
+                i_axi_rq_tdata((32 * 3) + 29) <= '0'; --Attr (Relaxed Ordering)
+                i_axi_rq_tdata((32 * 3) + 30) <= '0'; --Attr (ID-Based Ordering)
+                i_axi_rq_tdata((32 * 3) + 31) <= '0'; --Force ECRC
 
                 --First DW BE, Last DW BE - only for address divided 32 byte
                 --1st DW Byte Enable (first_be)
                 if i_mem_tpl_dw = TO_UNSIGNED(16#01#, i_mem_tpl_dw'length) then
                 case i_mem_tpl_byte(1 downto 0) is
-                when "00" => i_s_axis_rq_tuser(3 downto 0) <= "1111";
-                when "01" => i_s_axis_rq_tuser(3 downto 0) <= "0001";
-                when "10" => i_s_axis_rq_tuser(3 downto 0) <= "0011";
-                when "11" => i_s_axis_rq_tuser(3 downto 0) <= "0111";
+                when "00" => i_axi_rq_tuser(3 downto 0) <= "1111";
+                when "01" => i_axi_rq_tuser(3 downto 0) <= "0001";
+                when "10" => i_axi_rq_tuser(3 downto 0) <= "0011";
+                when "11" => i_axi_rq_tuser(3 downto 0) <= "0111";
                 when others => null;
                 end case;
                 else
-                i_s_axis_rq_tuser(3 downto 0) <= "1111";
+                i_axi_rq_tuser(3 downto 0) <= "1111";
                 end if;
 
                 --Last DW Byte Enable (last_be)
                 if i_mem_tpl_dw = TO_UNSIGNED(16#01#, i_mem_tpl_dw'length) then
-                i_s_axis_rq_tuser(7 downto 4) <= "0000";
+                i_axi_rq_tuser(7 downto 4) <= "0000";
                 else
                 case i_mem_tpl_byte(1 downto 0) is
-                when "00" => i_s_axis_rq_tuser(7 downto 4) <= "1111";
-                when "01" => i_s_axis_rq_tuser(7 downto 4) <= "0001";
-                when "10" => i_s_axis_rq_tuser(7 downto 4) <= "0011";
-                when "11" => i_s_axis_rq_tuser(7 downto 4) <= "0111";
+                when "00" => i_axi_rq_tuser(7 downto 4) <= "1111";
+                when "01" => i_axi_rq_tuser(7 downto 4) <= "0001";
+                when "10" => i_axi_rq_tuser(7 downto 4) <= "0011";
+                when "11" => i_axi_rq_tuser(7 downto 4) <= "0111";
                 when others => null;
                 end case;
                 end if;
 
-                i_s_axis_rq_tuser(10 downto 8) <= (others => '0');--addr_offset; Used only in addres-alogen mode
-                i_s_axis_rq_tuser(11) <= '0';--Discontinue;
+                i_axi_rq_tuser(10 downto 8) <= (others => '0');--addr_offset; Used only in addres-alogen mode
+                i_axi_rq_tuser(11) <= '0';--Discontinue;
 --
---                i_s_axis_rq_tuser(12)           <= '0';            --TPH_present;
---                i_s_axis_rq_tuser(14 downto 13) <= (others => '0');--TPH_type;
---                i_s_axis_rq_tuser(15)           <= '0';            --TPH_indirect_tag_en;
---                i_s_axis_rq_tuser(23 downto 16) <= (others => '0');--TPH_st_tag;
+--                i_axi_rq_tuser(12)           <= '0';            --TPH_present;
+--                i_axi_rq_tuser(14 downto 13) <= (others => '0');--TPH_type;
+--                i_axi_rq_tuser(15)           <= '0';            --TPH_indirect_tag_en;
+--                i_axi_rq_tuser(23 downto 16) <= (others => '0');--TPH_st_tag;
 --
---                i_s_axis_rq_tuser(27 downto 24) <= (others => '0');--seq_num[3:0];
+--                i_axi_rq_tuser(27 downto 24) <= (others => '0');--seq_num[3:0];
 --
---                i_s_axis_rq_tuser(59 downto 28) <= (others => '0');--parity[31:0];
+--                i_axi_rq_tuser(59 downto 28) <= (others => '0');--parity[31:0];
 
 
                 i_mem_adr_byte <= i_mem_adr_byte + RESIZE(i_mem_tpl_byte, i_mem_adr_byte'length);
 
-                i_s_axis_rq_tdata((32 * 8) - 1 downto (32 * 4)) <= std_logic_vector(p_in_urxbuf_do((32 * 4) - 1 downto (32 * 0)));
+                i_axi_rq_tdata((32 * 8) - 1 downto (32 * 4)) <= std_logic_vector(p_in_urxbuf_do((32 * 4) - 1 downto (32 * 0)));
 
                 sr_usr_rxbuf_do((32 * 4) - 1 downto (32 * 0)) <= p_in_urxbuf_do((32 * 8) - 1 downto (32 * 4));
 
@@ -389,9 +389,9 @@ if rising_edge(p_in_clk) then
 
                     if i_mem_tpl_dw_rem(3 downto 0) < TO_UNSIGNED(4, 4) then
 
-                      i_s_axis_rq_tlast <= '0';
+                      i_axi_rq_tlast <= '0';
 
-                      i_s_axis_rq_tkeep(7 downto 0) <= "11111111"; --i_mem_tpl_dw_rem = (3...0)
+                      i_axi_rq_tkeep(7 downto 0) <= "11111111"; --i_mem_tpl_dw_rem = (3...0)
 
                       i_fsm_txrq <= S_TXRQ_MWR_DE;
 
@@ -400,16 +400,16 @@ if rising_edge(p_in_clk) then
                       i_mem_tpl_cnt <= (others => '0');
 
                       case (i_mem_tpl_dw_rem(1 downto 0)) is
-                      when "11" => i_s_axis_rq_tkeep(7 downto 4) <= "0001"; --i_mem_tpl_dw_rem = 7
-                      when "10" => i_s_axis_rq_tkeep(7 downto 4) <= "0011"; --i_mem_tpl_dw_rem = 6
-                      when "01" => i_s_axis_rq_tkeep(7 downto 4) <= "0111"; --i_mem_tpl_dw_rem = 5
-                      when "00" => i_s_axis_rq_tkeep(7 downto 4) <= "1111"; --i_mem_tpl_dw_rem = 4
+                      when "11" => i_axi_rq_tkeep(7 downto 4) <= "0001"; --i_mem_tpl_dw_rem = 7
+                      when "10" => i_axi_rq_tkeep(7 downto 4) <= "0011"; --i_mem_tpl_dw_rem = 6
+                      when "01" => i_axi_rq_tkeep(7 downto 4) <= "0111"; --i_mem_tpl_dw_rem = 5
+                      when "00" => i_axi_rq_tkeep(7 downto 4) <= "1111"; --i_mem_tpl_dw_rem = 4
                       when others => null;
                       end case;
 
-                      i_s_axis_rq_tkeep(3 downto 0) <= "1111";
+                      i_axi_rq_tkeep(3 downto 0) <= "1111";
 
-                      i_s_axis_rq_tlast <= '1';
+                      i_axi_rq_tlast <= '1';
 
                       i_mem_tpl_tag <= i_mem_tpl_tag + 1;
 
@@ -430,9 +430,9 @@ if rising_edge(p_in_clk) then
 
                     i_mem_tpl_cnt <= i_mem_tpl_cnt + 1;
 
-                    i_s_axis_rq_tlast <= '0';
+                    i_axi_rq_tlast <= '0';
 
-                    i_s_axis_rq_tkeep(7 downto 0) <= "11111111";
+                    i_axi_rq_tkeep(7 downto 0) <= "11111111";
 
                     i_fsm_txrq <= S_TXRQ_MWR_DN;
 
@@ -446,10 +446,10 @@ if rising_edge(p_in_clk) then
 
             if (i_urxbuf_rd = '1') then
 
-                i_s_axis_rq_tvalid <= '1';
+                i_axi_rq_tvalid <= '1';
 
-                i_s_axis_rq_tdata((32 * 4) - 1 downto (32 * 0)) <= std_logic_vector(sr_usr_rxbuf_do((32 * 4) - 1 downto (32 * 0)));
-                i_s_axis_rq_tdata((32 * 8) - 1 downto (32 * 4)) <= std_logic_vector(p_in_urxbuf_do((32 * 4) - 1 downto (32 * 0)));
+                i_axi_rq_tdata((32 * 4) - 1 downto (32 * 0)) <= std_logic_vector(sr_usr_rxbuf_do((32 * 4) - 1 downto (32 * 0)));
+                i_axi_rq_tdata((32 * 8) - 1 downto (32 * 4)) <= std_logic_vector(p_in_urxbuf_do((32 * 4) - 1 downto (32 * 0)));
 
                 sr_usr_rxbuf_do((32 * 4) - 1 downto (32 * 0)) <= p_in_urxbuf_do((32 * 8) - 1 downto (32 * 4));
 
@@ -460,9 +460,9 @@ if rising_edge(p_in_clk) then
 
                     if i_mem_tpl_dw_rem(3 downto 0) < TO_UNSIGNED(4, 4) then
 
-                      i_s_axis_rq_tlast <= '0';
+                      i_axi_rq_tlast <= '0';
 
-                      i_s_axis_rq_tkeep(7 downto 0) <= "11111111"; --i_mem_tpl_dw_rem = (3...0)
+                      i_axi_rq_tkeep(7 downto 0) <= "11111111"; --i_mem_tpl_dw_rem = (3...0)
 
                       i_fsm_txrq <= S_TXRQ_MWR_DE;
 
@@ -471,16 +471,16 @@ if rising_edge(p_in_clk) then
                         i_mem_tpl_cnt <= (others => '0');
 
                         case (i_mem_tpl_dw_rem(1 downto 0)) is
-                        when "11" => i_s_axis_rq_tkeep(7 downto 4) <= "0001"; --i_mem_tpl_dw_rem = 7
-                        when "10" => i_s_axis_rq_tkeep(7 downto 4) <= "0011"; --i_mem_tpl_dw_rem = 6
-                        when "01" => i_s_axis_rq_tkeep(7 downto 4) <= "0111"; --i_mem_tpl_dw_rem = 5
-                        when "00" => i_s_axis_rq_tkeep(7 downto 4) <= "1111"; --i_mem_tpl_dw_rem = 4
+                        when "11" => i_axi_rq_tkeep(7 downto 4) <= "0001"; --i_mem_tpl_dw_rem = 7
+                        when "10" => i_axi_rq_tkeep(7 downto 4) <= "0011"; --i_mem_tpl_dw_rem = 6
+                        when "01" => i_axi_rq_tkeep(7 downto 4) <= "0111"; --i_mem_tpl_dw_rem = 5
+                        when "00" => i_axi_rq_tkeep(7 downto 4) <= "1111"; --i_mem_tpl_dw_rem = 4
                         when others => null;
                         end case;
 
-                        i_s_axis_rq_tkeep(3 downto 0) <= "1111";
+                        i_axi_rq_tkeep(3 downto 0) <= "1111";
 
-                        i_s_axis_rq_tlast <= '1';
+                        i_axi_rq_tlast <= '1';
 
                         i_mem_tpl_tag <= i_mem_tpl_tag + 1;
 
@@ -501,15 +501,15 @@ if rising_edge(p_in_clk) then
 
                     i_mem_tpl_cnt <= i_mem_tpl_cnt + 1;
 
-                    i_s_axis_rq_tlast <= '0';
+                    i_axi_rq_tlast <= '0';
 
                     i_fsm_txrq <= S_TXRQ_MWR_DN;
 
                 end if;
 
-            elsif p_in_s_axis_rq_tready = '1' and p_in_urxbuf_empty = '1' then
+            elsif p_in_axi_rq_tready = '1' and p_in_urxbuf_empty = '1' then
 
-              i_s_axis_rq_tvalid <= '0';
+              i_axi_rq_tvalid <= '0';
 
 --            elsif trn_tdst_rdy_n = '1' then
 --
@@ -521,25 +521,25 @@ if rising_edge(p_in_clk) then
 
         when S_TXRQ_MWR_DE =>
 
-            if p_in_s_axis_rq_tready = '1' then
+            if p_in_axi_rq_tready = '1' then
 
                 i_mem_tpl_cnt <= (others => '0');
 
-                i_s_axis_rq_tdata((32 * 4) - 1 downto (32 * 0)) <= std_logic_vector(sr_usr_rxbuf_do((32 * 4) - 1 downto (32 * 0)));
-                i_s_axis_rq_tdata((32 * 8) - 1 downto (32 * 4)) <= (others => '0');
+                i_axi_rq_tdata((32 * 4) - 1 downto (32 * 0)) <= std_logic_vector(sr_usr_rxbuf_do((32 * 4) - 1 downto (32 * 0)));
+                i_axi_rq_tdata((32 * 8) - 1 downto (32 * 4)) <= (others => '0');
 
                 case (i_mem_tpl_dw_rem(1 downto 0)) is
-                when "11" => i_s_axis_rq_tkeep(3 downto 0) <= "0001"; --i_mem_tpl_dw_rem = 3
-                when "10" => i_s_axis_rq_tkeep(3 downto 0) <= "0011"; --i_mem_tpl_dw_rem = 2
-                when "01" => i_s_axis_rq_tkeep(3 downto 0) <= "0111"; --i_mem_tpl_dw_rem = 1
-                when "00" => i_s_axis_rq_tkeep(3 downto 0) <= "1111"; --i_mem_tpl_dw_rem = 0
+                when "11" => i_axi_rq_tkeep(3 downto 0) <= "0001"; --i_mem_tpl_dw_rem = 3
+                when "10" => i_axi_rq_tkeep(3 downto 0) <= "0011"; --i_mem_tpl_dw_rem = 2
+                when "01" => i_axi_rq_tkeep(3 downto 0) <= "0111"; --i_mem_tpl_dw_rem = 1
+                when "00" => i_axi_rq_tkeep(3 downto 0) <= "1111"; --i_mem_tpl_dw_rem = 0
                 when others => null;
                 end case;
 
-                i_s_axis_rq_tkeep(7 downto 4) <= "0000";
+                i_axi_rq_tkeep(7 downto 4) <= "0000";
 
-                i_s_axis_rq_tvalid <= '1';
-                i_s_axis_rq_tlast <= '1';
+                i_axi_rq_tvalid <= '1';
+                i_axi_rq_tlast <= '1';
 
                 i_mem_tpl_tag <= i_mem_tpl_tag + 1;
 
@@ -577,69 +577,69 @@ if rising_edge(p_in_clk) then
 
         when S_TXRQ_MRD_N =>
 
-            if p_in_s_axis_rq_tready = '1' then
+            if p_in_axi_rq_tready = '1' then
 
-                i_s_axis_rq_tdata((32 * 2) - 1 downto (32 * 0)) <= std_logic_vector(RESIZE(i_mem_adr_byte(31 downto 2), (32 * 2) - 2) & "00");
+                i_axi_rq_tdata((32 * 2) - 1 downto (32 * 0)) <= std_logic_vector(RESIZE(i_mem_adr_byte(31 downto 2), (32 * 2) - 2) & "00");
 
-                i_s_axis_rq_tdata((32 * 2) + 10 downto (32 * 2) +  0) <= std_logic_vector(i_mem_tpl_dw(10 downto 0)); --DW count
-                i_s_axis_rq_tdata((32 * 2) + 14 downto (32 * 2) + 11) <= C_PCIE3_PKT_TYPE_MEM_RD_ND; --Req Type
-                i_s_axis_rq_tdata((32 * 2) + 15) <= '0'; --Poisoned Request
-                i_s_axis_rq_tdata((32 * 2) + 31 downto (32 * 2) + 16) <= (others => '0'); --Req ID
+                i_axi_rq_tdata((32 * 2) + 10 downto (32 * 2) +  0) <= std_logic_vector(i_mem_tpl_dw(10 downto 0)); --DW count
+                i_axi_rq_tdata((32 * 2) + 14 downto (32 * 2) + 11) <= C_PCIE3_PKT_TYPE_MEM_RD_ND; --Req Type
+                i_axi_rq_tdata((32 * 2) + 15) <= '0'; --Poisoned Request
+                i_axi_rq_tdata((32 * 2) + 31 downto (32 * 2) + 16) <= (others => '0'); --Req ID
 
-                i_s_axis_rq_tdata((32 * 3) +  7 downto (32 * 3) +  0) <= std_logic_vector(i_mem_tpl_tag(7 downto 0)); --Tag
-                i_s_axis_rq_tdata((32 * 3) + 23 downto (32 * 3) +  8) <= p_in_completer_id; --Completer ID
-                i_s_axis_rq_tdata((32 * 3) + 24) <= '0'; --Requester ID Enable
-                i_s_axis_rq_tdata((32 * 3) + 27 downto (32 * 3) + 25) <= (others => '0');--Transaction Class (TC)
-                i_s_axis_rq_tdata((32 * 3) + 28) <= '0'; --Attr (No Snoop)
-                i_s_axis_rq_tdata((32 * 3) + 29) <= '0'; --Attr (Relaxed Ordering)
-                i_s_axis_rq_tdata((32 * 3) + 30) <= '0'; --Attr (ID-Based Ordering)
-                i_s_axis_rq_tdata((32 * 3) + 31) <= '0'; --Force ECRC
+                i_axi_rq_tdata((32 * 3) +  7 downto (32 * 3) +  0) <= std_logic_vector(i_mem_tpl_tag(7 downto 0)); --Tag
+                i_axi_rq_tdata((32 * 3) + 23 downto (32 * 3) +  8) <= p_in_completer_id; --Completer ID
+                i_axi_rq_tdata((32 * 3) + 24) <= '0'; --Requester ID Enable
+                i_axi_rq_tdata((32 * 3) + 27 downto (32 * 3) + 25) <= (others => '0');--Transaction Class (TC)
+                i_axi_rq_tdata((32 * 3) + 28) <= '0'; --Attr (No Snoop)
+                i_axi_rq_tdata((32 * 3) + 29) <= '0'; --Attr (Relaxed Ordering)
+                i_axi_rq_tdata((32 * 3) + 30) <= '0'; --Attr (ID-Based Ordering)
+                i_axi_rq_tdata((32 * 3) + 31) <= '0'; --Force ECRC
 
-                i_s_axis_rq_tdata((32 * 8) - 1 downto (32 * 4)) <= (others => '0');
+                i_axi_rq_tdata((32 * 8) - 1 downto (32 * 4)) <= (others => '0');
 
-                i_s_axis_rq_tkeep(7 downto 0) <= "00001111";
+                i_axi_rq_tkeep(7 downto 0) <= "00001111";
 
-                i_s_axis_rq_tvalid <= '1';
-                i_s_axis_rq_tlast <= '1';
+                i_axi_rq_tvalid <= '1';
+                i_axi_rq_tlast <= '1';
 
                 --First DW BE, Last DW BE - only for address divided 32 byte
                 --1st DW Byte Enable (first_be)
                 if i_mem_tpl_dw = TO_UNSIGNED(16#01#, i_mem_tpl_dw'length) then
                 case i_mem_tpl_byte(1 downto 0) is
-                when "00" => i_s_axis_rq_tuser(3 downto 0) <= "1111";
-                when "01" => i_s_axis_rq_tuser(3 downto 0) <= "0001";
-                when "10" => i_s_axis_rq_tuser(3 downto 0) <= "0011";
-                when "11" => i_s_axis_rq_tuser(3 downto 0) <= "0111";
+                when "00" => i_axi_rq_tuser(3 downto 0) <= "1111";
+                when "01" => i_axi_rq_tuser(3 downto 0) <= "0001";
+                when "10" => i_axi_rq_tuser(3 downto 0) <= "0011";
+                when "11" => i_axi_rq_tuser(3 downto 0) <= "0111";
                 when others => null;
                 end case;
                 else
-                i_s_axis_rq_tuser(3 downto 0) <= "1111";
+                i_axi_rq_tuser(3 downto 0) <= "1111";
                 end if;
 
                 --Last DW Byte Enable (last_be)
                 if i_mem_tpl_dw = TO_UNSIGNED(16#01#, i_mem_tpl_dw'length) then
-                i_s_axis_rq_tuser(7 downto 4) <= "0000";
+                i_axi_rq_tuser(7 downto 4) <= "0000";
                 else
                 case i_mem_tpl_byte(1 downto 0) is
-                when "00" => i_s_axis_rq_tuser(7 downto 4) <= "1111";
-                when "01" => i_s_axis_rq_tuser(7 downto 4) <= "0001";
-                when "10" => i_s_axis_rq_tuser(7 downto 4) <= "0011";
-                when "11" => i_s_axis_rq_tuser(7 downto 4) <= "0111";
+                when "00" => i_axi_rq_tuser(7 downto 4) <= "1111";
+                when "01" => i_axi_rq_tuser(7 downto 4) <= "0001";
+                when "10" => i_axi_rq_tuser(7 downto 4) <= "0011";
+                when "11" => i_axi_rq_tuser(7 downto 4) <= "0111";
                 when others => null;
                 end case;
                 end if;
 
-                i_s_axis_rq_tuser(10 downto 8) <= (others => '0');--addr_offset; ################  ????????????????  ##################
-                i_s_axis_rq_tuser(11) <= '0';--Discontinue;
+                i_axi_rq_tuser(10 downto 8) <= (others => '0');--addr_offset; ################  ????????????????  ##################
+                i_axi_rq_tuser(11) <= '0';--Discontinue;
 --
---                i_s_axis_rq_tuser(12)           <= '0';            --TPH_present;
---                i_s_axis_rq_tuser(14 downto 13) <= (others => '0');--TPH_type;
---                i_s_axis_rq_tuser(15)           <= '0';            --TPH_indirect_tag_en;
---                i_s_axis_rq_tuser(23 downto 16) <= (others => '0');--TPH_st_tag;
+--                i_axi_rq_tuser(12)           <= '0';            --TPH_present;
+--                i_axi_rq_tuser(14 downto 13) <= (others => '0');--TPH_type;
+--                i_axi_rq_tuser(15)           <= '0';            --TPH_indirect_tag_en;
+--                i_axi_rq_tuser(23 downto 16) <= (others => '0');--TPH_st_tag;
 --
---                i_s_axis_rq_tuser(27 downto 24) <= (others => '0');--seq_num[3:0];
+--                i_axi_rq_tuser(27 downto 24) <= (others => '0');--seq_num[3:0];
 --
---                i_s_axis_rq_tuser(59 downto 28) <= (others => '0');--parity[31:0];
+--                i_axi_rq_tuser(59 downto 28) <= (others => '0');--parity[31:0];
 
 
                 i_mem_adr_byte <= i_mem_adr_byte + RESIZE(i_mem_tpl_byte, i_mem_adr_byte'length);
@@ -660,11 +660,11 @@ if rising_edge(p_in_clk) then
 
         when S_TXRQ_CPLD_WAIT =>
 
---          i_s_axis_rq_tdata  <= (others => '0');
-          i_s_axis_rq_tkeep  <= (others => '0');
-          i_s_axis_rq_tlast  <= '0';
-          i_s_axis_rq_tvalid <= '0';
-          i_s_axis_rq_tuser  <= (others => '0');
+--          i_axi_rq_tdata  <= (others => '0');
+          i_axi_rq_tkeep  <= (others => '0');
+          i_axi_rq_tlast  <= '0';
+          i_axi_rq_tvalid <= '0';
+          i_axi_rq_tuser  <= (others => '0');
 
           i_mwr_work <= '0';
           i_mem_tpl_last <= '0';
@@ -699,11 +699,11 @@ tst_fsm <= TO_UNSIGNED(8, tst_fsm'length) when i_fsm_txrq = S_TXRQ_CPLD_WAIT els
 p_out_tst(3 downto 0) <= std_logic_vector(tst_fsm);
 p_out_tst(7 downto 4) <= (others => '0');
 
-p_out_tst(8) <= i_s_axis_rq_tvalid;
-p_out_tst(9) <= i_s_axis_rq_tlast;
-p_out_tst(10) <= p_in_s_axis_rq_tready;
-p_out_tst(266 downto 11)  <= std_logic_vector(RESIZE(UNSIGNED(i_s_axis_rq_tdata), 256));
-p_out_tst(274 downto 267) <= std_logic_vector(RESIZE(UNSIGNED(i_s_axis_rq_tkeep), 8));
+p_out_tst(8) <= i_axi_rq_tvalid;
+p_out_tst(9) <= i_axi_rq_tlast;
+p_out_tst(10) <= p_in_axi_rq_tready;
+p_out_tst(266 downto 11)  <= std_logic_vector(RESIZE(UNSIGNED(i_axi_rq_tdata), 256));
+p_out_tst(274 downto 267) <= std_logic_vector(RESIZE(UNSIGNED(i_axi_rq_tkeep), 8));
 p_out_tst(279 downto 275) <= (others => '0');
 
 end architecture behavioral;

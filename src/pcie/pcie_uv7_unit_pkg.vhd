@@ -44,23 +44,23 @@ G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
 );
 port (
 -- Completer Request Interface
-p_in_m_axis_cq_tdata      : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_in_m_axis_cq_tlast      : in  std_logic;
-p_in_m_axis_cq_tvalid     : in  std_logic;
-p_in_m_axis_cq_tuser      : in  std_logic_vector(84 downto 0);
-p_in_m_axis_cq_tkeep      : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-p_out_m_axis_cq_tready    : out std_logic;
+p_in_axi_cq_tdata    : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_in_axi_cq_tlast    : in  std_logic;
+p_in_axi_cq_tvalid   : in  std_logic;
+p_in_axi_cq_tuser    : in  std_logic_vector(84 downto 0);
+p_in_axi_cq_tkeep    : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_axi_cq_tready  : out std_logic;
 
 p_in_pcie_cq_np_req_count : in  std_logic_vector(5 downto 0);
 p_out_pcie_cq_np_req      : out std_logic;
 
 -- Requester Completion Interface
-p_in_m_axis_rc_tdata    : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_in_m_axis_rc_tlast    : in  std_logic;
-p_in_m_axis_rc_tvalid   : in  std_logic;
-p_in_m_axis_rc_tkeep    : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-p_in_m_axis_rc_tuser    : in  std_logic_vector(74 downto 0);
-p_out_m_axis_rc_tready  : out std_logic;
+p_in_axi_rc_tdata    : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_in_axi_rc_tlast    : in  std_logic;
+p_in_axi_rc_tvalid   : in  std_logic;
+p_in_axi_rc_tkeep    : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_axi_rc_tuser    : in  std_logic_vector(74 downto 0);
+p_out_axi_rc_tready  : out std_logic;
 
 --RX Message Interface
 p_in_cfg_msg_received      : in  std_logic;
@@ -119,20 +119,20 @@ G_STRB_WIDTH   : integer := 64 / 8
 );
 port (
 --AXI-S Completer Competion Interface
-p_out_s_axis_cc_tdata  : out std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_out_s_axis_cc_tkeep  : out std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-p_out_s_axis_cc_tlast  : out std_logic;
-p_out_s_axis_cc_tvalid : out std_logic;
-p_out_s_axis_cc_tuser  : out std_logic_vector(32 downto 0);
-p_in_s_axis_cc_tready  : in  std_logic;
+p_out_axi_cc_tdata  : out std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_out_axi_cc_tkeep  : out std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_axi_cc_tlast  : out std_logic;
+p_out_axi_cc_tvalid : out std_logic;
+p_out_axi_cc_tuser  : out std_logic_vector(32 downto 0);
+p_in_axi_cc_tready  : in  std_logic;
 
 --AXI-S Requester Request Interface
-p_out_s_axis_rq_tdata  : out std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_out_s_axis_rq_tkeep  : out std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-p_out_s_axis_rq_tlast  : out std_logic;
-p_out_s_axis_rq_tvalid : out std_logic;
-p_out_s_axis_rq_tuser  : out std_logic_vector(59 downto 0);
-p_in_s_axis_rq_tready  : in  std_logic;
+p_out_axi_rq_tdata  : out std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_out_axi_rq_tkeep  : out std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_axi_rq_tlast  : out std_logic;
+p_out_axi_rq_tvalid : out std_logic;
+p_out_axi_rq_tuser  : out std_logic_vector(59 downto 0);
+p_in_axi_rq_tready  : in  std_logic;
 
 --TX Message Interface
 p_in_cfg_msg_transmit_done  : in  std_logic;

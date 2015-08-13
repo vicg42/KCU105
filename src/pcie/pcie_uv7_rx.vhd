@@ -31,22 +31,22 @@ G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
 );
 port(
 -- Completer Request Interface
-p_in_m_axis_cq_tdata      : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_in_m_axis_cq_tlast      : in  std_logic;
-p_in_m_axis_cq_tvalid     : in  std_logic;
-p_in_m_axis_cq_tuser      : in  std_logic_vector(84 downto 0);
-p_in_m_axis_cq_tkeep      : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_axi_cq_tdata      : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_in_axi_cq_tlast      : in  std_logic;
+p_in_axi_cq_tvalid     : in  std_logic;
+p_in_axi_cq_tuser      : in  std_logic_vector(84 downto 0);
+p_in_axi_cq_tkeep      : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
 p_in_pcie_cq_np_req_count : in  std_logic_vector(5 downto 0);
-p_out_m_axis_cq_tready    : out std_logic;
+p_out_axi_cq_tready    : out std_logic;
 p_out_pcie_cq_np_req      : out std_logic;
 
 -- Requester Completion Interface
-p_in_m_axis_rc_tdata    : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_in_m_axis_rc_tlast    : in  std_logic;
-p_in_m_axis_rc_tvalid   : in  std_logic;
-p_in_m_axis_rc_tkeep    : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-p_in_m_axis_rc_tuser    : in  std_logic_vector(74 downto 0);
-p_out_m_axis_rc_tready  : out std_logic;
+p_in_axi_rc_tdata    : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_in_axi_rc_tlast    : in  std_logic;
+p_in_axi_rc_tvalid   : in  std_logic;
+p_in_axi_rc_tkeep    : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_axi_rc_tuser    : in  std_logic_vector(74 downto 0);
+p_out_axi_rc_tready  : out std_logic;
 
 --RX Message Interface
 p_in_cfg_msg_received      : in  std_logic;
@@ -101,12 +101,12 @@ G_KEEP_WIDTH : integer := 64 / 32
 );
 port(
 -- Completer Request Interface
-p_in_m_axis_cq_tdata      : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_in_m_axis_cq_tlast      : in  std_logic;
-p_in_m_axis_cq_tvalid     : in  std_logic;
-p_in_m_axis_cq_tuser      : in  std_logic_vector(84 downto 0);
-p_in_m_axis_cq_tkeep      : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-p_out_m_axis_cq_tready    : out std_logic;
+p_in_axi_cq_tdata      : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_in_axi_cq_tlast      : in  std_logic;
+p_in_axi_cq_tvalid     : in  std_logic;
+p_in_axi_cq_tuser      : in  std_logic_vector(84 downto 0);
+p_in_axi_cq_tkeep      : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_axi_cq_tready    : out std_logic;
 
 p_in_pcie_cq_np_req_count : in  std_logic_vector(5 downto 0);
 p_out_pcie_cq_np_req      : out std_logic;
@@ -154,12 +154,12 @@ G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
 );
 port(
 -- Requester Completion Interface
-p_in_m_axis_rc_tdata    : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_in_m_axis_rc_tlast    : in  std_logic;
-p_in_m_axis_rc_tvalid   : in  std_logic;
-p_in_m_axis_rc_tkeep    : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-p_in_m_axis_rc_tuser    : in  std_logic_vector(74 downto 0);
-p_out_m_axis_rc_tready  : out std_logic;
+p_in_axi_rc_tdata    : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_in_axi_rc_tlast    : in  std_logic;
+p_in_axi_rc_tvalid   : in  std_logic;
+p_in_axi_rc_tkeep    : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_axi_rc_tuser    : in  std_logic_vector(74 downto 0);
+p_out_axi_rc_tready  : out std_logic;
 
 --Completion
 p_in_dma_init      : in  std_logic;
@@ -199,12 +199,12 @@ G_KEEP_WIDTH   => G_KEEP_WIDTH
 )
 port map(
 --Completer Request Interface
-p_in_m_axis_cq_tdata   => p_in_m_axis_cq_tdata  ,
-p_in_m_axis_cq_tlast   => p_in_m_axis_cq_tlast  ,
-p_in_m_axis_cq_tvalid  => p_in_m_axis_cq_tvalid ,
-p_in_m_axis_cq_tuser   => p_in_m_axis_cq_tuser  ,
-p_in_m_axis_cq_tkeep   => p_in_m_axis_cq_tkeep  ,
-p_out_m_axis_cq_tready => p_out_m_axis_cq_tready,
+p_in_axi_cq_tdata   => p_in_axi_cq_tdata  ,
+p_in_axi_cq_tlast   => p_in_axi_cq_tlast  ,
+p_in_axi_cq_tvalid  => p_in_axi_cq_tvalid ,
+p_in_axi_cq_tuser   => p_in_axi_cq_tuser  ,
+p_in_axi_cq_tkeep   => p_in_axi_cq_tkeep  ,
+p_out_axi_cq_tready => p_out_axi_cq_tready,
 
 p_in_pcie_cq_np_req_count => p_in_pcie_cq_np_req_count,
 p_out_pcie_cq_np_req      => p_out_pcie_cq_np_req     ,
@@ -251,12 +251,12 @@ G_PARITY_WIDTH => G_PARITY_WIDTH
 )
 port map(
 -- Requester Completion Interface
-p_in_m_axis_rc_tdata   => p_in_m_axis_rc_tdata  ,
-p_in_m_axis_rc_tlast   => p_in_m_axis_rc_tlast  ,
-p_in_m_axis_rc_tvalid  => p_in_m_axis_rc_tvalid ,
-p_in_m_axis_rc_tkeep   => p_in_m_axis_rc_tkeep  ,
-p_in_m_axis_rc_tuser   => p_in_m_axis_rc_tuser  ,
-p_out_m_axis_rc_tready => p_out_m_axis_rc_tready,
+p_in_axi_rc_tdata   => p_in_axi_rc_tdata  ,
+p_in_axi_rc_tlast   => p_in_axi_rc_tlast  ,
+p_in_axi_rc_tvalid  => p_in_axi_rc_tvalid ,
+p_in_axi_rc_tkeep   => p_in_axi_rc_tkeep  ,
+p_in_axi_rc_tuser   => p_in_axi_rc_tuser  ,
+p_out_axi_rc_tready => p_out_axi_rc_tready,
 
 --Completion
 p_in_dma_init      => p_in_dma_init     ,
@@ -280,7 +280,7 @@ p_in_clk   => p_in_clk,
 p_in_rst_n => p_in_rst_n
 );
 
---p_out_m_axis_rc_tready <= '1';
+--p_out_axi_rc_tready <= '1';
 
 end architecture behavioral;
 

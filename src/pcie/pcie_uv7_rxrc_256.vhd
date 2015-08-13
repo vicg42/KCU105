@@ -31,12 +31,12 @@ G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
 );
 port(
 -- Requester Completion Interface
-p_in_m_axis_rc_tdata    : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_in_m_axis_rc_tlast    : in  std_logic;
-p_in_m_axis_rc_tvalid   : in  std_logic;
-p_in_m_axis_rc_tkeep    : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-p_in_m_axis_rc_tuser    : in  std_logic_vector(74 downto 0);
-p_out_m_axis_rc_tready  : out std_logic;
+p_in_axi_rc_tdata    : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_in_axi_rc_tlast    : in  std_logic;
+p_in_axi_rc_tvalid   : in  std_logic;
+p_in_axi_rc_tkeep    : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_axi_rc_tuser    : in  std_logic_vector(74 downto 0);
+p_out_axi_rc_tready  : out std_logic;
 
 --Completion
 p_in_dma_init      : in  std_logic;
@@ -88,7 +88,7 @@ signal i_cpld_dw_t           : unsigned(10 downto 0);
 signal i_cpld_dw_rem         : unsigned(10 downto 0);
 signal i_cpld_len            : unsigned(10 downto 0);
 
-signal i_m_axis_rc_tready    : std_logic;
+signal i_axi_rc_tready    : std_logic;
 
 type TByteEn is array (0 to (G_DATA_WIDTH / 8) - 1) of std_logic_vector(3 downto 0);
 signal sr_axi_be             : TByteEn;
@@ -105,7 +105,7 @@ begin --architecture behavioral of pcie_rx_rc
 
 
 gen : for i in 0 to 7 generate begin
-i_axi_data(i) <= p_in_m_axis_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
+i_axi_data(i) <= p_in_axi_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
 end generate;
 
 i_utxbuf_di(0) <= sr_axi_data(3);
@@ -127,17 +127,17 @@ p_out_dma_mrd_done <= i_mrd_done;
 
 p_out_dma_mrd_rxdwcount <= std_logic_vector(i_dma_dw_cnt);
 
-p_out_m_axis_rc_tready <= i_m_axis_rc_tready and not p_in_utxbuf_full;
+p_out_axi_rc_tready <= i_axi_rc_tready and not p_in_utxbuf_full;
 
---i_m_axis_rc_tready <= not p_in_utxbuf_full;
+--i_axi_rc_tready <= not p_in_utxbuf_full;
 
 
-i_sof(0) <= p_in_m_axis_rc_tuser(32);
-i_sof(1) <= p_in_m_axis_rc_tuser(33);
---i_eof_0 <= p_in_m_axis_rc_tuser(37 downto 34);
---i_eof_1 <= p_in_m_axis_rc_tuser(41 downto 38);
+i_sof(0) <= p_in_axi_rc_tuser(32);
+i_sof(1) <= p_in_axi_rc_tuser(33);
+--i_eof_0 <= p_in_axi_rc_tuser(37 downto 34);
+--i_eof_1 <= p_in_axi_rc_tuser(41 downto 38);
 
---i_disc <= p_in_m_axis_rc_tuser(42);
+--i_disc <= p_in_axi_rc_tuser(42);
 
 
 --DMA initialization
@@ -182,7 +182,7 @@ if rising_edge(p_in_clk) then
     sr_axi_be(i) <= (others => '0');
     end loop;
 
-    i_m_axis_rc_tready <= '0';
+    i_axi_rc_tready <= '0';
 
     i_cpld_tlp_work <= '0';
 
@@ -218,7 +218,7 @@ if rising_edge(p_in_clk) then
 
               end if;
 
-              i_m_axis_rc_tready <= '1';
+              i_axi_rc_tready <= '1';
               i_fsm_rx <= S_RX_DH;
 
             else
@@ -235,13 +235,13 @@ if rising_edge(p_in_clk) then
             err_out := (others => '0');
 
             if i_sof(0) = '1' and i_sof(1) = '0' and p_in_dma_mrd_en = '1'
-                and p_in_m_axis_rc_tvalid = '1' and p_in_utxbuf_full = '0' then
+                and p_in_axi_rc_tvalid = '1' and p_in_utxbuf_full = '0' then
 
-                if p_in_m_axis_rc_tkeep(2 downto 0) = "111" then
+                if p_in_axi_rc_tkeep(2 downto 0) = "111" then
 
                       for i in 3 to sr_axi_data'length - 1 loop
                       sr_axi_data(i) <= i_axi_data(i); --user data
-                      sr_axi_be(i) <= p_in_m_axis_rc_tuser((i * 4) + 3 downto (i * 4));
+                      sr_axi_be(i) <= p_in_axi_rc_tuser((i * 4) + 3 downto (i * 4));
                       end loop;
 
                       --Check Completion Status
@@ -262,7 +262,7 @@ if rising_edge(p_in_clk) then
 
                           else
 
-                              if p_in_m_axis_rc_tlast = '1' then
+                              if p_in_axi_rc_tlast = '1' then
 
                                   if (i_dma_dw_cnt + RESIZE(i_cpld_dw_t, i_cpld_dw_cnt'length)) = i_dma_dw_len then
                                     i_mrd_done <= '1';
@@ -272,7 +272,7 @@ if rising_edge(p_in_clk) then
 
                                   i_dma_dw_cnt <= i_dma_dw_cnt + RESIZE(i_cpld_dw_t, i_cpld_dw_cnt'length);
 
-                                  i_m_axis_rc_tready <= '0';
+                                  i_axi_rc_tready <= '0';
                                   i_fsm_rx <= S_RX_IDLE;
                               end if;
 
@@ -298,14 +298,14 @@ if rising_edge(p_in_clk) then
         --#######################################################################
         when S_RX_DN =>
 
-            if p_in_m_axis_rc_tvalid = '1' and p_in_utxbuf_full = '0' then
+            if p_in_axi_rc_tvalid = '1' and p_in_utxbuf_full = '0' then
 
                 for i in 0 to i_axi_data'length - 1 loop
                 sr_axi_data(i) <= i_axi_data(i); --user data
-                sr_axi_be(i) <= p_in_m_axis_rc_tuser((i * 4) + 3 downto (i * 4));
+                sr_axi_be(i) <= p_in_axi_rc_tuser((i * 4) + 3 downto (i * 4));
                 end loop;
 
-                if p_in_m_axis_rc_tlast = '1' then
+                if p_in_axi_rc_tlast = '1' then
 
                     if i_cpld_dw_rem(3 downto 0) < TO_UNSIGNED(3, 4) then
 
@@ -323,7 +323,7 @@ if rising_edge(p_in_clk) then
 
                     else
 
-                      i_m_axis_rc_tready <= '0';
+                      i_axi_rc_tready <= '0';
                       i_fsm_rx <= S_RX_DE;
 
                     end if;
@@ -338,7 +338,7 @@ if rising_edge(p_in_clk) then
             if p_in_utxbuf_full = '0' then
 
                 i_cpld_tlp_work <= '0';
-                i_m_axis_rc_tready <= '0';
+                i_axi_rc_tready <= '0';
 
                 if (i_dma_dw_cnt + RESIZE(i_cpld_dw, i_cpld_dw_cnt'length)) = i_dma_dw_len then
                   i_mrd_done <= '1';

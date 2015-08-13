@@ -29,12 +29,12 @@ G_PARITY_WIDTH : integer := 64 / 8   --TPARITY width
 );
 port(
 --AXI-S Completer Competion Interface
-p_out_s_axis_cc_tdata  : out std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_out_s_axis_cc_tkeep  : out std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-p_out_s_axis_cc_tlast  : out std_logic;
-p_out_s_axis_cc_tvalid : out std_logic;
-p_out_s_axis_cc_tuser  : out std_logic_vector(32 downto 0);
-p_in_s_axis_cc_tready  : in  std_logic;
+p_out_axi_cc_tdata  : out std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_out_axi_cc_tkeep  : out std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_axi_cc_tlast  : out std_logic;
+p_out_axi_cc_tvalid : out std_logic;
+p_out_axi_cc_tuser  : out std_logic_vector(32 downto 0);
+p_in_axi_cc_tready  : in  std_logic;
 
 --TX Message Interface
 p_in_cfg_msg_transmit_done  : in  std_logic;
@@ -80,13 +80,13 @@ S_TX_CPL
 );
 signal i_fsm_tx              : TFsmTx_state;
 
-signal i_s_axis_cc_tparity: std_logic_vector(31 downto 0) := (others => '0');
+signal i_axi_cc_tparity: std_logic_vector(31 downto 0) := (others => '0');
 
-signal i_s_axis_cc_tdata  : std_logic_vector(127 downto 0);
-signal i_s_axis_cc_tkeep  : std_logic_vector(3 downto 0);
-signal i_s_axis_cc_tlast  : std_logic;
-signal i_s_axis_cc_tvalid : std_logic;
-signal i_s_axis_cc_tuser  : std_logic_vector(32 downto 0);
+signal i_axi_cc_tdata  : std_logic_vector(127 downto 0);
+signal i_axi_cc_tkeep  : std_logic_vector(3 downto 0);
+signal i_axi_cc_tlast  : std_logic;
+signal i_axi_cc_tvalid : std_logic;
+signal i_axi_cc_tuser  : std_logic_vector(32 downto 0);
 
 --signal i_cfg_msg_transmit      : std_logic;
 --signal i_cfg_msg_transmit_type : std_logic_vector(2 downto 0);
@@ -123,11 +123,11 @@ begin --architecture behavioral of pcie_tx_cc
 p_out_compl_done <= i_compl_done;
 
 --AXI-S Completer Competion Interface
-p_out_s_axis_cc_tdata  <= std_logic_vector(RESIZE(UNSIGNED(i_s_axis_cc_tdata), 256));
-p_out_s_axis_cc_tkeep  <= std_logic_vector(RESIZE(UNSIGNED(i_s_axis_cc_tkeep), 8)) ;
-p_out_s_axis_cc_tlast  <= i_s_axis_cc_tlast ;
-p_out_s_axis_cc_tvalid <= i_s_axis_cc_tvalid;
-p_out_s_axis_cc_tuser  <= i_s_axis_cc_tuser ;
+p_out_axi_cc_tdata  <= std_logic_vector(RESIZE(UNSIGNED(i_axi_cc_tdata), 256));
+p_out_axi_cc_tkeep  <= std_logic_vector(RESIZE(UNSIGNED(i_axi_cc_tkeep), 8)) ;
+p_out_axi_cc_tlast  <= i_axi_cc_tlast ;
+p_out_axi_cc_tvalid <= i_axi_cc_tvalid;
+p_out_axi_cc_tuser  <= i_axi_cc_tuser ;
 
 --TX Message Interface
 p_out_cfg_msg_transmit      <= '0';
@@ -211,11 +211,11 @@ if rising_edge(p_in_clk) then
 
     i_fsm_tx <= S_TX_IDLE;
 
-    i_s_axis_cc_tdata  <= (others => '0');
-    i_s_axis_cc_tkeep  <= (others => '0');
-    i_s_axis_cc_tlast  <= '0';
-    i_s_axis_cc_tvalid <= '0';
-    i_s_axis_cc_tuser  <= (others => '0');
+    i_axi_cc_tdata  <= (others => '0');
+    i_axi_cc_tkeep  <= (others => '0');
+    i_axi_cc_tlast  <= '0';
+    i_axi_cc_tvalid <= '0';
+    i_axi_cc_tuser  <= (others => '0');
 
     i_compl_done <= '0';
 
@@ -226,11 +226,11 @@ if rising_edge(p_in_clk) then
         --
         --#######################################################################
         when S_TX_IDLE =>
-            i_s_axis_cc_tdata  <= (others => '0');
-            i_s_axis_cc_tkeep  <= (others => '0');
-            i_s_axis_cc_tlast  <= '0';
-            i_s_axis_cc_tvalid <= '0';
-            i_s_axis_cc_tuser  <= (others => '0');
+            i_axi_cc_tdata  <= (others => '0');
+            i_axi_cc_tkeep  <= (others => '0');
+            i_axi_cc_tlast  <= '0';
+            i_axi_cc_tvalid <= '0';
+            i_axi_cc_tuser  <= (others => '0');
 
             i_compl_done <= '0';
 
@@ -246,69 +246,69 @@ if rising_edge(p_in_clk) then
 
           if sr_req_compl(sr_req_compl'high) = '1' then
 
-            i_s_axis_cc_tvalid <= '1';
-            i_s_axis_cc_tlast  <= '1';
+            i_axi_cc_tvalid <= '1';
+            i_axi_cc_tlast  <= '1';
 
             if (i_req.pkt = C_PCIE3_PKT_TYPE_MEM_RD_ND)
                 or (i_req.pkt = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND)
                 or (i_req.pkt = C_PCIE3_PKT_TYPE_IO_RD_ND) then
 
-              i_s_axis_cc_tdata((32 * 4) - 1 downto (32 * 3)) <= p_in_ureg_do;
-              i_s_axis_cc_tkeep <= "1111";
+              i_axi_cc_tdata((32 * 4) - 1 downto (32 * 3)) <= p_in_ureg_do;
+              i_axi_cc_tkeep <= "1111";
 
             else
-              i_s_axis_cc_tdata((32 * 4) - 1 downto (32 * 3)) <= (others => '0');
-              i_s_axis_cc_tkeep <= "0111";
+              i_axi_cc_tdata((32 * 4) - 1 downto (32 * 3)) <= (others => '0');
+              i_axi_cc_tkeep <= "0111";
 
             end if;
 
-            i_s_axis_cc_tdata((32 * 2) + 31)                      <= '0';       -- Force ECRC
-            i_s_axis_cc_tdata((32 * 2) + 30 downto (32 * 2) + 28) <= std_logic_vector(RESIZE(UNSIGNED(i_req.attr), 3));
-            i_s_axis_cc_tdata((32 * 2) + 27 downto (32 * 2) + 25) <= i_req.tc;  --
-            i_s_axis_cc_tdata((32 * 2) + 24)                      <= '0';       --Completer ID to control selection of Client Supplied Bus number
-            i_s_axis_cc_tdata((32 * 2) + 23 downto (32 * 2) + 16) <= p_in_completer_id(15 downto 8); --Completer Bus number - selected if Compl ID = 1
-            i_s_axis_cc_tdata((32 * 2) + 15 downto (32 * 2) +  8) <= p_in_completer_id(7 downto 0);  --Compl Dev / Func no - sel if Compl ID = 1
-            i_s_axis_cc_tdata((32 * 2) +  7 downto (32 * 2) +  0) <= i_req.tag; --Matching Request Tag
+            i_axi_cc_tdata((32 * 2) + 31)                      <= '0';       -- Force ECRC
+            i_axi_cc_tdata((32 * 2) + 30 downto (32 * 2) + 28) <= std_logic_vector(RESIZE(UNSIGNED(i_req.attr), 3));
+            i_axi_cc_tdata((32 * 2) + 27 downto (32 * 2) + 25) <= i_req.tc;  --
+            i_axi_cc_tdata((32 * 2) + 24)                      <= '0';       --Completer ID to control selection of Client Supplied Bus number
+            i_axi_cc_tdata((32 * 2) + 23 downto (32 * 2) + 16) <= p_in_completer_id(15 downto 8); --Completer Bus number - selected if Compl ID = 1
+            i_axi_cc_tdata((32 * 2) + 15 downto (32 * 2) +  8) <= p_in_completer_id(7 downto 0);  --Compl Dev / Func no - sel if Compl ID = 1
+            i_axi_cc_tdata((32 * 2) +  7 downto (32 * 2) +  0) <= i_req.tag; --Matching Request Tag
 
-            i_s_axis_cc_tdata((32 * 1) + 31 downto (32 * 1) + 16) <= i_req.rid; --Requester ID - 16 bits
-            i_s_axis_cc_tdata((32 * 1) + 15)                      <= '0';       --Rsvd
-            i_s_axis_cc_tdata((32 * 1) + 14)                      <= '0';       --Posioned completion
-            i_s_axis_cc_tdata((32 * 1) + 13 downto (32 * 1) + 11) <= C_PCIE_COMPL_STATUS_SC; --Completion Status: SuccessFull completion
+            i_axi_cc_tdata((32 * 1) + 31 downto (32 * 1) + 16) <= i_req.rid; --Requester ID - 16 bits
+            i_axi_cc_tdata((32 * 1) + 15)                      <= '0';       --Rsvd
+            i_axi_cc_tdata((32 * 1) + 14)                      <= '0';       --Posioned completion
+            i_axi_cc_tdata((32 * 1) + 13 downto (32 * 1) + 11) <= C_PCIE_COMPL_STATUS_SC; --Completion Status: SuccessFull completion
 
             if (i_req.pkt = C_PCIE3_PKT_TYPE_IO_RD_ND) or
                ((i_req.pkt = C_PCIE3_PKT_TYPE_MEM_RD_ND) and (i_req.len = (i_req.len'range => '0'))) then
 
-              i_s_axis_cc_tdata((32 * 1) + 10 downto (32 * 1) + 0) <= std_logic_vector(TO_UNSIGNED(1, 11)); --DWord Count
+              i_axi_cc_tdata((32 * 1) + 10 downto (32 * 1) + 0) <= std_logic_vector(TO_UNSIGNED(1, 11)); --DWord Count
 
             elsif (i_req.pkt = C_PCIE3_PKT_TYPE_IO_WR_D) then
-              i_s_axis_cc_tdata((32 * 1) + 10 downto (32 * 1) + 0) <= (others => '0'); --DWord Count
+              i_axi_cc_tdata((32 * 1) + 10 downto (32 * 1) + 0) <= (others => '0'); --DWord Count
 
             else
-              i_s_axis_cc_tdata((32 * 1) + 10 downto (32 * 1) + 0) <= i_req.len; --DWord Count
+              i_axi_cc_tdata((32 * 1) + 10 downto (32 * 1) + 0) <= i_req.len; --DWord Count
 
             end if;
 
-            i_s_axis_cc_tdata((32 * 0) + 31 downto (32 * 0) + 30) <= (others => '0');        --Rsvd
-            i_s_axis_cc_tdata((32 * 0) + 29)                      <= '0';                    --Locked Read Completion
-            i_s_axis_cc_tdata((32 * 0) + 28 downto (32 * 0) + 16) <= std_logic_vector(TO_UNSIGNED(4, 13)); --Byte Count
-            i_s_axis_cc_tdata((32 * 0) + 15 downto (32 * 0) + 10) <= (others => '0');        --Rsvd
-            i_s_axis_cc_tdata((32 * 0) +  9 downto (32 * 0) +  8) <= i_req.at;               --Adress Type - 2 bits
-            i_s_axis_cc_tdata((32 * 0) +  7)                      <= '0';                    --Rsvd
+            i_axi_cc_tdata((32 * 0) + 31 downto (32 * 0) + 30) <= (others => '0');        --Rsvd
+            i_axi_cc_tdata((32 * 0) + 29)                      <= '0';                    --Locked Read Completion
+            i_axi_cc_tdata((32 * 0) + 28 downto (32 * 0) + 16) <= std_logic_vector(TO_UNSIGNED(4, 13)); --Byte Count
+            i_axi_cc_tdata((32 * 0) + 15 downto (32 * 0) + 10) <= (others => '0');        --Rsvd
+            i_axi_cc_tdata((32 * 0) +  9 downto (32 * 0) +  8) <= i_req.at;               --Adress Type - 2 bits
+            i_axi_cc_tdata((32 * 0) +  7)                      <= '0';                    --Rsvd
 
             if ((i_req.pkt = C_PCIE3_PKT_TYPE_MEM_RD_ND) or (i_req.pkt = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND)) then
-              i_s_axis_cc_tdata((32 * 0) +  6 downto (32 * 0) +  0) <= i_lower_addr;
+              i_axi_cc_tdata((32 * 0) +  6 downto (32 * 0) +  0) <= i_lower_addr;
             else
-              i_s_axis_cc_tdata((32 * 0) +  6 downto (32 * 0) +  0) <= (others => '0');
+              i_axi_cc_tdata((32 * 0) +  6 downto (32 * 0) +  0) <= (others => '0');
             end if;
 
 
             if G_AXISTEN_IF_CC_PARITY_CHECK = 0 then
-              i_s_axis_cc_tuser <= (others => '0');
+              i_axi_cc_tuser <= (others => '0');
             else
-              i_s_axis_cc_tuser <= std_logic_vector(RESIZE(UNSIGNED(i_s_axis_cc_tparity), i_s_axis_cc_tuser'length));
+              i_axi_cc_tuser <= std_logic_vector(RESIZE(UNSIGNED(i_axi_cc_tparity), i_axi_cc_tuser'length));
             end if;
 
-            if p_in_s_axis_cc_tready = '1' then
+            if p_in_axi_cc_tready = '1' then
               i_compl_done <= '1';
               i_fsm_tx <= S_TX_IDLE;
             end if;
@@ -330,11 +330,11 @@ p_out_tst(0) <= tst_fsm_tx;
 p_out_tst(3 downto 1) <= (others => '0');
 p_out_tst(7 downto 4) <= (others => '0');
 
-p_out_tst(8) <= i_s_axis_cc_tvalid;
-p_out_tst(9) <= i_s_axis_cc_tlast;
-p_out_tst(10) <= p_in_s_axis_cc_tready;
-p_out_tst(266 downto 11)  <= std_logic_vector(RESIZE(UNSIGNED(i_s_axis_cc_tdata), 256));
-p_out_tst(274 downto 267) <= std_logic_vector(RESIZE(UNSIGNED(i_s_axis_cc_tkeep), 8));
+p_out_tst(8) <= i_axi_cc_tvalid;
+p_out_tst(9) <= i_axi_cc_tlast;
+p_out_tst(10) <= p_in_axi_cc_tready;
+p_out_tst(266 downto 11)  <= std_logic_vector(RESIZE(UNSIGNED(i_axi_cc_tdata), 256));
+p_out_tst(274 downto 267) <= std_logic_vector(RESIZE(UNSIGNED(i_axi_cc_tkeep), 8));
 p_out_tst(279 downto 275) <= (others => '0');
 
 end architecture behavioral;

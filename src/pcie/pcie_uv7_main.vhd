@@ -273,33 +273,33 @@ p_in_tst        : in    std_logic_vector(127 downto 0);
 ------------------------------------
 --AXI Interface
 ------------------------------------
-p_out_s_axis_rq_tlast  : out  std_logic                                  ;
-p_out_s_axis_rq_tdata  : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_out_s_axis_rq_tuser  : out  std_logic_vector(59 downto 0)              ;
-p_out_s_axis_rq_tkeep  : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-p_in_s_axis_rq_tready  : in   std_logic_vector(3 downto 0)               ;
-p_out_s_axis_rq_tvalid : out  std_logic                                  ;
+p_out_axi_rq_tlast  : out  std_logic                                  ;
+p_out_axi_rq_tdata  : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_out_axi_rq_tuser  : out  std_logic_vector(59 downto 0)              ;
+p_out_axi_rq_tkeep  : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_axi_rq_tready  : in   std_logic_vector(3 downto 0)               ;
+p_out_axi_rq_tvalid : out  std_logic                                  ;
 
-p_in_m_axis_rc_tdata   : in   std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_in_m_axis_rc_tuser   : in   std_logic_vector(74 downto 0)              ;
-p_in_m_axis_rc_tlast   : in   std_logic                                  ;
-p_in_m_axis_rc_tkeep   : in   std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-p_in_m_axis_rc_tvalid  : in   std_logic                                  ;
-p_out_m_axis_rc_tready : out  std_logic_vector(21 downto 0)              ;
+p_in_axi_rc_tdata   : in   std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_in_axi_rc_tuser   : in   std_logic_vector(74 downto 0)              ;
+p_in_axi_rc_tlast   : in   std_logic                                  ;
+p_in_axi_rc_tkeep   : in   std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_axi_rc_tvalid  : in   std_logic                                  ;
+p_out_axi_rc_tready : out  std_logic_vector(21 downto 0)              ;
 
-p_in_m_axis_cq_tdata   : in   std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_in_m_axis_cq_tuser   : in   std_logic_vector(84 downto 0)              ;
-p_in_m_axis_cq_tlast   : in   std_logic                                  ;
-p_in_m_axis_cq_tkeep   : in   std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-p_in_m_axis_cq_tvalid  : in   std_logic                                  ;
-p_out_m_axis_cq_tready : out  std_logic_vector(21 downto 0)              ;
+p_in_axi_cq_tdata   : in   std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_in_axi_cq_tuser   : in   std_logic_vector(84 downto 0)              ;
+p_in_axi_cq_tlast   : in   std_logic                                  ;
+p_in_axi_cq_tkeep   : in   std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_axi_cq_tvalid  : in   std_logic                                  ;
+p_out_axi_cq_tready : out  std_logic_vector(21 downto 0)              ;
 
-p_out_s_axis_cc_tdata  : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_out_s_axis_cc_tuser  : out  std_logic_vector(32 downto 0)              ;
-p_out_s_axis_cc_tlast  : out  std_logic                                  ;
-p_out_s_axis_cc_tkeep  : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-p_out_s_axis_cc_tvalid : out  std_logic                                  ;
-p_in_s_axis_cc_tready  : in   std_logic_vector(3 downto 0)               ;
+p_out_axi_cc_tdata  : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_out_axi_cc_tuser  : out  std_logic_vector(32 downto 0)              ;
+p_out_axi_cc_tlast  : out  std_logic                                  ;
+p_out_axi_cc_tkeep  : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_axi_cc_tvalid : out  std_logic                                  ;
+p_in_axi_cc_tready  : in   std_logic_vector(3 downto 0)               ;
 
 p_in_pcie_tfc_nph_av  : in   std_logic_vector(1 downto 0)                ;
 p_in_pcie_tfc_npd_av  : in   std_logic_vector(1 downto 0)                ;
@@ -423,33 +423,33 @@ signal i_user_clk         : std_logic;
 signal i_user_reset       : std_logic;
 signal i_user_lnk_up      : std_logic;
 
-signal i_s_axis_rq_tlast  : std_logic                                   ;
-signal i_s_axis_rq_tdata  : std_logic_vector(CI_DATA_WIDTH - 1 downto 0);
-signal i_s_axis_rq_tuser  : std_logic_vector(59 downto 0)               ;
-signal i_s_axis_rq_tkeep  : std_logic_vector(CI_KEEP_WIDTH - 1 downto 0);
-signal i_s_axis_rq_tready : std_logic_vector(3 downto 0)                ;
-signal i_s_axis_rq_tvalid : std_logic                                   ;
+signal i_axi_rq_tlast     : std_logic                                   ;
+signal i_axi_rq_tdata     : std_logic_vector(CI_DATA_WIDTH - 1 downto 0);
+signal i_axi_rq_tuser     : std_logic_vector(59 downto 0)               ;
+signal i_axi_rq_tkeep     : std_logic_vector(CI_KEEP_WIDTH - 1 downto 0);
+signal i_axi_rq_tready    : std_logic_vector(3 downto 0)                ;
+signal i_axi_rq_tvalid    : std_logic                                   ;
 
-signal i_m_axis_rc_tdata  : std_logic_vector(CI_DATA_WIDTH - 1 downto 0);
-signal i_m_axis_rc_tuser  : std_logic_vector(74 downto 0)               ;
-signal i_m_axis_rc_tlast  : std_logic                                   ;
-signal i_m_axis_rc_tkeep  : std_logic_vector(CI_KEEP_WIDTH - 1 downto 0);
-signal i_m_axis_rc_tvalid : std_logic                                   ;
-signal i_m_axis_rc_tready : std_logic_vector(21 downto 0)               ;
+signal i_axi_rc_tdata     : std_logic_vector(CI_DATA_WIDTH - 1 downto 0);
+signal i_axi_rc_tuser     : std_logic_vector(74 downto 0)               ;
+signal i_axi_rc_tlast     : std_logic                                   ;
+signal i_axi_rc_tkeep     : std_logic_vector(CI_KEEP_WIDTH - 1 downto 0);
+signal i_axi_rc_tvalid    : std_logic                                   ;
+signal i_axi_rc_tready    : std_logic_vector(21 downto 0)               ;
 
-signal i_m_axis_cq_tdata  : std_logic_vector(CI_DATA_WIDTH - 1 downto 0);
-signal i_m_axis_cq_tuser  : std_logic_vector(84 downto 0)               ;
-signal i_m_axis_cq_tlast  : std_logic                                   ;
-signal i_m_axis_cq_tkeep  : std_logic_vector(CI_KEEP_WIDTH - 1 downto 0);
-signal i_m_axis_cq_tvalid : std_logic                                   ;
-signal i_m_axis_cq_tready : std_logic_vector(21 downto 0)               ;
+signal i_axi_cq_tdata     : std_logic_vector(CI_DATA_WIDTH - 1 downto 0);
+signal i_axi_cq_tuser     : std_logic_vector(84 downto 0)               ;
+signal i_axi_cq_tlast     : std_logic                                   ;
+signal i_axi_cq_tkeep     : std_logic_vector(CI_KEEP_WIDTH - 1 downto 0);
+signal i_axi_cq_tvalid    : std_logic                                   ;
+signal i_axi_cq_tready    : std_logic_vector(21 downto 0)               ;
 
-signal i_s_axis_cc_tdata  : std_logic_vector(CI_DATA_WIDTH - 1 downto 0);
-signal i_s_axis_cc_tuser  : std_logic_vector(32 downto 0)               ;
-signal i_s_axis_cc_tlast  : std_logic                                   ;
-signal i_s_axis_cc_tkeep  : std_logic_vector(CI_KEEP_WIDTH - 1 downto 0);
-signal i_s_axis_cc_tvalid : std_logic                                   ;
-signal i_s_axis_cc_tready : std_logic_vector(3 downto 0)                ;
+signal i_axi_cc_tdata     : std_logic_vector(CI_DATA_WIDTH - 1 downto 0);
+signal i_axi_cc_tuser     : std_logic_vector(32 downto 0)               ;
+signal i_axi_cc_tlast     : std_logic                                   ;
+signal i_axi_cc_tkeep     : std_logic_vector(CI_KEEP_WIDTH - 1 downto 0);
+signal i_axi_cc_tvalid    : std_logic                                   ;
+signal i_axi_cc_tready    : std_logic_vector(3 downto 0)                ;
 
 signal i_cfg_ds_port_number     : std_logic_vector(7 downto 0);
 signal i_cfg_ds_bus_number      : std_logic_vector(7 downto 0);
@@ -567,33 +567,33 @@ user_clk         => i_user_clk   ,--: OUT STD_LOGIC;
 user_reset       => i_user_reset ,--: OUT STD_LOGIC;
 user_lnk_up      => i_user_lnk_up,--: OUT STD_LOGIC;
 
-s_axis_rq_tdata  => i_s_axis_rq_tdata ,--: IN  STD_LOGIC_VECTOR(63 DOWNTO 0);
-s_axis_rq_tkeep  => i_s_axis_rq_tkeep ,--: IN  STD_LOGIC_VECTOR(1 DOWNTO 0);
-s_axis_rq_tlast  => i_s_axis_rq_tlast ,--: IN  STD_LOGIC;
-s_axis_rq_tready => i_s_axis_rq_tready,--: OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-s_axis_rq_tuser  => i_s_axis_rq_tuser ,--: IN  STD_LOGIC_VECTOR(59 DOWNTO 0);
-s_axis_rq_tvalid => i_s_axis_rq_tvalid,--: IN  STD_LOGIC;
+s_axis_rq_tdata  => i_axi_rq_tdata ,--: IN  STD_LOGIC_VECTOR(63 DOWNTO 0);
+s_axis_rq_tkeep  => i_axi_rq_tkeep ,--: IN  STD_LOGIC_VECTOR(1 DOWNTO 0);
+s_axis_rq_tlast  => i_axi_rq_tlast ,--: IN  STD_LOGIC;
+s_axis_rq_tready => i_axi_rq_tready,--: OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
+s_axis_rq_tuser  => i_axi_rq_tuser ,--: IN  STD_LOGIC_VECTOR(59 DOWNTO 0);
+s_axis_rq_tvalid => i_axi_rq_tvalid,--: IN  STD_LOGIC;
 
-m_axis_rc_tdata  => i_m_axis_rc_tdata    ,--: OUT STD_LOGIC_VECTOR(63 DOWNTO 0);
-m_axis_rc_tkeep  => i_m_axis_rc_tkeep    ,--: OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-m_axis_rc_tlast  => i_m_axis_rc_tlast    ,--: OUT STD_LOGIC;
-m_axis_rc_tready => i_m_axis_rc_tready(0),--: IN  STD_LOGIC;
-m_axis_rc_tuser  => i_m_axis_rc_tuser    ,--: OUT STD_LOGIC_VECTOR(74 DOWNTO 0);
-m_axis_rc_tvalid => i_m_axis_rc_tvalid   ,--: OUT STD_LOGIC;
+m_axis_rc_tdata  => i_axi_rc_tdata    ,--: OUT STD_LOGIC_VECTOR(63 DOWNTO 0);
+m_axis_rc_tkeep  => i_axi_rc_tkeep    ,--: OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+m_axis_rc_tlast  => i_axi_rc_tlast    ,--: OUT STD_LOGIC;
+m_axis_rc_tready => i_axi_rc_tready(0),--: IN  STD_LOGIC;
+m_axis_rc_tuser  => i_axi_rc_tuser    ,--: OUT STD_LOGIC_VECTOR(74 DOWNTO 0);
+m_axis_rc_tvalid => i_axi_rc_tvalid   ,--: OUT STD_LOGIC;
 
-m_axis_cq_tdata  => i_m_axis_cq_tdata    ,--: OUT STD_LOGIC_VECTOR(63 DOWNTO 0);
-m_axis_cq_tkeep  => i_m_axis_cq_tkeep    ,--: OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-m_axis_cq_tlast  => i_m_axis_cq_tlast    ,--: OUT STD_LOGIC;
-m_axis_cq_tready => i_m_axis_cq_tready(0),--: IN  STD_LOGIC;
-m_axis_cq_tuser  => i_m_axis_cq_tuser    ,--: OUT STD_LOGIC_VECTOR(84 DOWNTO 0);
-m_axis_cq_tvalid => i_m_axis_cq_tvalid   ,--: OUT STD_LOGIC;
+m_axis_cq_tdata  => i_axi_cq_tdata    ,--: OUT STD_LOGIC_VECTOR(63 DOWNTO 0);
+m_axis_cq_tkeep  => i_axi_cq_tkeep    ,--: OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+m_axis_cq_tlast  => i_axi_cq_tlast    ,--: OUT STD_LOGIC;
+m_axis_cq_tready => i_axi_cq_tready(0),--: IN  STD_LOGIC;
+m_axis_cq_tuser  => i_axi_cq_tuser    ,--: OUT STD_LOGIC_VECTOR(84 DOWNTO 0);
+m_axis_cq_tvalid => i_axi_cq_tvalid   ,--: OUT STD_LOGIC;
 
-s_axis_cc_tdata  => i_s_axis_cc_tdata ,--: IN  STD_LOGIC_VECTOR(63 DOWNTO 0);
-s_axis_cc_tkeep  => i_s_axis_cc_tkeep ,--: IN  STD_LOGIC_VECTOR(1 DOWNTO 0);
-s_axis_cc_tlast  => i_s_axis_cc_tlast ,--: IN  STD_LOGIC;
-s_axis_cc_tready => i_s_axis_cc_tready,--: OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-s_axis_cc_tuser  => i_s_axis_cc_tuser ,--: IN  STD_LOGIC_VECTOR(32 DOWNTO 0);
-s_axis_cc_tvalid => i_s_axis_cc_tvalid,--: IN  STD_LOGIC;
+s_axis_cc_tdata  => i_axi_cc_tdata ,--: IN  STD_LOGIC_VECTOR(63 DOWNTO 0);
+s_axis_cc_tkeep  => i_axi_cc_tkeep ,--: IN  STD_LOGIC_VECTOR(1 DOWNTO 0);
+s_axis_cc_tlast  => i_axi_cc_tlast ,--: IN  STD_LOGIC;
+s_axis_cc_tready => i_axi_cc_tready,--: OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
+s_axis_cc_tuser  => i_axi_cc_tuser ,--: IN  STD_LOGIC_VECTOR(32 DOWNTO 0);
+s_axis_cc_tvalid => i_axi_cc_tvalid,--: IN  STD_LOGIC;
 
 pcie_rq_seq_num      => i_pcie_rq_seq_num     ,--: OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
 pcie_rq_seq_num_vld  => i_pcie_rq_seq_num_vld ,--: OUT STD_LOGIC;
@@ -771,33 +771,33 @@ p_in_tst        => p_in_usr_tst ,
 ------------------------------------
 --AXI Interface
 ------------------------------------
-p_out_s_axis_rq_tlast  => i_s_axis_rq_tlast ,--: out  std_logic                                   ;
-p_out_s_axis_rq_tdata  => i_s_axis_rq_tdata ,--: out  std_logic_vector(G_DATA_WIDTH - 1 downto 0) ;
-p_out_s_axis_rq_tuser  => i_s_axis_rq_tuser ,--: out  std_logic_vector(59 downto 0)               ;
-p_out_s_axis_rq_tkeep  => i_s_axis_rq_tkeep ,--: out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0)   ;
-p_in_s_axis_rq_tready  => i_s_axis_rq_tready,--: in   std_logic_vector(3 downto 0)                ;
-p_out_s_axis_rq_tvalid => i_s_axis_rq_tvalid,--: out  std_logic                                   ;
+p_out_axi_rq_tlast  => i_axi_rq_tlast ,--: out  std_logic                                   ;
+p_out_axi_rq_tdata  => i_axi_rq_tdata ,--: out  std_logic_vector(G_DATA_WIDTH - 1 downto 0) ;
+p_out_axi_rq_tuser  => i_axi_rq_tuser ,--: out  std_logic_vector(59 downto 0)               ;
+p_out_axi_rq_tkeep  => i_axi_rq_tkeep ,--: out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0)   ;
+p_in_axi_rq_tready  => i_axi_rq_tready,--: in   std_logic_vector(3 downto 0)                ;
+p_out_axi_rq_tvalid => i_axi_rq_tvalid,--: out  std_logic                                   ;
 
-p_in_m_axis_rc_tdata   => i_m_axis_rc_tdata ,--: in   std_logic_vector(G_DATA_WIDTH - 1 downto 0) ;
-p_in_m_axis_rc_tuser   => i_m_axis_rc_tuser ,--: in   std_logic_vector(74 downto 0)               ;
-p_in_m_axis_rc_tlast   => i_m_axis_rc_tlast ,--: in   std_logic                                   ;
-p_in_m_axis_rc_tkeep   => i_m_axis_rc_tkeep ,--: in   std_logic_vector(G_KEEP_WIDTH - 1 downto 0)   ;
-p_in_m_axis_rc_tvalid  => i_m_axis_rc_tvalid,--: in   std_logic                                   ;
-p_out_m_axis_rc_tready => i_m_axis_rc_tready,--: out  std_logic_vector(21 downto 0)               ;
+p_in_axi_rc_tdata   => i_axi_rc_tdata ,--: in   std_logic_vector(G_DATA_WIDTH - 1 downto 0) ;
+p_in_axi_rc_tuser   => i_axi_rc_tuser ,--: in   std_logic_vector(74 downto 0)               ;
+p_in_axi_rc_tlast   => i_axi_rc_tlast ,--: in   std_logic                                   ;
+p_in_axi_rc_tkeep   => i_axi_rc_tkeep ,--: in   std_logic_vector(G_KEEP_WIDTH - 1 downto 0)   ;
+p_in_axi_rc_tvalid  => i_axi_rc_tvalid,--: in   std_logic                                   ;
+p_out_axi_rc_tready => i_axi_rc_tready,--: out  std_logic_vector(21 downto 0)               ;
 
-p_in_m_axis_cq_tdata   => i_m_axis_cq_tdata ,--: in   std_logic_vector(G_DATA_WIDTH - 1 downto 0) ;
-p_in_m_axis_cq_tuser   => i_m_axis_cq_tuser ,--: in   std_logic_vector(84 downto 0)               ;
-p_in_m_axis_cq_tlast   => i_m_axis_cq_tlast ,--: in   std_logic                                   ;
-p_in_m_axis_cq_tkeep   => i_m_axis_cq_tkeep ,--: in   std_logic_vector(G_KEEP_WIDTH - 1 downto 0)   ;
-p_in_m_axis_cq_tvalid  => i_m_axis_cq_tvalid,--: in   std_logic                                   ;
-p_out_m_axis_cq_tready => i_m_axis_cq_tready,--: out  std_logic_vector(21 downto 0)               ;
+p_in_axi_cq_tdata   => i_axi_cq_tdata ,--: in   std_logic_vector(G_DATA_WIDTH - 1 downto 0) ;
+p_in_axi_cq_tuser   => i_axi_cq_tuser ,--: in   std_logic_vector(84 downto 0)               ;
+p_in_axi_cq_tlast   => i_axi_cq_tlast ,--: in   std_logic                                   ;
+p_in_axi_cq_tkeep   => i_axi_cq_tkeep ,--: in   std_logic_vector(G_KEEP_WIDTH - 1 downto 0)   ;
+p_in_axi_cq_tvalid  => i_axi_cq_tvalid,--: in   std_logic                                   ;
+p_out_axi_cq_tready => i_axi_cq_tready,--: out  std_logic_vector(21 downto 0)               ;
 
-p_out_s_axis_cc_tdata  => i_s_axis_cc_tdata ,--: out  std_logic_vector(G_DATA_WIDTH - 1 downto 0) ;
-p_out_s_axis_cc_tuser  => i_s_axis_cc_tuser ,--: out  std_logic_vector(32 downto 0)               ;
-p_out_s_axis_cc_tlast  => i_s_axis_cc_tlast ,--: out  std_logic                                   ;
-p_out_s_axis_cc_tkeep  => i_s_axis_cc_tkeep ,--: out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0)   ;
-p_out_s_axis_cc_tvalid => i_s_axis_cc_tvalid,--: out  std_logic                                   ;
-p_in_s_axis_cc_tready  => i_s_axis_cc_tready,--: in   std_logic_vector(3 downto 0)                ;
+p_out_axi_cc_tdata  => i_axi_cc_tdata ,--: out  std_logic_vector(G_DATA_WIDTH - 1 downto 0) ;
+p_out_axi_cc_tuser  => i_axi_cc_tuser ,--: out  std_logic_vector(32 downto 0)               ;
+p_out_axi_cc_tlast  => i_axi_cc_tlast ,--: out  std_logic                                   ;
+p_out_axi_cc_tkeep  => i_axi_cc_tkeep ,--: out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0)   ;
+p_out_axi_cc_tvalid => i_axi_cc_tvalid,--: out  std_logic                                   ;
+p_in_axi_cc_tready  => i_axi_cc_tready,--: in   std_logic_vector(3 downto 0)                ;
 
 p_in_pcie_tfc_nph_av  => i_pcie_tfc_nph_av,--: in   std_logic_vector(1 downto 0)                ;
 p_in_pcie_tfc_npd_av  => i_pcie_tfc_npd_av,--: in   std_logic_vector(1 downto 0)                ;
