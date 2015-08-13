@@ -83,7 +83,7 @@ S_TXRQ_MWR_C1,
 S_TXRQ_MWR_D0,--data first
 S_TXRQ_MWR_DN,--data n
 S_TXRQ_MWR_DE,--data end
-S_TXRQ_MWR_DE2,
+
 S_TXRQ_MRD_C0,
 S_TXRQ_MRD_N,
 S_TXRQ_CPLD_WAIT
@@ -94,7 +94,7 @@ signal i_s_axis_rq_tdata    : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 signal i_s_axis_rq_tkeep    : std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
 signal i_s_axis_rq_tlast    : std_logic;
 signal i_s_axis_rq_tvalid   : std_logic;
-signal i_s_axis_rq_tuser    : std_logic_vector(59 downto 0);
+signal i_s_axis_rq_tuser    : std_logic_vector(11 downto 0);
 
 signal sr_usr_rxbuf_do      : std_logic_vector((32 * 4) - 1 downto 0);
 signal i_urxbuf_rd          : std_logic;
@@ -140,7 +140,8 @@ p_out_s_axis_rq_tdata  <= i_s_axis_rq_tdata ;
 p_out_s_axis_rq_tkeep  <= i_s_axis_rq_tkeep ;
 p_out_s_axis_rq_tvalid <= i_s_axis_rq_tvalid;
 p_out_s_axis_rq_tlast  <= i_s_axis_rq_tlast ;
-p_out_s_axis_rq_tuser  <= i_s_axis_rq_tuser ;
+p_out_s_axis_rq_tuser(11 downto 0) <= i_s_axis_rq_tuser(11 downto 0);
+p_out_s_axis_rq_tuser(p_out_s_axis_rq_tuser'high downto 12) <= (others => '0');
 
 
 
@@ -209,7 +210,9 @@ if rising_edge(p_in_clk) then
         --#######################################################################
         when S_TXRQ_IDLE =>
 
-            i_s_axis_rq_tdata  <= (others => '0');
+          if (p_in_s_axis_rq_tready = '1') then
+
+--            i_s_axis_rq_tdata  <= (others => '0');
             i_s_axis_rq_tkeep  <= (others => '0');
             i_s_axis_rq_tlast  <= '0';
             i_s_axis_rq_tvalid <= '0';
@@ -274,6 +277,8 @@ if rising_edge(p_in_clk) then
                 end if;
 
             end if;
+
+          end if;
 
         --#######################################################################
         --MWr , +data (PC<-FPGA) FPGA is PCIe master
@@ -360,15 +365,15 @@ if rising_edge(p_in_clk) then
 
                 i_s_axis_rq_tuser(10 downto 8) <= (others => '0');--addr_offset; Used only in addres-alogen mode
                 i_s_axis_rq_tuser(11) <= '0';--Discontinue;
-
-                i_s_axis_rq_tuser(12)           <= '0';            --TPH_present;
-                i_s_axis_rq_tuser(14 downto 13) <= (others => '0');--TPH_type;
-                i_s_axis_rq_tuser(15)           <= '0';            --TPH_indirect_tag_en;
-                i_s_axis_rq_tuser(23 downto 16) <= (others => '0');--TPH_st_tag;
-
-                i_s_axis_rq_tuser(27 downto 24) <= (others => '0');--seq_num[3:0];
-
-                i_s_axis_rq_tuser(59 downto 28) <= (others => '0');--parity[31:0];
+--
+--                i_s_axis_rq_tuser(12)           <= '0';            --TPH_present;
+--                i_s_axis_rq_tuser(14 downto 13) <= (others => '0');--TPH_type;
+--                i_s_axis_rq_tuser(15)           <= '0';            --TPH_indirect_tag_en;
+--                i_s_axis_rq_tuser(23 downto 16) <= (others => '0');--TPH_st_tag;
+--
+--                i_s_axis_rq_tuser(27 downto 24) <= (others => '0');--seq_num[3:0];
+--
+--                i_s_axis_rq_tuser(59 downto 28) <= (others => '0');--parity[31:0];
 
 
                 i_mem_adr_byte <= i_mem_adr_byte + RESIZE(i_mem_tpl_byte, i_mem_adr_byte'length);
@@ -417,7 +422,7 @@ if rising_edge(p_in_clk) then
 
                       end if;
 
-                      i_fsm_txrq <= S_TXRQ_MWR_DE2;
+                      i_fsm_txrq <= S_TXRQ_IDLE;
 
                     end if;
 
@@ -488,7 +493,7 @@ if rising_edge(p_in_clk) then
 
                         end if;
 
-                        i_fsm_txrq <= S_TXRQ_MWR_DE2;
+                        i_fsm_txrq <= S_TXRQ_IDLE;
 
                     end if;
 
@@ -546,18 +551,6 @@ if rising_edge(p_in_clk) then
                   i_mem_tx_byte <= i_mem_tx_byte + RESIZE(i_mem_tpl_byte, i_mem_tx_byte'length);
 
                 end if;
-
-                i_fsm_txrq <= S_TXRQ_MWR_DE2;
-
-            end if;
-
-
-        when S_TXRQ_MWR_DE2 =>
-
-            if p_in_s_axis_rq_tready = '1' then
-
-                i_s_axis_rq_tvalid <= '0';
-                i_s_axis_rq_tlast <= '0';
 
                 i_fsm_txrq <= S_TXRQ_IDLE;
 
@@ -638,15 +631,15 @@ if rising_edge(p_in_clk) then
 
                 i_s_axis_rq_tuser(10 downto 8) <= (others => '0');--addr_offset; ################  ????????????????  ##################
                 i_s_axis_rq_tuser(11) <= '0';--Discontinue;
-
-                i_s_axis_rq_tuser(12)           <= '0';            --TPH_present;
-                i_s_axis_rq_tuser(14 downto 13) <= (others => '0');--TPH_type;
-                i_s_axis_rq_tuser(15)           <= '0';            --TPH_indirect_tag_en;
-                i_s_axis_rq_tuser(23 downto 16) <= (others => '0');--TPH_st_tag;
-
-                i_s_axis_rq_tuser(27 downto 24) <= (others => '0');--seq_num[3:0];
-
-                i_s_axis_rq_tuser(59 downto 28) <= (others => '0');--parity[31:0];
+--
+--                i_s_axis_rq_tuser(12)           <= '0';            --TPH_present;
+--                i_s_axis_rq_tuser(14 downto 13) <= (others => '0');--TPH_type;
+--                i_s_axis_rq_tuser(15)           <= '0';            --TPH_indirect_tag_en;
+--                i_s_axis_rq_tuser(23 downto 16) <= (others => '0');--TPH_st_tag;
+--
+--                i_s_axis_rq_tuser(27 downto 24) <= (others => '0');--seq_num[3:0];
+--
+--                i_s_axis_rq_tuser(59 downto 28) <= (others => '0');--parity[31:0];
 
 
                 i_mem_adr_byte <= i_mem_adr_byte + RESIZE(i_mem_tpl_byte, i_mem_adr_byte'length);
@@ -667,7 +660,7 @@ if rising_edge(p_in_clk) then
 
         when S_TXRQ_CPLD_WAIT =>
 
-          i_s_axis_rq_tdata  <= (others => '0');
+--          i_s_axis_rq_tdata  <= (others => '0');
           i_s_axis_rq_tkeep  <= (others => '0');
           i_s_axis_rq_tlast  <= '0';
           i_s_axis_rq_tvalid <= '0';
@@ -693,10 +686,9 @@ i_mem_tx_dw <= RESIZE(i_mem_tx_byte(i_mem_tx_byte'high downto log2(32 / 8)), i_m
 --#######################################################################
 --DBG
 --#######################################################################
-tst_fsm <= TO_UNSIGNED(9, tst_fsm'length) when i_fsm_txrq = S_TXRQ_CPLD_WAIT else
-           TO_UNSIGNED(8, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MRD_N     else
-           TO_UNSIGNED(7, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MRD_C0    else
-           TO_UNSIGNED(6, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MWR_DE2   else
+tst_fsm <= TO_UNSIGNED(8, tst_fsm'length) when i_fsm_txrq = S_TXRQ_CPLD_WAIT else
+           TO_UNSIGNED(7, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MRD_N     else
+           TO_UNSIGNED(6, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MRD_C0    else
            TO_UNSIGNED(5, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MWR_DE    else
            TO_UNSIGNED(4, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MWR_DN    else
            TO_UNSIGNED(3, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MWR_D0    else
