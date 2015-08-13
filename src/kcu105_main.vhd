@@ -147,7 +147,7 @@ signal i_det_pcie_rst      : std_logic := '0';
 component dbgcs_ila_hostclk is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(20 downto 0)
+probe0 : in std_logic_vector(24 downto 0)
 );
 end component dbgcs_ila_hostclk;
 
@@ -162,10 +162,10 @@ type TH2M_dbg is record
 mem_start   : std_logic;
 mem_done    : std_logic;
 mem_wr_fsm  : std_logic_vector(3 downto 0);
-rxbuf_empty : std_logic;
-rxbuf_full  : std_logic;
-txbuf_empty : std_logic;
-txbuf_full  : std_logic;
+d2h_buf_empty : std_logic;
+d2h_buf_full  : std_logic;
+h2d_buf_empty : std_logic;
+h2d_buf_full  : std_logic;
 end record;
 
 type TMAIN_dbg is record
@@ -481,10 +481,10 @@ i_dbg.pcie <= i_host_dbg;
 i_dbg.h2m.mem_start   <= i_host_mem_tst_out(0)         ;-- <= i_mem_start;
 i_dbg.h2m.mem_done    <= i_host_mem_tst_out(1)         ;-- <= i_mem_done;
 i_dbg.h2m.mem_wr_fsm  <= i_host_mem_tst_out(5 downto 2);-- <= tst_mem_ctrl_out(5 downto 2);--m_mem_wr/tst_fsm_cs;
-i_dbg.h2m.rxbuf_empty <= i_host_mem_tst_out(6)         ;-- <= i_rxbuf_empty; --RAM->PCIE
-i_dbg.h2m.rxbuf_full  <= i_host_mem_tst_out(7)         ;-- <= i_rxbuf_full;  --RAM->PCIE
-i_dbg.h2m.txbuf_empty <= i_host_mem_tst_out(8)         ;-- <= i_txbuf_empty; --RAM<-PCIE
-i_dbg.h2m.txbuf_full  <= i_host_mem_tst_out(9)         ;-- <= i_txbuf_full;  --RAM<-PCIE
+i_dbg.h2m.d2h_buf_empty <= i_host_mem_tst_out(6)         ;-- <= i_rxbuf_empty; --RAM->PCIE
+i_dbg.h2m.d2h_buf_full  <= i_host_mem_tst_out(7)         ;-- <= i_rxbuf_full;  --RAM->PCIE
+i_dbg.h2m.h2d_buf_empty <= i_host_mem_tst_out(8)         ;-- <= i_txbuf_empty; --RAM<-PCIE
+i_dbg.h2m.h2d_buf_full  <= i_host_mem_tst_out(9)         ;-- <= i_txbuf_full;  --RAM<-PCIE
 
 
 --##########################
@@ -506,17 +506,20 @@ probe0(9 downto 6) => i_dbg.pcie.dev_num  ,
 probe0(10)         => i_dbg.pcie.dma_start,
 probe0(11)         => i_dbg.pcie.dma_irq  ,
 
-probe0(12)         => i_dbg.pcie.dev_wr      ,--PCIE -> DEV
-probe0(13)         => i_dbg.pcie.dev_wr_full ,--PCIE -> DEV
-probe0(14)         => i_dbg.pcie.dev_rd      ,--PCIE <- DEV
-probe0(15)         => i_dbg.pcie.dev_rd_empty,--PCIE <- DEV
+probe0(12)         => i_dbg.pcie.h2d_buf_wr   ,--PCIE -> DEV
+probe0(13)         => i_dbg.pcie.h2d_buf_full ,--PCIE -> DEV
+probe0(14)         => i_dbg.pcie.d2h_buf_rd   ,--PCIE <- DEV
+probe0(15)         => i_dbg.pcie.d2h_buf_empty,--PCIE <- DEV
 
 probe0(16) => i_dbg.pcie.irq_int ,
 probe0(17) => i_dbg.pcie.irq_pend,
 probe0(18) => i_dbg.pcie.irq_sent,
 probe0(19) => i_dbg.pcie.irq_msi ,
 
-probe0(20) => i_dbg.pcie.test_speed_bit
+probe0(20) => i_dbg.pcie.test_speed_bit,
+
+probe0(24 downto 21) => i_dbg.pcie.axi_rq_fsm
+
 --probe0(13 downto 6) => i_dbg.pcie.m_axi_rc_tkeep(7 downto 0)
 
 --gen_dbg_do : for i in 0 to G_KEEP_WIDTH - 1 generate begin
@@ -533,10 +536,10 @@ clk => g_usr_highclk,
 probe0(0)          => i_dbg.h2m.mem_start  ,
 probe0(1)          => i_dbg.h2m.mem_done   ,
 probe0(5 downto 2) => i_dbg.h2m.mem_wr_fsm ,
-probe0(6)          => i_dbg.h2m.rxbuf_empty,--RAM->PCIE
-probe0(7)          => i_dbg.h2m.rxbuf_full ,--RAM->PCIE
-probe0(8)          => i_dbg.h2m.txbuf_empty,--RAM<-PCIE
-probe0(9)          => i_dbg.h2m.txbuf_full  --RAM<-PCIE
+probe0(6)          => i_dbg.h2m.d2h_buf_empty,--RAM->PCIE
+probe0(7)          => i_dbg.h2m.d2h_buf_full ,--RAM->PCIE
+probe0(8)          => i_dbg.h2m.h2d_buf_empty,--RAM<-PCIE
+probe0(9)          => i_dbg.h2m.h2d_buf_full  --RAM<-PCIE
 );
 
 end generate gen_dbgcs_on;

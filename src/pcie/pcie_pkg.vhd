@@ -135,16 +135,18 @@ constant C_PCIE3_PKT_TYPE_MSG_ATS      : std_logic_vector(3 downto 0) := "1110";
 type TDBG_darray is array (0 to 7) of std_logic_vector(31 downto 0);
 
 type TPCIE_dbg is record
+--axi_rc_tdata  : TDBG_darray;
+axi_rq_fsm    : std_logic_vector(3 downto 0);
 axi_rq_tvalid : std_logic;
 axi_rq_tlast  : std_logic;
 axi_rq_tready : std_logic;
 
-axi_rc_tdata  : TDBG_darray;
+--axi_rc_tdata  : TDBG_darray;
+--axi_rc_fsm    : std_logic_vector(3 downto 0);
 axi_rc_tkeep  : std_logic_vector(7 downto 0);
 axi_rc_tvalid : std_logic;
 axi_rc_tlast  : std_logic;
 axi_rc_tready : std_logic;
-
 --axi_rc_sop    : std_logic_vector(1 downto 0);
 --axi_rc_disc   : std_logic;
 
@@ -152,10 +154,10 @@ dev_num   : std_logic_vector(3 downto 0);--<= tst_uapp_out(121 downto 117);-- <=
 dma_start : std_logic;                   --<= tst_uapp_out(118);--            <= i_dma_start;
 dma_irq   : std_logic;                   --<= tst_uapp_out(109);--
 
-dev_wr       : std_logic;--PCIE -> DEV
-dev_wr_full  : std_logic;
-dev_rd       : std_logic;--PCIE <- DEV
-dev_rd_empty : std_logic;
+h2d_buf_wr    : std_logic;--PCIE -> DEV
+h2d_buf_full  : std_logic;--PCIE -> DEV
+d2h_buf_rd    : std_logic;--PCIE <- DEV
+d2h_buf_empty : std_logic;--PCIE <- DEV
 
 irq_int  : std_logic;
 irq_pend : std_logic;

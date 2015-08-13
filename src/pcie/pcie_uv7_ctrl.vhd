@@ -702,18 +702,19 @@ p_out_dbg.axi_rc_tvalid <= p_in_m_axis_rc_tvalid;
 p_out_dbg.axi_rc_tlast  <= p_in_m_axis_rc_tlast;
 p_out_dbg.axi_rc_tready <= i_m_axis_rc_tready;
 
-p_out_dbg.axi_rq_tvalid <= tst_tx_out((280 * 1) + 8);
-p_out_dbg.axi_rq_tlast  <= tst_tx_out((280 * 1) + 9);
-p_out_dbg.axi_rq_tready <= tst_tx_out((280 * 1) + 10);
+p_out_dbg.axi_rq_fsm    <= tst_tx_out(((280 * 1) +  3) downto ((280 * 1) + 0));
+p_out_dbg.axi_rq_tvalid <= tst_tx_out( (280 * 1) +  8);
+p_out_dbg.axi_rq_tlast  <= tst_tx_out( (280 * 1) +  9);
+p_out_dbg.axi_rq_tready <= tst_tx_out( (280 * 1) + 10);
 
 p_out_dbg.dev_num   <= tst_uapp_out(120 downto 117);-- <= i_reg.dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT); --(22..19)
 p_out_dbg.dma_start <= tst_uapp_out(121);--            <= i_dma_start;
 p_out_dbg.dma_irq   <= tst_uapp_out(109);--tst_uapp_out(116 downto 109) <= std_logic_vector(RESIZE(UNSIGNED(i_irq_set(C_HIRQ_COUNT - 1 downto 0)), 8));
 
-p_out_dbg.dev_wr       <= tst_uapp_out(123);--<= p_in_txbuf_wr; --pcie -> dev
-p_out_dbg.dev_wr_full  <= i_urxbuf_empty; --pcie -> dev
-p_out_dbg.dev_rd       <= tst_uapp_out(124);--<= p_in_rxbuf_rd; --pcie <- dev
-p_out_dbg.dev_rd_empty <= i_utxbuf_full;  --pcie <- dev
+p_out_dbg.h2d_buf_wr    <= i_utxbuf_wr   ;--pcie -> dev
+p_out_dbg.h2d_buf_full  <= i_utxbuf_full ;
+p_out_dbg.d2h_buf_rd    <= i_urxbuf_rd   ;--pcie <- dev
+p_out_dbg.d2h_buf_empty <= i_urxbuf_empty;
 
 
 p_out_dbg.test_speed_bit <= tst_uapp_out(122);-- i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
