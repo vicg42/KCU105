@@ -131,7 +131,7 @@ fsm : process(p_in_clk)
 variable err_out : std_logic_vector(tst_err'range);
 begin
 if rising_edge(p_in_clk) then
-  if p_in_rst_n = '0' then
+  if (p_in_rst_n = '0') then
 
     i_fsm_rx <= S_RX_IDLE;
 
@@ -173,10 +173,10 @@ if rising_edge(p_in_clk) then
 
             err_out := (others => '0');
 
-            if p_in_axi_cq_tvalid = '0' then
+            if (p_in_axi_cq_tvalid = '0') then
               i_axi_cq_tready <= '1';
 
-            elsif i_sop = '1' then
+            elsif (i_sop = '1') then
 
               i_first_be <= p_in_axi_cq_tuser(3 downto 0);
               i_last_be <= p_in_axi_cq_tuser(7 downto 4);
@@ -185,9 +185,9 @@ if rising_edge(p_in_clk) then
               i_tph.t_type  <= p_in_axi_cq_tuser(44 downto 43);
               i_tph.st_tag  <= p_in_axi_cq_tuser(52 downto 45);
 
-              if p_in_axi_cq_tkeep(3 downto 0) = "1111" then --if p_in_axi_cq_tkeep(7 downto 0) = "00011111" then
+              if (p_in_axi_cq_tkeep(3 downto 0) = "1111") then --if p_in_axi_cq_tkeep(7 downto 0) = "00011111" then
                     --Req Type
-                    case p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) is
+                    case (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) ) is
                         -------------------------------------------------------------------------
                         --
                         -------------------------------------------------------------------------
@@ -205,11 +205,11 @@ if rising_edge(p_in_clk) then
                           i_req_des(3) <= p_in_axi_cq_tdata((32 * 4) - 1 downto (32 * 3));
 
                           --Check length data payload (DW)
-                          if UNSIGNED(p_in_axi_cq_tdata(((32 * 2) + 10) downto ((32 * 2) + 0))) = TO_UNSIGNED(16#01#, 11) then
+                          if (UNSIGNED(p_in_axi_cq_tdata(((32 * 2) + 10) downto ((32 * 2) + 0))) = TO_UNSIGNED(16#01#, 11) ) then
 
                               --if (target_fuction = 0) and ((bar_id = 0) or (bar_id = 1))
-                              if (p_in_axi_cq_tdata(((32 * 3) + 15) downto ((32 * 3) +  8)) = "00000000") and
-                                 (UNSIGNED(p_in_axi_cq_tdata(((32 * 3) + 18) downto ((32 * 3) + 16))) <= TO_UNSIGNED(1, 3)) then
+                              if ( (p_in_axi_cq_tdata(((32 * 3) + 15) downto ((32 * 3) +  8)) = "00000000") and
+                                 (UNSIGNED(p_in_axi_cq_tdata(((32 * 3) + 18) downto ((32 * 3) + 16))) <= TO_UNSIGNED(1, 3)) )then
 
                                   i_reg_cs <= '1';
                               end if;
@@ -218,7 +218,7 @@ if rising_edge(p_in_clk) then
                               i_reg_wrbe <= p_in_axi_cq_tuser((8 + (4 * 5)) - 1 downto (8 + (4 * 4)));
 
                               --Compl
-                              if (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
+                              if ((p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_MEM_WR_D)) then
 
                                   i_req_compl <= '0';
 
@@ -231,17 +231,17 @@ if rising_edge(p_in_clk) then
                               else
                                   i_req_compl <= '1';
 
-                                  if (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_IO_WR_D) then
+                                  if ((p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_IO_WR_D)) then
 
-                                    if p_in_axi_cq_tkeep(4) = '1' then
+                                    if (p_in_axi_cq_tkeep(4) = '1') then
                                       i_reg_wr <= '1';
                                     else
                                       err_out(1) := '1';
                                     end if;
 
-                                  elsif (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_IO_RD_ND)
-                                     or (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_MEM_RD_ND)
-                                     or (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND) then
+                                  elsif ( (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_IO_RD_ND)
+                                       or (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_MEM_RD_ND)
+                                       or (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND) ) then
 
                                       i_reg_rd <= '1';
 
@@ -279,7 +279,7 @@ if rising_edge(p_in_clk) then
             i_req_compl <= '0';
             i_req_compl_ur <= '0';
 
-            if p_in_compl_done = '1' or i_req_compl = '0' then
+            if (p_in_compl_done = '1' or i_req_compl = '0') then
 
               i_axi_cq_tready <= '1';
               i_fsm_rx <= S_RX_IDLE;

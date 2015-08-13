@@ -149,11 +149,11 @@ p_out_axi_rq_tuser(p_out_axi_rq_tuser'high downto 12) <= (others => '0');
 init : process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
-  if p_in_rst_n = '0' then
+  if (p_in_rst_n = '0') then
     i_dma_init <= '0';
 
   else
-    if p_in_dma_init = '1' then
+    if (p_in_dma_init = '1') then
         i_dma_init <= '1';
     else
         if (i_fsm_txrq = S_TXRQ_MWR_C0) or (i_fsm_txrq = S_TXRQ_MRD_C0) then
@@ -173,7 +173,7 @@ i_mem_tpl_dw <= RESIZE(i_mem_tpl_byte(i_mem_tpl_byte'high downto 2), i_mem_tpl_d
 fsm : process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
-  if p_in_rst_n = '0' then
+  if (p_in_rst_n = '0') then
 
     i_fsm_txrq <= S_TXRQ_IDLE;
 
@@ -221,9 +221,9 @@ if rising_edge(p_in_clk) then
             i_mwr_work <= '0';
             i_mem_tpl_last <= '0';
 
-            if p_in_dma_mwr_en = '1' and i_mwr_done = '0' and p_in_pcie_prm.master_en(0) = '1' then
+            if (p_in_dma_mwr_en = '1' and i_mwr_done = '0' and p_in_pcie_prm.master_en(0) = '1') then
 
-                if i_dma_init = '1' then
+                if (i_dma_init = '1') then
 
                   --max 1024 because pcie_core support max value 1024 (max_payload)
                   case p_in_pcie_prm.max_payload is
@@ -243,12 +243,12 @@ if rising_edge(p_in_clk) then
                   i_mem_tx_byte_remain <= UNSIGNED(p_in_dma_prm.len) - i_mem_tx_byte;
                 end if;
 
-                if p_in_urxbuf_empty = '0' then
+                if (p_in_urxbuf_empty = '0') then
                   i_fsm_txrq <= S_TXRQ_MWR_C0;
                 end if;
 
-            elsif p_in_dma_mrd_en = '1' and i_mrd_done = '0' and p_in_pcie_prm.master_en(0) = '1' then
-                if i_dma_init = '1' then
+            elsif (p_in_dma_mrd_en = '1' and i_mrd_done = '0' and p_in_pcie_prm.master_en(0) = '1') then
+                if (i_dma_init = '1') then
 
                   case p_in_pcie_prm.max_rd_req is
 --                  when C_PCIE_MAX_RD_REQ_4096_BYTE => i_mem_tpl_max_byte <= TO_UNSIGNED(4096, i_mem_tpl_max_byte'length);
@@ -271,7 +271,7 @@ if rising_edge(p_in_clk) then
 
             else
 
-                if i_dma_init = '1' then
+                if (i_dma_init = '1') then
                   i_mwr_done <= '0';
                   i_mrd_done <= '0';
                 end if;
@@ -285,7 +285,7 @@ if rising_edge(p_in_clk) then
         --#######################################################################
         when S_TXRQ_MWR_C0 =>
 
-            if i_mem_tx_byte_remain > RESIZE(i_mem_tpl_max_byte, i_mem_tx_byte_remain'length) then
+            if (i_mem_tx_byte_remain > RESIZE(i_mem_tpl_max_byte, i_mem_tx_byte_remain'length) ) then
                 i_mem_tpl_last <= '0';
                 i_mem_tpl_byte <= i_mem_tpl_max_byte;
 
@@ -316,7 +316,7 @@ if rising_edge(p_in_clk) then
 
         when S_TXRQ_MWR_D0 =>
 
-            if i_urxbuf_rd = '1' then
+            if (i_urxbuf_rd = '1') then
 
                 i_axi_rq_tvalid <= '1';
 
@@ -338,8 +338,8 @@ if rising_edge(p_in_clk) then
 
                 --First DW BE, Last DW BE - only for address divided 32 byte
                 --1st DW Byte Enable (first_be)
-                if i_mem_tpl_dw = TO_UNSIGNED(16#01#, i_mem_tpl_dw'length) then
-                case i_mem_tpl_byte(1 downto 0) is
+                if (i_mem_tpl_dw = TO_UNSIGNED(16#01#, i_mem_tpl_dw'length))then
+                case (i_mem_tpl_byte(1 downto 0)) is
                 when "00" => i_axi_rq_tuser(3 downto 0) <= "1111";
                 when "01" => i_axi_rq_tuser(3 downto 0) <= "0001";
                 when "10" => i_axi_rq_tuser(3 downto 0) <= "0011";
@@ -351,10 +351,10 @@ if rising_edge(p_in_clk) then
                 end if;
 
                 --Last DW Byte Enable (last_be)
-                if i_mem_tpl_dw = TO_UNSIGNED(16#01#, i_mem_tpl_dw'length) then
+                if (i_mem_tpl_dw = TO_UNSIGNED(16#01#, i_mem_tpl_dw'length)) then
                 i_axi_rq_tuser(7 downto 4) <= "0000";
                 else
-                case i_mem_tpl_byte(1 downto 0) is
+                case (i_mem_tpl_byte(1 downto 0)) is
                 when "00" => i_axi_rq_tuser(7 downto 4) <= "1111";
                 when "01" => i_axi_rq_tuser(7 downto 4) <= "0001";
                 when "10" => i_axi_rq_tuser(7 downto 4) <= "0011";
@@ -383,11 +383,11 @@ if rising_edge(p_in_clk) then
                 sr_usr_rxbuf_do((32 * 4) - 1 downto (32 * 0)) <= p_in_urxbuf_do((32 * 8) - 1 downto (32 * 4));
 
                 --Counter send data (current transaction)
-                if i_mem_tpl_cnt = (i_mem_tpl_len - 1) then
+                if (i_mem_tpl_cnt = (i_mem_tpl_len - 1)) then
 
                     i_mwr_work <= '0';
 
-                    if i_mem_tpl_dw_rem(3 downto 0) < TO_UNSIGNED(4, 4) then
+                    if (i_mem_tpl_dw_rem(3 downto 0) < TO_UNSIGNED(4, 4)) then
 
                       i_axi_rq_tlast <= '0';
 
@@ -413,7 +413,7 @@ if rising_edge(p_in_clk) then
 
                       i_mem_tpl_tag <= i_mem_tpl_tag + 1;
 
-                      if i_mem_tpl_last = '1' then
+                      if (i_mem_tpl_last = '1') then
                         i_mem_tx_byte <= (others => '0');
                         i_mwr_done <= '1';
 
@@ -454,11 +454,11 @@ if rising_edge(p_in_clk) then
                 sr_usr_rxbuf_do((32 * 4) - 1 downto (32 * 0)) <= p_in_urxbuf_do((32 * 8) - 1 downto (32 * 4));
 
                 --Counter send data (current transaction)
-                if i_mem_tpl_cnt = (i_mem_tpl_len - 1) then
+                if (i_mem_tpl_cnt = (i_mem_tpl_len - 1)) then
 
                     i_mwr_work <= '0';
 
-                    if i_mem_tpl_dw_rem(3 downto 0) < TO_UNSIGNED(4, 4) then
+                    if (i_mem_tpl_dw_rem(3 downto 0) < TO_UNSIGNED(4, 4)) then
 
                       i_axi_rq_tlast <= '0';
 
@@ -484,7 +484,7 @@ if rising_edge(p_in_clk) then
 
                         i_mem_tpl_tag <= i_mem_tpl_tag + 1;
 
-                        if i_mem_tpl_last = '1' then
+                        if (i_mem_tpl_last = '1') then
                           i_mem_tx_byte <= (others => '0');
                           i_mwr_done <= '1';
 
@@ -507,7 +507,7 @@ if rising_edge(p_in_clk) then
 
                 end if;
 
-            elsif p_in_axi_rq_tready = '1' and p_in_urxbuf_empty = '1' then
+            elsif (p_in_axi_rq_tready = '1' and p_in_urxbuf_empty = '1') then
 
               i_axi_rq_tvalid <= '0';
 
@@ -521,7 +521,7 @@ if rising_edge(p_in_clk) then
 
         when S_TXRQ_MWR_DE =>
 
-            if p_in_axi_rq_tready = '1' then
+            if (p_in_axi_rq_tready = '1') then
 
                 i_mem_tpl_cnt <= (others => '0');
 
@@ -543,7 +543,7 @@ if rising_edge(p_in_clk) then
 
                 i_mem_tpl_tag <= i_mem_tpl_tag + 1;
 
-                if i_mem_tpl_last = '1' then
+                if (i_mem_tpl_last = '1') then
                   i_mem_tx_byte <= (others => '0');
                   i_mwr_done <= '1';
 
@@ -564,7 +564,7 @@ if rising_edge(p_in_clk) then
         --#######################################################################
         when S_TXRQ_MRD_C0 =>
 
-          if i_mem_tx_byte_remain > RESIZE(i_mem_tpl_max_byte, i_mem_tx_byte_remain'length) then
+          if (i_mem_tx_byte_remain > RESIZE(i_mem_tpl_max_byte, i_mem_tx_byte_remain'length)) then
               i_mem_tpl_last <= '0';
               i_mem_tpl_byte <= i_mem_tpl_max_byte;
           else
@@ -577,7 +577,7 @@ if rising_edge(p_in_clk) then
 
         when S_TXRQ_MRD_N =>
 
-            if p_in_axi_rq_tready = '1' then
+            if (p_in_axi_rq_tready = '1') then
 
                 i_axi_rq_tdata((32 * 2) - 1 downto (32 * 0)) <= std_logic_vector(RESIZE(i_mem_adr_byte(31 downto 2), (32 * 2) - 2) & "00");
 
@@ -604,8 +604,8 @@ if rising_edge(p_in_clk) then
 
                 --First DW BE, Last DW BE - only for address divided 32 byte
                 --1st DW Byte Enable (first_be)
-                if i_mem_tpl_dw = TO_UNSIGNED(16#01#, i_mem_tpl_dw'length) then
-                case i_mem_tpl_byte(1 downto 0) is
+                if (i_mem_tpl_dw = TO_UNSIGNED(16#01#, i_mem_tpl_dw'length)) then
+                case (i_mem_tpl_byte(1 downto 0)) is
                 when "00" => i_axi_rq_tuser(3 downto 0) <= "1111";
                 when "01" => i_axi_rq_tuser(3 downto 0) <= "0001";
                 when "10" => i_axi_rq_tuser(3 downto 0) <= "0011";
@@ -617,10 +617,10 @@ if rising_edge(p_in_clk) then
                 end if;
 
                 --Last DW Byte Enable (last_be)
-                if i_mem_tpl_dw = TO_UNSIGNED(16#01#, i_mem_tpl_dw'length) then
+                if (i_mem_tpl_dw = TO_UNSIGNED(16#01#, i_mem_tpl_dw'length)) then
                 i_axi_rq_tuser(7 downto 4) <= "0000";
                 else
-                case i_mem_tpl_byte(1 downto 0) is
+                case (i_mem_tpl_byte(1 downto 0)) is
                 when "00" => i_axi_rq_tuser(7 downto 4) <= "1111";
                 when "01" => i_axi_rq_tuser(7 downto 4) <= "0001";
                 when "10" => i_axi_rq_tuser(7 downto 4) <= "0011";
@@ -646,7 +646,7 @@ if rising_edge(p_in_clk) then
 
                 i_mem_tpl_tag <= i_mem_tpl_tag + 1;
 
-                if i_mem_tpl_last = '1' then
+                if (i_mem_tpl_last = '1') then
                   i_mem_tx_byte <= (others => '0');
                   i_mrd_done <= '1';
                   i_fsm_txrq <= S_TXRQ_IDLE;
@@ -669,7 +669,7 @@ if rising_edge(p_in_clk) then
           i_mwr_work <= '0';
           i_mem_tpl_last <= '0';
 
-          if i_mem_tx_dw = UNSIGNED(p_in_dma_mrd_rxdwcount) then
+          if (i_mem_tx_dw = UNSIGNED(p_in_dma_mrd_rxdwcount)) then
             i_fsm_txrq <= S_TXRQ_IDLE;
           end if;
 

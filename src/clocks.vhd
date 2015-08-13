@@ -42,7 +42,7 @@ begin --architecture synth
 process(g_clk(0))
 begin
   if rising_edge(g_clk(0)) then
-    if i_pll_rst_cnt = (i_pll_rst_cnt'range => '0') then
+    if (i_pll_rst_cnt = (i_pll_rst_cnt'range => '0')) then
       i_pll_rst <= '0';
     else
       i_pll_rst <= '1';

@@ -72,7 +72,7 @@ p_out_cfg_irq        <= i_irq;
 process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
-  if p_in_rst_n = '0' then
+  if (p_in_rst_n = '0') then
 
     i_irq_ack    <= '0';
     i_irq_assert <= '0';
@@ -88,7 +88,7 @@ if rising_edge(p_in_clk) then
       ----------------------------------
       when S_IRQ_IDLE =>
 
-        if p_in_irq_set = '1' then
+        if (p_in_irq_set = '1') then
           i_irq        <= '1';
           i_irq_assert <= '1';--ASSERT IRQ
           fsm_cs <= S_IRQ_ASSERT_DONE;
@@ -100,7 +100,7 @@ if rising_edge(p_in_clk) then
       when S_IRQ_ASSERT_DONE =>
 
         --Wait acknowledge from CORE
-        if p_in_cfg_irq_rdy = '1' then
+        if (p_in_cfg_irq_rdy = '1') then
 --          i_irq <= '0';
           i_irq_ack <= '1';
           fsm_cs <= S_IRQ_WAIT_CLR;
@@ -113,8 +113,8 @@ if rising_edge(p_in_clk) then
 
         i_irq_ack <= '0';
 
-        if p_in_irq_clr = '1' then
-          if p_in_cfg_msi = '1' then
+        if (p_in_irq_clr = '1') then
+          if (p_in_cfg_msi = '1') then
           --Interrupt mode MSI
             i_irq        <= '0';
             i_irq_assert <= '0';--DEASSERT IRQ
@@ -133,7 +133,7 @@ if rising_edge(p_in_clk) then
       when S_IRQ_DEASSERT_DONE =>
 
         --Wait acknowledge from CORE
-        if p_in_cfg_irq_rdy = '1' then
+        if (p_in_cfg_irq_rdy = '1') then
           i_irq_assert <= '0';
           i_irq        <= '0';
           fsm_cs <= S_IRQ_IDLE;

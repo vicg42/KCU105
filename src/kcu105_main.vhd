@@ -459,9 +459,9 @@ begin
 if rising_edge(g_usrclk(0)) then
   sr_host_rst_n <= i_host_rst_n & sr_host_rst_n(0 to 1);
 
-  if pin_in_btn(4) = '1' and i_det_pcie_rst = '1' then
+  if (pin_in_btn(4) = '1' and i_det_pcie_rst = '1') then
     i_det_pcie_rst <= '0';
-  elsif sr_host_rst_n(1) = '1' and sr_host_rst_n(2) = '0' then
+  elsif (sr_host_rst_n(1) = '1' and sr_host_rst_n(2) = '0') then
     i_det_pcie_rst <= '1';
   end if;
 

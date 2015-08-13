@@ -150,7 +150,7 @@ i_req_be  <= p_in_req_prm.last_be & p_in_req_prm.first_be;
 --Calculate lower address based on  byte enable
 process (i_req_be, i_req.addr)
 begin
-  case i_req_be(3 downto 0) is
+  case (i_req_be(3 downto 0)) is
     when "0000" =>
       i_lower_addr <= (i_req.addr(6 downto 2) & "00");
     when "0001" | "0011" | "0101" | "0111" | "1001" | "1011" | "1101" | "1111" =>
@@ -176,7 +176,7 @@ end process;
 --gen_cc_align_on : if strcmp(G_AXISTEN_IF_CC_ALIGNMENT_MODE, "TRUE") generate begin
 --process (i_lower_addr)
 --begin
---  case i_lower_addr(4 downto 2) is
+--  case (i_lower_addr(4 downto 2)) is
 --    when "000" => i_tkeep <= std_logic_vector(TO_UNSIGNED(16#01#, i_tkeep'length));
 --    when "001" => i_tkeep <= std_logic_vector(TO_UNSIGNED(16#03#, i_tkeep'length));
 --    when "010" => i_tkeep <= std_logic_vector(TO_UNSIGNED(16#07#, i_tkeep'length));
@@ -207,7 +207,7 @@ end process;
 fsm : process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
-  if p_in_rst_n = '0' then
+  if (p_in_rst_n = '0') then
 
     i_fsm_tx <= S_TX_IDLE;
 
@@ -226,6 +226,7 @@ if rising_edge(p_in_clk) then
         --
         --#######################################################################
         when S_TX_IDLE =>
+
             i_axi_cc_tdata  <= (others => '0');
             i_axi_cc_tkeep  <= (others => '0');
             i_axi_cc_tlast  <= '0';
@@ -234,7 +235,7 @@ if rising_edge(p_in_clk) then
 
             i_compl_done <= '0';
 
-            if p_in_req_compl = '1' then
+            if (p_in_req_compl = '1') then
               i_fsm_tx <= S_TX_CPL;
             end if;
 
@@ -244,14 +245,14 @@ if rising_edge(p_in_clk) then
         --#######################################################################
         when S_TX_CPL =>
 
-          if sr_req_compl(sr_req_compl'high) = '1' then
+          if (sr_req_compl(sr_req_compl'high) = '1') then
 
             i_axi_cc_tvalid <= '1';
             i_axi_cc_tlast  <= '1';
 
-            if (i_req.pkt = C_PCIE3_PKT_TYPE_MEM_RD_ND)
+            if (   (i_req.pkt = C_PCIE3_PKT_TYPE_MEM_RD_ND)
                 or (i_req.pkt = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND)
-                or (i_req.pkt = C_PCIE3_PKT_TYPE_IO_RD_ND) then
+                or (i_req.pkt = C_PCIE3_PKT_TYPE_IO_RD_ND) ) then
 
               i_axi_cc_tdata((32 * 4) - 1 downto (32 * 3)) <= p_in_ureg_do;
               i_axi_cc_tkeep <= "1111";
@@ -275,8 +276,8 @@ if rising_edge(p_in_clk) then
             i_axi_cc_tdata((32 * 1) + 14)                      <= '0';       --Posioned completion
             i_axi_cc_tdata((32 * 1) + 13 downto (32 * 1) + 11) <= C_PCIE_COMPL_STATUS_SC; --Completion Status: SuccessFull completion
 
-            if (i_req.pkt = C_PCIE3_PKT_TYPE_IO_RD_ND) or
-               ((i_req.pkt = C_PCIE3_PKT_TYPE_MEM_RD_ND) and (i_req.len = (i_req.len'range => '0'))) then
+            if ( (i_req.pkt = C_PCIE3_PKT_TYPE_IO_RD_ND) or
+                ((i_req.pkt = C_PCIE3_PKT_TYPE_MEM_RD_ND) and (i_req.len = (i_req.len'range => '0'))) ) then
 
               i_axi_cc_tdata((32 * 1) + 10 downto (32 * 1) + 0) <= std_logic_vector(TO_UNSIGNED(1, 11)); --DWord Count
 
@@ -302,13 +303,13 @@ if rising_edge(p_in_clk) then
             end if;
 
 
-            if G_AXISTEN_IF_CC_PARITY_CHECK = 0 then
+            if (G_AXISTEN_IF_CC_PARITY_CHECK = 0) then
               i_axi_cc_tuser <= (others => '0');
             else
               i_axi_cc_tuser <= std_logic_vector(RESIZE(UNSIGNED(i_axi_cc_tparity), i_axi_cc_tuser'length));
             end if;
 
-            if p_in_axi_cc_tready = '1' then
+            if (p_in_axi_cc_tready = '1') then
               i_compl_done <= '1';
               i_fsm_tx <= S_TX_IDLE;
             end if;

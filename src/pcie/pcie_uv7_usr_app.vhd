@@ -248,7 +248,7 @@ wr : process(p_in_clk)
   variable fg_rddone_edge : std_logic;
 begin
 if rising_edge(p_in_clk) then
-  if p_in_rst_n = '0' then
+  if (p_in_rst_n = '0') then
     i_reg.ctrl <= (others => '0');
     i_reg.dev_ctrl <= (others => '0');
     i_reg.pcie <= (others => '0');
@@ -288,55 +288,55 @@ if rising_edge(p_in_clk) then
 
       usr_grst := '0';
 
-    if p_in_reg_wr = '1' then
-      if i_reg_bar = '1' then
+    if (p_in_reg_wr = '1') then
+      if (i_reg_bar = '1') then
       ----------------------------------------------
       --Register Space:
       ----------------------------------------------
-        if i_reg_adr = TO_UNSIGNED(C_HREG_CTRL, 5)  then
+        if (i_reg_adr = TO_UNSIGNED(C_HREG_CTRL, 5))  then
           i_reg.ctrl <= p_in_reg_din(i_reg.ctrl'high downto 0);
             usr_grst := p_in_reg_din(C_HREG_CTRL_RST_ALL_BIT);
             fg_rddone_edge := p_in_reg_din(C_HREG_CTRL_FG_RDDONE_BIT);
 
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_ADR, 5) then --Adress(Byte)
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_ADR, 5)) then --Adress(Byte)
           i_host_dmaprm_din <= p_in_reg_din;
             dmaprm_wr := '1';
 
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_LEN, 5) then --Size(Byte)
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_LEN, 5)) then --Size(Byte)
           i_host_dmaprm_din <= p_in_reg_din;
             dmaprm_wr := '1';
 
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_DEV_CTRL, 5) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_DEV_CTRL, 5)) then
           i_reg.dev_ctrl <= p_in_reg_din(i_reg.dev_ctrl'high downto 0);
             dma_start := p_in_reg_din(C_HREG_DEV_CTRL_DMA_START_BIT);
             dev_drdy := p_in_reg_din(C_HREG_DEV_CTRL_DRDY_BIT);
 
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_PCIE, 5) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_PCIE, 5)) then
             i_reg.pcie <= p_in_reg_din(C_HREG_PCIE_SPEED_TESTING_BIT downto C_HREG_PCIE_SPEED_TESTING_BIT);
 
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_MEM_ADR, 5) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_MEM_ADR, 5)) then
           i_reg.mem_adr <= p_in_reg_din(i_reg.mem_adr'high downto 0);
 
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_MEM_CTRL, 5) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_MEM_CTRL, 5)) then
           i_reg.mem_ctrl <= p_in_reg_din(i_reg.mem_ctrl'high downto 0);
 
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_IRQ, 5) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_IRQ, 5)) then
           i_reg.irq <= p_in_reg_din(C_HREG_IRQ_NUM_M_WBIT downto C_HREG_IRQ_NUM_L_WBIT);
             irq_clr := p_in_reg_din(C_HREG_IRQ_CLR_WBIT);
             irq_status_clr := p_in_reg_din(C_HREG_IRQ_STATUS_CLR_WBIT);
 
             for i in 0 to C_HIRQ_COUNT - 1 loop
-              if UNSIGNED(p_in_reg_din(C_HREG_IRQ_NUM_M_WBIT downto C_HREG_IRQ_NUM_L_WBIT)) = i then
-                if p_in_reg_din(C_HREG_IRQ_EN_WBIT) = '1' then
+              if (UNSIGNED(p_in_reg_din(C_HREG_IRQ_NUM_M_WBIT downto C_HREG_IRQ_NUM_L_WBIT)) = i) then
+                if (p_in_reg_din(C_HREG_IRQ_EN_WBIT) = '1') then
                   i_irq_en(i) <= '1';
-                elsif p_in_reg_din(C_HREG_IRQ_DIS_WBIT) = '1' then
+                elsif (p_in_reg_din(C_HREG_IRQ_DIS_WBIT) = '1') then
                   i_irq_en(i) <= '0';
                 end if;
               end if;
             end loop;
 
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST0, 5) then i_reg.tst0 <= p_in_reg_din;
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST1, 5) then i_reg.tst1 <= p_in_reg_din;
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_TST0, 5)) then i_reg.tst0 <= p_in_reg_din;
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_TST1, 5)) then i_reg.tst1 <= p_in_reg_din;
 
         end if;
 
@@ -361,7 +361,7 @@ rd : process(p_in_clk)
   variable txd : std_logic_vector(p_out_reg_dout'range);
 begin
 if rising_edge(p_in_clk) then
-  if p_in_rst_n = '0' then
+  if (p_in_rst_n = '0') then
     txd := (others => '0');
     p_out_reg_dout <= (others => '0');
     i_reg_rd <= '0';
@@ -372,25 +372,25 @@ if rising_edge(p_in_clk) then
 
     i_reg_rd <= p_in_reg_rd;
 
-    if i_reg_rd = '1' then
-      if i_reg_bar = '1' then
+    if (i_reg_rd = '1') then
+      if (i_reg_bar = '1') then
       ----------------------------------------------
       --Register Space:
       ----------------------------------------------
-        if i_reg_adr = TO_UNSIGNED(C_HREG_FIRMWARE, 5) then
+        if (i_reg_adr = TO_UNSIGNED(C_HREG_FIRMWARE, 5)) then
             txd := std_logic_vector(RESIZE(UNSIGNED(i_reg.firmware), txd'length));
 
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_ADR, 5) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_ADR, 5)) then
             txd := std_logic_vector(RESIZE(UNSIGNED(i_host_dmaprm_dout), txd'length));
 
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_LEN, 5) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_LEN, 5)) then
             txd := std_logic_vector(RESIZE(UNSIGNED(i_host_dmaprm_dout), txd'length));
 
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_DEV_CTRL, 5) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_DEV_CTRL, 5)) then
             txd(C_HREG_DEV_CTRL_LAST_BIT downto C_HREG_DEV_CTRL_DMA_DIR_BIT)
                 := i_reg.dev_ctrl(C_HREG_DEV_CTRL_LAST_BIT downto C_HREG_DEV_CTRL_DMA_DIR_BIT);
 
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_PCIE, 5) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_PCIE, 5)) then
             txd(C_HREG_PCIE_NEG_LINK_M_RBIT downto C_HREG_PCIE_NEG_LINK_L_RBIT)
                 := p_in_pcie_prm.link_width(5 downto 0);
 
@@ -404,41 +404,41 @@ if rising_edge(p_in_clk) then
 
             txd(C_HREG_PCIE_SPEED_TESTING_BIT) := i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_MEM_ADR, 5) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_MEM_ADR, 5)) then
             txd := std_logic_vector(RESIZE(UNSIGNED(i_reg.mem_adr), txd'length));
 
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_MEM_CTRL, 5) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_MEM_CTRL, 5)) then
             txd := std_logic_vector(RESIZE(UNSIGNED(i_reg.mem_ctrl), txd'length));
 
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_IRQ, 5) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_IRQ, 5)) then
             for i in 0 to C_HIRQ_COUNT - 1 loop
               txd(i) := i_irq_status(i);
             end loop;
 
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_DEV_STATUS, 5) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_DEV_STATUS, 5)) then
             txd(C_HREG_DEV_STATUS_DMA_BUSY_BIT) := i_dma_work;
             txd(C_HREG_DEV_STATUS_LAST_BIT downto C_HREG_DEV_STATUS_CFG_RDY_BIT)
                   := p_in_dev_status(C_HREG_DEV_STATUS_LAST_BIT downto C_HREG_DEV_STATUS_CFG_RDY_BIT);
 
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_FG_FRMRK, 5) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_FG_FRMRK, 5)) then
           txd := p_in_dev_opt(C_HDEV_OPTIN_FG_FRMRK_M_BIT downto C_HDEV_OPTIN_FG_FRMRK_L_BIT);
 
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST0, 5) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_TST0, 5)) then
           txd := std_logic_vector(RESIZE(UNSIGNED(i_reg.tst0), txd'length));
 
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST1, 5) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_TST1, 5)) then
           txd(31 downto 0) := i_reg.tst1(31 downto 0);
 
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_TST2, 5) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_TST2, 5)) then
           txd := p_in_tst(63 downto 32);
 
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_FUNC, 5) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_FUNC, 5)) then
           txd(C_HREG_FUNC_MEM_BIT) := '1';
           txd(C_HREG_FUNC_TMR_BIT) := '1';
           txd(C_HREG_FUNC_FG_BIT) := '1'; --Frame Grabber
           txd(C_HREG_FUNC_CFG_BIT) := '1';
 
-        elsif i_reg_adr = TO_UNSIGNED(C_HREG_FUNCPRM, 5) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_FUNCPRM, 5)) then
 
           txd(C_HREG_FUNCPRM_MEMBANK_SIZE_M_BIT downto C_HREG_FUNCPRM_MEMBANK_SIZE_L_BIT)
               := std_logic_vector(TO_UNSIGNED(C_PCFG_MEMCTRL_BANK_SIZE
@@ -484,7 +484,7 @@ i_dmatrn_done <= i_dmatrn_mwr_done or i_dmatrn_mrd_done;
 dma_end : process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
-  if p_in_rst_n = '0' or i_usr_grst = '1' then
+  if (p_in_rst_n = '0' or i_usr_grst = '1') then
     i_mrd_rcv_size_ok <= '0';
     i_dmatrn_mem_done <= (others => '0');
     sr_memtrn_done <= (others => '0');
@@ -499,11 +499,11 @@ if rising_edge(p_in_clk) then
   else
 
     --Check size recieve data (DMATRN_RD)
-    if i_dmatrn_init = '1' then
+    if (i_dmatrn_init = '1') then
       i_mrd_rcv_size_ok <= '0';
     else
-      if p_in_dma_mrd_rcv_size(31 downto 0) /= (p_in_dma_mrd_rcv_size'range => '0') then
-        if ("00" & i_dmatrn_len(31 downto 2)) = p_in_dma_mrd_rcv_size(31 downto 0) then
+      if (p_in_dma_mrd_rcv_size(31 downto 0) /= (p_in_dma_mrd_rcv_size'range => '0')) then
+        if (("00" & i_dmatrn_len(31 downto 2)) = p_in_dma_mrd_rcv_size(31 downto 0)) then
           i_mrd_rcv_size_ok <= '1';
         end if;
       end if;
@@ -519,19 +519,19 @@ if rising_edge(p_in_clk) then
     i_mwr_done <= p_in_dma_mwr_done and not sr_mwr_done;
 
     --DMATRN <-> MEM_CTRL
-    if UNSIGNED(i_hdev_adr) = TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length)
-      and i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT) /= '1' then
+    if (UNSIGNED(i_hdev_adr) = TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length)
+      and i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT) /= '1') then
 
-      if AND_reduce(i_dmatrn_mem_done) = '1' or i_dma_start = '1' then
+      if (AND_reduce(i_dmatrn_mem_done) = '1' or i_dma_start = '1') then
         i_dmatrn_mem_done <= (others => '0');
       else
         --Core PCIExpress - DMATRN done
-        if i_mwr_done = '1' or i_mrd_done = '1' then
+        if (i_mwr_done = '1' or i_mrd_done = '1') then
           i_dmatrn_mem_done(0) <=  '1';
         end if;
 
         --ACK from pcie2mem_ctrl.vhd
-        if i_memtrn_done = '1' then
+        if (i_memtrn_done = '1') then
           i_dmatrn_mem_done(1) <= '1';
         end if;
       end if;
@@ -548,7 +548,7 @@ end process;--dma_end
 dma : process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
-  if p_in_rst_n = '0' or i_usr_grst = '1' then
+  if (p_in_rst_n = '0' or i_usr_grst = '1') then
 
     i_dmatrn_init <= '0';
     i_dmatrn_start <= '0';
@@ -581,9 +581,9 @@ if rising_edge(p_in_clk) then
     ---------------------------------------------
     --One buffer DMA - done
     ---------------------------------------------
-    if i_dmatrn_start = '1' then
+    if (i_dmatrn_start = '1') then
       i_dmatrn_work <= '1';
-    elsif i_dmatrn_done = '1' then
+    elsif (i_dmatrn_done = '1') then
       i_dmatrn_work <= '0';
     end if;
     sr_dmatrn_done <= i_dmatrn_done;
@@ -591,11 +591,11 @@ if rising_edge(p_in_clk) then
     ---------------------------------------------
     --All set buffers DMA - done
     ---------------------------------------------
-    if i_dmatrn_start = '1' then
+    if (i_dmatrn_start = '1') then
       i_dma_work <= '1';
-    elsif (UNSIGNED(i_dmabuf_count) = i_dmabuf_done_cnt and i_dmatrn_done = '1')
-      or ((UNSIGNED(i_reg.irq(C_HREG_IRQ_NUM_M_WBIT downto C_HREG_IRQ_NUM_L_WBIT))
-              = TO_UNSIGNED(C_HIRQ_PCIE_DMA,(C_HREG_IRQ_NUM_M_WBIT - C_HREG_IRQ_NUM_L_WBIT + 1))) and i_irq_status_clr = '1') then
+    elsif ( (UNSIGNED(i_dmabuf_count) = i_dmabuf_done_cnt and i_dmatrn_done = '1')
+        or ((UNSIGNED(i_reg.irq(C_HREG_IRQ_NUM_M_WBIT downto C_HREG_IRQ_NUM_L_WBIT))
+              = TO_UNSIGNED(C_HIRQ_PCIE_DMA,(C_HREG_IRQ_NUM_M_WBIT - C_HREG_IRQ_NUM_L_WBIT + 1))) and i_irq_status_clr = '1') ) then
       i_dma_work <= '0';
     end if;
 
@@ -605,13 +605,13 @@ if rising_edge(p_in_clk) then
     ---------------------------------------------
     --Read DMATRN param
     ---------------------------------------------
-    if i_dma_start = '1' or (i_dma_work = '1' and sr_dmatrn_done = '1') then
+    if (i_dma_start = '1' or (i_dma_work = '1' and sr_dmatrn_done = '1')) then
        i_hw_dmaprm_rd(0) <= '1';
-    elsif i_hw_dmaprm_cnt = "01" then
+    elsif (i_hw_dmaprm_cnt = "01") then
        i_hw_dmaprm_rd(0) <= '0';
     end if;
 
-    if i_hw_dmaprm_rd(0) = '1' then
+    if (i_hw_dmaprm_rd(0) = '1') then
       i_hw_dmaprm_cnt <= i_hw_dmaprm_cnt + 1;
     else
       i_hw_dmaprm_cnt <= (others => '0');
@@ -621,12 +621,12 @@ if rising_edge(p_in_clk) then
     sr_hw_dmaprm_rd <= i_hw_dmaprm_rd;
 
     --Load DMATRN param for use PCI-Express core
-    if sr_hw_dmaprm_rd(0) = '1' then
-      if sr_hw_dmaprm_cnt = "00" then
+    if (sr_hw_dmaprm_rd(0) = '1') then
+      if (sr_hw_dmaprm_cnt = "00") then
         i_dmatrn_len <= i_hw_dmaprm_dout; --Size (Byte)
         i_dmatrn_init <= '0';
 
-      elsif sr_hw_dmaprm_cnt = "01" then
+      elsif (sr_hw_dmaprm_cnt = "01") then
         i_dmatrn_adr(31 downto 0) <= i_hw_dmaprm_dout; --Adress(Byte)
         i_dmatrn_init <= '1';
 
@@ -637,11 +637,11 @@ if rising_edge(p_in_clk) then
 
     --Counting DMA buffer donr +
     --Load index start buffer
-    if i_dma_start = '1' then
+    if (i_dma_start = '1') then
       i_dmabuf_num_cnt <= UNSIGNED(i_dmabuf_num); --Index start buffer
       i_dmabuf_done_cnt <= (others => '0');
 
-    elsif i_dmatrn_done = '1' then
+    elsif (i_dmatrn_done = '1') then
       i_dmabuf_num_cnt <= i_dmabuf_num_cnt + 1;
       i_dmabuf_done_cnt <= i_dmabuf_done_cnt + 1;
     end if;
@@ -694,7 +694,7 @@ gen_irq: for i in 0 to C_HIRQ_COUNT - 1 generate
 process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
-  if i_irq_en(i) = '0' or i_usr_grst = '1' then
+  if (i_irq_en(i) = '0' or i_usr_grst = '1') then
     sr_irq_set(i) <= (others => '0');
     i_irq_set(i) <= '0';
   else
@@ -707,14 +707,14 @@ end process;
 process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
-  if i_irq_status_clr = '1' and (UNSIGNED(i_reg.irq(C_HREG_IRQ_NUM_M_WBIT downto C_HREG_IRQ_NUM_L_WBIT)) = i) then
+  if (i_irq_status_clr = '1' and (UNSIGNED(i_reg.irq(C_HREG_IRQ_NUM_M_WBIT downto C_HREG_IRQ_NUM_L_WBIT)) = i) )then
     i_irq_status(i) <= '0';
     i_irq_req(i) <= '0';
 
-  elsif i_irq_set(i) = '1' then
+  elsif (i_irq_set(i) = '1') then
     i_irq_req(i) <= '1';
 
-  elsif i_irq_req(i) = '1' and p_in_irq_ack = '1' then
+  elsif (i_irq_req(i) = '1' and p_in_irq_ack = '1') then
     i_irq_status(i) <= '1';
 
   end if;
@@ -743,12 +743,12 @@ p_out_dev_din <= p_in_txbuf_di;
 --process(p_in_rst_n, i_usr_grst, p_in_clk)
 --begin
 --if rising_edge(p_in_clk) then
---  if p_in_rst_n = '0' or i_usr_grst = '1' then
+--  if (p_in_rst_n = '0' or i_usr_grst = '1') then
 --    for i in 0 to (tst_mem_dcnt'length / 8) - 1 loop
 --    tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i) <= TO_UNSIGNED(i, 8);
 --    end loop;
 --  else
---    if p_in_rxbuf_rd = '1' and UNSIGNED(i_hdev_adr) = TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length) then
+--    if (p_in_rxbuf_rd = '1' and UNSIGNED(i_hdev_adr) = TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length)) then
 --      for i in 0 to (tst_mem_dcnt'length / 8) - 1 loop
 --      tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i) <= tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i)
 --                                                 + TO_UNSIGNED((tst_mem_dcnt'length / 8), 8);
@@ -783,11 +783,11 @@ p_out_gctrl(C_HREG_CTRL_FG_RDDONE_BIT) <= i_fg_rddone;
 process(p_in_clk)
 begin
   if rising_edge(p_in_clk) then
-    if i_dma_start = '1' then
+    if (i_dma_start = '1') then
       i_mem_adr <= RESIZE(UNSIGNED(i_reg.mem_adr(i_reg.mem_adr'high downto log2(C_HDEV_DWIDTH / 8))), i_mem_adr'length);
     else
-      if UNSIGNED(i_hdev_adr) = TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length)
-        and (p_in_rxbuf_rd = '1' or p_in_txbuf_wr = '1') then
+      if (UNSIGNED(i_hdev_adr) = TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length)
+        and (p_in_rxbuf_rd = '1' or p_in_txbuf_wr = '1') ) then
 
         i_mem_adr <= i_mem_adr + 1;
 
@@ -838,7 +838,7 @@ p_out_tst(127)            <= p_in_txbuf_last;
 process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
-  if i_irq_status(C_HIRQ_PCIE_DMA) = '1' then
+  if (i_irq_status(C_HIRQ_PCIE_DMA) = '1') then
       tst_cnt <= tst_cnt + 1;
   end if;
 
