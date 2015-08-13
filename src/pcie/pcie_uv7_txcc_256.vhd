@@ -78,21 +78,17 @@ type TFsmTx_state is (
 S_TX_IDLE  ,
 S_TX_CPL
 );
-signal i_fsm_tx              : TFsmTx_state;
+signal i_fsm_tx         : TFsmTx_state;
 
-signal i_axi_cc_tparity: std_logic_vector(31 downto 0) := (others => '0');
+signal i_axi_cc_tparity : std_logic_vector(31 downto 0) := (others => '0');
 
-signal i_axi_cc_tdata  : std_logic_vector(127 downto 0);
-signal i_axi_cc_tkeep  : std_logic_vector(3 downto 0);
-signal i_axi_cc_tlast  : std_logic;
-signal i_axi_cc_tvalid : std_logic;
-signal i_axi_cc_tuser  : std_logic_vector(32 downto 0);
+signal i_axi_cc_tdata   : std_logic_vector(127 downto 0);
+signal i_axi_cc_tkeep   : std_logic_vector(3 downto 0);
+signal i_axi_cc_tlast   : std_logic;
+signal i_axi_cc_tvalid  : std_logic;
+signal i_axi_cc_tuser   : std_logic_vector(32 downto 0);
 
---signal i_cfg_msg_transmit      : std_logic;
---signal i_cfg_msg_transmit_type : std_logic_vector(2 downto 0);
---signal i_cfg_msg_transmit_data : std_logic_vector(31 downto 0);
-
-signal i_compl_done       : std_logic;
+signal i_compl_done     : std_logic;
 
 type TReq is record
 pkt  : std_logic_vector(3 downto 0);
@@ -105,16 +101,16 @@ addr : std_logic_vector(12 downto 0);
 at   : std_logic_vector(1 downto 0);
 end record;
 
-signal i_req              : TReq;
+signal i_req            : TReq;
 
-signal i_req_be           : std_logic_vector(7 downto 0);
+signal i_req_be         : std_logic_vector(7 downto 0);
 
 --signal i_lower_addr_tmp     : std_logic_vector(6 downto 0);
-signal i_lower_addr       : std_logic_vector(6 downto 0);
+signal i_lower_addr     : std_logic_vector(6 downto 0);
 
-signal sr_req_compl       : std_logic_vector(0 to 1);
+signal sr_req_compl     : std_logic_vector(0 to 1);
 
-signal tst_fsm_tx         : std_logic;
+signal tst_fsm_tx       : std_logic;
 
 
 

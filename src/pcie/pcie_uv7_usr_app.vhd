@@ -86,9 +86,9 @@ p_in_dma_mrd_rcv_size : in    std_logic_vector(31 downto 0);
 p_in_dma_mrd_rcv_err  : in    std_logic;
 
 --IRQ
-p_out_irq_clr      : out   std_logic;
-p_out_irq_set      : out   std_logic;
-p_in_irq_ack       : in    std_logic;
+p_out_irq_clr : out   std_logic;
+p_out_irq_set : out   std_logic;
+p_in_irq_ack  : in    std_logic;
 
 --System
 p_in_clk   : in    std_logic;

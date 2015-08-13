@@ -454,12 +454,12 @@ G_PARITY_WIDTH => CI_PARITY_WIDTH
 )
 port map (
 --Completer Request Interface
-p_in_axi_cq_tdata    => p_in_axi_cq_tdata ,
-p_in_axi_cq_tlast    => p_in_axi_cq_tlast ,
-p_in_axi_cq_tvalid   => p_in_axi_cq_tvalid,
-p_in_axi_cq_tuser    => p_in_axi_cq_tuser ,
-p_in_axi_cq_tkeep    => p_in_axi_cq_tkeep ,
-p_out_axi_cq_tready  => i_axi_cq_tready   ,
+p_in_axi_cq_tdata   => p_in_axi_cq_tdata ,
+p_in_axi_cq_tlast   => p_in_axi_cq_tlast ,
+p_in_axi_cq_tvalid  => p_in_axi_cq_tvalid,
+p_in_axi_cq_tuser   => p_in_axi_cq_tuser ,
+p_in_axi_cq_tkeep   => p_in_axi_cq_tkeep ,
+p_out_axi_cq_tready => i_axi_cq_tready   ,
 
 p_in_pcie_cq_np_req_count => p_in_pcie_cq_np_req_count,
 p_out_pcie_cq_np_req      => p_out_pcie_cq_np_req     ,

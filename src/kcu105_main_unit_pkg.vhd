@@ -60,34 +60,34 @@ port(
 --------------------------------------------------------
 --USR Port
 --------------------------------------------------------
-p_out_hclk           : out   std_logic ;
-p_out_gctrl          : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
+p_out_hclk       : out   std_logic ;
+p_out_gctrl      : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
-p_out_dev_ctrl       : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
-p_out_dev_din        : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
-p_in_dev_dout        : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
-p_out_dev_wr         : out   std_logic;
-p_out_dev_rd         : out   std_logic;
-p_in_dev_status      : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
-p_in_dev_irq         : in    std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
-p_in_dev_opt         : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
-p_out_dev_opt        : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
+p_out_dev_ctrl   : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
+p_out_dev_din    : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
+p_in_dev_dout    : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
+p_out_dev_wr     : out   std_logic;
+p_out_dev_rd     : out   std_logic;
+p_in_dev_status  : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
+p_in_dev_irq     : in    std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
+p_in_dev_opt     : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
+p_out_dev_opt    : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
 
 --------------------------------------------------------
 --DBG
 --------------------------------------------------------
-p_out_usr_tst        : out   std_logic_vector(127 downto 0);
-p_in_usr_tst         : in    std_logic_vector(127 downto 0);
-p_in_tst             : in    std_logic_vector(31 downto 0);
-p_out_tst            : out   std_logic_vector(255 downto 0);
-p_out_dbg            : out   TPCIE_dbg;
+p_out_usr_tst    : out   std_logic_vector(127 downto 0);
+p_in_usr_tst     : in    std_logic_vector(127 downto 0);
+p_in_tst         : in    std_logic_vector(31 downto 0);
+p_out_tst        : out   std_logic_vector(255 downto 0);
+p_out_dbg        : out   TPCIE_dbg;
 
 ---------------------------------------------------------
 --System Port
 ---------------------------------------------------------
-p_in_pcie_phy        : in    TPCIE_pinin;
-p_out_pcie_phy       : out   TPCIE_pinout;
-p_out_pcie_rst_n     : out   std_logic
+p_in_pcie_phy    : in    TPCIE_pinin;
+p_out_pcie_phy   : out   TPCIE_pinout;
+p_out_pcie_rst_n : out   std_logic
 );
 end component pcie_main;
 

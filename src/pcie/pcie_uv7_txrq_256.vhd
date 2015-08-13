@@ -88,7 +88,7 @@ S_TXRQ_MRD_C0,
 S_TXRQ_MRD_N,
 S_TXRQ_CPLD_WAIT
 );
-signal i_fsm_txrq           : TFsmTxRq_state;
+signal i_fsm_txrq        : TFsmTxRq_state;
 
 signal i_axi_rq_tdata    : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 signal i_axi_rq_tkeep    : std_logic_vector(G_KEEP_WIDTH - 1 downto 0);

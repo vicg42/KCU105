@@ -27,12 +27,12 @@ G_KEEP_WIDTH   : integer := 64 / 32
 );
 port(
 -- Completer Request Interface
-p_in_axi_cq_tdata      : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_in_axi_cq_tlast      : in  std_logic;
-p_in_axi_cq_tvalid     : in  std_logic;
-p_in_axi_cq_tuser      : in  std_logic_vector(84 downto 0);
-p_in_axi_cq_tkeep      : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-p_out_axi_cq_tready    : out std_logic;
+p_in_axi_cq_tdata   : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_in_axi_cq_tlast   : in  std_logic;
+p_in_axi_cq_tvalid  : in  std_logic;
+p_in_axi_cq_tuser   : in  std_logic_vector(84 downto 0);
+p_in_axi_cq_tkeep   : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_axi_cq_tready : out std_logic;
 
 p_in_pcie_cq_np_req_count : in  std_logic_vector(5 downto 0);
 p_out_pcie_cq_np_req      : out std_logic;
@@ -72,31 +72,31 @@ type TFsmRx_state is (
 S_RX_IDLE,
 S_RX_WAIT
 );
-signal i_fsm_rx              : TFsmRx_state;
+signal i_fsm_rx           : TFsmRx_state;
 
-signal i_sop                 : std_logic;
+signal i_sop              : std_logic;
 
 signal i_axi_cq_tready    : std_logic := '0';
 signal i_axi_rc_tready    : std_logic := '1';
 
-signal i_req_pkt             : std_logic_vector(3 downto 0);
+signal i_req_pkt          : std_logic_vector(3 downto 0);
 
-signal i_req_des             : TPCIEDesc;
-signal i_tph                 : TPCIEtph;
-signal i_first_be            : std_logic_vector(3 downto 0);
-signal i_last_be             : std_logic_vector(3 downto 0);
+signal i_req_des          : TPCIEDesc;
+signal i_tph              : TPCIEtph;
+signal i_first_be         : std_logic_vector(3 downto 0);
+signal i_last_be          : std_logic_vector(3 downto 0);
 
-signal i_req_compl           : std_logic := '0';
-signal i_req_compl_ur        : std_logic := '0';
+signal i_req_compl        : std_logic := '0';
+signal i_req_compl_ur     : std_logic := '0';
 
-signal i_reg_d               : std_logic_vector(31 downto 0);
-signal i_reg_wrbe            : std_logic_vector(3 downto 0);
-signal i_reg_wr              : std_logic;
-signal i_reg_rd              : std_logic;
-signal i_reg_cs              : std_logic;
+signal i_reg_d            : std_logic_vector(31 downto 0);
+signal i_reg_wrbe         : std_logic_vector(3 downto 0);
+signal i_reg_wr           : std_logic;
+signal i_reg_rd           : std_logic;
+signal i_reg_cs           : std_logic;
 
-signal tst_err               : std_logic_vector(1 downto 0);
-signal tst_fsm_rx            : std_logic;
+signal tst_err            : std_logic_vector(1 downto 0);
+signal tst_fsm_rx         : std_logic;
 
 
 begin --architecture behavioral of pcie_rx_cq

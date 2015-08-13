@@ -103,7 +103,6 @@ p_in_rst_n : in  std_logic
 end component pcie_rx;
 
 
-
 component pcie_tx
 generic (
 G_AXISTEN_IF_RQ_ALIGNMENT_MODE : string := "FALSE";
@@ -195,6 +194,7 @@ p_in_clk   : in  std_logic;
 p_in_rst_n : in  std_logic
 );
 end component pcie_tx;
+
 
 component pcie_irq
 port(

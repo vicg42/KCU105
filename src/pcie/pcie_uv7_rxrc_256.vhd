@@ -31,12 +31,12 @@ G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
 );
 port(
 -- Requester Completion Interface
-p_in_axi_rc_tdata    : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_in_axi_rc_tlast    : in  std_logic;
-p_in_axi_rc_tvalid   : in  std_logic;
-p_in_axi_rc_tkeep    : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
-p_in_axi_rc_tuser    : in  std_logic_vector(74 downto 0);
-p_out_axi_rc_tready  : out std_logic;
+p_in_axi_rc_tdata   : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+p_in_axi_rc_tlast   : in  std_logic;
+p_in_axi_rc_tvalid  : in  std_logic;
+p_in_axi_rc_tkeep   : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_axi_rc_tuser   : in  std_logic_vector(74 downto 0);
+p_out_axi_rc_tready : out std_logic;
 
 --Completion
 p_in_dma_init      : in  std_logic;
@@ -69,36 +69,36 @@ S_RX_DH,
 S_RX_DN,
 S_RX_DE
 );
-signal i_fsm_rx              : TFsmRx_state;
+signal i_fsm_rx           : TFsmRx_state;
 
-signal i_sof                 : std_logic_vector(1 downto 0);
+signal i_sof              : std_logic_vector(1 downto 0);
 
-signal i_dma_init            : std_logic;
-signal i_dma_dw_cnt          : unsigned(31 downto 0);
-signal i_dma_dw_len          : unsigned(31 downto 0);
+signal i_dma_init         : std_logic;
+signal i_dma_dw_cnt       : unsigned(31 downto 0);
+signal i_dma_dw_len       : unsigned(31 downto 0);
 
-signal i_mrd_done            : std_logic;
+signal i_mrd_done         : std_logic;
 
-signal i_cpld_tlp_work       : std_logic;
-signal i_cpld_dw_cnt         : unsigned(31 downto 0);
-signal i_cpld_byte_t         : unsigned(12 downto 0);
-signal i_cpld_byte           : unsigned(12 downto 0);
-signal i_cpld_dw             : unsigned(10 downto 0);
-signal i_cpld_dw_t           : unsigned(10 downto 0);
-signal i_cpld_dw_rem         : unsigned(10 downto 0);
-signal i_cpld_len            : unsigned(10 downto 0);
+signal i_cpld_tlp_work    : std_logic;
+signal i_cpld_dw_cnt      : unsigned(31 downto 0);
+signal i_cpld_byte_t      : unsigned(12 downto 0);
+signal i_cpld_byte        : unsigned(12 downto 0);
+signal i_cpld_dw          : unsigned(10 downto 0);
+signal i_cpld_dw_t        : unsigned(10 downto 0);
+signal i_cpld_dw_rem      : unsigned(10 downto 0);
+signal i_cpld_len         : unsigned(10 downto 0);
 
 signal i_axi_rc_tready    : std_logic;
 
 type TByteEn is array (0 to (G_DATA_WIDTH / 8) - 1) of std_logic_vector(3 downto 0);
-signal sr_axi_be             : TByteEn;
+signal sr_axi_be          : TByteEn;
 type TData is array (0 to G_KEEP_WIDTH - 1) of std_logic_vector(31 downto 0);
-signal sr_axi_data           : TData;
-signal i_axi_data            : TData;
-signal i_utxbuf_di           : TData;
+signal sr_axi_data        : TData;
+signal i_axi_data         : TData;
+signal i_utxbuf_di        : TData;
 
-signal tst_err               : std_logic_vector(1 downto 0);
-signal tst_fsm_rx            : std_logic;
+signal tst_err            : std_logic_vector(1 downto 0);
+signal tst_fsm_rx         : std_logic;
 
 
 begin --architecture behavioral of pcie_rx_rc
