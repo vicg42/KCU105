@@ -83,7 +83,7 @@ S_TXRQ_MWR_C1,
 S_TXRQ_MWR_D0,--data first
 S_TXRQ_MWR_DN,--data n
 S_TXRQ_MWR_DE,--data end
-
+S_TXRQ_MWR_DE2,
 S_TXRQ_MRD_C0,
 S_TXRQ_MRD_N,
 S_TXRQ_CPLD_WAIT
@@ -417,7 +417,7 @@ if rising_edge(p_in_clk) then
 
                       end if;
 
-                      i_fsm_txrq <= S_TXRQ_IDLE;
+                      i_fsm_txrq <= S_TXRQ_MWR_DE2;
 
                     end if;
 
@@ -439,7 +439,7 @@ if rising_edge(p_in_clk) then
 
         when S_TXRQ_MWR_DN =>
 
-            if p_in_s_axis_rq_tready = '1' and p_in_urxbuf_empty = '0' then
+            if (i_urxbuf_rd = '1') then
 
                 i_s_axis_rq_tvalid <= '1';
 
@@ -488,7 +488,7 @@ if rising_edge(p_in_clk) then
 
                         end if;
 
-                        i_fsm_txrq <= S_TXRQ_IDLE;
+                        i_fsm_txrq <= S_TXRQ_MWR_DE2;
 
                     end if;
 
@@ -502,7 +502,7 @@ if rising_edge(p_in_clk) then
 
                 end if;
 
-            elsif p_in_s_axis_rq_tready = '0' and p_in_urxbuf_empty = '1' then
+            elsif p_in_s_axis_rq_tready = '1' and p_in_urxbuf_empty = '1' then
 
               i_s_axis_rq_tvalid <= '0';
 
@@ -546,6 +546,18 @@ if rising_edge(p_in_clk) then
                   i_mem_tx_byte <= i_mem_tx_byte + RESIZE(i_mem_tpl_byte, i_mem_tx_byte'length);
 
                 end if;
+
+                i_fsm_txrq <= S_TXRQ_MWR_DE2;
+
+            end if;
+
+
+        when S_TXRQ_MWR_DE2 =>
+
+            if p_in_s_axis_rq_tready = '1' then
+
+                i_s_axis_rq_tvalid <= '0';
+                i_s_axis_rq_tlast <= '0';
 
                 i_fsm_txrq <= S_TXRQ_IDLE;
 
@@ -681,9 +693,10 @@ i_mem_tx_dw <= RESIZE(i_mem_tx_byte(i_mem_tx_byte'high downto log2(32 / 8)), i_m
 --#######################################################################
 --DBG
 --#######################################################################
-tst_fsm <= TO_UNSIGNED(8, tst_fsm'length) when i_fsm_txrq = S_TXRQ_CPLD_WAIT else
-           TO_UNSIGNED(7, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MRD_N     else
-           TO_UNSIGNED(6, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MRD_C0    else
+tst_fsm <= TO_UNSIGNED(9, tst_fsm'length) when i_fsm_txrq = S_TXRQ_CPLD_WAIT else
+           TO_UNSIGNED(8, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MRD_N     else
+           TO_UNSIGNED(7, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MRD_C0    else
+           TO_UNSIGNED(6, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MWR_DE2   else
            TO_UNSIGNED(5, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MWR_DE    else
            TO_UNSIGNED(4, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MWR_DN    else
            TO_UNSIGNED(3, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MWR_D0    else
