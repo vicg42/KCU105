@@ -216,7 +216,7 @@ p_out_dma_mrd_done : out std_logic;
 p_in_dma_mrd_rxdwcount : in  std_logic_vector(31 downto 0);
 
 --DBG
-p_out_tst : out std_logic_vector((280 * 2) - 1 downto (280 * 1));
+p_out_tst : out std_logic_vector((280 * 1) - 1 downto (280 * 0));
 
 --system
 p_in_clk   : in  std_logic;
