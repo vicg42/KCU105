@@ -120,7 +120,7 @@ signal i_mwr_work           : std_logic;
 signal i_mwr_done           : std_logic;
 signal i_mrd_done           : std_logic;
 
-signal tst_fsm_tx         : std_logic;
+signal tst_fsm              : unsigned(3 downto 0);
 
 
 
@@ -681,10 +681,17 @@ i_mem_tx_dw <= RESIZE(i_mem_tx_byte(i_mem_tx_byte'high downto log2(32 / 8)), i_m
 --#######################################################################
 --DBG
 --#######################################################################
-tst_fsm_tx <= '0';
+tst_fsm <= TO_UNSIGNED(8, tst_fsm'length) when i_fsm_txrq = S_TXRQ_CPLD_WAIT else
+           TO_UNSIGNED(7, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MRD_N     else
+           TO_UNSIGNED(6, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MRD_C0    else
+           TO_UNSIGNED(5, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MWR_DE    else
+           TO_UNSIGNED(4, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MWR_DN    else
+           TO_UNSIGNED(3, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MWR_D0    else
+           TO_UNSIGNED(2, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MWR_C1    else
+           TO_UNSIGNED(1, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MWR_C0    else
+           TO_UNSIGNED(0, tst_fsm'length);-- when i_fsm_txrq = S_TXRQ_IDLE else
 
-p_out_tst(0) <= tst_fsm_tx;
-p_out_tst(3 downto 1) <= (others => '0');
+p_out_tst(3 downto 0) <= std_logic_vector(tst_fsm);
 p_out_tst(7 downto 4) <= (others => '0');
 
 p_out_tst(8) <= i_s_axis_rq_tvalid;
