@@ -152,6 +152,17 @@ dev_num   : std_logic_vector(3 downto 0);--<= tst_uapp_out(121 downto 117);-- <=
 dma_start : std_logic;                   --<= tst_uapp_out(118);--            <= i_dma_start;
 dma_irq   : std_logic;                   --<= tst_uapp_out(109);--
 
+dev_wr       : std_logic;--PCIE -> DEV
+dev_wr_full  : std_logic;
+dev_rd       : std_logic;--PCIE <- DEV
+dev_rd_empty : std_logic;
+
+irq_int  : std_logic;
+irq_pend : std_logic;
+irq_sent : std_logic;
+irq_msi  : std_logic;
+
+test_speed_bit : std_logic;
 end record;
 
 end package pcie_pkg;

@@ -710,6 +710,19 @@ p_out_dbg.dev_num   <= tst_uapp_out(120 downto 117);-- <= i_reg.dev_ctrl(C_HREG_
 p_out_dbg.dma_start <= tst_uapp_out(121);--            <= i_dma_start;
 p_out_dbg.dma_irq   <= tst_uapp_out(109);--tst_uapp_out(116 downto 109) <= std_logic_vector(RESIZE(UNSIGNED(i_irq_set(C_HIRQ_COUNT - 1 downto 0)), 8));
 
+p_out_dbg.dev_wr       <= tst_uapp_out(123);--<= p_in_txbuf_wr; --pcie -> dev
+p_out_dbg.dev_wr_full  <= i_urxbuf_empty; --pcie -> dev
+p_out_dbg.dev_rd       <= tst_uapp_out(124);--<= p_in_rxbuf_rd; --pcie <- dev
+p_out_dbg.dev_rd_empty <= i_utxbuf_full;  --pcie <- dev
+
+
+p_out_dbg.test_speed_bit <= tst_uapp_out(122);-- i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
+
+p_out_dbg.irq_int  <= i_pcie_irq;
+p_out_dbg.irq_pend <= i_pcie_irq_assert;
+p_out_dbg.irq_sent <= p_in_cfg_interrupt_sent;
+p_out_dbg.irq_msi  <= p_in_cfg_interrupt_msi_enable(0);
+
 --p_out_dbg.axi_rc_sop(0) <= p_in_m_axis_rc_tuser(32);
 --p_out_dbg.axi_rc_sop(1) <= p_in_m_axis_rc_tuser(33);
 --p_out_dbg.axi_rc_disc   <= p_in_m_axis_rc_tuser(42);
