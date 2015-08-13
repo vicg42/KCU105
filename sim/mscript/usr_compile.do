@@ -45,8 +45,8 @@ vlog -64 -incr -work gtwizard_ultrascale_v1_5  +incdir+../testbanch/pcie3_core/s
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/sim/pcie3_core_gt_gtwizard_top.v" \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/sim/pcie3_core_gt.v"
 
-vcom -64 -93 -work blk_mem_gen_v8_2 "../../vv/prj/kcu105.srcs/sources_1/ip/bram_dma_params/blk_mem_gen_v8_2/simulation/blk_mem_gen_v8_2.vhd"
-vcom -64 -93 -work xil_defaultlib   "../../vv/prj/kcu105.srcs/sources_1/ip/bram_dma_params/sim/bram_dma_params.vhd"
+vcom -64 -93 -work blk_mem_gen_v8_2 "../../vv/core_gen/bram_dma_params/blk_mem_gen_v8_2/simulation/blk_mem_gen_v8_2.vhd"
+vcom -64 -93 -work xil_defaultlib   "../../vv/core_gen/bram_dma_params/sim/bram_dma_params.vhd"
 
 vcom -64 -93 -work xil_defaultlib   \
 "../../../../../lib/common/hw/lib/vicg/vicg_common_pkg.vhd" \
