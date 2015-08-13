@@ -147,7 +147,7 @@ signal i_det_pcie_rst      : std_logic := '0';
 component dbgcs_ila_hostclk is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(24 downto 0)
+probe0 : in std_logic_vector(88 downto 0)
 );
 end component dbgcs_ila_hostclk;
 
@@ -518,7 +518,10 @@ probe0(19) => i_dbg.pcie.irq_msi ,
 
 probe0(20) => i_dbg.pcie.test_speed_bit,
 
-probe0(24 downto 21) => i_dbg.pcie.axi_rq_fsm
+probe0(24 downto 21) => i_dbg.pcie.axi_rq_fsm,
+
+probe0(56 downto 25) => i_dbg.pcie.h2d_buf_di(0),
+probe0(88 downto 57) => i_dbg.pcie.d2h_buf_do(0)
 
 --probe0(13 downto 6) => i_dbg.pcie.m_axi_rc_tkeep(7 downto 0)
 

@@ -694,14 +694,17 @@ p_out_cfg_interrupt_msix_address        <= (others => '0');
 p_out_cfg_interrupt_msix_data           <= (others => '0');
 
 
---gen_dbg_di : for i in 0 to G_KEEP_WIDTH - 1 generate begin
---p_out_dbg.m_axi_rc_tdata(i) <= p_in_axi_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
---end generate gen_dbg_di;
+--gen_dbg_rc_tdata : for i in 7 to G_KEEP_WIDTH - 1 generate begin
+--p_out_dbg.axi_rc_tdata(i) <= i_utxbuf_di((32 * (i + 1)) - 1 downto (32 * i));
+--end generate gen_dbg_rc_tdata;
 p_out_dbg.axi_rc_tkeep  <= p_in_axi_rc_tkeep;
 p_out_dbg.axi_rc_tvalid <= p_in_axi_rc_tvalid;
 p_out_dbg.axi_rc_tlast  <= p_in_axi_rc_tlast;
 p_out_dbg.axi_rc_tready <= i_axi_rc_tready;
 
+--gen_dbg_rq_tdata : for i in 7 to G_KEEP_WIDTH - 1 generate begin
+--p_out_dbg.axi_rq_tdata(i) <= tst_tx_out(((280 * 1) + 11 + (32 * (i + 1)) - 1) downto ((280 * 1) + 11 + (32 * i))); --p_in_axi_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
+--end generate gen_dbg_rq_tdata;
 p_out_dbg.axi_rq_fsm    <= tst_tx_out(((280 * 1) +  3) downto ((280 * 1) + 0));
 p_out_dbg.axi_rq_tvalid <= tst_tx_out( (280 * 1) +  8);
 p_out_dbg.axi_rq_tlast  <= tst_tx_out( (280 * 1) +  9);
@@ -711,8 +714,15 @@ p_out_dbg.dev_num   <= tst_uapp_out(120 downto 117);-- <= i_reg.dev_ctrl(C_HREG_
 p_out_dbg.dma_start <= tst_uapp_out(121);--            <= i_dma_start;
 p_out_dbg.dma_irq   <= tst_uapp_out(109);--tst_uapp_out(116 downto 109) <= std_logic_vector(RESIZE(UNSIGNED(i_irq_set(C_HIRQ_COUNT - 1 downto 0)), 8));
 
+gen_dbg_h2d_buf_di : for i in 0 to 0 generate begin
+p_out_dbg.h2d_buf_di(i) <= i_utxbuf_di((32 * (i + 1)) - 1 downto (32 * i));
+end generate gen_dbg_h2d_buf_di;
 p_out_dbg.h2d_buf_wr    <= i_utxbuf_wr   ;--pcie -> dev
 p_out_dbg.h2d_buf_full  <= i_utxbuf_full ;
+
+gen_dbg_d2h_buf_do : for i in 0 to 0 generate begin
+p_out_dbg.d2h_buf_do(i) <= i_urxbuf_do((32 * (i + 1)) - 1 downto (32 * i));
+end generate gen_dbg_d2h_buf_do;
 p_out_dbg.d2h_buf_rd    <= i_urxbuf_rd   ;--pcie <- dev
 p_out_dbg.d2h_buf_empty <= i_urxbuf_empty;
 
