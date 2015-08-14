@@ -218,7 +218,7 @@ if rising_edge(p_in_clk) then
                               i_reg_wrbe <= p_in_axi_cq_tuser((8 + (4 * 5)) - 1 downto (8 + (4 * 4)));
 
                               --Compl
-                              if ((p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_MEM_WR_D)) then
+                              if (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
 
                                   i_req_compl <= '0';
 
@@ -231,7 +231,7 @@ if rising_edge(p_in_clk) then
                               else
                                   i_req_compl <= '1';
 
-                                  if ((p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_IO_WR_D)) then
+                                  if (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_IO_WR_D) then
 
                                     if (p_in_axi_cq_tkeep(4) = '1') then
                                       i_reg_wr <= '1';
