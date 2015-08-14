@@ -190,7 +190,7 @@ p_in_rst        : in    std_logic
 );
 end component;
 
-signal i_cfg_adr_cnt                 : std_logic_vector(7 downto 0);
+signal i_cfg_adr_cnt                 : unsigned(7 downto 0);
 
 signal h_reg_ctrl                    : std_logic_vector(C_SWT_REG_CTRL_LAST_BIT downto 0);
 signal h_reg_eth_host_frr            : TEthFRR;
@@ -274,11 +274,11 @@ if rising_edge(p_in_cfg_clk) then
 
   else
     if p_in_cfg_wd = '1' then
-        if i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(C_SWT_REG_CTRL, i_cfg_adr_cnt'length) then
+        if i_cfg_adr_cnt = TO_UNSIGNED(C_SWT_REG_CTRL, i_cfg_adr_cnt'length) then
           h_reg_ctrl <= p_in_cfg_txdata(h_reg_ctrl'high downto 0);
 
         elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_SWT_FRR_COUNT_MAX)) =
-            CONV_STD_LOGIC_VECTOR(C_SWT_REG_FRR_ETHG_HOST/C_SWT_FRR_COUNT_MAX
+            TO_UNSIGNED(C_SWT_REG_FRR_ETHG_HOST/C_SWT_FRR_COUNT_MAX
                                     ,(i_cfg_adr_cnt'high - log2(C_SWT_FRR_COUNT_MAX) + 1)) then
         --Mask pkt filter: ETH<->HOST
           for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT) - 1 loop
@@ -289,7 +289,7 @@ if rising_edge(p_in_cfg_clk) then
           end loop;
 
         elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_SWT_FRR_COUNT_MAX)) =
-          CONV_STD_LOGIC_VECTOR(C_SWT_REG_FRR_ETHG_VCTRL/C_SWT_FRR_COUNT_MAX
+          TO_UNSIGNED(C_SWT_REG_FRR_ETHG_VCTRL/C_SWT_FRR_COUNT_MAX
                                   ,(i_cfg_adr_cnt'high - log2(C_SWT_FRR_COUNT_MAX) + 1)) then
         --Mask pkt filter: ETH->VCTRL
           for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_VCTRL_FRR_COUNT) - 1 loop
@@ -313,11 +313,11 @@ if rising_edge(p_in_cfg_clk) then
     p_out_cfg_rxdata <= (others=>'0');
   else
     if p_in_cfg_rd = '1' then
-        if i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(C_SWT_REG_CTRL, i_cfg_adr_cnt'length) then
-          p_out_cfg_rxdata <= EXT(h_reg_ctrl, p_out_cfg_rxdata'length);
+        if i_cfg_adr_cnt = TO_UNSIGNED(C_SWT_REG_CTRL, i_cfg_adr_cnt'length) then
+          p_out_cfg_rxdata <= std_logic_vector(RESIZE(UNSIGNED(h_reg_ctrl), p_out_cfg_rxdata'length));
 
         elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_SWT_FRR_COUNT_MAX)) =
-          CONV_STD_LOGIC_VECTOR(C_SWT_REG_FRR_ETHG_HOST/C_SWT_FRR_COUNT_MAX
+          TO_UNSIGNED(C_SWT_REG_FRR_ETHG_HOST/C_SWT_FRR_COUNT_MAX
                                     ,(i_cfg_adr_cnt'high - log2(C_SWT_FRR_COUNT_MAX) + 1)) then
         --Mask pkt filter: ETH<->HOST
           for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT) - 1 loop
@@ -328,7 +328,7 @@ if rising_edge(p_in_cfg_clk) then
           end loop;
 
         elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_SWT_FRR_COUNT_MAX)) =
-          CONV_STD_LOGIC_VECTOR(C_SWT_REG_FRR_ETHG_VCTRL/C_SWT_FRR_COUNT_MAX
+          TO_UNSIGNED(C_SWT_REG_FRR_ETHG_VCTRL/C_SWT_FRR_COUNT_MAX
                                   ,(i_cfg_adr_cnt'high - log2(C_SWT_FRR_COUNT_MAX) + 1)) then
         --Mask pkt filter: ETH->VCTRL
           for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_VCTRL_FRR_COUNT) - 1 loop
