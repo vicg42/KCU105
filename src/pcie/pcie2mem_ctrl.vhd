@@ -286,7 +286,10 @@ p_out_tst(6) <= i_rxbuf_empty;
 p_out_tst(7) <= i_rxbuf_full;
 p_out_tst(8) <= i_txbuf_empty;
 p_out_tst(9) <= i_txbuf_full;
-p_out_tst(25 downto 10) <= std_logic_vector(i_mem_lenreq);
+p_out_tst(10) <= i_rxbuf_din_wr ;--RAM->PCIE
+p_out_tst(11) <= i_txbuf_dout_rd;--RAM<-PCIE
+p_out_tst(25 downto 12) <= (others => '0');
+--p_out_tst(25 downto 10) <= std_logic_vector(i_mem_lenreq);
 p_out_tst(31 downto 26) <= tst_mem_ctrl_out(21 downto 16);--m_mem_wr/i_mem_trn_len;
 
 
