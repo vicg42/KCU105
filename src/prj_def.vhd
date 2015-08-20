@@ -118,7 +118,9 @@ constant C_HREG_IRQ_STATUS_M_RBIT             : integer := 31;
 --field C_HREG_IRQ_NUM - interrupt numbers:
 constant C_HIRQ_PCIE_DMA                      : integer := 0;--DONE
 constant C_HIRQ_CFG                           : integer := 1;--RxD RDY
-constant C_HIRQ_COUNT                         : integer := C_HIRQ_CFG + 1;
+constant C_HIRQ_ETH                           : integer := 2;--RxData
+constant C_HIRQ_VCH0                          : integer := 3;
+constant C_HIRQ_COUNT                         : integer := C_HIRQ_VCH0 + 1;
 constant C_HIRQ_COUNT_MAX                     : integer := pwr(2, (C_HREG_IRQ_NUM_M_WBIT - C_HREG_IRQ_NUM_L_WBIT + 1));
 
 

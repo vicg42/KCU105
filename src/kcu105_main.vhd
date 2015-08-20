@@ -18,10 +18,11 @@ use work.clocks_pkg.all;
 use work.pcie_pkg.all;
 use work.prj_cfg.all;
 use work.prj_def.all;
+use work.kcu105_main_unit_pkg.all;
 use work.mem_ctrl_pkg.all;
 use work.mem_wr_pkg.all;
 use work.cfgdev_pkg.all;
-use work.kcu105_main_unit_pkg.all;
+use work.fg_pkg.all;
 
 
 entity kcu105_main is
@@ -60,6 +61,7 @@ end entity kcu105_main;
 
 architecture struct of kcu105_main is
 
+signal i_glob_rst                       : std_logic;
 signal i_usrclk_rst                     : std_logic;
 signal g_usrclk                         : std_logic_vector(7 downto 0);
 signal g_usr_highclk                    : std_logic;
@@ -105,8 +107,8 @@ signal i_cfg_radr_ld                    : std_logic;
 signal i_cfg_radr_fifo                  : std_logic;
 signal i_cfg_wr                         : std_logic;
 signal i_cfg_rd                         : std_logic;
-signal i_cfg_txd                        : std_logic_vector(15 downto 0);
-signal i_cfg_rxd                        : std_logic_vector(15 downto 0);
+signal i_cfg_txd                        : std_logic_vector(CI_CFG_DWIDTH - 1 downto 0);
+signal i_cfg_rxd                        : std_logic_vector(CI_CFG_DWIDTH - 1 downto 0);
 Type TCfgRxD is array (0 to C_CFGDEV_COUNT - 1) of std_logic_vector(i_cfg_rxd'range);
 signal i_cfg_rxd_dev                    : TCfgRxD;
 signal i_cfg_done                       : std_logic;
@@ -136,9 +138,13 @@ signal i_arb_memout                     : TMemOUT;
 signal i_arb_mem_tst_out                : std_logic_vector(31 downto 0);
 
 signal i_mem_ctrl_status                : TMEMCTRL_status;
-signal i_mem_ctrl_rst                   : std_logic;
 signal i_mem_ctrl_sysout                : TMEMCTRL_sysout;
 
+signal i_fgwr_chen                      : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
+signal i_fr_rd_start                    : std_logic;
+signal i_fg_vbufi                       : TFGWR_VBUFIs;
+signal i_fg_tst_in                      : std_logic_vector(31 downto 0);
+signal i_fg_tst_out                     : std_logic_vector(31 downto 0);
 
 signal i_test_led          : std_logic_vector(0 downto 0);
 signal sr_host_rst_n       : std_logic_vector(0 to 2) := (others => '1');
@@ -200,7 +206,7 @@ begin --architecture struct
 --***********************************************************
 --RESET
 --***********************************************************
-i_mem_ctrl_rst <= not i_host_rst_n or i_host_gctrl(C_HREG_CTRL_RST_MEM_BIT);--or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT)
+i_glob_rst <= not i_host_rst_n or i_host_gctrl(C_HREG_CTRL_RST_MEM_BIT);--or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT)
 i_arb_mem_rst <= not OR_reduce(i_mem_ctrl_status.rdy);
 
 
@@ -219,6 +225,154 @@ p_in_clk   => pin_in_refclk
 
 g_usr_highclk <= i_mem_ctrl_sysout.clk;
 
+
+--***********************************************************
+--
+--***********************************************************
+m_cfg : cfgdev_host
+generic map(
+G_DBG => "OFF",
+G_HOST_TXACK => "OFF",
+G_HOST_DWIDTH  => C_HDEV_DWIDTH,
+G_CFG_DWIDTH => CI_CFG_DWIDTH
+)
+port map(
+-------------------------------
+--HOST
+-------------------------------
+--host -> dev
+p_in_htxbuf_di       => i_host_txd(C_HDEV_CFG),
+p_in_htxbuf_wr       => i_host_wr(C_HDEV_CFG),
+p_out_htxbuf_full    => i_host_txbuf_full(C_HDEV_CFG),
+p_out_htxbuf_empty   => i_host_txbuf_empty(C_HDEV_CFG),
+
+--host <- dev
+p_out_hrxbuf_do      => i_host_rxd(C_HDEV_CFG),
+p_in_hrxbuf_rd       => i_host_rd(C_HDEV_CFG),
+p_out_hrxbuf_full    => open,
+p_out_hrxbuf_empty   => i_host_rxbuf_empty(C_HDEV_CFG),
+
+p_out_hirq           => i_host_dev_irq(C_HIRQ_CFG),
+p_in_hclk            => g_host_clk,
+
+-------------------------------
+--CFG
+-------------------------------
+p_out_cfg_dadr       => i_cfg_dadr,
+p_out_cfg_radr       => i_cfg_radr,
+p_out_cfg_radr_ld    => i_cfg_radr_ld,
+p_out_cfg_radr_fifo  => i_cfg_radr_fifo,
+
+p_out_cfg_txdata     => i_cfg_txd,
+p_out_cfg_wr         => i_cfg_wr,
+p_in_cfg_txbuf_full  => '0',
+p_in_cfg_txbuf_empty => '0',
+
+p_in_cfg_rxdata      => i_cfg_rxd,
+p_out_cfg_rd         => i_cfg_rd,
+p_in_cfg_rxbuf_full  => '0',
+p_in_cfg_rxbuf_empty => '0',
+
+p_out_cfg_done       => i_cfg_done,
+p_in_cfg_clk         => g_host_clk,
+
+-------------------------------
+--DBG
+-------------------------------
+p_in_tst             => (others => '0'),
+p_out_tst            => i_cfg_tst_out,
+
+-------------------------------
+--System
+-------------------------------
+p_in_rst             => i_glob_rst
+);
+
+i_cfg_rxd <= i_cfg_rxd_dev(C_CFGDEV_FG);
+
+gen_cfg_dev : for i in 0 to C_CFGDEV_COUNT - 1 generate
+i_cfg_wr_dev(i)   <= i_cfg_wr   when UNSIGNED(i_cfg_dadr) = i else '0';
+i_cfg_rd_dev(i)   <= i_cfg_rd   when UNSIGNED(i_cfg_dadr) = i else '0';
+i_cfg_done_dev(i) <= i_cfg_done when UNSIGNED(i_cfg_dadr) = i else '0';
+end generate gen_cfg_dev;
+
+
+--#########################################
+--Frame Grabber
+--#########################################
+i_fr_rd_start <= i_host_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)
+                  when i_host_devadr = TO_UNSIGNED(C_HDEV_FG, i_host_devadr'length) else '0';
+
+m_fg : fg
+generic map(
+G_VSYN_ACTIVE => C_PCFG_VSYN_ACTIVE,
+G_DBGCS => "OFF",
+G_MEM_AWIDTH => C_AXI_AWIDTH,
+G_MEMWR_DWIDTH => C_AXIS_DWIDTH(2),
+G_MEMRD_DWIDTH => C_HDEV_DWIDTH
+)
+port map(
+-------------------------------
+--CFG
+-------------------------------
+p_in_cfg_clk      => g_host_clk,
+
+p_in_cfg_adr      => i_cfg_radr(3 downto 0),
+p_in_cfg_adr_ld   => i_cfg_radr_ld,
+p_in_cfg_adr_fifo => i_cfg_radr_fifo,
+
+p_in_cfg_txdata   => i_cfg_txd,
+p_in_cfg_wd       => i_cfg_wr_dev(C_CFGDEV_FG),
+
+p_out_cfg_rxdata  => i_cfg_rxd_dev(C_CFGDEV_FG),
+p_in_cfg_rd       => i_cfg_rd_dev(C_CFGDEV_FG),
+
+p_in_cfg_done     => i_cfg_done_dev(C_CFGDEV_FG),
+
+-------------------------------
+--HOST
+-------------------------------
+p_in_hrdchsel     => i_host_dev_ctrl(C_HREG_DEV_CTRL_FG_CH_M_BIT downto C_HREG_DEV_CTRL_FG_CH_L_BIT),
+p_in_hrdstart     => i_fr_rd_start,
+p_in_hrddone      => i_host_gctrl(C_HREG_CTRL_FG_RDDONE_BIT),
+p_out_hirq        => i_host_dev_irq((C_HIRQ_FG_VCH0 + C_FG_VCH_COUNT) - 1 downto C_HIRQ_FG_VCH0),
+p_out_hdrdy       => i_host_dev_status((C_HREG_DEV_STATUS_FG_VCH0_RDY_BIT
+                                        + C_FG_VCH_COUNT) - 1 downto C_HREG_DEV_STATUS_FG_VCH0_RDY_BIT),
+p_out_hfrmrk      => i_host_dev_opt_in(C_HDEV_OPTIN_FG_FRMRK_M_BIT downto C_HDEV_OPTIN_FG_FRMRK_L_BIT),
+
+--HOST <- MEM(VBUF)
+p_in_vbufo_rdclk  => g_host_clk,
+p_out_vbufo_do    => i_host_rxd(C_HDEV_FG),
+p_in_vbufo_rd     => i_host_rd(C_HDEV_FG),
+p_out_vbufo_empty => i_host_rxbuf_empty(C_HDEV_FG),
+
+-------------------------------
+--VBUFI -> MEM(VBUF)
+-------------------------------
+p_in_vbufi        => i_fg_vbufi,
+
+---------------------------------
+--MEM
+---------------------------------
+--CH WRITE
+p_out_memwr       => i_memin_ch(2), --DEV -> MEM
+p_in_memwr        => i_memout_ch(2),--DEV <- MEM
+--CH READ
+p_out_memrd       => i_memin_ch(1), --DEV -> MEM
+p_in_memrd        => i_memout_ch(1),--DEV <- MEM
+
+-------------------------------
+--DBG
+-------------------------------
+p_in_tst          => i_fg_tst_in,
+p_out_tst         => i_fg_tst_out,
+
+-------------------------------
+--System
+-------------------------------
+p_in_clk          => g_usr_highclk,
+p_in_rst          => i_arb_mem_rst
+);
 
 
 --***********************************************************
@@ -272,8 +426,8 @@ i_host_devadr <= UNSIGNED(i_host_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HRE
 
 --Status User Devices
 i_host_dev_status(C_HREG_DEV_STATUS_CFG_RDY_BIT) <= '1';
---i_host_dev_status(C_HREG_DEV_STATUS_CFG_RXRDY_BIT) <= not i_host_rxbuf_empty(C_HDEV_CFG);
---i_host_dev_status(C_HREG_DEV_STATUS_CFG_TXRDY_BIT) <= i_host_txbuf_empty(C_HDEV_CFG);
+i_host_dev_status(C_HREG_DEV_STATUS_CFG_RXRDY_BIT) <= not i_host_rxbuf_empty(C_HDEV_CFG);
+i_host_dev_status(C_HREG_DEV_STATUS_CFG_TXRDY_BIT) <= i_host_txbuf_empty(C_HDEV_CFG);
 
 i_host_dev_status(C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT) <= OR_reduce(i_mem_ctrl_status.rdy);
 
@@ -287,14 +441,18 @@ i_host_txd(i) <= i_host_dev_txd;
 --i_host_txd_rdy(i) <= i_host_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT) when i_host_devadr = TO_UNSIGNED(i, i_host_devadr'length) else '0';
 end generate gen_dev_dbuf;
 
-i_host_dev_rxd <= i_host_rxd(C_HDEV_MEM);
+i_host_dev_rxd <= i_host_rxd(C_HDEV_CFG) when i_host_devadr = TO_UNSIGNED(C_HDEV_CFG, i_host_devadr'length) else
+                  i_host_rxd(C_HDEV_FG)  when i_host_devadr = TO_UNSIGNED(C_HDEV_FG, i_host_devadr'length) else
+                  i_host_rxd(C_HDEV_MEM);
 
 --Flags (Host <- User Devices)
 i_host_dev_opt_in(C_HDEV_OPTIN_TXFIFO_FULL_BIT) <= i_host_txbuf_full(C_HDEV_MEM)
                                                     when i_host_devadr = TO_UNSIGNED(C_HDEV_MEM, i_host_devadr'length) else '0';
 
 i_host_dev_opt_in(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) <= i_host_rxbuf_empty(C_HDEV_MEM)
-                                                    when i_host_devadr = TO_UNSIGNED(C_HDEV_MEM , i_host_devadr'length) else '0';
+                                                    when i_host_devadr = TO_UNSIGNED(C_HDEV_MEM , i_host_devadr'length) else
+                                                    i_host_rxbuf_empty(C_HDEV_FG)
+                                                    when i_host_devadr = TO_UNSIGNED(C_HDEV_FG , i_host_devadr'length) else '0';
 
 i_host_dev_opt_in(C_HDEV_OPTIN_MEM_DONE_BIT) <= i_host_mem_status.done;
 
@@ -423,7 +581,7 @@ p_inout_phymem  => pin_inout_phymem,
 ------------------------------------
 p_out_sys       => i_mem_ctrl_sysout,
 p_in_sys        => pin_in_phymem,
-p_in_rst        => i_mem_ctrl_rst
+p_in_rst        => i_glob_rst
 );
 
 

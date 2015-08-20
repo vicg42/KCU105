@@ -222,6 +222,7 @@ process(p_in_hclk)
 begin
 if rising_edge(p_in_hclk) then
   if p_in_rst = '1' then
+
     h_mem_start_wcnt <= (others => '0');
     h_mem_start_w <= '0';
 
@@ -249,6 +250,7 @@ i_req_len_byte <= UNSIGNED(p_in_ctrl.req_len);
 process(p_in_clk)
 begin
   if rising_edge(p_in_clk) then
+
     i_mem_dir <= p_in_ctrl.dir;
     i_mem_adr <= p_in_ctrl.adr;
     i_mem_lenreq <= RESIZE(i_req_len_byte(i_req_len_byte'high downto log2(G_MEM_DWIDTH / 8))
@@ -270,6 +272,7 @@ begin
     elsif i_mem_done = '1' then
       i_mem_done_out <= '1';
     end if;
+
   end if;
 end process;
 

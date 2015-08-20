@@ -16,6 +16,7 @@ use work.clocks_pkg.all;
 use work.pcie_pkg.all;
 use work.mem_wr_pkg.all;
 use work.mem_ctrl_pkg.all;
+use work.fg_pkg.all;
 
 package kcu105_main_unit_pkg is
 
@@ -141,5 +142,75 @@ p_in_rst          : in    std_logic
 end component pcie2mem_ctrl;
 
 
+component fg is
+generic(
+G_VSYN_ACTIVE : std_logic := '1';
+G_DBGCS  : string := "OFF";
+G_MEM_AWIDTH : integer := 32;
+G_MEMWR_DWIDTH : integer := 32;
+G_MEMRD_DWIDTH : integer := 32
+);
+port(
+-------------------------------
+--CFG
+-------------------------------
+p_in_cfg_clk      : in   std_logic;
+
+p_in_cfg_adr      : in   std_logic_vector(3 downto 0);
+p_in_cfg_adr_ld   : in   std_logic;
+p_in_cfg_adr_fifo : in   std_logic;
+
+p_in_cfg_txdata   : in   std_logic_vector(15 downto 0);
+p_in_cfg_wd       : in   std_logic;
+
+p_out_cfg_rxdata  : out  std_logic_vector(15 downto 0);
+p_in_cfg_rd       : in   std_logic;
+
+p_in_cfg_done     : in   std_logic;
+
+-------------------------------
+--HOST
+-------------------------------
+p_in_hrdchsel     : in    std_logic_vector(2 downto 0);   --Host: Channel number for read
+p_in_hrdstart     : in    std_logic;                      --Host: Start read data
+p_in_hrddone      : in    std_logic;                      --Host: ACK read done
+p_out_hirq        : out   std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);--IRQ
+p_out_hdrdy       : out   std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);--Frame ready
+p_out_hfrmrk      : out   std_logic_vector(31 downto 0);
+
+--HOST <- MEM(VBUF)
+p_in_vbufo_rdclk  : in    std_logic;
+p_out_vbufo_do    : out   std_logic_vector(G_MEMRD_DWIDTH - 1 downto 0);
+p_in_vbufo_rd     : in    std_logic;
+p_out_vbufo_empty : out   std_logic;
+
+-------------------------------
+--VBUFI -> MEM(VBUF)
+-------------------------------
+p_in_vbufi        : in    TFGWR_VBUFIs;
+
+---------------------------------
+--MEM
+---------------------------------
+--CH WRITE
+p_out_memwr       : out   TMemIN;
+p_in_memwr        : in    TMemOUT;
+--CH READ
+p_out_memrd       : out   TMemIN;
+p_in_memrd        : in    TMemOUT;
+
+-------------------------------
+--DBG
+-------------------------------
+p_in_tst          : in    std_logic_vector(31 downto 0);
+p_out_tst         : out   std_logic_vector(31 downto 0);
+
+-------------------------------
+--System
+-------------------------------
+p_in_clk          : in    std_logic;
+p_in_rst          : in    std_logic
+);
+end component fg;
 
 end package kcu105_main_unit_pkg;

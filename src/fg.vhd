@@ -71,8 +71,8 @@ p_in_vbufi        : in    TFGWR_VBUFIs;
 --MEM
 ---------------------------------
 --CH WRITE
-p_out_memwr       : out   TMemINChVD;
-p_in_memwr        : in    TMemOUTChVD;
+p_out_memwr       : out   TMemIN;
+p_in_memwr        : in    TMemOUT;
 --CH READ
 p_out_memrd       : out   TMemIN;
 p_in_memrd        : in    TMemOUT;
@@ -93,7 +93,7 @@ end entity fg;
 
 architecture behavioral of fg is
 
-component host_vbufo
+component fg_bufo
 port(
 din         : IN  std_logic_vector(G_MEMRD_DWIDTH - 1 downto 0);
 wr_en       : IN  std_logic;
@@ -116,6 +116,7 @@ generic(
 G_PIXBIT : integer := 8;
 G_DBGCS : string := "OFF";
 G_VCH_NUM : integer := 0;
+G_VCH_COUNT : integer := 0;
 G_VSYN_ACTIVE : std_logic := '1';
 G_MEM_VCH_M_BIT   : integer := 25;
 G_MEM_VCH_L_BIT   : integer := 24;
@@ -131,11 +132,11 @@ port(
 --CFG
 -------------------------------
 p_in_usrprm_ld : in    std_logic;
-p_in_usrprm    : in    TFGWR_Prm;
+p_in_usrprm    : in    TFGWR_Prms;
 p_in_work_en   : in    std_logic;
 
-p_in_frbuf     : in    std_logic_vector(G_MEM_VFR_M_BIT - G_MEM_VFR_L_BIT downto 0);
-p_out_frrdy    : out   std_logic;
+p_in_frbuf     : in    TFG_FrBufs;
+p_out_frrdy    : out   std_logic_vector(G_VCH_COUNT - 1 downto 0);
 p_out_frmrk    : out   std_logic_vector(31 downto 0);
 
 ----------------------------
@@ -239,16 +240,15 @@ type TFG_DATARD is array (0 to C_FG_VCH_COUNT_MAX - 1) of std_logic_vector(31 do
 signal i_reg_data_r                      : TFG_DATARD;
 signal i_reg_data_ro                     : std_logic_vector(31 downto 0);
 
-type TFG_CntWidth0 is array (0 to C_FG_VCH_COUNT - 1) of unsigned(1 downto 0);
-signal i_set_prm_width_cnt               : TFG_CntWidth0;
-signal i_set_prm_width                   : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
-signal h_set_prm                         : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
-signal i_set_prm                         : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
+signal i_set_prm_width_cnt               : unsigned(1 downto 0);
+signal i_set_prm_width                   : std_logic;
+signal h_set_prm                         : std_logic;
+signal i_set_prm                         : std_logic;
 
-signal i_set_idle_width_cnt              : TFG_CntWidth0;
-signal i_set_idle_width                  : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
-signal h_set_idle                        : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
-signal i_set_idle                        : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
+signal i_set_idle_width_cnt              : unsigned(1 downto 0);
+signal i_set_idle_width                  : std_logic;
+signal h_set_idle                        : std_logic;
+signal i_set_idle                        : std_logic;
 
 signal i_prm                             : TFG_Prm;
 signal i_prm_fgwr                        : TFGWR_Prms;
@@ -267,7 +267,7 @@ signal i_vbuf_wr                         : TFG_FrBufs;
 signal i_vbuf_rd                         : TFG_FrBufs;
 
 signal i_fgwr_frrdy                      : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
-signal i_fgwr_mrk                        : TFG_FrMrks;
+signal i_fgwr_mrk                        : std_logic_vector(31 downto 0);
 
 signal i_frmrk_save                      : TFG_FrMrks_Bufs_VCH;
 signal i_frmrk_out                       : std_logic_vector(31 downto 0);
@@ -297,7 +297,7 @@ signal i_fgrd_eof                       : std_logic;
 
 type TFG_TstOut is array (0 to C_FG_VCH_COUNT - 1)
   of std_logic_vector(31 downto 0);
-signal i_fgwr_tst_out                    : TFG_TstOut;
+signal i_fgwr_tst_out                    : std_logic_vector(31 downto 0);--: TFG_TstOut;
 signal i_fgwr_tst_outtmp                 : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
 
 --signal tst_dbg_pictire                   : std_logic;
@@ -332,8 +332,8 @@ end process;
 process(p_in_cfg_clk)
   variable vch_num : unsigned(C_FG_REG_CTRL_VCH_M_BIT - C_FG_REG_CTRL_VCH_L_BIT downto 0);
   variable prm     : unsigned(C_FG_REG_CTRL_PRM_M_BIT - C_FG_REG_CTRL_PRM_L_BIT downto 0);
-  variable prm_set : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
-  variable set_idle : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
+  variable prm_set : std_logic;
+  variable set_idle : std_logic;
 begin
 if rising_edge(p_in_cfg_clk) then
   if p_in_rst = '1' then
@@ -342,8 +342,8 @@ if rising_edge(p_in_cfg_clk) then
     i_reg_data <= (others => '0');
     i_reg_mem_trnlen <= std_logic_vector(TO_UNSIGNED(16#4040#, i_reg_mem_trnlen'length));
 
-    prm_set := (others => '0');
-    h_set_prm <= (others => '0');
+    prm_set := '0';
+    h_set_prm <= '0';
 
     vch_num := (others => '0');
     prm := (others => '0');
@@ -358,12 +358,12 @@ if rising_edge(p_in_cfg_clk) then
       i_prm.ch(ch).steprd <= (others => '0');
     end loop;
 
-    set_idle := (others => '0');
-    h_set_idle <= (others => '0');
+    set_idle := '0';
+    h_set_idle <= '0';
 
   else
-    prm_set := (others => '0');
-    set_idle := (others => '0');
+    prm_set := '0';
+    set_idle := '0';
 
     if p_in_cfg_wd = '1' then
       if i_reg_adr = TO_UNSIGNED(C_FG_REG_CTRL, i_reg_adr'length) then
@@ -372,17 +372,14 @@ if rising_edge(p_in_cfg_clk) then
           vch_num := UNSIGNED(p_in_cfg_txdata(C_FG_REG_CTRL_VCH_M_BIT downto C_FG_REG_CTRL_VCH_L_BIT));
           prm := UNSIGNED(p_in_cfg_txdata(C_FG_REG_CTRL_PRM_M_BIT downto C_FG_REG_CTRL_PRM_L_BIT));
 
-            for ch in 0 to C_FG_VCH_COUNT - 1 loop
-              if ch = vch_num then
-                set_idle(ch) := p_in_cfg_txdata(C_FG_REG_CTRL_SET_IDLE_BIT);
-              end if;
-            end loop;
+          set_idle := p_in_cfg_txdata(C_FG_REG_CTRL_SET_IDLE_BIT);
 
           if p_in_cfg_txdata(C_FG_REG_CTRL_WR_BIT) = C_FG_REG_CTRL_WR then --'1' then
 
+            prm_set := '1';
+
             for ch in 0 to C_FG_VCH_COUNT - 1 loop
               if ch = vch_num then
-                prm_set(ch) := '1';
 
                 if prm = TO_UNSIGNED(C_FG_PRM_FR_ZONE_ACTIVE, prm'length) then
                   i_prm.ch(ch).fr.act.pixcount <= UNSIGNED(i_reg_data(15 downto 0));
@@ -540,6 +537,56 @@ begin
   end if;
 end process;
 
+--Resynch strob: h_set_prm, h_set_idle
+process(p_in_cfg_clk)
+begin
+if rising_edge(p_in_cfg_clk) then
+  if p_in_rst = '1' then
+    i_set_prm_width_cnt <= (others => '0');
+    i_set_prm_width <= '0';
+    i_set_idle_width_cnt <= (others => '0');
+    i_set_idle_width <= '0';
+
+  else
+
+      ---
+      if h_set_prm = '1' then
+        i_set_prm_width <= '1';
+      elsif i_set_prm_width_cnt = TO_UNSIGNED(3, i_set_prm_width_cnt'length) then
+        i_set_prm_width <= '0';
+      end if;
+
+      if i_set_prm_width = '0' then
+        i_set_prm_width_cnt <= (others => '0');
+      else
+        i_set_prm_width_cnt <= i_set_prm_width_cnt + 1;
+      end if;
+
+      ----
+      if h_set_idle = '1' then
+        i_set_idle_width <= '1';
+      elsif i_set_idle_width_cnt = TO_UNSIGNED(3, i_set_idle_width_cnt'length)  then
+        i_set_idle_width <= '0';
+      end if;
+
+      if i_set_idle_width = '0' then
+        i_set_idle_width_cnt <= (others => '0');
+      else
+        i_set_idle_width_cnt <= i_set_idle_width_cnt + 1;
+      end if;
+
+  end if;
+end if;
+end process;
+
+process(p_in_clk)
+begin
+  if rising_edge(p_in_clk) then
+    i_set_prm <= i_set_prm_width;
+    i_set_idle <= i_set_idle_width;
+  end if;
+end process;
+
 
 ----------------------------------------------------
 --
@@ -557,57 +604,6 @@ i_prm_fgrd(ch).steprd <= i_prm.ch(ch).steprd;
 --WR parametrs
 i_prm_fgwr(ch).mem_trnlen <= i_reg_mem_trnlen(7 downto 0);
 i_prm_fgwr(ch).fr <= p_in_vbufi(ch).frprm;
-
-
---Resynch strob: h_set_prm, h_set_idle
-process(p_in_cfg_clk)
-begin
-if rising_edge(p_in_cfg_clk) then
-  if p_in_rst = '1' then
-    i_set_prm_width_cnt(ch) <= (others => '0');
-    i_set_prm_width(ch) <= '0';
-    i_set_idle_width_cnt(ch) <= (others => '0');
-    i_set_idle_width(ch) <= '0';
-
-  else
-
-      ---
-      if h_set_prm(ch) = '1' then
-        i_set_prm_width(ch) <= '1';
-      elsif i_set_prm_width_cnt(ch) = TO_UNSIGNED(3, i_set_prm_width_cnt(ch)'length) then
-        i_set_prm_width(ch) <= '0';
-      end if;
-
-      if i_set_prm_width(ch) = '0' then
-        i_set_prm_width_cnt(ch) <= (others => '0');
-      else
-        i_set_prm_width_cnt(ch) <= i_set_prm_width_cnt(ch) + 1;
-      end if;
-
-      ----
-      if h_set_idle(ch) = '1' then
-        i_set_idle_width(ch) <= '1';
-      elsif i_set_idle_width_cnt(ch) = TO_UNSIGNED(3, i_set_idle_width_cnt(ch)'length)  then
-        i_set_idle_width(ch) <= '0';
-      end if;
-
-      if i_set_idle_width(ch) = '0' then
-        i_set_idle_width_cnt(ch) <= (others => '0');
-      else
-        i_set_idle_width_cnt(ch) <= i_set_idle_width_cnt(ch) + 1;
-      end if;
-
-  end if;
-end if;
-end process;
-
-process(p_in_clk)
-begin
-  if rising_edge(p_in_clk) then
-    i_set_prm <= i_set_prm_width;
-    i_set_idle <= i_set_idle_width;
-  end if;
-end process;
 
 
 --IRQ
@@ -652,7 +648,7 @@ if rising_edge(p_in_clk) then
   else
 
         --Set vbuf for write
-        if i_set_idle(ch) = '1' then
+        if i_set_idle = '1' then
           i_vbuf_wr(ch) <= (others => '0');
 
         elsif i_fgwr_frrdy(ch) = '1' then
@@ -669,7 +665,7 @@ if rising_edge(p_in_clk) then
         if i_fgwr_frrdy(ch) = '1' then
           for buf in 0 to C_FG_VBUF_COUNT - 1 loop
             if i_vbuf_wr(ch) = buf then
-              i_frmrk_save(ch)(buf) <= i_fgwr_mrk(ch);
+              i_frmrk_save(ch)(buf) <= i_fgwr_mrk;
             end if;
           end loop;
         end if;
@@ -713,7 +709,7 @@ if rising_edge(p_in_clk) then
   else
 
         --Set vbuf for read
-        if i_set_idle(ch) = '1' then
+        if i_set_idle = '1' then
           i_vbuf_rd(ch) <= (others => '0');
 
         elsif i_frskip(ch) /= (i_frskip(ch)'range => '0') and
@@ -732,7 +728,7 @@ if rising_edge(p_in_clk) then
 
         elsif (i_frskip(ch) = (i_frskip(ch)'range => '0') and
               UNSIGNED(i_fgrd_vch) = ch and i_fgrd_rddone = '1') or
-              i_set_idle(ch) = '1' then
+              i_set_idle = '1' then
 
           i_vbuf_hold(ch) <= '0';
         end if;
@@ -750,6 +746,8 @@ if rising_edge(p_in_clk) then
 end if;
 end process;
 
+end generate gen_vch;
+
 
 -------------------------------
 --Video -> MEM(VBUF)
@@ -758,7 +756,8 @@ m_fgwr : fgwr
 generic map(
 G_PIXBIT => C_PCFG_FG_PIXBIT,
 G_DBGCS  => G_DBGCS,
-G_VCH_NUM => ch,
+G_VCH_NUM => 0,
+G_VCH_COUNT => C_FG_VCH_COUNT,
 G_VSYN_ACTIVE => G_VSYN_ACTIVE,
 G_MEM_VCH_M_BIT   => C_FG_MEM_VCH_M_BIT,
 G_MEM_VCH_L_BIT   => C_FG_MEM_VCH_L_BIT,
@@ -773,30 +772,30 @@ port map(
 -------------------------------
 --CFG
 -------------------------------
-p_in_usrprm_ld => i_set_prm(ch),
-p_in_usrprm    => i_prm_fgwr(ch),
-p_in_work_en   => p_in_tst(1 + ch),
+p_in_usrprm_ld => i_set_prm,
+p_in_usrprm    => i_prm_fgwr,
+p_in_work_en   => p_in_tst(1),
 
-p_in_frbuf     => std_logic_vector(i_vbuf_wr(ch)),
-p_out_frrdy    => i_fgwr_frrdy(ch),
-p_out_frmrk    => i_fgwr_mrk(ch),
+p_in_frbuf     => i_vbuf_wr,
+p_out_frrdy    => i_fgwr_frrdy,
+p_out_frmrk    => i_fgwr_mrk,
 
 ----------------------------
 --DataIN
 ----------------------------
-p_in_vbufi     => p_in_vbufi(ch),
+p_in_vbufi     => p_in_vbufi(0),
 
 ---------------------------------
 --Port MEM_CTRL
 ---------------------------------
-p_out_mem      => p_out_memwr(ch),
-p_in_mem       => p_in_memwr(ch),
+p_out_mem      => p_out_memwr,
+p_in_mem       => p_in_memwr,
 
 -------------------------------
 --DBG
 -------------------------------
 p_in_tst       => p_in_tst, --tst_ctrl(31 downto 0),--
-p_out_tst      => i_fgwr_tst_out(ch),
+p_out_tst      => i_fgwr_tst_out,
 
 -------------------------------
 --System
@@ -804,7 +803,6 @@ p_out_tst      => i_fgwr_tst_out(ch),
 p_in_clk       => p_in_clk,
 p_in_rst       => p_in_rst
 );
-end generate gen_vch;
 
 
 -------------------------------
@@ -879,21 +877,21 @@ p_in_rst              => p_in_rst
 ----------------------------------------------------
 --Output VideoBuffer
 ----------------------------------------------------
-m_vbufo : host_vbufo
+m_bufo : fg_bufo
 port map(
-din         => i_fgrd_do,
-wr_en       => i_fgrd_den,
-wr_clk      => p_in_clk,
+din       => i_fgrd_do,
+wr_en     => i_fgrd_den,
+wr_clk    => p_in_clk,
 
-dout        => p_out_vbufo_do,
-rd_en       => p_in_vbufo_rd,
-rd_clk      => p_in_vbufo_rdclk,
+dout      => p_out_vbufo_do,
+rd_en     => p_in_vbufo_rd,
+rd_clk    => p_in_vbufo_rdclk,
 
-empty       => p_out_vbufo_empty,
-full        => open,
-prog_full   => i_vbufo_full,
+empty     => p_out_vbufo_empty,
+full      => open,
+prog_full => i_vbufo_full,
 
-rst         => i_vbufo_rst
+rst       => i_vbufo_rst
 );
 
 i_vbufo_rst <= p_in_rst or p_in_tst(0);
@@ -937,10 +935,10 @@ p_out_tst <= (others => '0');
 end generate gen_dbgcs_off;
 
 gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
-gen : for i in 0 to C_FG_VCH_COUNT - 1 generate
-i_fgwr_tst_outtmp(i) <= OR_reduce(i_fgwr_tst_out(i));
-end generate gen;
-p_out_tst(0) <= OR_reduce(i_fgwr_tst_outtmp) or i_fgrd_eof or OR_reduce(tst_fgrd_out);
+--gen : for i in 0 to C_FG_VCH_COUNT - 1 generate
+--i_fgwr_tst_outtmp(i) <= OR_reduce(i_fgwr_tst_out(i));
+--end generate gen;
+p_out_tst(0) <= OR_reduce(i_fgwr_tst_out) or i_fgrd_eof or OR_reduce(tst_fgrd_out);
 p_out_tst(31 downto 1) <= (others => '0');
 --p_out_tst(4 downto 1) <= tst_fgwr_out(3 downto 0);
 --p_out_tst(8 downto 5) <= tst_fgrd_out(3 downto 0);
