@@ -34,4 +34,6 @@ program_hw_devices [lindex [get_hw_devices] 0];
 
 program_hw_cfgmem -hw_cfgmem [get_property PROGRAM.HW_CFGMEM [lindex [get_hw_devices] 0 ]]
 
+boot_hw_device  [lindex [get_hw_devices] 0]
+
 disconnect_hw_server localhost:3121
