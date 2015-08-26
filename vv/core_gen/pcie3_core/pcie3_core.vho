@@ -47,7 +47,7 @@
 -- DO NOT MODIFY THIS FILE.
 
 -- IP VLNV: xilinx.com:ip:pcie3_ultrascale:4.0
--- IP Revision: 0
+-- IP Revision: 1
 
 -- The following code must appear in the VHDL architecture header.
 
@@ -196,6 +196,27 @@ COMPONENT pcie3_core
     sys_clk : IN STD_LOGIC;
     sys_clk_gt : IN STD_LOGIC;
     sys_reset : IN STD_LOGIC;
+    mcap_design_switch : OUT STD_LOGIC;
+    startup_cfgclk : OUT STD_LOGIC;
+    startup_cfgmclk : OUT STD_LOGIC;
+    startup_di : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
+    startup_eos : OUT STD_LOGIC;
+    startup_preq : OUT STD_LOGIC;
+    startup_do : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+    startup_dts : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+    startup_fcsbo : IN STD_LOGIC;
+    startup_fcsbts : IN STD_LOGIC;
+    startup_gsr : IN STD_LOGIC;
+    startup_gts : IN STD_LOGIC;
+    startup_keyclearb : IN STD_LOGIC;
+    startup_pack : IN STD_LOGIC;
+    startup_usrcclko : IN STD_LOGIC;
+    startup_usrcclkts : IN STD_LOGIC;
+    startup_usrdoneo : IN STD_LOGIC;
+    startup_usrdonets : IN STD_LOGIC;
+    cap_req : OUT STD_LOGIC;
+    cap_gnt : IN STD_LOGIC;
+    cap_rel : IN STD_LOGIC;
     pcie_perstn1_in : IN STD_LOGIC;
     pcie_perstn0_out : OUT STD_LOGIC;
     pcie_perstn1_out : OUT STD_LOGIC;
@@ -354,6 +375,27 @@ your_instance_name : pcie3_core
     sys_clk => sys_clk,
     sys_clk_gt => sys_clk_gt,
     sys_reset => sys_reset,
+    mcap_design_switch => mcap_design_switch,
+    startup_cfgclk => startup_cfgclk,
+    startup_cfgmclk => startup_cfgmclk,
+    startup_di => startup_di,
+    startup_eos => startup_eos,
+    startup_preq => startup_preq,
+    startup_do => startup_do,
+    startup_dts => startup_dts,
+    startup_fcsbo => startup_fcsbo,
+    startup_fcsbts => startup_fcsbts,
+    startup_gsr => startup_gsr,
+    startup_gts => startup_gts,
+    startup_keyclearb => startup_keyclearb,
+    startup_pack => startup_pack,
+    startup_usrcclko => startup_usrcclko,
+    startup_usrcclkts => startup_usrcclkts,
+    startup_usrdoneo => startup_usrdoneo,
+    startup_usrdonets => startup_usrdonets,
+    cap_req => cap_req,
+    cap_gnt => cap_gnt,
+    cap_rel => cap_rel,
     pcie_perstn1_in => pcie_perstn1_in,
     pcie_perstn0_out => pcie_perstn0_out,
     pcie_perstn1_out => pcie_perstn1_out,

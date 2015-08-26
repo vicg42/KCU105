@@ -220,6 +220,30 @@ cfg_subsys_vend_id : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
 sys_clk : IN STD_LOGIC;
 sys_clk_gt : IN STD_LOGIC;
 sys_reset : IN STD_LOGIC;
+
+--Tandem
+mcap_design_switch : OUT STD_LOGIC;
+startup_cfgclk : OUT STD_LOGIC;
+startup_cfgmclk : OUT STD_LOGIC;
+startup_di : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
+startup_eos : OUT STD_LOGIC;
+startup_preq : OUT STD_LOGIC;
+startup_do : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+startup_dts : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+startup_fcsbo : IN STD_LOGIC;
+startup_fcsbts : IN STD_LOGIC;
+startup_gsr : IN STD_LOGIC;
+startup_gts : IN STD_LOGIC;
+startup_keyclearb : IN STD_LOGIC;
+startup_pack : IN STD_LOGIC;
+startup_usrcclko : IN STD_LOGIC;
+startup_usrcclkts : IN STD_LOGIC;
+startup_usrdoneo : IN STD_LOGIC;
+startup_usrdonets : IN STD_LOGIC;
+cap_req : OUT STD_LOGIC;
+cap_gnt : IN STD_LOGIC;
+cap_rel : IN STD_LOGIC;
+
 pcie_perstn1_in : IN STD_LOGIC;
 pcie_perstn0_out : OUT STD_LOGIC;
 pcie_perstn1_out : OUT STD_LOGIC;
@@ -416,6 +440,7 @@ end component pcie_ctrl;
 
 signal i_pciecore_hot_reset_out : std_logic;
 
+signal i_sys_rst_n        : std_logic;
 signal i_sys_clk          : std_logic;
 signal i_sys_clk_gt       : std_logic;
 
@@ -553,6 +578,7 @@ CEB   => '0',
 O     => i_sys_clk_gt
 );
 
+m_sys_rst_ibuf : IBUF port map(I => p_in_pcie_phy.rst_n, O => i_sys_rst_n);
 
 i_cfg_subsys_vend_id <= std_logic_vector(TO_UNSIGNED(0, i_cfg_subsys_vend_id'length));
 
@@ -722,9 +748,36 @@ int_qpll1lock_out => open, --: OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
 int_qpll1outrefclk_out => open, --: OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
 int_qpll1outclk_out => open, --: OUT STD_LOGIC_VECTOR(0 DOWNTO 0)
 
+
+--Tandem
+mcap_design_switch => open,
+cap_req => open,
+cap_gnt => '1',
+cap_rel => '0',
+------------------------------------------------------------------------------------------------------------------//
+-- PCIe Fast Config: Startup Interface - Can only be used in Tandem Mode                                          //
+------------------------------------------------------------------------------------------------------------------//
+startup_cfgclk    => open,     -- 1-bit output: Configuration main clock output
+startup_cfgmclk   => open,     -- 1-bit output: Configuration internal oscillator clock output
+startup_di        => open,
+startup_eos       => open,     -- 1-bit output: Active high output signal indicating the End Of Startup.
+startup_preq      => open,     -- 1-bit output: PROGRAM request to fabric output
+startup_do        => "0000",
+startup_dts       => "0000",
+startup_fcsbo     => '0',
+startup_fcsbts    => '0',
+startup_gsr       => '0',      -- 1-bit input: Global Set/Reset input (GSR cannot be used for the port name)
+startup_gts       => '0',      -- 1-bit input: Global 3-state input (GTS cannot be used for the port name)
+startup_keyclearb => '1',      -- 1-bit input: Clear AES Decrypter Key input from Battery-Backed RAM (BBRAM)
+startup_pack      => '0',      -- 1-bit input: PROGRAM acknowledge input
+startup_usrcclko  => '0',      -- 1-bit input: User CCLK input
+startup_usrcclkts => '1',      -- 1-bit input: User CCLK 3-state enable input
+startup_usrdoneo  => '0',      -- 1-bit input: User DONE pin output control
+startup_usrdonets => '1',      -- 1-bit input: User DONE 3-state enable output
+
 sys_clk    => i_sys_clk      ,--: IN  STD_LOGIC;
 sys_clk_gt => i_sys_clk_gt   ,--: IN  STD_LOGIC;
-sys_reset  => p_in_pcie_phy.rst_n --: IN  STD_LOGIC; (Cold reset + Warm reset)
+sys_reset  => i_sys_rst_n --: IN  STD_LOGIC; (Cold reset + Warm reset)
 );
 
 
@@ -909,14 +962,14 @@ p_in_user_reset  => i_user_reset ,
 p_in_user_lnk_up => i_user_lnk_up
 );
 
-p_out_pcie_rst_n <= p_in_pcie_phy.rst_n;
+p_out_pcie_rst_n <= i_sys_rst_n;
 
 
 
 --#############################################
 --DBG
 --#############################################
-p_out_tst(0) <= i_user_lnk_up;
+p_out_tst(0) <= '0';--i_user_lnk_up;
 p_out_tst(p_out_tst'high downto 1) <= (others => '0');
 
 
