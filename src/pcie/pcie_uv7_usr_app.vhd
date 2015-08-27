@@ -89,6 +89,7 @@ p_in_dma_mrd_rcv_err  : in    std_logic;
 p_out_irq_clr : out   std_logic;
 p_out_irq_set : out   std_logic;
 p_in_irq_ack  : in    std_logic;
+p_out_irq_req : out   std_logic_vector(C_HIRQ_COUNT - 1 downto 0);
 
 --System
 p_in_clk   : in    std_logic;

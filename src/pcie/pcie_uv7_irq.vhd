@@ -103,6 +103,11 @@ if rising_edge(p_in_clk) then
         if (p_in_cfg_irq_rdy = '1') then
 --          i_irq <= '0';
           i_irq_ack <= '1';
+
+          if (p_in_cfg_msi = '1') then
+            i_irq_assert <= '0';
+          end if;
+
           fsm_cs <= S_IRQ_WAIT_CLR;
         end if;
 
@@ -114,16 +119,13 @@ if rising_edge(p_in_clk) then
         i_irq_ack <= '0';
 
         if (p_in_irq_clr = '1') then
-          if (p_in_cfg_msi = '1') then
-          --Interrupt mode MSI
-            i_irq        <= '0';
-            i_irq_assert <= '0';--DEASSERT IRQ
-            fsm_cs <= S_IRQ_IDLE;
-          else
           --Interrupt mode Legacy
+          if (p_in_cfg_msi = '0') then
             i_irq        <= '0';
             i_irq_assert <= '0';--DEASSERT IRQ
             fsm_cs <= S_IRQ_DEASSERT_DONE;
+          else
+            fsm_cs <= S_IRQ_IDLE;
           end if;
         end if;
 
