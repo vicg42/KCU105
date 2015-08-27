@@ -154,17 +154,24 @@ dev_num   : std_logic_vector(3 downto 0);--<= tst_uapp_out(121 downto 117);-- <=
 dma_start : std_logic;                   --<= tst_uapp_out(118);--            <= i_dma_start;
 dma_irq   : std_logic;                   --<= tst_uapp_out(109);--
 
-h2d_buf_di    : TDBG_darray;
+--h2d_buf_di    : TDBG_darray;
 h2d_buf_wr    : std_logic;--PCIE -> DEV
 h2d_buf_full  : std_logic;--PCIE -> DEV
-d2h_buf_do    : TDBG_darray;
+--d2h_buf_do    : TDBG_darray;
 d2h_buf_rd    : std_logic;--PCIE <- DEV
 d2h_buf_empty : std_logic;--PCIE <- DEV
 
 irq_int  : std_logic;
 irq_pend : std_logic;
 irq_sent : std_logic;
-irq_msi  : std_logic;
+
+irq_msi_en  : std_logic;
+irq_msi_int : std_logic;
+irq_msi_pending_status : std_logic;
+irq_msi_send : std_logic;
+irq_msi_fail : std_logic;
+irq_msi_vf_enable : std_logic_vector(5 downto 0);
+irq_msi_mmenable : std_logic_vector(5 downto 0);
 
 test_speed_bit : std_logic;
 end record;
