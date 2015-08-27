@@ -330,7 +330,7 @@
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.Shared_Logic">1</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.dedicate_perst">true</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.sys_reset_polarity">ACTIVE LOW</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.mcap_enablement">Tandem</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.mcap_enablement">None</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.PHY_LP_TXPRESET">4</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.en_ext_ch_gt_drp">false</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.ext_startup_primitive">false</spirit:configurableElementValue>
@@ -511,7 +511,7 @@
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.VF4_TPHR_CAP_INT_VEC_MODE">FALSE</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.VF5_TPHR_CAP_DEV_SPECIFIC_MODE">TRUE</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.VF5_TPHR_CAP_INT_VEC_MODE">FALSE</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.PF0_SECONDARY_PCIE_CAP_NEXTPTR">0x340</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.PF0_SECONDARY_PCIE_CAP_NEXTPTR">0x000</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.MCAP_CAP_NEXTPTR">0x000</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.PF0_VC_CAP_NEXTPTR">0x000</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.SPARE_WORD1">0x00000000</spirit:configurableElementValue>
@@ -664,7 +664,7 @@
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.SHARED_LOGIC">1</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.DEDICATE_PERST">TRUE</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.SYS_RESET_POLARITY">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.MCAP_ENABLEMENT">TANDEM</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.MCAP_ENABLEMENT">NONE</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.PHY_LP_TXPRESET">4</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.EXT_CH_GT_DRP">FALSE</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.EN_GT_SELECTION">FALSE</spirit:configurableElementValue>
