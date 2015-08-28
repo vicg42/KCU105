@@ -102,7 +102,7 @@ signal i_host_dbg                       : TPCIE_dbg;
 constant CI_CFG_DWIDTH                  : integer := 16;--bit
 signal i_cfg_rst                        : std_logic;
 signal i_cfg_dadr                       : std_logic_vector(C_CFGPKT_DADR_M_BIT - C_CFGPKT_DADR_L_BIT downto 0);
-signal i_cfg_radr                       : std_logic_vector(CI_CFG_DWIDTH - 1 downto 0);
+signal i_cfg_radr                       : std_logic_vector(C_CFGPKT_RADR_M_BIT - C_CFGPKT_RADR_L_BIT downto 0);
 signal i_cfg_radr_ld                    : std_logic;
 signal i_cfg_radr_fifo                  : std_logic;
 signal i_cfg_wr                         : std_logic;
@@ -237,7 +237,6 @@ g_usr_highclk <= i_mem_ctrl_sysout.clk;
 m_cfg : cfgdev_host
 generic map(
 G_DBG => "OFF",
-G_HOST_TXACK => "OFF",
 G_HOST_DWIDTH  => C_HDEV_DWIDTH,
 G_CFG_DWIDTH => CI_CFG_DWIDTH
 )

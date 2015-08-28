@@ -252,6 +252,8 @@ constant C_FG_REG_CTRL_LAST_BIT            : integer := C_FG_REG_CTRL_SET_IDLE_B
 constant C_FG_REG_CTRL_WR : std_logic := '1';
 
 --Index of parametr video channel:
+constant C_FG_PRM_MEM_ADR_WR               : integer := 0;
+constant C_FG_PRM_MEM_ADR_RD               : integer := 1;
 constant C_FG_PRM_FR_ZONE_SKIP             : integer := 2;
 constant C_FG_PRM_FR_ZONE_ACTIVE           : integer := 3;
 constant C_FG_PRM_FR_OPTIONS               : integer := 4;

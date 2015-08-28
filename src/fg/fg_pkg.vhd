@@ -28,33 +28,33 @@ rowcount : unsigned(15 downto 0);
 end record;
 Type TFG_FrXYs is array (0 to C_FG_VCH_COUNT - 1) of TFG_FrXY;
 
-type TFG_FrXYParam is record
+type TFG_FrXYPrm is record
 skp : TFG_FrXY; --skip zone
 act : TFG_FrXY; --active zone
 end record;
-Type TFG_FrXYParams is array (0 to C_FG_VCH_COUNT - 1) of TFG_FrXYParam;
+Type TFG_FrXYPrms is array (0 to C_FG_VCH_COUNT - 1) of TFG_FrXYPrm;
 
-type TFG_VCHParam is record
-fr     : TFG_FrXYParam;
+type TFG_VCHPrm is record
+fr     : TFG_FrXYPrm;
 mirror : TFG_FrMirror;
 steprd : std_logic_vector(15 downto 0); --Step read frame (Count Line)
 end record;
-type TFG_VCHParams is array (0 to C_FG_VCH_COUNT - 1) of TFG_VCHParam;
+type TFG_VCHPrms is array (0 to C_FG_VCH_COUNT - 1) of TFG_VCHPrm;
 
 type TFG_Prm is record
-ch : TFG_VCHParams;
+mem_wd_trn_len : std_logic_vector(7 downto 0);
+mem_rd_trn_len : std_logic_vector(7 downto 0);
+ch : TFG_VCHPrms;
 end record;
 
 type TFGWR_Prm is record
-mem_trnlen : std_logic_vector(7 downto 0);
 fr : TFG_FrXY;
 end record;
 Type TFGWR_Prms is array (0 to C_FG_VCH_COUNT - 1) of TFGWR_Prm;
 
 type TFGRD_Prm is record
-mem_trnlen : std_logic_vector(7 downto 0);
 frwr   : TFG_FrXY;
-frrd   : TFG_FrXYParam;
+frrd   : TFG_FrXYPrm;
 mirror : TFG_FrMirror;
 steprd : std_logic_vector(15 downto 0); --Step read frame (Count Line)
 end record;

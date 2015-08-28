@@ -65,7 +65,11 @@ p_out_vbufo_empty : out   std_logic;
 -------------------------------
 --VBUFI -> MEM(VBUF)
 -------------------------------
-p_in_vbufi        : in    TFGWR_VBUFIs;
+p_in_vbufi_do     : in    std_logic_vector(G_MEMWR_DWIDTH - 1 downto 0);
+p_out_vbufi_rd    : out   std_logic;
+p_in_vbufi_empty  : in    std_logic;
+p_in_vbufi_full   : in    std_logic;
+p_in_vbufi_pfull  : in    std_logic;
 
 ---------------------------------
 --MEM
@@ -133,6 +137,7 @@ port(
 -------------------------------
 p_in_usrprm_ld : in    std_logic;
 p_in_usrprm    : in    TFGWR_Prms;
+p_in_memtrn    : in    std_logic_vector(7 downto 0);
 p_in_work_en   : in    std_logic;
 
 p_in_frbuf     : in    TFG_FrBufs;
@@ -142,7 +147,11 @@ p_out_frmrk    : out   std_logic_vector(31 downto 0);
 ----------------------------
 --
 ----------------------------
-p_in_vbufi     : in    TFGWR_VBUFI;
+p_in_vbufi_do     : in    std_logic_vector(G_MEMWR_DWIDTH - 1 downto 0);
+p_out_vbufi_rd    : out   std_logic;
+p_in_vbufi_empty  : in    std_logic;
+p_in_vbufi_full   : in    std_logic;
+p_in_vbufi_pfull  : in    std_logic;
 
 ---------------------------------
 --Port MEM_CTRL
@@ -184,6 +193,7 @@ port(
 --CFG
 -------------------------------
 p_in_usrprm        : in    TFGRD_Prms;
+p_in_memtrn        : in    std_logic_vector(7 downto 0);
 --p_in_work_en       : in    std_logic;
 
 p_in_hrd_chsel     : in    std_logic_vector(2 downto 0);
@@ -236,19 +246,17 @@ signal i_reg_ctrl                        : std_logic_vector(C_FG_REG_CTRL_LAST_B
 signal i_reg_data                        : std_logic_vector(31 downto 0);
 signal i_reg_tst0                        : std_logic_vector(C_FG_REG_TST0_LAST_BIT downto 0);
 signal i_reg_mem_trnlen                  : std_logic_vector(15 downto 0);
-type TFG_DATARD is array (0 to C_FG_VCH_COUNT_MAX - 1) of std_logic_vector(31 downto 0);
-signal i_reg_data_r                      : TFG_DATARD;
-signal i_reg_data_ro                     : std_logic_vector(31 downto 0);
 
-signal i_set_prm_width_cnt               : unsigned(1 downto 0);
+signal sr_set_prm                        : unsigned(3 downto 0);
 signal i_set_prm_width                   : std_logic;
 signal h_set_prm                         : std_logic;
 signal i_set_prm                         : std_logic;
 
-signal i_set_idle_width_cnt              : unsigned(1 downto 0);
-signal i_set_idle_width                  : std_logic;
-signal h_set_idle                        : std_logic;
-signal i_set_idle                        : std_logic;
+type TSRsetidle is array(0 to C_FG_VCH_COUNT - 1) of  unsigned(3 downto 0);
+signal sr_set_idle                       : TSRsetidle;
+signal i_set_idle_width                  : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
+signal h_set_idle                        : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
+signal i_set_idle                        : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
 
 signal i_prm                             : TFG_Prm;
 signal i_prm_fgwr                        : TFGWR_Prms;
@@ -257,8 +265,8 @@ signal i_prm_fgrd                        : TFGRD_Prms;
 Type TFG_FrMrks_Bufs is array (0 to C_FG_VBUF_COUNT - 1) of std_logic_vector(31 downto 0);
 Type TFG_FrMrks_Bufs_VCH is array (0 to C_FG_VCH_COUNT - 1) of TFG_FrMrks_Bufs;
 
-type TFG_CntWidth is array (0 to C_FG_VCH_COUNT - 1) of unsigned(3 downto 0);
-signal i_irq_width_cnt                   : TFG_CntWidth;
+type TFG_CntWidth is array (0 to C_FG_VCH_COUNT - 1) of unsigned(15 downto 0);
+signal sr_irq                            : TFG_CntWidth;
 signal i_irq_width                       : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
 signal i_irq                             : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
 signal i_vbuf_hold                       : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
@@ -280,11 +288,11 @@ signal i_fgrd_den                        : std_logic;
 signal i_vbufo_full                      : std_logic;
 signal i_vbufo_rst                       : std_logic;
 
-signal i_rd_start_width_cnt              : unsigned(3 downto 0);
+signal sr_hrdstart                       : unsigned(15 downto 0);
 signal i_rd_start_width                  : std_logic;
 signal i_host_rd_start                   : std_logic;
 signal i_host_chsel                      : std_logic_vector(p_in_hrdchsel'range);
-signal i_rd_done_width_cnt               : unsigned(3 downto 0);
+signal sr_hrddone                        : unsigned(15 downto 0);
 signal i_rd_done_width                   : std_logic;
 signal i_host_rd_done                    : std_logic;
 
@@ -318,7 +326,7 @@ if rising_edge(p_in_cfg_clk) then
     i_reg_adr <= (others => '0');
   else
     if p_in_cfg_adr_ld = '1' then
-      i_reg_adr <= UNSIGNED(p_in_cfg_adr);
+      i_reg_adr <= p_in_cfg_adr;
     else
       if p_in_cfg_adr_fifo = '0' and (p_in_cfg_wd = '1' or p_in_cfg_rd = '1') then
         i_reg_adr <= i_reg_adr + 1;
@@ -330,77 +338,94 @@ end process;
 
 --write registers
 process(p_in_cfg_clk)
-  variable vch_num : unsigned(C_FG_REG_CTRL_VCH_M_BIT - C_FG_REG_CTRL_VCH_L_BIT downto 0);
-  variable prm     : unsigned(C_FG_REG_CTRL_PRM_M_BIT - C_FG_REG_CTRL_PRM_L_BIT downto 0);
-  variable prm_set : std_logic;
-  variable set_idle : std_logic;
+  variable vch_num : std_logic_vector(C_FG_REG_CTRL_VCH_M_BIT - C_FG_REG_CTRL_VCH_L_BIT downto 0);
+  variable prm     : std_logic_vector(C_FG_REG_CTRL_PRM_M_BIT - C_FG_REG_CTRL_PRM_L_BIT downto 0);
+  variable set_prm : std_logic;
+  variable set_idle: std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
 begin
 if rising_edge(p_in_cfg_clk) then
   if p_in_rst = '1' then
     i_reg_ctrl <= (others => '0');
     i_reg_tst0 <= (others => '0');
     i_reg_data <= (others => '0');
-    i_reg_mem_trnlen <= std_logic_vector(TO_UNSIGNED(16#4040#, i_reg_mem_trnlen'length));
 
-    prm_set := '0';
+    set_prm := '0';
     h_set_prm <= '0';
 
     vch_num := (others => '0');
     prm := (others => '0');
 
     for ch in 0 to C_FG_VCH_COUNT - 1 loop
-      i_prm.ch(ch).fr.act.pixcount <= (others => '0');
-      i_prm.ch(ch).fr.act.rowcount <= (others => '0');
-      i_prm.ch(ch).fr.skp.pixcount <= (others => '0');
-      i_prm.ch(ch).fr.skp.rowcount <= (others => '0');
-      i_prm.ch(ch).mirror.x <= '0';
-      i_prm.ch(ch).mirror.y <= '0';
-      i_prm.ch(ch).steprd <= (others => '0');
+        i_prm.ch(ch).mem_addr_wr <= (others => '0');
+        i_prm.ch(ch).mem_addr_rd <= (others => '0');
+        i_prm.ch(ch).fr.skp.pixcount <= (others => '0');
+        i_prm.ch(ch).fr.skp.rowcount <= (others => '0');
+        i_prm.ch(ch).fr.act.pixcount <= (others => '0');
+        i_prm.ch(ch).fr.act.rowcount <= (others => '0');
+        i_prm.ch(ch).mirror.x <= '0';
+        i_prm.ch(ch).mirror.y <= '0';
+        i_prm.ch(ch).step_rd <= (others => '0');
     end loop;
+    i_prm.mem_wd_trn_len <= (others => '0');
+    i_prm.mem_rd_trn_len <= (others => '0');
 
-    set_idle := '0';
-    h_set_idle <= '0';
+    set_idle := (others => '0');
+    h_set_idle <= (others => '0');
 
   else
-    prm_set := '0';
-    set_idle := '0';
+    set_prm := '0';
+    set_idle := (others => '0');
 
     if p_in_cfg_wd = '1' then
       if i_reg_adr = TO_UNSIGNED(C_FG_REG_CTRL, i_reg_adr'length) then
+
           i_reg_ctrl <= p_in_cfg_txdata(i_reg_ctrl'high downto 0);
 
-          vch_num := UNSIGNED(p_in_cfg_txdata(C_FG_REG_CTRL_VCH_M_BIT downto C_FG_REG_CTRL_VCH_L_BIT));
-          prm := UNSIGNED(p_in_cfg_txdata(C_FG_REG_CTRL_PRM_M_BIT downto C_FG_REG_CTRL_PRM_L_BIT));
+          vch_num := p_in_cfg_txdata(C_FG_REG_CTRL_VCH_M_BIT downto C_FG_REG_CTRL_VCH_L_BIT);
+          prm:= p_in_cfg_txdata(C_FG_REG_CTRL_PRM_M_BIT downto C_FG_REG_CTRL_PRM_L_BIT);
 
-          set_idle := p_in_cfg_txdata(C_FG_REG_CTRL_SET_IDLE_BIT);
+            for ch in 0 to C_FG_VCH_COUNT - 1 loop
+              if ch = vch_num then
+                set_idle(ch) := p_in_cfg_txdata(C_FG_REG_CTRL_SET_IDLE_BIT);
+              end if;
+            end loop;
 
-          if p_in_cfg_txdata(C_FG_REG_CTRL_WR_BIT) = C_FG_REG_CTRL_WR then --'1' then
+          if p_in_cfg_txdata(C_FG_REG_CTRL_SET_BIT) = '1' then
 
-            prm_set := '1';
+            set_prm := '1';
 
             for ch in 0 to C_FG_VCH_COUNT - 1 loop
               if ch = vch_num then
 
                 if prm = TO_UNSIGNED(C_FG_PRM_FR_ZONE_ACTIVE, prm'length) then
-                  i_prm.ch(ch).fr.act.pixcount <= UNSIGNED(i_reg_data(15 downto 0));
-                  i_prm.ch(ch).fr.act.rowcount <= UNSIGNED(i_reg_data(31 downto 16));
+                  i_prm.ch(ch).fr.act.pixcount <= i_reg_data(15 downto 0);
+                  i_prm.ch(ch).fr.act.rowcount <= i_reg_data(31 downto 16);
 
                 elsif prm = TO_UNSIGNED(C_FG_PRM_FR_ZONE_SKIP, prm'length) then
-                  i_prm.ch(ch).fr.skp.pixcount <= UNSIGNED(i_reg_data(15 downto 0));
-                  i_prm.ch(ch).fr.skp.rowcount <= UNSIGNED(i_reg_data(31 downto 16));
+                  i_prm.ch(ch).fr.skp.pixcount <= i_reg_data(15 downto 0);
+                  i_prm.ch(ch).fr.skp.rowcount <= i_reg_data(31 downto 16);
 
                 elsif prm = TO_UNSIGNED(C_FG_PRM_FR_OPTIONS, prm'length) then
                   i_prm.ch(ch).mirror.x <= i_reg_data(4);
                   i_prm.ch(ch).mirror.y <= i_reg_data(5);
 
                 elsif prm = TO_UNSIGNED(C_FG_PRM_FR_STEP_RD, prm'length) then
-                  i_prm.ch(ch).steprd <= i_reg_data(15 downto 0); --count frame line
+                  i_prm.ch(ch).step_rd <= i_reg_data(15 downto 0);
+
+                elsif prm = TO_UNSIGNED(C_FG_PRM_MEM_ADR_WR, prm'length) then
+                  i_prm.ch(ch).mem_addr_wr <= i_reg_data(31 downto 0);
+
+                elsif prm = TO_UNSIGNED(C_FG_PRM_MEM_ADR_RD, prm'length) then
+                  i_prm.ch(ch).mem_addr_rd <= i_reg_data(31 downto 0);
 
                 end if;
               end if;
             end loop;
 
           end if;
+
+      elsif i_reg_adr = TO_UNSIGNED(C_FG_REG_TST0, i_reg_adr'length) then
+        i_reg_tst0 <= p_in_cfg_txdata(i_reg_tst0'high downto 0);
 
       elsif i_reg_adr = TO_UNSIGNED(C_FG_REG_DATA_L, i_reg_adr'length) then
         i_reg_data(15 downto 0) <= p_in_cfg_txdata;
@@ -409,78 +434,109 @@ if rising_edge(p_in_cfg_clk) then
         i_reg_data(31 downto 16) <= p_in_cfg_txdata;
 
       elsif i_reg_adr = TO_UNSIGNED(C_FG_REG_MEM_CTRL, i_reg_adr'length) then
---          prm_set := '1';
-          i_reg_mem_trnlen(15 downto 0) <= p_in_cfg_txdata;
-
-      elsif i_reg_adr = TO_UNSIGNED(C_FG_REG_TST0, i_reg_adr'length) then
-        i_reg_tst0 <= p_in_cfg_txdata(i_reg_tst0'range);
+          set_prm := '1';
+          i_prm.mem_wd_trn_len(7 downto 0) <= p_in_cfg_txdata(7 downto 0);
+          i_prm.mem_rd_trn_len(7 downto 0) <= p_in_cfg_txdata(15 downto 8);
 
       end if;
     end if;
 
     h_set_idle <= set_idle;
-    h_set_prm <= prm_set;
+    h_set_prm <= set_prm;
 
   end if;
 end if;
 end process;
 
 --read registers
-gen_rx : for i in 0 to C_FG_VCH_COUNT - 1 generate
+process(p_in_cfg_clk)
+  variable vch_num  : std_logic_vector(C_FG_REG_CTRL_VCH_M_BIT - C_FG_REG_CTRL_VCH_L_BIT downto 0);
+  variable prm : std_logic_vector(C_FG_REG_CTRL_PRM_M_BIT - C_FG_REG_CTRL_PRM_L_BIT downto 0);
 begin
-i_reg_data_r(i)(15 downto 0) <= std_logic_vector(i_prm.ch(i).fr.act.pixcount(15 downto 0))
-                      when UNSIGNED(i_reg_ctrl(C_FG_REG_CTRL_PRM_M_BIT downto C_FG_REG_CTRL_PRM_L_BIT))
-                            = TO_UNSIGNED(C_FG_PRM_FR_ZONE_ACTIVE, (C_FG_REG_CTRL_PRM_M_BIT - C_FG_REG_CTRL_PRM_L_BIT + 1)) else
+if rising_edge(p_in_cfg_clk) then
+  if p_in_rst = '1' then
+    p_out_cfg_rxdata <= (others => '0');
 
-                        std_logic_vector(i_prm.ch(i).fr.skp.pixcount(15 downto 0))
-                      when UNSIGNED(i_reg_ctrl(C_FG_REG_CTRL_PRM_M_BIT downto C_FG_REG_CTRL_PRM_L_BIT))
-                            = TO_UNSIGNED(C_FG_PRM_FR_ZONE_ACTIVE, (C_FG_REG_CTRL_PRM_M_BIT - C_FG_REG_CTRL_PRM_L_BIT + 1)) else
+  else
 
-                        std_logic_vector(TO_UNSIGNED(0, (3 - 0 + 1))) &
-                        i_prm.ch(i).mirror.x &
-                        i_prm.ch(i).mirror.y &
-                        std_logic_vector(TO_UNSIGNED(0, (15 - 6 + 1)))
-                      when UNSIGNED(i_reg_ctrl(C_FG_REG_CTRL_PRM_M_BIT downto C_FG_REG_CTRL_PRM_L_BIT))
-                            = TO_UNSIGNED(C_FG_PRM_FR_OPTIONS, (C_FG_REG_CTRL_PRM_M_BIT - C_FG_REG_CTRL_PRM_L_BIT + 1)) else
+    if p_in_cfg_rd = '1' then
+      if i_reg_adr = TO_UNSIGNED(C_FG_REG_CTRL, i_reg_adr'length) then
+        p_out_cfg_rxdata <= std_logic_vector(RESIZE(UNSIGNED(i_reg_ctrl, p_out_cfg_rxdata'length)));
 
-                        i_prm.ch(i).steprd;
+      elsif i_reg_adr = TO_UNSIGNED(C_FG_REG_TST0, i_reg_adr'length) then
+        p_out_cfg_rxdata <= std_logic_vector(RESIZE(UNSIGNED(i_reg_tst0, p_out_cfg_rxdata'length)));
 
-i_reg_data_r(i)(31 downto 16) <= std_logic_vector(i_prm.ch(i).fr.act.rowcount(15 downto 0))
-                      when UNSIGNED(i_reg_ctrl(C_FG_REG_CTRL_PRM_M_BIT downto C_FG_REG_CTRL_PRM_L_BIT))
-                            = TO_UNSIGNED(C_FG_PRM_FR_ZONE_ACTIVE, (C_FG_REG_CTRL_PRM_M_BIT - C_FG_REG_CTRL_PRM_L_BIT + 1)) else
+      elsif i_reg_adr = TO_UNSIGNED(C_FG_REG_DATA_L, i_reg_adr'length) then
 
-                        std_logic_vector(i_prm.ch(i).fr.skp.rowcount(15 downto 0))
-                      when UNSIGNED(i_reg_ctrl(C_FG_REG_CTRL_PRM_M_BIT downto C_FG_REG_CTRL_PRM_L_BIT))
-                            = TO_UNSIGNED(C_FG_PRM_FR_ZONE_ACTIVE, (C_FG_REG_CTRL_PRM_M_BIT - C_FG_REG_CTRL_PRM_L_BIT + 1)) else
+          vch_num := i_reg_ctrl(C_FG_REG_CTRL_VCH_M_BIT downto C_FG_REG_CTRL_VCH_L_BIT);
+          prm := i_reg_ctrl(C_FG_REG_CTRL_PRM_M_BIT downto C_FG_REG_CTRL_PRM_L_BIT);
 
-                        (others => '0');
-end generate gen_rx;
+          for ch in 0 to C_FG_VCH_COUNT - 1 loop
+            if ch = vch_num then
 
-p_out_cfg_rxdata <= std_logic_vector(RESIZE(UNSIGNED(i_reg_ctrl), 16))
-                      when i_reg_adr = TO_UNSIGNED(C_FG_REG_CTRL, i_reg_adr'length) else
-                        i_reg_mem_trnlen(15 downto 0)
-                          when i_reg_adr = TO_UNSIGNED(C_FG_REG_MEM_CTRL, i_reg_adr'length) else
-                            i_reg_data_ro(15 downto 0)
-                              when i_reg_adr = TO_UNSIGNED(C_FG_REG_DATA_L, i_reg_adr'length) else
-                                i_reg_data_ro(31 downto 16)
-                                  when i_reg_adr = TO_UNSIGNED(C_FG_REG_DATA_M, i_reg_adr'length) else
-                                    std_logic_vector(RESIZE(UNSIGNED(i_reg_tst0), 16));
---                                      when i_reg_adr = TO_UNSIGNED(C_FG_REG_TST0, i_reg_adr'length)
+              if prm = TO_UNSIGNED(C_FG_PRM_FR_ZONE_ACTIVE, prm'length) then
+                p_out_cfg_rxdata <= i_prm.ch(ch).fr.act.pixcount(15 downto 0);
 
-gen_r0 : if C_FG_VCH_COUNT = 1 generate begin
-i_reg_data_ro <= i_reg_data_r(0);
-end generate gen_r0;
+              elsif prm = TO_UNSIGNED(C_FG_PRM_FR_ZONE_SKIP, prm'length) then
+                p_out_cfg_rxdata <= i_prm.ch(ch).fr.skp.pixcount(15 downto 0);
 
-gen_r1 : if C_FG_VCH_COUNT = 2 generate begin
-i_reg_data_ro <= i_reg_data_r(1)
-                      when UNSIGNED(i_reg_ctrl(C_FG_REG_CTRL_VCH_M_BIT downto C_FG_REG_CTRL_VCH_L_BIT))
-                              = TO_UNSIGNED(1, (C_FG_REG_CTRL_VCH_M_BIT + C_FG_REG_CTRL_VCH_L_BIT + 1)) else
+              elsif prm = TO_UNSIGNED(C_FG_PRM_FR_OPTIONS, prm'length) then
+                p_out_cfg_rxdata(4)           <= i_prm.ch(ch).mirror.x;
+                p_out_cfg_rxdata(5)           <= i_prm.ch(ch).mirror.y;
+                p_out_cfg_rxdata(15 downto 6) <= (others => '0');
 
-                         i_reg_data_r(0); --else 0
-end generate gen_r1;
+              elsif prm = TO_UNSIGNED(C_FG_PRM_FR_STEP_RD, prm'length) then
+                p_out_cfg_rxdata <= i_prm.ch(ch).step_rd;
+
+              elsif prm = TO_UNSIGNED(C_FG_PRM_MEM_ADR_WR, prm'length) then
+                p_out_cfg_rxdata <= i_prm.ch(ch).mem_addr_wr(15 downto 0);
+
+              elsif prm = TO_UNSIGNED(C_FG_PRM_MEM_ADR_RD, prm'length) then
+                p_out_cfg_rxdata <= i_prm.ch(ch).mem_addr_rd(15 downto 0);
+
+              end if;
+            end if;
+          end loop;
+
+      elsif i_reg_adr = TO_UNSIGNED(C_FG_REG_DATA_M, i_reg_adr'length) then
+
+          vch_num := i_reg_ctrl(C_FG_REG_CTRL_VCH_M_BIT downto C_FG_REG_CTRL_VCH_L_BIT);
+          prm := i_reg_ctrl(C_FG_REG_CTRL_PRM_M_BIT downto C_FG_REG_CTRL_PRM_L_BIT);
+
+          for ch in 0 to C_FG_VCH_COUNT - 1 loop
+            if ch = vch_num then
+
+              if prm = TO_UNSIGNED(C_FG_PRM_FR_ZONE_ACTIVE, prm'length) then
+                p_out_cfg_rxdata <= i_prm.ch(ch).fr.act.rowcount(15 downto 0);
+
+              elsif prm = TO_UNSIGNED(C_FG_PRM_FR_ZONE_SKIP, prm'length) then
+                p_out_cfg_rxdata <= i_prm.ch(ch).fr.skp.rowcount(15 downto 0);
+
+              elsif prm = TO_UNSIGNED(C_FG_PRM_FR_OPTIONS, prm'length) then
+                p_out_cfg_rxdata(15 downto 0) <= (others => '0');
+
+              elsif prm = TO_UNSIGNED(C_FG_PRM_MEM_ADR_WR, prm'length) then
+                p_out_cfg_rxdata <= i_prm.ch(ch).mem_addr_wr(31 downto 16);
+
+              elsif prm = TO_UNSIGNED(C_FG_PRM_MEM_ADR_RD, prm'length) then
+                p_out_cfg_rxdata <= i_prm.ch(ch).mem_addr_rd(31 downto 16);
+
+              end if;
+            end if;
+          end loop;
+
+      elsif i_reg_adr = TO_UNSIGNED(C_FG_REG_MEM_CTRL, i_reg_adr'length) then
+          p_out_cfg_rxdata(7 downto 0) <= i_prm.mem_wd_trn_len(7 downto 0);
+          p_out_cfg_rxdata(15 downto 8) <= i_prm.mem_rd_trn_len(7 downto 0);
+      end if;
+    end if;
+
+  end if;
+end if;
+end process;
 
 
-tst_ctrl(31 downto 0) <= std_logic_vector(RESIZE(UNSIGNED(i_reg_tst0), 32));
+tst_ctrl(31 downto 0) <= std_logic_vector(std_logic_vector(RESIZE(UNSIGNED(i_reg_tst0), 32));
 --tst_dbg_pictire<=tst_ctrl(C_FG_REG_TST0_DBG_PICTURE_BIT);
 --tst_dbg_rd_hold<=tst_ctrl(C_FG_REG_TST0_DBG_RDHOLD_BIT);
 
@@ -491,9 +547,9 @@ process(p_in_vbufo_rdclk)
 begin
 if rising_edge(p_in_vbufo_rdclk) then
   if p_in_rst = '1' then
-    i_rd_start_width_cnt <= (others => '0');
+    sr_hrdstart <= (others => '0');
     i_rd_start_width <= '0';
-    i_rd_done_width_cnt <= (others => '0');
+    sr_rd_done <= (others => '0');
     i_rd_done_width <= '0';
 
   else
@@ -501,28 +557,20 @@ if rising_edge(p_in_vbufo_rdclk) then
       ---
       if p_in_hrdstart = '1' then
         i_rd_start_width <= '1';
-      elsif i_rd_start_width_cnt(i_rd_start_width_cnt'high) = '1' then
+      elsif sr_hrdstart(sr_hrdstart'high) = '1' then
         i_rd_start_width <= '0';
       end if;
 
-      if i_rd_start_width = '0' then
-        i_rd_start_width_cnt <= (others => '0');
-      else
-        i_rd_start_width_cnt <= i_rd_start_width_cnt + 1;
-      end if;
+      sr_hrdstart <= p_in_hrdstart & sr_hrdstart(0 to sr_hrdstart'high - 1);
 
       ----
       if p_in_hrddone = '1' then
         i_rd_done_width <= '1';
-      elsif i_rd_done_width_cnt(i_rd_done_width_cnt'high) = '1' then
+      elsif sr_hrddone(sr_hrddone'high) = '1' then
         i_rd_done_width <= '0';
       end if;
 
-      if i_rd_done_width = '0' then
-        i_rd_done_width_cnt <= (others => '0');
-      else
-        i_rd_done_width_cnt <= i_rd_done_width_cnt + 1;
-      end if;
+      sr_hrddone <= p_in_hrddone & sr_hrddone(0 to sr_hrddone'high - 1);
 
   end if;
 end if;
@@ -542,38 +590,34 @@ process(p_in_cfg_clk)
 begin
 if rising_edge(p_in_cfg_clk) then
   if p_in_rst = '1' then
-    i_set_prm_width_cnt <= (others => '0');
+    sr_set_prm <= (others => '0');
     i_set_prm_width <= '0';
-    i_set_idle_width_cnt <= (others => '0');
-    i_set_idle_width <= '0';
+    for i in 0 to C_FG_VCH_COUNT - 1 loop
+    sr_set_idle(i) <= (others => '0');
+    i_set_idle_width(i) <= '0';
+    end loop;
 
   else
 
       ---
       if h_set_prm = '1' then
         i_set_prm_width <= '1';
-      elsif i_set_prm_width_cnt = TO_UNSIGNED(3, i_set_prm_width_cnt'length) then
+      elsif sr_set_prm(sr_set_prm'high) = '1' then
         i_set_prm_width <= '0';
       end if;
 
-      if i_set_prm_width = '0' then
-        i_set_prm_width_cnt <= (others => '0');
-      else
-        i_set_prm_width_cnt <= i_set_prm_width_cnt + 1;
-      end if;
+      sr_set_prm <= h_set_prm & sr_set_prm(0 to sr_set_prm'high - 1);
 
       ----
-      if h_set_idle = '1' then
-        i_set_idle_width <= '1';
-      elsif i_set_idle_width_cnt = TO_UNSIGNED(3, i_set_idle_width_cnt'length)  then
-        i_set_idle_width <= '0';
+      for i in 0 to C_FG_VCH_COUNT - 1 loop
+      if h_set_idle(i) = '1' then
+        i_set_idle_width(i) <= '1';
+      elsif sr_set_idle(i)(sr_set_idle(ch)'high) = '1' then
+        i_set_idle_width(i) <= '0';
       end if;
 
-      if i_set_idle_width = '0' then
-        i_set_idle_width_cnt <= (others => '0');
-      else
-        i_set_idle_width_cnt <= i_set_idle_width_cnt + 1;
-      end if;
+      sr_set_idle(i) <= h_set_idle(i) & sr_set_idle(i)(0 to sr_set_idle'high - 1));
+      end loop;
 
   end if;
 end if;
@@ -595,14 +639,12 @@ gen_vch : for ch in 0 to C_FG_VCH_COUNT - 1 generate
 begin
 
 --RD parametrs
-i_prm_fgrd(ch).mem_trnlen <= i_reg_mem_trnlen(15 downto 8);
 i_prm_fgrd(ch).frwr <= p_in_vbufi(ch).frprm;
 i_prm_fgrd(ch).frrd <= i_prm.ch(ch).fr;
 i_prm_fgrd(ch).mirror <= i_prm.ch(ch).mirror;
 i_prm_fgrd(ch).steprd <= i_prm.ch(ch).steprd;
 
 --WR parametrs
-i_prm_fgwr(ch).mem_trnlen <= i_reg_mem_trnlen(7 downto 0);
 i_prm_fgwr(ch).fr <= p_in_vbufi(ch).frprm;
 
 
@@ -611,22 +653,18 @@ process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
-    i_irq_width_cnt(ch) <= (others => '0');
+    sr_irq(ch) <= (others => '0');
     i_irq_width(ch) <= '0';
 
   else
 
       if i_irq(ch) = '1' then
         i_irq_width(ch) <= '1';
-      elsif i_irq_width_cnt(ch)(i_irq_width_cnt(ch)'high) = '1' then
+      elsif sr_irq(ch)(sr_irq(ch)'high) = '1' then
         i_irq_width(ch) <= '0';
       end if;
 
-      if i_irq_width(ch) = '0' then
-        i_irq_width_cnt(ch) <= (others => '0');
-      else
-        i_irq_width_cnt(ch) <= i_irq_width_cnt(ch) + 1;
-      end if;
+      sr_irq(ch) <= i_irq(ch) & sr_irq(ch)(0 to sr_irq(ch)'high - 1);
 
   end if;
 end if;
@@ -648,7 +686,7 @@ if rising_edge(p_in_clk) then
   else
 
         --Set vbuf for write
-        if i_set_idle = '1' then
+        if i_set_idle(ch) = '1' then
           i_vbuf_wr(ch) <= (others => '0');
 
         elsif i_fgwr_frrdy(ch) = '1' then
@@ -709,7 +747,7 @@ if rising_edge(p_in_clk) then
   else
 
         --Set vbuf for read
-        if i_set_idle = '1' then
+        if i_set_idle(ch) = '1' then
           i_vbuf_rd(ch) <= (others => '0');
 
         elsif i_frskip(ch) /= (i_frskip(ch)'range => '0') and
@@ -728,7 +766,7 @@ if rising_edge(p_in_clk) then
 
         elsif (i_frskip(ch) = (i_frskip(ch)'range => '0') and
               UNSIGNED(i_fgrd_vch) = ch and i_fgrd_rddone = '1') or
-              i_set_idle = '1' then
+              i_set_idle(ch) = '1' then
 
           i_vbuf_hold(ch) <= '0';
         end if;
@@ -774,6 +812,7 @@ port map(
 -------------------------------
 p_in_usrprm_ld => i_set_prm,
 p_in_usrprm    => i_prm_fgwr,
+p_in_memtrn    => i_prm.mem_wd_trn_len(7 downto 0),
 p_in_work_en   => p_in_tst(1),
 
 p_in_frbuf     => i_vbuf_wr,
@@ -828,11 +867,12 @@ port map(
 --CFG
 -------------------------------
 p_in_usrprm          => i_prm_fgrd,
+p_in_memtrn          => i_prm.mem_rd_trn_len(7 downto 0),
 --p_in_work_en         => p_in_tst(0),
 
-p_in_hrd_chsel        => i_host_chsel,
-p_in_hrd_start        => i_host_rd_start,
-p_in_hrd_done         => i_host_rd_done,
+p_in_hrd_chsel       => i_host_chsel,
+p_in_hrd_start       => i_host_rd_start,
+p_in_hrd_done        => i_host_rd_done,
 
 p_in_frbuf           => i_vbuf_rd,
 p_in_frline_n        => '0',
