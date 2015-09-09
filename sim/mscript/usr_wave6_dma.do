@@ -16,9 +16,52 @@ add wave -noupdate /board/sys_rst_n
 add wave -noupdate /board/ep_sys_clk
 add wave -noupdate /board/rp_sys_clk
 add wave -noupdate -divider RP
+add wave -noupdate /board/RP/pcie3_uscale_rp_top_i/cfg_err_cor_out
+add wave -noupdate /board/RP/pcie3_uscale_rp_top_i/cfg_err_nonfatal_out
+add wave -noupdate /board/RP/pcie3_uscale_rp_top_i/cfg_err_fatal_out
+add wave -noupdate /board/RP/pcie3_uscale_rp_top_i/cfg_local_error
+add wave -noupdate /board/RP/pcie3_uscale_rp_top_i/cfg_phy_link_down
+add wave -noupdate /board/RP/pcie3_uscale_rp_top_i/cfg_phy_link_status
+add wave -noupdate /board/RP/pcie3_uscale_rp_top_i/cfg_negotiated_width
+add wave -noupdate /board/RP/pcie3_uscale_rp_top_i/cfg_current_speed
+add wave -noupdate /board/RP/pcie3_uscale_rp_top_i/cfg_max_payload
+add wave -noupdate /board/RP/pcie3_uscale_rp_top_i/cfg_max_read_req
+add wave -noupdate /board/RP/pcie3_uscale_rp_top_i/cfg_function_power_state
+add wave -noupdate /board/RP/pcie3_uscale_rp_top_i/cfg_function_status
 add wave -noupdate /board/RP/cfg_msg_received
 add wave -noupdate /board/RP/cfg_msg_received_type
 add wave -noupdate /board/RP/cfg_msg_received_data
+add wave -noupdate /board/RP/cfg_usrapp/cfg_mgmt_addr
+add wave -noupdate /board/RP/cfg_usrapp/cfg_mgmt_write
+add wave -noupdate /board/RP/cfg_usrapp/cfg_mgmt_write_data
+add wave -noupdate /board/RP/cfg_usrapp/cfg_mgmt_byte_enable
+add wave -noupdate /board/RP/cfg_usrapp/cfg_mgmt_read
+add wave -noupdate /board/RP/cfg_usrapp/cfg_mgmt_read_data
+add wave -noupdate /board/RP/cfg_usrapp/cfg_mgmt_read_write_done
+add wave -noupdate /board/RP/m_axis_rc_tdata
+add wave -noupdate /board/RP/m_axis_rc_tuser
+add wave -noupdate /board/RP/m_axis_rc_tlast
+add wave -noupdate /board/RP/m_axis_rc_tkeep
+add wave -noupdate /board/RP/m_axis_rc_tvalid
+add wave -noupdate /board/RP/m_axis_rc_tready
+add wave -noupdate /board/RP/s_axis_rq_tlast
+add wave -noupdate /board/RP/s_axis_rq_tdata
+add wave -noupdate /board/RP/s_axis_rq_tuser
+add wave -noupdate /board/RP/s_axis_rq_tkeep
+add wave -noupdate /board/RP/s_axis_rq_tready
+add wave -noupdate /board/RP/s_axis_rq_tvalid
+add wave -noupdate /board/RP/m_axis_cq_tdata
+add wave -noupdate /board/RP/m_axis_cq_tuser
+add wave -noupdate /board/RP/m_axis_cq_tlast
+add wave -noupdate /board/RP/m_axis_cq_tkeep
+add wave -noupdate /board/RP/m_axis_cq_tvalid
+add wave -noupdate /board/RP/m_axis_cq_tready
+add wave -noupdate /board/RP/s_axis_cc_tdata
+add wave -noupdate /board/RP/s_axis_cc_tuser
+add wave -noupdate /board/RP/s_axis_cc_tlast
+add wave -noupdate /board/RP/s_axis_cc_tkeep
+add wave -noupdate /board/RP/s_axis_cc_tvalid
+add wave -noupdate /board/RP/s_axis_cc_tready
 add wave -noupdate -divider EP
 add wave -noupdate /board/EP/pci_exp_txp
 add wave -noupdate /board/EP/pci_exp_txn
@@ -93,6 +136,14 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/p_out_dma_mwr_en
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/p_in_dma_mwr_done
 add wave -noupdate /board/EP/m_main/m_ctrl/m_usr_app/tst_mem_dcnt
 add wave -noupdate -divider TXRQ
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_in_pcie_prm
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_in_dma_init
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_in_dma_prm
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_in_dma_mwr_en
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_dma_mwr_done
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_in_dma_mrd_en
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_out_dma_mrd_done
+add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_in_dma_mrd_rxdwcount
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_in_pcie_tfc_nph_av
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_in_pcie_tfc_npd_av
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/m_tx_rq/p_in_pcie_tfc_np_pl_empty
@@ -160,9 +211,9 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_out_axi_cc_tvalid
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_out_axi_cc_tuser
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_in_axi_cc_tready
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {0 ps} 0}
-quietly wave cursor active 0
-configure wave -namecolwidth 197
+WaveRestoreCursors {{Cursor 1} {201275583 ps} 0}
+quietly wave cursor active 1
+configure wave -namecolwidth 210
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
 configure wave -signalnamewidth 1
@@ -176,4 +227,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {0 ps} {18470656 ps}
+WaveRestoreZoom {0 ps} {310233395 ps}

@@ -71,6 +71,15 @@ module xilinx_pcie3_uscale_ep # (
   input   [(PL_LINK_CAP_MAX_LINK_WIDTH - 1) : 0]  pci_exp_rxp,
   input   [(PL_LINK_CAP_MAX_LINK_WIDTH - 1) : 0]  pci_exp_rxn,
 
+  output                                          led_0,
+                     
+  output                                          led_1,
+  output                                          led_2,
+  output                                          led_3,
+  output                                          led_4,
+  output                                          led_5,
+  output                                          led_6,
+  output                                          led_7,
   input                                           sys_clk_p,
   input                                           sys_clk_n,
   input                                           sys_rst_n
@@ -267,6 +276,16 @@ module xilinx_pcie3_uscale_ep # (
   IBUF   sys_reset_n_ibuf (.O(sys_rst_n_c), .I(sys_rst_n));
 
   IBUFDS_GTE3 refclk_ibuf (.O(sys_clk_gt), .ODIV2(sys_clk), .I(sys_clk_p), .CEB(1'b0), .IB(sys_clk_n));
+
+  assign led_0 = led_out[0];
+ 
+  assign led_1 = led_out[1];
+  assign led_2 = led_out[2];
+  assign led_3 = led_out[3];
+  assign led_4 = led_out[4];
+  assign led_5 = led_out[5];
+  assign led_6 = led_out[6];
+  assign led_7 = led_out[7];
 
 
 

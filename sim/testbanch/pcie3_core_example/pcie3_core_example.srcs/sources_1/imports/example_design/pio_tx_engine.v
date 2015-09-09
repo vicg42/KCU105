@@ -127,7 +127,7 @@ module pio_tx_engine    #(
   input                  [11:0]  cfg_fc_pd,
   input                  [11:0]  cfg_fc_npd,
   input                  [11:0]  cfg_fc_cpld,
-  output                   [2:0]  cfg_fc_sel,
+  output                  [2:0]  cfg_fc_sel,
 
 
   // PIO RX Engine Interface
@@ -218,32 +218,81 @@ module pio_tx_engine    #(
   wire  [31:0]             s_axis_cc_tparity;
   wire  [31:0]             s_axis_rq_tparity;
 
-  reg                      dword_count; // to count if its a 1DW or 2 DW transaction
-  reg  [31:0]              rd_data_reg; // To Store the 1st rd_data in case of 2DW payload
+  reg  [31:0]              rd_data_reg; // To store the 2nd rd_data in case of 2DW payload
+  reg  [1:0]               rd_dly_cntr; // Memory output delay counter
+  reg                      rd_SM;       // rd_data_reg State Machine
+  localparam               rd_IDLE  = 1'b0;
+  localparam               rd_DW_HI = 1'b1;
 
  // CFG func sel
 
-assign cfg_fc_sel = 3'b0;
+assign cfg_fc_sel = 3'b100;
 
 
   // Present address and byte enable to memory module
-
+  // and buffer up 2nd DW data in case of 2DW Memory Read
 
   always @ (posedge user_clk)begin
 
      if (!reset_n) begin
-        rd_addr  <=  #TCQ 11'b0;
-	rd_be    <=  #TCQ 4'b0;
+        rd_addr          <= #TCQ 11'b0;
+        rd_be            <= #TCQ 4'b0;
+        rd_SM            <= #TCQ rd_IDLE;
      end
-     else if(req_compl_wd) begin
-        if(dword_count == 0) begin
-	   rd_addr  <= #TCQ req_addr[12:2];
-	   rd_be    <= #TCQ req_be[3:0];
-	end
-	else begin
-	   rd_addr  <= #TCQ req_addr[12:2] + 11'h001;
-	   rd_be    <= #TCQ req_be[7:4];
-	end
+     else begin
+
+        case ( rd_SM )
+
+        rd_IDLE : begin
+
+           rd_dly_cntr    <= #TCQ 2'b0;
+           req_compl_wd_q <= #TCQ 1'b0;
+
+           if (req_compl_wd) begin // Read Request needs Completion w/ Data
+
+              if (payload_len == 0) begin // 1DW Memory Read - Start Completion immediately
+                 rd_addr        <= #TCQ req_addr[12:2];
+                 rd_be          <= #TCQ req_be[3:0];
+                 req_compl_wd_q <= #TCQ 1'b1;
+              end
+              else begin // 2DW Memory Read - Buffer up 2nd DW data
+                 rd_addr        <= #TCQ req_addr[12:2] + 11'h001;
+                 rd_be          <= #TCQ req_be[7:4];
+                 rd_SM          <= #TCQ rd_DW_HI;
+              end
+
+           end
+
+        end
+
+        rd_DW_HI : begin
+
+           rd_dly_cntr <= #TCQ rd_dly_cntr + 1;
+	   
+           // Fetch 1st DW data and can start Completion SM while waiting for returned data
+           rd_addr        <= #TCQ req_addr[12:2];
+           rd_be          <= #TCQ req_be[3:0];
+           if (rd_dly_cntr == 2'b00)
+              req_compl_wd_q <= #TCQ 1'b1;    // Start Completion SM
+           else
+              req_compl_wd_q <= #TCQ 1'b0;    // Assert for 1 clk cycle only
+
+           if (rd_dly_cntr[1] == 1'b1) begin  // Wait for data turnaround delay from memory
+              rd_data_reg    <= #TCQ rd_data; // Store 2nd DW
+              rd_SM          <= #TCQ rd_IDLE;
+           end
+
+        end
+
+        default : begin
+
+              req_compl_wd_q <= #TCQ 1'b0;
+              rd_SM          <= #TCQ rd_IDLE;
+
+        end
+
+        endcase
+
      end
 
   end
@@ -334,7 +383,6 @@ assign cfg_fc_sel = 3'b0;
 
       req_compl_q     <= #TCQ 1'b0;
       req_compl_qq    <= #TCQ 1'b0;
-      req_compl_wd_q  <= #TCQ 1'b0;
       req_compl_wd_qq <= #TCQ 1'b0;
       req_compl_wd_qqq <= #TCQ 1'b0;
       tkeep_q         <= #TCQ 16'h0F;
@@ -349,7 +397,6 @@ assign cfg_fc_sel = 3'b0;
       lower_addr_qq   <= #TCQ lower_addr_q;
       req_compl_q     <= #TCQ req_compl;
       req_compl_qq    <= #TCQ req_compl_q;
-      req_compl_wd_q  <= #TCQ req_compl_wd;
       req_compl_wd_qq <= #TCQ req_compl_wd_q;
       req_compl_wd_qqq <= #TCQ req_compl_wd_qq;
       req_compl_ur_q  <= #TCQ req_compl_ur;
@@ -416,7 +463,6 @@ assign cfg_fc_sel = 3'b0;
         cfg_msg_transmit_type   <= #TCQ 3'b0;
         cfg_msg_transmit_data   <= #TCQ 32'b0;
         compl_done              <= #TCQ 1'b0;
-        dword_count             <= #TCQ 1'b0;
         trn_sent                <= #TCQ 1'b0;
 
       end else begin // reset_else_block
@@ -441,7 +487,6 @@ assign cfg_fc_sel = 3'b0;
                 cfg_msg_transmit_data   <= #TCQ 32'b0;
                 compl_done              <= #TCQ 1'b0;
                 trn_sent                <= #TCQ 1'b0;
-                dword_count             <= #TCQ 1'b0;
 
                 if(req_compl) begin
                    state <= #TCQ PIO_TX_COMPL_C1;
@@ -539,7 +584,7 @@ assign cfg_fc_sel = 3'b0;
                     else begin // Addr_aligned_mode
                       s_axis_cc_tvalid  <= #TCQ 1'b1;
                       s_axis_cc_tlast   <= #TCQ 1'b0;
-                      s_axis_cc_tkeep   <= #TCQ 8'h07;
+                      s_axis_cc_tkeep   <= #TCQ 8'hFF;
                       s_axis_cc_tdata   <= #TCQ {160'b0,        // Tied to 0 for 3DW completion descriptor
                                                  1'b0,          // Force ECRC
                                                  1'b0, req_attr,// 3- bits
@@ -577,8 +622,6 @@ assign cfg_fc_sel = 3'b0;
                   else begin // 2DW_packet
                     if(AXISTEN_IF_CC_ALIGNMENT_MODE == "FALSE") begin // DWORD_aligned_Mode
 
-                      dword_count <= #TCQ 1'b1; // To increment the Read Address
-                      rd_data_reg <= #TCQ rd_data; // store the current read data
                       state       <= #TCQ PIO_TX_COMPL_WD_2DW;
 
                     end  //DWORD_aligned_Mode
@@ -587,7 +630,7 @@ assign cfg_fc_sel = 3'b0;
 
                       s_axis_cc_tvalid  <= #TCQ 1'b1;
                       s_axis_cc_tlast   <= #TCQ 1'b0;
-                      s_axis_cc_tkeep   <= #TCQ 8'h07;
+                      s_axis_cc_tkeep   <= #TCQ 8'hFF;
                       s_axis_cc_tdata   <= #TCQ {160'b0,        // Tied to 0 for 3DW completion descriptor
                                                  1'b0,          // Force ECRC
                                                  1'b0, req_attr,// 3- bits
@@ -610,12 +653,10 @@ assign cfg_fc_sel = 3'b0;
                                                  1'b0,          // Rsvd
                                                  lower_addr};   // Starting address of the mem byte - 7 bits
                       s_axis_cc_tuser   <= #TCQ {1'b0, (AXISTEN_IF_CC_PARITY_CHECK ? s_axis_cc_tparity : 32'b0)};
-                      rd_data_reg       <= #TCQ rd_data; // store the current read data
                       compl_done        <= #TCQ 1'b0;
 
                       if(s_axis_cc_tready) begin
                         state <= #TCQ PIO_TX_COMPL_WD_2DW_ADDR_ALGN_C1;
-                        dword_count       <= #TCQ 1'b1; // To increment the Read Address
                       end else begin
                         state <= #TCQ PIO_TX_COMPL_WD_C1;
                       end
@@ -630,10 +671,10 @@ assign cfg_fc_sel = 3'b0;
                 s_axis_cc_tvalid  <= #TCQ 1'b1;
                 s_axis_cc_tlast   <= #TCQ 1'b1;
                 s_axis_cc_tkeep   <= #TCQ tkeep_q;
-                s_axis_cc_tdata[31:0]   <= #TCQ (AXISTEN_IF_CC_ALIGNMENT_MODE == "TRUE" && lower_addr_q[4:2]==3'b000) ? {rd_data} : ((AXISTEN_IF_CC_ALIGNMENT_MODE == "FALSE" ) ? rd_data : 32'b0);
-                s_axis_cc_tdata[63:32]   <= #TCQ (AXISTEN_IF_CC_ALIGNMENT_MODE == "TRUE" && lower_addr_q[4:2]==3'b001) ? {rd_data} : {32'b0};
-                s_axis_cc_tdata[95:64]   <= #TCQ (AXISTEN_IF_CC_ALIGNMENT_MODE == "TRUE" && lower_addr_q[4:2]==3'b010) ? {rd_data} : {32'b0};
-                s_axis_cc_tdata[127:96]   <= #TCQ (AXISTEN_IF_CC_ALIGNMENT_MODE == "TRUE" && lower_addr_q[4:2]==3'b011) ? {rd_data} : {32'b0};
+                s_axis_cc_tdata[31:0]      <= #TCQ (AXISTEN_IF_CC_ALIGNMENT_MODE == "TRUE" && lower_addr_q[4:2]==3'b000) ? {rd_data} : ((AXISTEN_IF_CC_ALIGNMENT_MODE == "FALSE" ) ? rd_data : 32'b0);
+                s_axis_cc_tdata[63:32]     <= #TCQ (AXISTEN_IF_CC_ALIGNMENT_MODE == "TRUE" && lower_addr_q[4:2]==3'b001) ? {rd_data} : {32'b0};
+                s_axis_cc_tdata[95:64]     <= #TCQ (AXISTEN_IF_CC_ALIGNMENT_MODE == "TRUE" && lower_addr_q[4:2]==3'b010) ? {rd_data} : {32'b0};
+                s_axis_cc_tdata[127:96]    <= #TCQ (AXISTEN_IF_CC_ALIGNMENT_MODE == "TRUE" && lower_addr_q[4:2]==3'b011) ? {rd_data} : {32'b0};
                 s_axis_cc_tdata[159:128]   <= #TCQ (AXISTEN_IF_CC_ALIGNMENT_MODE == "TRUE" && lower_addr_q[4:2]==3'b100) ? {rd_data} : {32'b0};
                 s_axis_cc_tdata[191:160]   <= #TCQ (AXISTEN_IF_CC_ALIGNMENT_MODE == "TRUE" && lower_addr_q[4:2]==3'b101) ? {rd_data} : {32'b0};
                 s_axis_cc_tdata[223:192]   <= #TCQ (AXISTEN_IF_CC_ALIGNMENT_MODE == "TRUE" && lower_addr_q[4:2]==3'b110) ? {rd_data} : {32'b0};
@@ -656,8 +697,8 @@ assign cfg_fc_sel = 3'b0;
                 s_axis_cc_tlast   <= #TCQ 1'b1;
                 s_axis_cc_tkeep   <= #TCQ 8'h1F;
                 s_axis_cc_tdata   <= #TCQ {96'b0,         // Tied to 0 for 3DW completion descriptor with 2DW Payload
+                                           rd_data_reg,   // 32 bit read data
                                            rd_data,       // 32 bit read data
-                                           rd_data_reg,   // 32- bit read data
                                            1'b0,          // Force ECRC
                                            1'b0, req_attr,// 3- bits
                                            req_tc,        // 3- bits
@@ -685,8 +726,6 @@ assign cfg_fc_sel = 3'b0;
                   compl_done   <= #TCQ 1'b1;
                 end else begin
                   state <= #TCQ PIO_TX_COMPL_WD_2DW;
-                  dword_count <= #TCQ 1'b1; // To increment the Read Address
-                  rd_data_reg <= #TCQ rd_data; // store the current read data
                 end
 
               end //  PIO_TX_COMPL_WD_2DW
@@ -694,19 +733,42 @@ assign cfg_fc_sel = 3'b0;
               PIO_TX_COMPL_WD_2DW_ADDR_ALGN_C1 : begin // Completions with 2-DW Payload and Addr aligned mode
 
                 s_axis_cc_tvalid  <= #TCQ 1'b1;
-                s_axis_cc_tlast   <= #TCQ 1'b1;
-                s_axis_cc_tkeep   <= #TCQ 8'h03;
-                s_axis_cc_tdata   <= #TCQ {192'b0, rd_data, rd_data_reg};
+                s_axis_cc_tkeep   <= #TCQ (tkeep_q << 1 | 8'b1);
+                s_axis_cc_tdata[31:0]      <= #TCQ (lower_addr_q[4:2]==3'b000) ? {rd_data} : {32'b0};
+                s_axis_cc_tdata[63:32]     <= #TCQ (lower_addr_q[4:2]==3'b001) ? {rd_data} : ((lower_addr_q[4:2]==3'b000) ? {rd_data_reg} : {32'b0});
+                s_axis_cc_tdata[95:64]     <= #TCQ (lower_addr_q[4:2]==3'b010) ? {rd_data} : ((lower_addr_q[4:2]==3'b001) ? {rd_data_reg} : {32'b0});
+                s_axis_cc_tdata[127:96]    <= #TCQ (lower_addr_q[4:2]==3'b011) ? {rd_data} : ((lower_addr_q[4:2]==3'b010) ? {rd_data_reg} : {32'b0});
+                s_axis_cc_tdata[159:128]   <= #TCQ (lower_addr_q[4:2]==3'b100) ? {rd_data} : ((lower_addr_q[4:2]==3'b011) ? {rd_data_reg} : {32'b0});
+                s_axis_cc_tdata[191:160]   <= #TCQ (lower_addr_q[4:2]==3'b101) ? {rd_data} : ((lower_addr_q[4:2]==3'b100) ? {rd_data_reg} : {32'b0});
+                s_axis_cc_tdata[223:192]   <= #TCQ (lower_addr_q[4:2]==3'b110) ? {rd_data} : ((lower_addr_q[4:2]==3'b101) ? {rd_data_reg} : {32'b0});
+                s_axis_cc_tdata[255:224]   <= #TCQ (lower_addr_q[4:2]==3'b111) ? {rd_data} : ((lower_addr_q[4:2]==3'b110) ? {rd_data_reg} : {32'b0});
                 s_axis_cc_tuser   <= #TCQ {1'b0, (AXISTEN_IF_CC_PARITY_CHECK ? s_axis_cc_tparity : 32'b0)};
-                dword_count       <= #TCQ 1'b0;
                 if(s_axis_cc_tready) begin
-                 state        <= #TCQ PIO_TX_RST_STATE;
-                 compl_done   <= #TCQ 1'b1;
+                   if (lower_addr_q[4:2]==3'b111) begin
+                      state             <= #TCQ PIO_TX_COMPL_WD_2DW_ADDR_ALGN_C2;
+                      s_axis_cc_tlast   <= #TCQ 1'b0;
+                      compl_done        <= #TCQ 1'b0;
+                   end else begin
+                      state             <= #TCQ PIO_TX_RST_STATE;
+                      s_axis_cc_tlast   <= #TCQ 1'b1;
+                      compl_done        <= #TCQ 1'b1;
+                   end
                 end else begin
                   state <= #TCQ PIO_TX_COMPL_WD_2DW_ADDR_ALGN_C1;
                 end // PIO_TX_COMPL_WD_2DW_ADDR_ALGN
               end
-
+              
+              PIO_TX_COMPL_WD_2DW_ADDR_ALGN_C2 : begin // Completions with 2-DW Payload and Addr aligned mode with lower_addr[4:2] == 3'b111 only
+              
+                s_axis_cc_tvalid  <= #TCQ 1'b1;
+                s_axis_cc_tkeep   <= #TCQ 8'h01;
+                s_axis_cc_tdata   <= #TCQ {224'b0, rd_data_reg};
+                s_axis_cc_tuser   <= #TCQ {1'b0, (AXISTEN_IF_CC_PARITY_CHECK ? s_axis_cc_tparity : 32'b0)};
+                s_axis_cc_tlast   <= #TCQ 1'b1;
+                state             <= #TCQ PIO_TX_RST_STATE;
+                compl_done        <= #TCQ 1'b1;
+              
+              end
 
               PIO_TX_CPL_UR_C1 : begin // Completions with UR - Alignement mode matters here
 
@@ -850,7 +912,6 @@ assign cfg_fc_sel = 3'b0;
         cfg_msg_transmit_type   <= #TCQ 3'b0;
         cfg_msg_transmit_data   <= #TCQ 32'b0;
         compl_done              <= #TCQ 1'b0;
-        dword_count             <= #TCQ 1'b0;
         trn_sent                <= #TCQ 1'b0;
 
       end else begin // reset_else_block
@@ -875,7 +936,6 @@ assign cfg_fc_sel = 3'b0;
                 cfg_msg_transmit_data   <= #TCQ 32'b0;
                 compl_done              <= #TCQ 1'b0;
                 trn_sent                <= #TCQ 1'b0;
-                dword_count             <= #TCQ 1'b0;
 
                 if(req_compl) begin
                    state <= #TCQ PIO_TX_COMPL_C1;
@@ -935,7 +995,6 @@ assign cfg_fc_sel = 3'b0;
 
                   if(AXISTEN_IF_CC_ALIGNMENT_MODE == "FALSE") begin // DWORD_aligned_Mode
                       s_axis_cc_tvalid  <= #TCQ 1'b1;
-                      s_axis_cc_tlast   <= #TCQ 1'b1;
                       s_axis_cc_tkeep   <= #TCQ 4'hF;
                       s_axis_cc_tdata   <= #TCQ {rd_data,       // 32- bit read data
                                                  1'b0,          // Force ECRC
@@ -959,13 +1018,14 @@ assign cfg_fc_sel = 3'b0;
                                                  1'b0,          // Rsvd
                                                  lower_addr};   // Starting address of the mem byte - 7 bits
                       s_axis_cc_tuser   <= #TCQ {1'b0, (AXISTEN_IF_CC_PARITY_CHECK ? s_axis_cc_tparity : 32'b0)};
-                      rd_data_reg       <= #TCQ 32'b0;
                       if(s_axis_cc_tready) begin
                         if(payload_len == 0) begin // 1DW_packet - Requires just one cycle to get the data rd_data from the BRAM.
+                          s_axis_cc_tlast   <= #TCQ 1'b1;
                           state <= #TCQ PIO_TX_RST_STATE;
                           compl_done        <= #TCQ 1'b1;
                         end else begin
-                          state <= #TCQ PIO_TX_COMPL_PYLD;
+                          s_axis_cc_tlast   <= #TCQ 1'b0;
+                          state <= #TCQ PIO_TX_COMPL_WD_2DW;
                           compl_done        <= #TCQ 1'b0;
                         end
                       end else begin
@@ -976,7 +1036,7 @@ assign cfg_fc_sel = 3'b0;
                     else begin // Addr_aligned_mode
                       s_axis_cc_tvalid  <= #TCQ 1'b1;
                       s_axis_cc_tlast   <= #TCQ 1'b0;
-                      s_axis_cc_tkeep   <= #TCQ 4'h7;
+                      s_axis_cc_tkeep   <= #TCQ 4'hF;
                       s_axis_cc_tdata   <= #TCQ {32'b0,        // Tied to 0 for 3DW completion descriptor
                                                  1'b0,          // Force ECRC
                                                  1'b0, req_attr,// 3- bits
@@ -1001,28 +1061,27 @@ assign cfg_fc_sel = 3'b0;
                       s_axis_cc_tuser   <= #TCQ {1'b0, (AXISTEN_IF_CC_PARITY_CHECK ? s_axis_cc_tparity : 32'b0)};
                       compl_done        <= #TCQ 1'b0;
 
-                      if(s_axis_cc_tready)
+                      if(s_axis_cc_tready) begin
                         if(payload_len == 0) // 1DW_packet - Requires just one cycle to get the data rd_data from the BRAM.
                         begin
                           state <= #TCQ PIO_TX_COMPL_PYLD;
                         end else begin
-                          state <= #TCQ PIO_TX_COMPL_WD_2DW;
-                          dword_count <= #TCQ 1'b1;    // To increment the Read Address
-                          rd_data_reg <= #TCQ rd_data; // store the current read data
-                        end else begin
+                          state <= #TCQ PIO_TX_COMPL_WD_2DW_ADDR_ALGN_C1;
+                        end 
+                      end else begin
                           state <= #TCQ PIO_TX_COMPL_WD_C1;
-                        end
+                      end
                     end    // Addr_aligned_mode
                 end
 
               end // PIO_TX_COMPL_WD
 
-              PIO_TX_COMPL_PYLD : begin // Completion with 1DW Payload in Address Aligned mode
+              PIO_TX_COMPL_PYLD : begin // Completion with 1DW Payload in Address Aligned mode or 2DW Payload in DWORD Aligned mode
 
                 s_axis_cc_tvalid  <= #TCQ 1'b1;
                 s_axis_cc_tlast   <= #TCQ 1'b1;
                 s_axis_cc_tkeep   <= #TCQ (tkeep_q[7:0]&8'hF);
-                s_axis_cc_tdata[31:0]   <= #TCQ (AXISTEN_IF_CC_ALIGNMENT_MODE == "TRUE" && lower_addr_q[3:2]==2'b00) ? {rd_data} : ((AXISTEN_IF_CC_ALIGNMENT_MODE == "FALSE" ) ? rd_data : 32'b0);
+                s_axis_cc_tdata[31:0]   <= #TCQ (AXISTEN_IF_CC_ALIGNMENT_MODE == "TRUE" && lower_addr_q[3:2]==2'b00) ? {rd_data} : ((AXISTEN_IF_CC_ALIGNMENT_MODE == "FALSE" ) ? rd_data_reg : 32'b0);
                 s_axis_cc_tdata[63:32]   <= #TCQ (AXISTEN_IF_CC_ALIGNMENT_MODE == "TRUE" && lower_addr_q[3:2]==2'b01) ? {rd_data} : {32'b0};
                 s_axis_cc_tdata[95:64]   <= #TCQ (AXISTEN_IF_CC_ALIGNMENT_MODE == "TRUE" && lower_addr_q[3:2]==2'b10) ? {rd_data} : {32'b0};
                 s_axis_cc_tdata[127:96]   <= #TCQ (AXISTEN_IF_CC_ALIGNMENT_MODE == "TRUE" && lower_addr_q[3:2]==2'b11) ? {rd_data} : {32'b0};
@@ -1042,8 +1101,8 @@ assign cfg_fc_sel = 3'b0;
 
                 s_axis_cc_tvalid  <= #TCQ 1'b1;
                 s_axis_cc_tlast   <= #TCQ 1'b1;
-                s_axis_cc_tkeep   <= #TCQ 4'h3;
-                s_axis_cc_tdata   <= #TCQ {64'b0, rd_data, rd_data_reg};  // Transmit 2 DW payload
+                s_axis_cc_tkeep   <= #TCQ 4'h1;
+                s_axis_cc_tdata   <= #TCQ {96'b0, rd_data_reg};  // Transmit 2nd DW payload
                 s_axis_cc_tuser   <= #TCQ {1'b0, (AXISTEN_IF_CC_PARITY_CHECK ? s_axis_cc_tparity : 32'b0)};
 
                 if(s_axis_cc_tready) begin
@@ -1054,6 +1113,42 @@ assign cfg_fc_sel = 3'b0;
                 end
 
               end //  PIO_TX_COMPL_WD_2DW
+
+              PIO_TX_COMPL_WD_2DW_ADDR_ALGN_C1 : begin // Completions with 2-DW Payload and Addr aligned mode
+
+                s_axis_cc_tvalid  <= #TCQ 1'b1;
+                s_axis_cc_tkeep   <= #TCQ (tkeep_q << 1 | 4'b1);
+                s_axis_cc_tdata[31:0]      <= #TCQ (lower_addr_q[3:2]==2'b00) ? {rd_data} : {32'b0};
+                s_axis_cc_tdata[63:32]     <= #TCQ (lower_addr_q[3:2]==2'b01) ? {rd_data} : ((lower_addr_q[3:2]==2'b00) ? {rd_data_reg} : {32'b0});
+                s_axis_cc_tdata[95:64]     <= #TCQ (lower_addr_q[3:2]==2'b10) ? {rd_data} : ((lower_addr_q[3:2]==2'b01) ? {rd_data_reg} : {32'b0});
+                s_axis_cc_tdata[127:96]    <= #TCQ (lower_addr_q[3:2]==2'b11) ? {rd_data} : ((lower_addr_q[3:2]==2'b10) ? {rd_data_reg} : {32'b0});
+                s_axis_cc_tuser   <= #TCQ {1'b0, (AXISTEN_IF_CC_PARITY_CHECK ? s_axis_cc_tparity : 32'b0)};
+                if(s_axis_cc_tready) begin
+                   if (lower_addr_q[3:2]==2'b11) begin
+                      state             <= #TCQ PIO_TX_COMPL_WD_2DW_ADDR_ALGN_C2;
+                      s_axis_cc_tlast   <= #TCQ 1'b0;
+                      compl_done        <= #TCQ 1'b0;
+                   end else begin
+                      state             <= #TCQ PIO_TX_RST_STATE;
+                      s_axis_cc_tlast   <= #TCQ 1'b1;
+                      compl_done        <= #TCQ 1'b1;
+                   end
+                end else begin
+                  state <= #TCQ PIO_TX_COMPL_WD_2DW_ADDR_ALGN_C1;
+                end // PIO_TX_COMPL_WD_2DW_ADDR_ALGN
+              end
+              
+              PIO_TX_COMPL_WD_2DW_ADDR_ALGN_C2 : begin // Completions with 2-DW Payload and Addr aligned mode with lower_addr[4:2] == 2'b11 only
+              
+                s_axis_cc_tvalid  <= #TCQ 1'b1;
+                s_axis_cc_tkeep   <= #TCQ 4'h1;
+                s_axis_cc_tdata   <= #TCQ {96'b0, rd_data_reg};
+                s_axis_cc_tuser   <= #TCQ {1'b0, (AXISTEN_IF_CC_PARITY_CHECK ? s_axis_cc_tparity : 32'b0)};
+                s_axis_cc_tlast   <= #TCQ 1'b1;
+                state             <= #TCQ PIO_TX_RST_STATE;
+                compl_done        <= #TCQ 1'b1;
+              
+              end
 
               PIO_TX_CPL_UR_C1 : begin // Completions with UR - Alignement mode matters here
 
@@ -1206,7 +1301,6 @@ assign cfg_fc_sel = 3'b0;
         cfg_msg_transmit_type   <= #TCQ 3'b0;
         cfg_msg_transmit_data   <= #TCQ 32'b0;
         compl_done              <= #TCQ 1'b0;
-        dword_count             <= #TCQ 1'b0;
         trn_sent                <= #TCQ 1'b0;
 
       end else begin // reset_else_block
@@ -1231,7 +1325,6 @@ assign cfg_fc_sel = 3'b0;
                 cfg_msg_transmit_data   <= #TCQ 32'b0;
                 compl_done              <= #TCQ 1'b0;
                 trn_sent                <= #TCQ 1'b0;
-                dword_count             <= #TCQ 1'b0;
 
                 if(req_compl) begin
                    state <= #TCQ PIO_TX_COMPL_C1;
@@ -1340,7 +1433,7 @@ assign cfg_fc_sel = 3'b0;
                   if(AXISTEN_IF_CC_ALIGNMENT_MODE == "FALSE") begin // DWORD_aligned_Mode
                       s_axis_cc_tvalid  <= #TCQ 1'b1;
                       s_axis_cc_tkeep   <= #TCQ 2'h3;
-                      s_axis_cc_tdata   <= #TCQ {rd_data,       // 32- bit read data
+                      s_axis_cc_tdata   <= #TCQ {rd_data,       //                       s_axis_cc_tlast   <= #TCQ 1'b1;32- bit read data
                                                  1'b0,          // Force ECRC
                                                  1'b0, req_attr,// 3- bits
                                                  req_tc,        // 3- bits
@@ -1359,7 +1452,7 @@ assign cfg_fc_sel = 3'b0;
                           compl_done <= #TCQ 1'b1;
                         end else begin
                           s_axis_cc_tlast   <= #TCQ 1'b0;
-                          state      <= #TCQ PIO_TX_COMPL_PYLD;
+                          state      <= #TCQ PIO_TX_COMPL_WD_2DW;
                         end
                       end else begin
                         state <= #TCQ PIO_TX_COMPL_WD_C2;
@@ -1385,9 +1478,7 @@ assign cfg_fc_sel = 3'b0;
                     if(payload_len == 0) begin // 1DW_packet - Requires just one cycle to get the data rd_data from the BRAM.
                       state         <= #TCQ PIO_TX_COMPL_PYLD;
                     end else begin
-                      state         <= #TCQ PIO_TX_COMPL_WD_2DW;
-                      dword_count   <= #TCQ 1'b1;    // To increment the Read Address
-                      rd_data_reg   <= #TCQ rd_data; // store the current read data
+                      state         <= #TCQ PIO_TX_COMPL_WD_2DW_ADDR_ALGN_C1;
                     end
                   end else begin
                       state         <= #TCQ PIO_TX_COMPL_WD_C2;
@@ -1397,12 +1488,12 @@ assign cfg_fc_sel = 3'b0;
               end    // Addr_aligned_mode
             end // PIO_TX_COMPL_WD
 
-              PIO_TX_COMPL_PYLD : begin // Completion with 1DW Payload in Address Aligned mode
+              PIO_TX_COMPL_PYLD : begin // Completion with 1DW Payload in Address Aligned mode or 2DW Payload in DWORD Aligned mode
 
                 s_axis_cc_tvalid  <= #TCQ 1'b1;
                 s_axis_cc_tlast   <= #TCQ 1'b1;
                 s_axis_cc_tkeep   <= #TCQ tkeep_qq[1:0]&2'h3;
-                s_axis_cc_tdata   <= #TCQ (AXISTEN_IF_CC_ALIGNMENT_MODE == "TRUE" && lower_addr_qq[2]) ? {rd_data,32'b0} : {32'b0, rd_data};
+                s_axis_cc_tdata   <= #TCQ (AXISTEN_IF_CC_ALIGNMENT_MODE == "TRUE") ? (lower_addr_qq[2] ? {rd_data,32'b0} : {32'b0, rd_data}) : rd_data_reg;
                 s_axis_cc_tuser   <= #TCQ {1'b0, (AXISTEN_IF_CC_PARITY_CHECK ? s_axis_cc_tparity : 32'b0)};
 
                 if(s_axis_cc_tready) begin
@@ -1419,8 +1510,8 @@ assign cfg_fc_sel = 3'b0;
 
                 s_axis_cc_tvalid  <= #TCQ 1'b1;
                 s_axis_cc_tlast   <= #TCQ 1'b1;
-                s_axis_cc_tkeep   <= #TCQ 2'h3;
-                s_axis_cc_tdata   <= #TCQ {rd_data, rd_data_reg};  // Transmit 2 DW payload
+                s_axis_cc_tkeep   <= #TCQ 2'h1;
+                s_axis_cc_tdata   <= #TCQ {32'b0, rd_data_reg};  // Transmit 2nd DW payload
                 s_axis_cc_tuser   <= #TCQ {1'b0, (AXISTEN_IF_CC_PARITY_CHECK ? s_axis_cc_tparity : 32'b0)};
 
                 if(s_axis_cc_tready) begin
@@ -1431,6 +1522,40 @@ assign cfg_fc_sel = 3'b0;
                 end
 
               end //  PIO_TX_COMPL_WD_2DW
+
+              PIO_TX_COMPL_WD_2DW_ADDR_ALGN_C1 : begin // Completions with 2-DW Payload and Addr aligned mode
+
+                s_axis_cc_tvalid  <= #TCQ 1'b1;
+                s_axis_cc_tkeep   <= #TCQ (tkeep_q << 1 | 2'b1);
+                s_axis_cc_tdata[31:0]      <= #TCQ (lower_addr_qq[2]==1'b0) ? {rd_data} : {32'b0};
+                s_axis_cc_tdata[63:32]     <= #TCQ (lower_addr_qq[2]==1'b1) ? {rd_data} : ((lower_addr_qq[2]==1'b0) ? {rd_data_reg} : {32'b0});
+                s_axis_cc_tuser   <= #TCQ {1'b0, (AXISTEN_IF_CC_PARITY_CHECK ? s_axis_cc_tparity : 32'b0)};
+                if(s_axis_cc_tready) begin
+                   if (lower_addr_qq[2]==1'b1) begin
+                      state             <= #TCQ PIO_TX_COMPL_WD_2DW_ADDR_ALGN_C2;
+                      s_axis_cc_tlast   <= #TCQ 1'b0;
+                      compl_done        <= #TCQ 1'b0;
+                   end else begin
+                      state             <= #TCQ PIO_TX_RST_STATE;
+                      s_axis_cc_tlast   <= #TCQ 1'b1;
+                      compl_done        <= #TCQ 1'b1;
+                   end
+                end else begin
+                  state <= #TCQ PIO_TX_COMPL_WD_2DW_ADDR_ALGN_C1;
+                end // PIO_TX_COMPL_WD_2DW_ADDR_ALGN
+              end
+              
+              PIO_TX_COMPL_WD_2DW_ADDR_ALGN_C2 : begin // Completions with 2-DW Payload and Addr aligned mode with lower_addr[2] == 1'b1 only
+              
+                s_axis_cc_tvalid  <= #TCQ 1'b1;
+                s_axis_cc_tkeep   <= #TCQ 2'b01;
+                s_axis_cc_tdata   <= #TCQ {32'b0, rd_data_reg};
+                s_axis_cc_tuser   <= #TCQ {1'b0, (AXISTEN_IF_CC_PARITY_CHECK ? s_axis_cc_tparity : 32'b0)};
+                s_axis_cc_tlast   <= #TCQ 1'b1;
+                state             <= #TCQ PIO_TX_RST_STATE;
+                compl_done        <= #TCQ 1'b1;
+              
+              end
 
               PIO_TX_CPL_UR_C1 : begin // Completions with UR - Beat 1
 

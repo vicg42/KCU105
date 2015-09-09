@@ -196,6 +196,7 @@ begin
 //--------------------------------------------------------------------------
 // Event : Testing BARs
 //--------------------------------------------------------------------------
+
         for (board.RP.tx_usrapp.ii = 0; board.RP.tx_usrapp.ii <= 6; board.RP.tx_usrapp.ii =
             board.RP.tx_usrapp.ii + 1) begin
             if (board.RP.tx_usrapp.BAR_INIT_P_BAR_ENABLED[board.RP.tx_usrapp.ii] > 2'b00) // bar is enabled
@@ -206,56 +207,41 @@ begin
                           $display("[%t] : Transmitting TLPs to IO Space BAR %x", $realtime, board.RP.tx_usrapp.ii);
 
                           //--------------------------------------------------------------------------
-                          // Event : IO Write/Read bit TLP
+                          // Event : IO Write bit TLP
                           //--------------------------------------------------------------------------
 
-                          //-------- IO Write --------
-                          board.RP.tx_usrapp.DATA_STORE[0] = 8'h40;
-                          board.RP.tx_usrapp.DATA_STORE[1] = 8'h41;
-                          board.RP.tx_usrapp.DATA_STORE[2] = 8'h42;
-                          board.RP.tx_usrapp.DATA_STORE[3] = 8'h43;
-
-                          board.RP.tx_usrapp.USR_DATA[ 7: 0] = board.RP.tx_usrapp.DATA_STORE[0];
-                          board.RP.tx_usrapp.USR_DATA[15: 8] = board.RP.tx_usrapp.DATA_STORE[1];
-                          board.RP.tx_usrapp.USR_DATA[23:16] = board.RP.tx_usrapp.DATA_STORE[2];
-                          board.RP.tx_usrapp.USR_DATA[31:24] = board.RP.tx_usrapp.DATA_STORE[3];
 
                           board.RP.tx_usrapp.TSK_TX_IO_WRITE(board.RP.tx_usrapp.DEFAULT_TAG,
-                             board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 5), //addr
-                             4'hF,           //first_dw_be
-                             board.RP.tx_usrapp.USR_DATA); //DATA
-
+                             board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0], 4'hF, 32'hdead_beef);
                              @(posedge pcie_rq_tag_vld);
                              exp_tag = pcie_rq_tag;
+
 
                           board.RP.com_usrapp.TSK_EXPECT_CPL(3'h0, 1'b0, 1'b0, 2'b0,
                              board.RP.tx_usrapp.EP_BUS_DEV_FNS, 3'h0, 1'b0, 12'h4,
                              board.RP.tx_usrapp.RP_BUS_DEV_FNS, exp_tag,
-                             board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 5), //addr
-                             test_vars[0]);
+                             board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0], test_vars[0]);
 
                           board.RP.tx_usrapp.TSK_TX_CLK_EAT(10);
                           board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
 
+                          //--------------------------------------------------------------------------
+                          // Event : IO Read bit TLP
+                          //--------------------------------------------------------------------------
 
-                          //-------- IO Read --------
+
                           // make sure P_READ_DATA has known initial value
                           board.RP.tx_usrapp.P_READ_DATA = 32'hffff_ffff;
                           fork
                              board.RP.tx_usrapp.TSK_TX_IO_READ(board.RP.tx_usrapp.DEFAULT_TAG,
-                                board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 5), //addr
-                                4'hF);
+                                board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0], 4'hF);
                              board.RP.tx_usrapp.TSK_WAIT_FOR_READ_DATA;
                           join
-                          if  (board.RP.tx_usrapp.P_READ_DATA != {board.RP.tx_usrapp.DATA_STORE[3],
-                             board.RP.tx_usrapp.DATA_STORE[2], board.RP.tx_usrapp.DATA_STORE[1],
-                             board.RP.tx_usrapp.DATA_STORE[0] })
+                          if  (board.RP.tx_usrapp.P_READ_DATA != 32'hdead_beef)
                              begin
-                               //testError=1'b1;
+			       testError=1'b1;
                                $display("[%t] : Test FAILED --- Data Error Mismatch, Write Data %x != Read Data %x",
-                                    $realtime, {board.RP.tx_usrapp.DATA_STORE[3],board.RP.tx_usrapp.DATA_STORE[2],
-                                     board.RP.tx_usrapp.DATA_STORE[1],board.RP.tx_usrapp.DATA_STORE[0]},
-                                     board.RP.tx_usrapp.P_READ_DATA);
+                                   $realtime, 32'hdead_beef, board.RP.tx_usrapp.P_READ_DATA);
                              end
                           else
                              begin
@@ -263,67 +249,10 @@ begin
                                    $realtime, board.RP.tx_usrapp.P_READ_DATA);
                              end
 
-                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(10);
-                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
-
-
-
-                          //-------- IO Write --------
-                          board.RP.tx_usrapp.DATA_STORE[0] = 8'h44;
-                          board.RP.tx_usrapp.DATA_STORE[1] = 8'h45;
-                          board.RP.tx_usrapp.DATA_STORE[2] = 8'h46;
-                          board.RP.tx_usrapp.DATA_STORE[3] = 8'h47;
-
-                          board.RP.tx_usrapp.USR_DATA[ 7: 0] = board.RP.tx_usrapp.DATA_STORE[0];
-                          board.RP.tx_usrapp.USR_DATA[15: 8] = board.RP.tx_usrapp.DATA_STORE[1];
-                          board.RP.tx_usrapp.USR_DATA[23:16] = board.RP.tx_usrapp.DATA_STORE[2];
-                          board.RP.tx_usrapp.USR_DATA[31:24] = board.RP.tx_usrapp.DATA_STORE[3];
-
-                          board.RP.tx_usrapp.TSK_TX_IO_WRITE(board.RP.tx_usrapp.DEFAULT_TAG,
-                             board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 6), //addr
-                             4'hF,           //first_dw_be
-                             board.RP.tx_usrapp.USR_DATA); //DATA
-
-                             @(posedge pcie_rq_tag_vld);
-                             exp_tag = pcie_rq_tag;
-
-                          board.RP.com_usrapp.TSK_EXPECT_CPL(3'h0, 1'b0, 1'b0, 2'b0,
-                             board.RP.tx_usrapp.EP_BUS_DEV_FNS, 3'h0, 1'b0, 12'h4,
-                             board.RP.tx_usrapp.RP_BUS_DEV_FNS, exp_tag,
-                             board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 6),
-                             test_vars[0]);
 
                           board.RP.tx_usrapp.TSK_TX_CLK_EAT(10);
                           board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
 
-
-                          //-------- IO Read --------
-                          // make sure P_READ_DATA has known initial value
-                          board.RP.tx_usrapp.P_READ_DATA = 32'hffff_ffff;
-                          fork
-                             board.RP.tx_usrapp.TSK_TX_IO_READ(board.RP.tx_usrapp.DEFAULT_TAG,
-                                board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 6), //addr
-                                4'hF);
-                             board.RP.tx_usrapp.TSK_WAIT_FOR_READ_DATA;
-                          join
-                          if  (board.RP.tx_usrapp.P_READ_DATA != {board.RP.tx_usrapp.DATA_STORE[3],
-                             board.RP.tx_usrapp.DATA_STORE[2], board.RP.tx_usrapp.DATA_STORE[1],
-                             board.RP.tx_usrapp.DATA_STORE[0] })
-                             begin
-                               //testError=1'b1;
-                               $display("[%t] : Test FAILED --- Data Error Mismatch, Write Data %x != Read Data %x",
-                                    $realtime, {board.RP.tx_usrapp.DATA_STORE[3],board.RP.tx_usrapp.DATA_STORE[2],
-                                     board.RP.tx_usrapp.DATA_STORE[1],board.RP.tx_usrapp.DATA_STORE[0]},
-                                     board.RP.tx_usrapp.P_READ_DATA);
-                             end
-                          else
-                             begin
-                               $display("[%t] : Test PASSED --- Write Data: %x successfully received",
-                                   $realtime, board.RP.tx_usrapp.P_READ_DATA);
-                             end
-
-                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(10);
-                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
 
                         end
 
@@ -335,207 +264,110 @@ begin
                               board.RP.tx_usrapp.ii);
 
                           //--------------------------------------------------------------------------
-                          // Event : Memory Write/Read 32 bit TLP
+                          // Event : Memory Write 32 bit TLP
                           //--------------------------------------------------------------------------
 
-                          //-------- Write Memory Write 32 bit --------
-                          board.RP.tx_usrapp.DATA_STORE[0] = 8'h01;
-                          board.RP.tx_usrapp.DATA_STORE[1] = 8'h02;
-                          board.RP.tx_usrapp.DATA_STORE[2] = 8'h03;
-                          board.RP.tx_usrapp.DATA_STORE[3] = 8'h04;
 
+                          board.RP.tx_usrapp.DATA_STORE[0] = 8'h04;
+                          board.RP.tx_usrapp.DATA_STORE[1] = 8'h03;
+                          board.RP.tx_usrapp.DATA_STORE[2] = 8'h02;
+                          board.RP.tx_usrapp.DATA_STORE[3] = 8'h01;
+                          board.RP.tx_usrapp.DATA_STORE[4] = 8'h14;
+                          board.RP.tx_usrapp.DATA_STORE[5] = 8'h13;
+                          board.RP.tx_usrapp.DATA_STORE[6] = 8'h12;
+                          board.RP.tx_usrapp.DATA_STORE[7] = 8'h11;
+
+                          // Default 1DW PIO
                           board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
-                              board.RP.tx_usrapp.DEFAULT_TC,
-                              11'd1, // Length (in DW)
-                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 1), // Address
-                              4'h0,  // Last DW Byte Enable
-                              4'hF,  // First DW Byte Enable
-                              1'b0); // Poisoned Data: Payload is invalid if set
-
+                                                                    board.RP.tx_usrapp.DEFAULT_TC, 11'd1,
+                                                                    board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h10,
+                                                                    4'h0, 4'hF, 1'b0);
                           board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
                           board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
 
+                          // Optional 2DW PIO
+                          /*
+                          board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
+                                                                    board.RP.tx_usrapp.DEFAULT_TC, 11'd2,
+                                                                    board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h14,
+                                                                    4'hF, 4'hF, 1'b0);
+                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
+                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
+                          */
 
-                          //-------- Read Memory Write 32 bit --------
+                          //--------------------------------------------------------------------------
+                          // Event : Memory Read 32 bit TLP
+                          //--------------------------------------------------------------------------
+
+
                           // make sure P_READ_DATA has known initial value
                           board.RP.tx_usrapp.P_READ_DATA = 32'hffff_ffff;
+
+                          // Default 1DW PIO
                           fork
                              board.RP.tx_usrapp.TSK_TX_MEMORY_READ_32(board.RP.tx_usrapp.DEFAULT_TAG,
-                                 board.RP.tx_usrapp.DEFAULT_TC,
-                                 11'd1,
-                                 board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 1),
-                                 4'h0,
-                                 4'hF);
+                                                                      board.RP.tx_usrapp.DEFAULT_TC, 11'd1,
+                                                                      board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h10,
+                                                                      4'h0, 4'hF);
                              board.RP.tx_usrapp.TSK_WAIT_FOR_READ_DATA;
                           join
+
                           if  (board.RP.tx_usrapp.P_READ_DATA != {board.RP.tx_usrapp.DATA_STORE[3],
-                             board.RP.tx_usrapp.DATA_STORE[2], board.RP.tx_usrapp.DATA_STORE[1],
-                             board.RP.tx_usrapp.DATA_STORE[0] })
-                             begin
-                               //testError=1'b1;
-                               $display("[%t] : Test FAILED --- Data Error Mismatch, Write Data %x != Read Data %x",
-                                    $realtime, {board.RP.tx_usrapp.DATA_STORE[3],board.RP.tx_usrapp.DATA_STORE[2],
-                                     board.RP.tx_usrapp.DATA_STORE[1],board.RP.tx_usrapp.DATA_STORE[0]},
-                                     board.RP.tx_usrapp.P_READ_DATA);
-                             end
-                          else
-                             begin
-                               $display("[%t] : Test PASSED --- Write Data: %x successfully received",
-                                   $realtime, board.RP.tx_usrapp.P_READ_DATA);
-                             end
+                                                                  board.RP.tx_usrapp.DATA_STORE[2],
+                                                                  board.RP.tx_usrapp.DATA_STORE[1],
+                                                                  board.RP.tx_usrapp.DATA_STORE[0] })
+                          begin
+                             testError=1'b1;
+                             $display("[%t] : Test FAILED --- Data Error Mismatch, Write Data %x != Read Data %x",
+                                      $realtime, {board.RP.tx_usrapp.DATA_STORE[3],board.RP.tx_usrapp.DATA_STORE[2],
+                                                  board.RP.tx_usrapp.DATA_STORE[1],board.RP.tx_usrapp.DATA_STORE[0]},
+                                      board.RP.tx_usrapp.P_READ_DATA);
+
+                          end
+                          else begin
+                             $display("[%t] : Test PASSED --- Write Data: %x successfully received",
+                                      $realtime, board.RP.tx_usrapp.P_READ_DATA);
+                          end
 
                           board.RP.tx_usrapp.TSK_TX_CLK_EAT(10);
                           board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
 
-
-                          //-------- Write Memory Write 32 bit --------
-                          board.RP.tx_usrapp.DATA_STORE[0] = 8'h05;
-                          board.RP.tx_usrapp.DATA_STORE[1] = 8'h06;
-                          board.RP.tx_usrapp.DATA_STORE[2] = 8'h07;
-                          board.RP.tx_usrapp.DATA_STORE[3] = 8'h08;
-
-                          board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
-                              board.RP.tx_usrapp.DEFAULT_TC,
-                              11'd1, // Length (in DW)
-                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 2), // Address
-                              4'h0,  // Last DW Byte Enable
-                              4'hF,  // First DW Byte Enable
-                              1'b0); // Poisoned Data: Payload is invalid if set
-
-                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
-                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
-
-
-                          //-------- Read Memory Write 32 bit --------
-                          // make sure P_READ_DATA has known initial value
-                          board.RP.tx_usrapp.P_READ_DATA = 32'hffff_ffff;
+                          // Optional 2DW PIO
+                          /*
                           fork
                              board.RP.tx_usrapp.TSK_TX_MEMORY_READ_32(board.RP.tx_usrapp.DEFAULT_TAG,
-                                 board.RP.tx_usrapp.DEFAULT_TC,
-                                 11'd1,
-                                 board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 2),
-                                 4'h0,
-                                 4'hF);
+                                                                      board.RP.tx_usrapp.DEFAULT_TC, 11'd2,
+                                                                      board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h14,
+                                                                      4'hF, 4'hF);
                              board.RP.tx_usrapp.TSK_WAIT_FOR_READ_DATA;
                           join
-                          if  (board.RP.tx_usrapp.P_READ_DATA != {board.RP.tx_usrapp.DATA_STORE[3],
-                             board.RP.tx_usrapp.DATA_STORE[2], board.RP.tx_usrapp.DATA_STORE[1],
-                             board.RP.tx_usrapp.DATA_STORE[0] })
-                             begin
-                               //testError=1'b1;
-                               $display("[%t] : Test FAILED --- Data Error Mismatch, Write Data %x != Read Data %x",
-                                    $realtime, {board.RP.tx_usrapp.DATA_STORE[3],board.RP.tx_usrapp.DATA_STORE[2],
-                                     board.RP.tx_usrapp.DATA_STORE[1],board.RP.tx_usrapp.DATA_STORE[0]},
-                                     board.RP.tx_usrapp.P_READ_DATA);
-                             end
-                          else
-                             begin
-                               $display("[%t] : Test PASSED --- Write Data: %x successfully received",
-                                   $realtime, board.RP.tx_usrapp.P_READ_DATA);
-                             end
+                          if  ( (board.RP.tx_usrapp.P_READ_DATA   != {board.RP.tx_usrapp.DATA_STORE[7],
+                                                                      board.RP.tx_usrapp.DATA_STORE[6],
+                                                                      board.RP.tx_usrapp.DATA_STORE[5],
+                                                                      board.RP.tx_usrapp.DATA_STORE[4] })
+                                 &&
+                                (board.RP.tx_usrapp.P_READ_DATA_2 != {board.RP.tx_usrapp.DATA_STORE[3],
+                                                                      board.RP.tx_usrapp.DATA_STORE[2],
+                                                                      board.RP.tx_usrapp.DATA_STORE[1],
+                                                                      board.RP.tx_usrapp.DATA_STORE[0] }) )
+                          begin
+                             testError=1'b1;
+                             $display("[%t] : Test FAILED --- Data Error Mismatch, Write Data %x != Read Data %x",
+                                       $realtime, {board.RP.tx_usrapp.DATA_STORE[7],board.RP.tx_usrapp.DATA_STORE[6],
+                                                   board.RP.tx_usrapp.DATA_STORE[5],board.RP.tx_usrapp.DATA_STORE[4],
+                                                   board.RP.tx_usrapp.DATA_STORE[3],board.RP.tx_usrapp.DATA_STORE[2],
+                                                   board.RP.tx_usrapp.DATA_STORE[1],board.RP.tx_usrapp.DATA_STORE[0]},
+                                                   {board.RP.tx_usrapp.P_READ_DATA,board.RP.tx_usrapp.P_READ_DATA_2});
+
+                          end
+                          else begin
+                             $display("[%t] : Test PASSED --- Write Data: %x successfully received",
+                                      $realtime, {board.RP.tx_usrapp.P_READ_DATA,board.RP.tx_usrapp.P_READ_DATA_2});
+                          end
 
                           board.RP.tx_usrapp.TSK_TX_CLK_EAT(10);
                           board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
-
-
-
-                          //-------- Write Memory Write 32 bit --------
-                          board.RP.tx_usrapp.DATA_STORE[0] = 8'h09;
-                          board.RP.tx_usrapp.DATA_STORE[1] = 8'h0A;
-                          board.RP.tx_usrapp.DATA_STORE[2] = 8'h0B;
-                          board.RP.tx_usrapp.DATA_STORE[3] = 8'h0C;
-
-                          board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
-                              board.RP.tx_usrapp.DEFAULT_TC,
-                              11'd1, // Length (in DW)
-                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 3), // Address
-                              4'h0,  // Last DW Byte Enable
-                              4'hF,  // First DW Byte Enable
-                              1'b0); // Poisoned Data: Payload is invalid if set
-
-                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
-                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
-
-
-                          //-------- Read Memory Write 32 bit --------
-                          // make sure P_READ_DATA has known initial value
-                          board.RP.tx_usrapp.P_READ_DATA = 32'hffff_ffff;
-                          fork
-                             board.RP.tx_usrapp.TSK_TX_MEMORY_READ_32(board.RP.tx_usrapp.DEFAULT_TAG,
-                                 board.RP.tx_usrapp.DEFAULT_TC,
-                                 11'd1,
-                                 board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 3),
-                                 4'h0,
-                                 4'hF);
-                             board.RP.tx_usrapp.TSK_WAIT_FOR_READ_DATA;
-                          join
-                          if  (board.RP.tx_usrapp.P_READ_DATA != {board.RP.tx_usrapp.DATA_STORE[3],
-                             board.RP.tx_usrapp.DATA_STORE[2], board.RP.tx_usrapp.DATA_STORE[1],
-                             board.RP.tx_usrapp.DATA_STORE[0] })
-                             begin
-                               //testError=1'b1;
-                               $display("[%t] : Test FAILED --- Data Error Mismatch, Write Data %x != Read Data %x",
-                                    $realtime, {board.RP.tx_usrapp.DATA_STORE[3],board.RP.tx_usrapp.DATA_STORE[2],
-                                     board.RP.tx_usrapp.DATA_STORE[1],board.RP.tx_usrapp.DATA_STORE[0]},
-                                     board.RP.tx_usrapp.P_READ_DATA);
-                             end
-                          else
-                             begin
-                               $display("[%t] : Test PASSED --- Write Data: %x successfully received",
-                                   $realtime, board.RP.tx_usrapp.P_READ_DATA);
-                             end
-
-                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(10);
-                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
-
-
-                          //-------- Write Memory Write 32 bit --------
-                          board.RP.tx_usrapp.DATA_STORE[0] = 8'h0D;
-                          board.RP.tx_usrapp.DATA_STORE[1] = 8'h0E;
-                          board.RP.tx_usrapp.DATA_STORE[2] = 8'h0F;
-                          board.RP.tx_usrapp.DATA_STORE[3] = 8'h10;
-
-                          board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
-                              board.RP.tx_usrapp.DEFAULT_TC,
-                              11'd1, // Length (in DW)
-                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 4), // Address
-                              4'h0,  // Last DW Byte Enable
-                              4'hF,  // First DW Byte Enable
-                              1'b0); // Poisoned Data: Payload is invalid if set
-                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
-                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
-
-
-                          //-------- Read Memory Write 32 bit --------
-                          // make sure P_READ_DATA has known initial value
-                          board.RP.tx_usrapp.P_READ_DATA = 32'hffff_ffff;
-                          fork
-                             board.RP.tx_usrapp.TSK_TX_MEMORY_READ_32(board.RP.tx_usrapp.DEFAULT_TAG,
-                                 board.RP.tx_usrapp.DEFAULT_TC,
-                                 11'd1,
-                                 board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 4),
-                                 4'h0,
-                                 4'hF);
-                             board.RP.tx_usrapp.TSK_WAIT_FOR_READ_DATA;
-                          join
-                          if  (board.RP.tx_usrapp.P_READ_DATA != {board.RP.tx_usrapp.DATA_STORE[3],
-                             board.RP.tx_usrapp.DATA_STORE[2], board.RP.tx_usrapp.DATA_STORE[1],
-                             board.RP.tx_usrapp.DATA_STORE[0] })
-                             begin
-                               //testError=1'b1;
-                               $display("[%t] : Test FAILED --- Data Error Mismatch, Write Data %x != Read Data %x",
-                                    $realtime, {board.RP.tx_usrapp.DATA_STORE[3],board.RP.tx_usrapp.DATA_STORE[2],
-                                     board.RP.tx_usrapp.DATA_STORE[1],board.RP.tx_usrapp.DATA_STORE[0]},
-                                     board.RP.tx_usrapp.P_READ_DATA);
-                             end
-                          else
-                             begin
-                               $display("[%t] : Test PASSED --- Write Data: %x successfully received",
-                                   $realtime, board.RP.tx_usrapp.P_READ_DATA);
-                             end
-
-                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(10);
-                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
+                          */
 
                      end
                 2'b11 : // MEM 64 SPACE
@@ -550,18 +382,35 @@ begin
                           // Event : Memory Write 64 bit TLP
                           //--------------------------------------------------------------------------
 
+
                           board.RP.tx_usrapp.DATA_STORE[0] = 8'h64;
                           board.RP.tx_usrapp.DATA_STORE[1] = 8'h63;
                           board.RP.tx_usrapp.DATA_STORE[2] = 8'h62;
                           board.RP.tx_usrapp.DATA_STORE[3] = 8'h61;
+                          board.RP.tx_usrapp.DATA_STORE[4] = 8'h74;
+                          board.RP.tx_usrapp.DATA_STORE[5] = 8'h73;
+                          board.RP.tx_usrapp.DATA_STORE[6] = 8'h72;
+                          board.RP.tx_usrapp.DATA_STORE[7] = 8'h71;
 
+                          // Default 1DW PIO
                           board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_64(board.RP.tx_usrapp.DEFAULT_TAG,
-                              board.RP.tx_usrapp.DEFAULT_TC, 10'd1,
-                              {board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii+1][31:0],
-                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h20}, 4'h0, 4'hF, 1'b0);
+                                                                    board.RP.tx_usrapp.DEFAULT_TC, 10'd1,
+                                                                   {board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii+1][31:0],
+                                                                    board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h20},
+                                                                    4'h0, 4'hF, 1'b0);
                           board.RP.tx_usrapp.TSK_TX_CLK_EAT(10);
                           board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
 
+                          // Optional 2DW PIO
+                          /*
+                          board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_64(board.RP.tx_usrapp.DEFAULT_TAG,
+                                                                    board.RP.tx_usrapp.DEFAULT_TC, 10'd2,
+                                                                   {board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii+1][31:0],
+                                                                    board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h24},
+                                                                    4'hF, 4'hF, 1'b0);
+                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(10);
+                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
+                          */
                           //--------------------------------------------------------------------------
                           // Event : Memory Read 64 bit TLP
                           //--------------------------------------------------------------------------
@@ -569,35 +418,75 @@ begin
 
                           // make sure P_READ_DATA has known initial value
                           board.RP.tx_usrapp.P_READ_DATA = 32'hffff_ffff;
+
+                          // Default 1DW PIO
                           fork
                              board.RP.tx_usrapp.TSK_TX_MEMORY_READ_64(board.RP.tx_usrapp.DEFAULT_TAG,
-                                 board.RP.tx_usrapp.DEFAULT_TC, 10'd1,
-                                 {board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii+1][31:0],
-                                 board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h20}, 4'h0, 4'hF);
+                                                                      board.RP.tx_usrapp.DEFAULT_TC, 10'd1,
+                                                                     {board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii+1][31:0],
+                                                                      board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h20},
+                                                                      4'h0, 4'hF);
                              board.RP.tx_usrapp.TSK_WAIT_FOR_READ_DATA;
                           join
+
                           if  (board.RP.tx_usrapp.P_READ_DATA != {board.RP.tx_usrapp.DATA_STORE[3],
-                             board.RP.tx_usrapp.DATA_STORE[2], board.RP.tx_usrapp.DATA_STORE[1],
-                             board.RP.tx_usrapp.DATA_STORE[0] })
+                                                                  board.RP.tx_usrapp.DATA_STORE[2],
+                                                                  board.RP.tx_usrapp.DATA_STORE[1],
+                                                                  board.RP.tx_usrapp.DATA_STORE[0] })
+                          begin
+                              testError=1'b1;
+                              $display("[%t] : Test FAILED --- Data Error Mismatch, Write Data %x != Read Data %x",
+                                       $realtime, {board.RP.tx_usrapp.DATA_STORE[3],
+                                                   board.RP.tx_usrapp.DATA_STORE[2], board.RP.tx_usrapp.DATA_STORE[1],
+                                                   board.RP.tx_usrapp.DATA_STORE[0]},board.RP.tx_usrapp.P_READ_DATA);
 
-                             begin
-			       testError=1'b1;
-                               $display("[%t] : Test FAILED --- Data Error Mismatch, Write Data %x != Read Data %x",
-                                   $realtime, {board.RP.tx_usrapp.DATA_STORE[3],
-                                   board.RP.tx_usrapp.DATA_STORE[2], board.RP.tx_usrapp.DATA_STORE[1],
-                                   board.RP.tx_usrapp.DATA_STORE[0]}, board.RP.tx_usrapp.P_READ_DATA);
-
-                             end
-                          else
-                             begin
-                               $display("[%t] : Test PASSED --- Write Data: %x successfully received",
-                                   $realtime, board.RP.tx_usrapp.P_READ_DATA);
-                             end
-
+                          end
+                          else begin
+                              $display("[%t] : Test PASSED --- Write Data: %x successfully received",
+                                       $realtime, board.RP.tx_usrapp.P_READ_DATA);
+                          end
 
                           board.RP.tx_usrapp.TSK_TX_CLK_EAT(10);
                           board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
 
+                          // Optional 2DW PIO
+                          /*
+                          fork
+                             board.RP.tx_usrapp.TSK_TX_MEMORY_READ_64(board.RP.tx_usrapp.DEFAULT_TAG,
+                                                                      board.RP.tx_usrapp.DEFAULT_TC, 10'd2,
+                                                                     {board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii+1][31:0],
+                                                                      board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h24},
+                                                                      4'hF, 4'hF);
+                             board.RP.tx_usrapp.TSK_WAIT_FOR_READ_DATA;
+                          join
+
+                          if  ( (board.RP.tx_usrapp.P_READ_DATA   != {board.RP.tx_usrapp.DATA_STORE[7],
+                                                                      board.RP.tx_usrapp.DATA_STORE[6],
+                                                                      board.RP.tx_usrapp.DATA_STORE[5],
+                                                                      board.RP.tx_usrapp.DATA_STORE[4] })
+                                 &&
+                                (board.RP.tx_usrapp.P_READ_DATA_2 != {board.RP.tx_usrapp.DATA_STORE[3],
+                                                                      board.RP.tx_usrapp.DATA_STORE[2],
+                                                                      board.RP.tx_usrapp.DATA_STORE[1],
+                                                                      board.RP.tx_usrapp.DATA_STORE[0] }) )
+                          begin
+                             testError=1'b1;
+                             $display("[%t] : Test FAILED --- Data Error Mismatch, Write Data %x != Read Data %x",
+                                       $realtime, {board.RP.tx_usrapp.DATA_STORE[7],board.RP.tx_usrapp.DATA_STORE[6],
+                                                   board.RP.tx_usrapp.DATA_STORE[5],board.RP.tx_usrapp.DATA_STORE[4],
+                                                   board.RP.tx_usrapp.DATA_STORE[3],board.RP.tx_usrapp.DATA_STORE[2],
+                                                   board.RP.tx_usrapp.DATA_STORE[1],board.RP.tx_usrapp.DATA_STORE[0]},
+                                                   {board.RP.tx_usrapp.P_READ_DATA,board.RP.tx_usrapp.P_READ_DATA_2});
+
+                          end
+                          else begin
+                             $display("[%t] : Test PASSED --- Write Data: %x successfully received",
+                                      $realtime, {board.RP.tx_usrapp.P_READ_DATA,board.RP.tx_usrapp.P_READ_DATA_2});
+                          end
+
+                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(10);
+                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
+                          */
 
                      end
                 default : $display("Error case in usrapp_tx\n");
@@ -612,7 +501,6 @@ begin
     $finish;
 end
 
-
 else if(testname == "dma_test0")
 begin
 
@@ -622,7 +510,19 @@ begin
 
     board.RP.tx_usrapp.TSK_SYSTEM_INITIALIZATION;
 
+board.RP.cfg_usrapp.TSK_READ_CFG_DW(32'h00000000);
+
+    $display("[%t] : board.RP.tx_usrapp.TSK_BAR_INIT:",$realtime);
     board.RP.tx_usrapp.TSK_BAR_INIT;
+
+    //--------------------------------------------------------------------------
+    // Direct Root Port to allow upstream traffic by enabling Mem, I/O and
+    // BusMstr in the command register
+    //--------------------------------------------------------------------------
+//    board.RP.cfg_usrapp.TSK_READ_CFG_DW(32'h00000000);
+    board.RP.cfg_usrapp.TSK_READ_CFG_DW(32'h00000001);
+    board.RP.cfg_usrapp.TSK_WRITE_CFG_DW(32'h00000001, 32'hFFFFFFFF, 4'b1111); //32'h00000007, 4'b1111); //4'b1110);
+    board.RP.cfg_usrapp.TSK_READ_CFG_DW(32'h00000001);
 
 //--------------------------------------------------------------------------
 // Event : Testing BARs
@@ -712,7 +612,7 @@ begin
 
 
                           //C_HREG_DMAPRM_LEN
-                          board.RP.tx_usrapp.USR_DATA = 1024 * 4;
+                          board.RP.tx_usrapp.USR_DATA = 1024 * 1;
 
                           board.RP.tx_usrapp.DATA_STORE[0] = board.RP.tx_usrapp.USR_DATA[ 7: 0];
                           board.RP.tx_usrapp.DATA_STORE[1] = board.RP.tx_usrapp.USR_DATA[15: 8];
@@ -734,7 +634,7 @@ begin
                           //C_HREG_DEV_CTRL (Start DMA)
                           board.RP.tx_usrapp.USR_DATA[0] = 0;
                           board.RP.tx_usrapp.USR_DATA[1] = 1; //DMA START
-                          board.RP.tx_usrapp.USR_DATA[2] = 0; //DMA DIR: 1/0 (PC<-FPGA) / (PC->FPGA)
+                          board.RP.tx_usrapp.USR_DATA[2] = 1; //DMA DIR: 1/0 (PC<-FPGA) / (PC->FPGA)
                           board.RP.tx_usrapp.USR_DATA[10:3] = 0; //idx Start buf DMA
                           board.RP.tx_usrapp.USR_DATA[18:11] = 0; //Count buf
                           board.RP.tx_usrapp.USR_DATA[22:19] = 1; //DEV NUM
@@ -756,6 +656,61 @@ begin
                           board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
                           board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
 
+                        $display("[%t] : WAIT IRQ.... ", $realtime);
+                        #1500;
+
+                        $display("[%t] : WAIT IRQ HEADER....", $realtime);
+                          //C_HREG_IRQ (DMA IRQ EN)
+                          board.RP.tx_usrapp.USR_DATA[3:0] = 0;//NUM IRQ
+                          board.RP.tx_usrapp.USR_DATA[12:4] = 0;
+                          board.RP.tx_usrapp.USR_DATA[13] = 1; //IRQ_EN_WBIT
+                          board.RP.tx_usrapp.USR_DATA[14] = 0; //C_HREG_IRQ_DIS_WBIT
+                          board.RP.tx_usrapp.USR_DATA[15] = 1; //C_HREG_IRQ_STATUS_CLR_WBIT
+                          board.RP.tx_usrapp.USR_DATA[16] = 0; //C_HREG_IRQ_CLR_WBIT
+                          board.RP.tx_usrapp.USR_DATA[31:17] = 0;
+
+                          board.RP.tx_usrapp.DATA_STORE[0] = board.RP.tx_usrapp.USR_DATA[ 7: 0];
+                          board.RP.tx_usrapp.DATA_STORE[1] = board.RP.tx_usrapp.USR_DATA[15: 8];
+                          board.RP.tx_usrapp.DATA_STORE[2] = board.RP.tx_usrapp.USR_DATA[23:16];
+                          board.RP.tx_usrapp.DATA_STORE[3] = board.RP.tx_usrapp.USR_DATA[31:24];
+
+                          board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
+                              board.RP.tx_usrapp.DEFAULT_TC,
+                              11'd1, // Length (in DW)
+                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 7), // Address
+                              4'h0,  // Last DW Byte Enable
+                              4'hF,  // First DW Byte Enable
+                              1'b0); // Poisoned Data: Payload is invalid if set
+
+                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
+                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
+
+                          #500;
+
+                          //C_HREG_IRQ (DMA IRQ EN)
+                          board.RP.tx_usrapp.USR_DATA[3:0] = 0;//NUM IRQ
+                          board.RP.tx_usrapp.USR_DATA[12:4] = 0;
+                          board.RP.tx_usrapp.USR_DATA[13] = 1; //IRQ_EN_WBIT
+                          board.RP.tx_usrapp.USR_DATA[14] = 0; //C_HREG_IRQ_DIS_WBIT
+                          board.RP.tx_usrapp.USR_DATA[15] = 0; //C_HREG_IRQ_STATUS_CLR_WBIT
+                          board.RP.tx_usrapp.USR_DATA[16] = 1; //C_HREG_IRQ_CLR_WBIT
+                          board.RP.tx_usrapp.USR_DATA[31:17] = 0;
+
+                          board.RP.tx_usrapp.DATA_STORE[0] = board.RP.tx_usrapp.USR_DATA[ 7: 0];
+                          board.RP.tx_usrapp.DATA_STORE[1] = board.RP.tx_usrapp.USR_DATA[15: 8];
+                          board.RP.tx_usrapp.DATA_STORE[2] = board.RP.tx_usrapp.USR_DATA[23:16];
+                          board.RP.tx_usrapp.DATA_STORE[3] = board.RP.tx_usrapp.USR_DATA[31:24];
+
+                          board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
+                              board.RP.tx_usrapp.DEFAULT_TC,
+                              11'd1, // Length (in DW)
+                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 7), // Address
+                              4'h0,  // Last DW Byte Enable
+                              4'hF,  // First DW Byte Enable
+                              1'b0); // Poisoned Data: Payload is invalid if set
+
+                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
+                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
 
                         wait (usr_tstreg == 1'b1);
 

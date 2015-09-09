@@ -32,6 +32,10 @@ end entity pcie_uv7_main_sim;
 architecture behavioral of pcie_uv7_main_sim is
 
 component pcie_main is
+generic (
+G_SIM : string := "OFF";
+G_DBGCS : string := "OFF"
+);
 port(
 --------------------------------------------------------
 --USR Port
@@ -44,10 +48,10 @@ p_out_dev_din        : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 p_in_dev_dout        : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 p_out_dev_wr         : out   std_logic;
 p_out_dev_rd         : out   std_logic;
-p_in_dev_status      : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
-p_in_dev_irq         : in    std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
-p_in_dev_opt         : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
-p_out_dev_opt        : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
+p_in_dev_status      : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto C_HREG_DEV_STATUS_FST_BIT);
+p_in_dev_irq         : in    std_logic_vector((C_HIRQ_COUNT - 1) downto C_HIRQ_FST_BIT);
+p_in_dev_opt         : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto C_HDEV_OPTIN_FST_BIT);
+p_out_dev_opt        : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto C_HDEV_OPTOUT_FST_BIT);
 
 --------------------------------------------------------
 --DBG
@@ -84,6 +88,10 @@ pci_exp_txn <= p_out_pcie_phy.txn;
 
 
 m_main : pcie_main
+generic map (
+G_SIM => "ON",
+G_DBGCS => "OFF"
+)
 port map(
 --------------------------------------------------------
 --USR Port

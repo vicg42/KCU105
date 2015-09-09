@@ -364,7 +364,7 @@ end
   reg [15:0] completer_id;
   reg [9:0] register_address;
   reg [2:0] completion_status;
-  reg [31:0] dword_data; // this will be used to recontruct bytes of data and sent to tx_app
+  reg [63:0] dword_data; // this will be used to recontruct bytes of data and sent to tx_app
  
   integer    _i;
 
@@ -417,7 +417,7 @@ end
 
       if (payload == 1) begin      
                                 
-         dword_data = 32'h0000_0000;
+         dword_data = 64'h0000_0000_0000_0000;
 				
 	 for (_i = 12; _i < _frame_store_idx; _i = _i + 1) begin
 				    				    
@@ -425,10 +425,10 @@ end
 		if (!txrx) begin // if we are called from rx
 				       
 			dword_data = dword_data << 8; // build a dword to send to tx app
-			dword_data = dword_data | {24'h00_0000,frame_store_rx[_i]}; 
+			dword_data = dword_data | {56'h0000_0000_0000_00,frame_store_rx[_i]}; 
 		end  
 	end
-	`TX_TASKS.TSK_SET_READ_DATA(4'hf,dword_data); // send the data to the tx_app
+        `TX_TASKS.TSK_SET_READ_DATA(4'hf,dword_data); // send the data to the tx_app
       end
     
     

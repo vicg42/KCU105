@@ -99,6 +99,15 @@ module board;
   //
   // PCI-Express Serial Interconnect
   //
+  
+  wire led_0;
+  wire led_1;
+  wire led_2;
+  wire led_3;
+  wire led_4;
+  wire led_5;
+  wire led_6;
+  wire led_7;
   wire  [(LINK_WIDTH-1):0]  ep_pci_exp_txn;
   wire  [(LINK_WIDTH-1):0]  ep_pci_exp_txp;
   wire  [(LINK_WIDTH-1):0]  rp_pci_exp_txn;
@@ -143,6 +152,16 @@ module board;
     .sys_clk_p(ep_sys_clk_p),
     .sys_rst_n(sys_rst_n),
 
+  
+    // Misc signals
+    .led_0(led_0),
+    .led_1(led_1),
+    .led_2(led_2),
+    .led_3(led_3),
+    .led_4(led_4),
+    .led_5(led_5),
+    .led_6(led_6),
+    .led_7(led_7),
 
     // PCI-Express Interface
     .pci_exp_txn(ep_pci_exp_txn),

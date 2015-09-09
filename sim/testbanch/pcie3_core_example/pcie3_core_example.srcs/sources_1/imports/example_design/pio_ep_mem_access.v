@@ -107,10 +107,11 @@ module pio_ep_mem_access #(
 
   );
 
-  localparam PIO_MEM_ACCESS_WR_RST     = 3'b000;
-  localparam PIO_MEM_ACCESS_WR_WAIT    = 3'b001;
-  localparam PIO_MEM_ACCESS_WR_READ    = 3'b010;
-  localparam PIO_MEM_ACCESS_WR_WRITE   = 3'b100;
+  localparam PIO_MEM_ACCESS_WR_RST     = 4'b0000;
+  localparam PIO_MEM_ACCESS_WR_WAIT    = 4'b0001;
+  localparam PIO_MEM_ACCESS_WR_READ    = 4'b0010;
+  localparam PIO_MEM_ACCESS_WR_WRITE   = 4'b0100;
+  localparam PIO_MEM_ACCESS_WR_NEXT    = 4'b1000;
 
   localparam PIO_MRD_TR_GEN_REG = 11'h3AA;
   localparam PIO_INTR_GEN_REG   = 11'h3BB;
@@ -118,7 +119,7 @@ module pio_ep_mem_access #(
   reg   [31:0]     rd_data_raw_o;
 
   reg   [1:0]      dword_count;
-  reg   [10:0]     wr_addr_inc;
+  reg   [10:0]     wr_addr_ptr;
 
   wire  [31:0]     rd_data0_o, rd_data1_o, rd_data2_o, rd_data3_o;
 
@@ -126,7 +127,7 @@ module pio_ep_mem_access #(
   reg   [31:0]     post_wr_data;
   reg   [31:0]     w_pre_wr_data;
 
-  reg   [2:0]      wr_mem_state;
+  reg   [3:0]      wr_mem_state;
 
   reg   [31:0]     pre_wr_data;
   wire  [31:0]     w_pre_wr_data0;
@@ -173,32 +174,18 @@ module pio_ep_mem_access #(
 
         wr_mem_state <= #TCQ PIO_MEM_ACCESS_WR_RST;
 
-        dword_count <= #TCQ 2'b00;
-        wr_addr_inc <= #TCQ 11'b0;
-
       end else begin
-
-      if(dword_count <= payload_len) begin
-
-        if(dword_count == 0)
-          wr_addr_inc    <= #TCQ wr_addr;
-        else if (dword_count == 1)
-          wr_addr_inc <= #TCQ wr_addr + 1'b1; // One Dword Increment
 
         case ( wr_mem_state )
 
           PIO_MEM_ACCESS_WR_RST : begin
 
-            if (wr_en) begin // read state
+            write_en    <= #TCQ 1'b0;
+            dword_count <= #TCQ 2'b00;
+            wr_addr_ptr <= #TCQ wr_addr;
 
+            if (wr_en) begin // Write request start
               wr_mem_state <= #TCQ PIO_MEM_ACCESS_WR_WAIT; //Pipelining happens in RAM's internal output reg.
-
-            end else begin
-
-              write_en <= #TCQ 1'b0;
-
-              wr_mem_state <= #TCQ PIO_MEM_ACCESS_WR_RST;
-
             end
 
           end
@@ -233,18 +220,24 @@ module pio_ep_mem_access #(
                                   {w_wr_be[0] ? w_wr_data_b0 : w_pre_wr_data_b0}};
             write_en     <= #TCQ 1'b1;
 
-            wr_mem_state <= #TCQ PIO_MEM_ACCESS_WR_RST;
-             
-            if (payload_len == 0)
-              dword_count <=#TCQ 1'b0;
-            else
-              dword_count <=#TCQ dword_count + 1'b1;
+            if (dword_count < payload_len) begin
+              wr_mem_state <= #TCQ PIO_MEM_ACCESS_WR_NEXT;
+            end else begin
+              wr_mem_state <= #TCQ PIO_MEM_ACCESS_WR_RST;
+            end
+
+          end
+
+          PIO_MEM_ACCESS_WR_NEXT : begin
+
+            write_en     <= #TCQ 1'b0;
+            dword_count  <= #TCQ dword_count + 2'b01;
+            wr_addr_ptr  <= #TCQ wr_addr_ptr + 11'b1; // One Dword Increment
+            wr_mem_state <= #TCQ PIO_MEM_ACCESS_WR_WAIT;
 
           end
 
         endcase
-      end
-      else write_en  <= #TCQ 1'b0;
 
       end
   end
@@ -356,7 +349,7 @@ module pio_ep_mem_access #(
                     .a_rd_en_i_0(rd_data0_en),                           // I [1:0]
                     .a_rd_d_o_0(rd_data0_o),                             // O [31:0]
 
-                    .b_wr_a_i_0(wr_addr_inc[8:0]),                       // I [8:0]
+                    .b_wr_a_i_0(wr_addr_ptr[8:0]),                       // I [8:0]
                     .b_wr_d_i_0(post_wr_data),                           // I [31:0]
                     .b_wr_en_i_0({write_en & (wr_addr[10:9] == 2'b00)}), // I
                     .b_rd_d_o_0(w_pre_wr_data0[31:0]),                   // O [31:0]
@@ -366,7 +359,7 @@ module pio_ep_mem_access #(
                     .a_rd_en_i_1(rd_data1_en),                           // I [1:0]
                     .a_rd_d_o_1(rd_data1_o),                             // O [31:0]
 
-                    .b_wr_a_i_1(wr_addr_inc[8:0]),                       // [8:0]
+                    .b_wr_a_i_1(wr_addr_ptr[8:0]),                       // [8:0]
                     .b_wr_d_i_1(post_wr_data),                           // [31:0]
                     .b_wr_en_i_1({write_en & (wr_addr[10:9] == 2'b01)}), // I
                     .b_rd_d_o_1(w_pre_wr_data1[31:0]),                   // [31:0]
@@ -376,7 +369,7 @@ module pio_ep_mem_access #(
                     .a_rd_en_i_2(rd_data2_en),                           // I [1:0]
                     .a_rd_d_o_2(rd_data2_o),                             // O [31:0]
 
-                    .b_wr_a_i_2(wr_addr_inc[8:0]),                       // I [8:0]
+                    .b_wr_a_i_2(wr_addr_ptr[8:0]),                       // I [8:0]
                     .b_wr_d_i_2(post_wr_data),                           // I [31:0]
                     .b_wr_en_i_2({write_en & (wr_addr[10:9] == 2'b10)}), // I
                     .b_rd_d_o_2(w_pre_wr_data2[31:0]),                   // I [31:0]
@@ -386,7 +379,7 @@ module pio_ep_mem_access #(
                     .a_rd_en_i_3(rd_data3_en),                           // [1:0]
                     .a_rd_d_o_3(rd_data3_o),                             // O [31:0]
 
-                    .b_wr_a_i_3(wr_addr_inc[8:0]),                       // I [8:0]
+                    .b_wr_a_i_3(wr_addr_ptr[8:0]),                       // I [8:0]
                     .b_wr_d_i_3(post_wr_data),                           // I [31:0]
                     .b_wr_en_i_3({write_en & (wr_addr[10:9] == 2'b11)}), // I
                     .b_rd_d_o_3(w_pre_wr_data3[31:0]),                   // I [31:0]

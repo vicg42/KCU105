@@ -283,15 +283,14 @@ module  pcie_app_uscale #(
   assign link_width = cfg_negotiated_width == 4'b1000 ? 2'b11 : (cfg_negotiated_width == 4'b0100 ? 2'b01 : (cfg_negotiated_width == 4'b0010 ? 2'b10 : (cfg_negotiated_width == 4'b0001 ? {1'b0,user_clk_heartbeat[25]} : {user_clk_heartbeat[25],user_clk_heartbeat[25]})));
   assign link_speed = cfg_current_speed == 3'b100 ? 2'b11 : (cfg_current_speed == 3'b010 ? 2'b01 : (cfg_current_speed == 3'b001 ? 2'b10 : {user_clk_heartbeat[25],user_clk_heartbeat[25]}));
 
-  // Since the leds are not connected in the example design no OBUF is included.
-  assign led_out[0] = sys_rst_n;
-  assign led_out[1] = ~user_reset;
-  assign led_out[2] = user_lnk_up;
-  assign led_out[3] = user_clk_heartbeat[25];
-  assign led_out[4] = link_speed[0];
-  assign led_out[5] = link_speed[1];
-  assign led_out[6] = link_width[0];
-  assign led_out[7] = link_width[1];
+  OBUF   led_0_obuf (.O(led_out[0]), .I(sys_rst_n));
+  OBUF   led_1_obuf (.O(led_out[1]), .I(!user_reset));
+  OBUF   led_2_obuf (.O(led_out[2]), .I(user_lnk_up));
+  OBUF   led_3_obuf (.O(led_out[3]), .I(user_clk_heartbeat[25]));
+  OBUF   led_4_obuf (.O(led_out[4]), .I(link_speed[0]));
+  OBUF   led_5_obuf (.O(led_out[5]), .I(link_speed[1]));
+  OBUF   led_6_obuf (.O(led_out[6]), .I(link_width[0]));
+  OBUF   led_7_obuf (.O(led_out[7]), .I(link_width[1]));
 
   //----------------------------------------------------------------------------------------------------------------//
   // PCIe Block EP Tieoffs - Example PIO doesn't support the following outputs                                      //

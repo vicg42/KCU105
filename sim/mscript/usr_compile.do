@@ -20,33 +20,12 @@ vmap xil_defaultlib msim/xil_defaultlib
 vmap gtwizard_ultrascale_v1_5 msim/gtwizard_ultrascale_v1_5
 vmap blk_mem_gen_v8_2 msim/blk_mem_gen_v8_2
 
+vcom -64 -93 -work blk_mem_gen_v8_2 "../../vv/core_gen/bram_dma_params/example/bram_dma_params_example/bram_dma_params_example.srcs/sources_1/ip/bram_dma_params/blk_mem_gen_v8_2/simulation/blk_mem_gen_v8_2.vhd"
+vcom -64 -93 -work xil_defaultlib   "../../vv/core_gen/bram_dma_params/example/bram_dma_params_example/bram_dma_params_example.srcs/sources_1/ip/bram_dma_params/sim/bram_dma_params.vhd"
+
 vlog -64 -incr -work xil_defaultlib  +incdir+../testbanch/pcie3_core/simulation/functional +incdir+../testbanch/pcie3_core/simulation/tests +incdir+../testbanch/pcie3_core/simulation/dsport \
 "../../src/pcie/pcie_uv7_to_ctrl.v" \
 "../testbanch/pcie3_core/simulation/dsport/pcie3_uscale_rp_core_top.v" \
-
-
-vlog -64 -incr -work gtwizard_ultrascale_v1_5  +incdir+../testbanch/pcie3_core/simulation/functional +incdir+../testbanch/pcie3_core/simulation/tests +incdir+../testbanch/pcie3_core/simulation/dsport \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_bit_synchronizer.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gthe3_cpll_cal.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gthe3_cpll_cal_freq_counter.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_buffbypass_rx.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_buffbypass_tx.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_reset.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_userclk_rx.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_userclk_tx.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_userdata_rx.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_userdata_tx.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_reset_synchronizer.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/sim/gtwizard_ultrascale_v1_5_gthe3_channel.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/sim/pcie3_core_gt_gthe3_channel_wrapper.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/sim/gtwizard_ultrascale_v1_5_gthe3_common.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/sim/pcie3_core_gt_gthe3_common_wrapper.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/sim/pcie3_core_gt_gtwizard_gthe3.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/sim/pcie3_core_gt_gtwizard_top.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/sim/pcie3_core_gt.v"
-
-vcom -64 -93 -work blk_mem_gen_v8_2 "../../vv/core_gen/bram_dma_params/blk_mem_gen_v8_2/simulation/blk_mem_gen_v8_2.vhd"
-vcom -64 -93 -work xil_defaultlib   "../../vv/core_gen/bram_dma_params/sim/bram_dma_params.vhd"
 
 vcom -64 -93 -work xil_defaultlib   \
 "../../../../../lib/common/hw/lib/vicg/vicg_common_pkg.vhd" \
@@ -66,6 +45,37 @@ vcom -64 -93 -work xil_defaultlib   \
 "../../src/pcie/pcie_uv7_ctrl.vhd" \
 "../../src/pcie/pcie_uv7_main.vhd" \
 "../testbanch/pcie_uv7_main_sim.vhd"
+
+vlog -64 -incr -work xil_defaultlib  +incdir+../testbanch/pcie3_core/simulation/functional +incdir+../testbanch/pcie3_core/simulation/tests +incdir+../testbanch/pcie3_core/simulation/dsport \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/imports/example_design/ep_mem.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/imports/example_design/pio_ep_mem_access.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/imports/example_design/pio_tx_engine.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/imports/example_design/pio_rx_engine.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/imports/example_design/pio_intr_ctrl.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/imports/example_design/pio_to_ctrl.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/imports/example_design/pio_ep.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/imports/example_design/pio.v" \
+"../testbanch/pcie3_core/simulation/dsport/pcie3_uscale_rp_core_top.v" \
+
+vlog -64 -incr -work gtwizard_ultrascale_v1_5  +incdir+../testbanch/pcie3_core/simulation/functional +incdir+../testbanch/pcie3_core/simulation/tests +incdir+../testbanch/pcie3_core/simulation/dsport \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_bit_synchronizer.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gthe3_cpll_cal.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gthe3_cpll_cal_freq_counter.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_buffbypass_rx.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_buffbypass_tx.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_reset.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_userclk_rx.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_userclk_tx.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_userdata_rx.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_userdata_tx.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_reset_synchronizer.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/sim/gtwizard_ultrascale_v1_5_gthe3_channel.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/sim/pcie3_core_gt_gthe3_channel_wrapper.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/sim/gtwizard_ultrascale_v1_5_gthe3_common.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/sim/pcie3_core_gt_gthe3_common_wrapper.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/sim/pcie3_core_gt_gtwizard_gthe3.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/sim/pcie3_core_gt_gtwizard_top.v" \
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/ip_0/sim/pcie3_core_gt.v" \
 
 vlog -64 -incr -work xil_defaultlib  +incdir+../testbanch/pcie3_core/simulation/functional +incdir+../testbanch/pcie3_core/simulation/tests +incdir+../testbanch/pcie3_core/simulation/dsport \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/source/pcie3_core_tph_tbl.v" \
@@ -94,11 +104,11 @@ vlog -64 -incr -work xil_defaultlib  +incdir+../testbanch/pcie3_core/simulation/
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/source/pcie3_core_pcie3_uscale_top.v" \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/source/pcie3_core_phy_sync_cell.v" \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/source/pcie3_core_rxcdrhold.v" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/source/pcie3_core_pcie3_uscale_core_top.v"
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/source/pcie3_core_pcie3_uscale_core_top.v" \
 
 vcom -64 -93 -work xil_defaultlib  \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/trigger.vhd" \
-"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/sim/pcie3_core.vhd"
+"../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/ip/pcie3_core/sim/pcie3_core.vhd" \
 
 vlog -64 -incr -work xil_defaultlib  +incdir+../testbanch/pcie3_core/simulation/functional +incdir+../testbanch/pcie3_core/simulation/tests +incdir+../testbanch/pcie3_core/simulation/dsport \
 "../testbanch/pcie3_core_example/pcie3_core_example.srcs/sources_1/imports/example_design/pcie_app_uscale.v" \
