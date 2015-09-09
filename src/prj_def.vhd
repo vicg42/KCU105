@@ -100,6 +100,8 @@ constant C_HREG_DEV_STATUS_SDI_CARRIER1_BIT   : integer := 8;
 constant C_HREG_DEV_STATUS_BTN0_BIT           : integer := 9;
 constant C_HREG_DEV_STATUS_BTN1_BIT           : integer := 10;
 constant C_HREG_DEV_STATUS_BTN2_BIT           : integer := 11;
+
+constant C_HREG_DEV_STATUS_FST_BIT            : integer := 1;
 constant C_HREG_DEV_STATUS_LAST_BIT           : integer := C_HREG_DEV_STATUS_BTN2_BIT;
 
 
@@ -121,7 +123,8 @@ constant C_HIRQ_CFG                           : integer := 1;--RxD RDY
 --constant C_HIRQ_ETH                           : integer := 2;--RxData
 --constant C_HIRQ_FG_VCH0                       : integer := 3;
 constant C_HIRQ_COUNT                         : integer := C_HIRQ_CFG + 1;
-constant C_HIRQ_COUNT_MAX                     : integer := pwr(2, (C_HREG_IRQ_NUM_M_WBIT - C_HREG_IRQ_NUM_L_WBIT + 1));
+constant C_HIRQ_FST_BIT                       : integer := selval(0, 1, (C_HIRQ_COUNT = 1));
+--constant C_HIRQ_COUNT_MAX                     : integer := pwr(2, (C_HREG_IRQ_NUM_M_WBIT - C_HREG_IRQ_NUM_L_WBIT + 1));
 
 
 --Register C_HREG_MEM_ADR / Bit Map:
@@ -178,6 +181,8 @@ constant C_HDEV_OPTIN_RXFIFO_EMPTY_BIT        : integer := 1;
 constant C_HDEV_OPTIN_MEM_DONE_BIT            : integer := 2;
 constant C_HDEV_OPTIN_FG_FRMRK_L_BIT          : integer := 3;
 constant C_HDEV_OPTIN_FG_FRMRK_M_BIT          : integer := 34;
+
+constant C_HDEV_OPTIN_FST_BIT                 : integer := 0;
 constant C_HDEV_OPTIN_LAST_BIT                : integer := C_HDEV_OPTIN_FG_FRMRK_M_BIT;
 
 
@@ -190,6 +195,8 @@ constant C_HDEV_OPTOUT_MEM_TRNWR_LEN_L_BIT    : integer := 50;
 constant C_HDEV_OPTOUT_MEM_TRNWR_LEN_M_BIT    : integer := 57;--mem_trnwr:
 constant C_HDEV_OPTOUT_MEM_TRNRD_LEN_L_BIT    : integer := 58;
 constant C_HDEV_OPTOUT_MEM_TRNRD_LEN_M_BIT    : integer := 65;--mem_trnrd:
+
+constant C_HDEV_OPTOUT_FST_BIT                : integer := 0;
 constant C_HDEV_OPTOUT_LAST_BIT               : integer := C_HDEV_OPTOUT_MEM_TRNRD_LEN_M_BIT;
 
 

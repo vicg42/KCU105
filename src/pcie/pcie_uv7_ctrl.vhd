@@ -20,6 +20,7 @@ use work.prj_cfg.all;
 
 entity pcie_ctrl is
 generic(
+G_SIM : string := "OFF";
 G_DBGCS : string := "OFF";
 G_DATA_WIDTH                     : integer := 64;
 G_KEEP_WIDTH                     : integer := 1;
@@ -48,10 +49,10 @@ p_out_dev_din   : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 p_in_dev_dout   : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 p_out_dev_wr    : out   std_logic;
 p_out_dev_rd    : out   std_logic;
-p_in_dev_status : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
-p_in_dev_irq    : in    std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
-p_in_dev_opt    : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
-p_out_dev_opt   : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
+p_in_dev_status : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto C_HREG_DEV_STATUS_FST_BIT);
+p_in_dev_irq    : in    std_logic_vector((C_HIRQ_COUNT - 1) downto C_HIRQ_FST_BIT);
+p_in_dev_opt    : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto C_HDEV_OPTIN_FST_BIT);
+p_out_dev_opt   : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto C_HDEV_OPTOUT_FST_BIT);
 
 --DBG
 p_out_dbg       : out   TPCIE_dbg;
@@ -351,6 +352,7 @@ i_pcie_prm.master_en(0) <= p_in_cfg_function_status(2);
 --######################################
 m_usr_app : pcie_usr_app
 generic map(
+G_SIM => G_SIM,
 G_DBG => "OFF"
 )
 port map (

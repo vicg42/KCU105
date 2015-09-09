@@ -20,6 +20,7 @@ use work.prj_cfg.all;
 
 entity pcie_usr_app is
 generic(
+G_SIM : string := "OFF";
 G_DBG : string := "OFF"
 );
 port(
@@ -35,10 +36,10 @@ p_out_dev_din   : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);--DEV<-HOST
 p_in_dev_dout   : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);--DEV->HOST
 p_out_dev_wr    : out   std_logic;
 p_out_dev_rd    : out   std_logic;
-p_in_dev_status : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
-p_in_dev_irq    : in    std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
-p_in_dev_opt    : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
-p_out_dev_opt   : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
+p_in_dev_status : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto C_HREG_DEV_STATUS_FST_BIT);
+p_in_dev_irq    : in    std_logic_vector((C_HIRQ_COUNT - 1) downto C_HIRQ_FST_BIT);
+p_in_dev_opt    : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto C_HDEV_OPTIN_FST_BIT);
+p_out_dev_opt   : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto C_HDEV_OPTOUT_FST_BIT);
 
 --DBG
 p_out_tst       : out   std_logic_vector(127 downto 0);
@@ -728,9 +729,41 @@ end generate gen_irq;
 ---------------------------------------------------------------------
 --User devices CTRL
 ---------------------------------------------------------------------
+gen_sim_on : if strcmp(G_SIM, "ON") generate
+begin
+p_out_rxbuf_do <= std_logic_vector(tst_mem_dcnt_swap);
+--p_out_rxbuf_do <= p_in_dev_dout
+--                      when UNSIGNED(i_hdev_adr) /= TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length) else std_logic_vector(tst_mem_dcnt_swap);
+
+--Generator test data (counter)
+process(p_in_rst_n, i_usr_grst, p_in_clk)
+begin
+if rising_edge(p_in_clk) then
+  if (p_in_rst_n = '0' or i_usr_grst = '1') then
+    for i in 0 to (tst_mem_dcnt'length / 8) - 1 loop
+    tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i) <= TO_UNSIGNED(i, 8);
+    end loop;
+  else
+    if (p_in_rxbuf_rd = '1' and UNSIGNED(i_hdev_adr) = TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length)) then
+      for i in 0 to (tst_mem_dcnt'length / 8) - 1 loop
+      tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i) <= tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i)
+                                                 + TO_UNSIGNED((tst_mem_dcnt'length / 8), 8);
+      end loop;
+    end if;
+  end if;
+end if;
+end process;
+--gen_swap : for i in 0 to (tst_mem_dcnt'length / 8) - 1 generate
+--tst_mem_dcnt_swap(8 * (((tst_mem_dcnt'length / 8 - 1) - i) + 1) - 1
+--                     downto 8 * ((tst_mem_dcnt'length / 8 - 1) - i)) <= tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i);
+--end generate gen_swap;
+tst_mem_dcnt_swap <= tst_mem_dcnt;
+
+end generate gen_sim_on;
+
+gen_sim_off : if strcmp(G_SIM, "OFF") generate begin
 p_out_rxbuf_do <= p_in_dev_dout;
---                      when UNSIGNED(i_hdev_adr) /= TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length) else tst_mem_dcnt_swap;
---p_out_rxbuf_do <= std_logic_vector(tst_mem_dcnt_swap);
+end generate gen_sim_off;
 
 p_out_txbuf_full <= p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_FULL_BIT) and not i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 p_out_rxbuf_empty <= p_in_dev_opt(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) and not i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
@@ -738,31 +771,6 @@ p_out_rxbuf_empty <= p_in_dev_opt(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) and not i_reg.p
 p_out_dev_wr <= p_in_txbuf_wr;
 p_out_dev_rd <= p_in_rxbuf_rd;
 p_out_dev_din <= p_in_txbuf_di;
-
-
-----Generator test data (counter)
---process(p_in_rst_n, i_usr_grst, p_in_clk)
---begin
---if rising_edge(p_in_clk) then
---  if (p_in_rst_n = '0' or i_usr_grst = '1') then
---    for i in 0 to (tst_mem_dcnt'length / 8) - 1 loop
---    tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i) <= TO_UNSIGNED(i, 8);
---    end loop;
---  else
---    if (p_in_rxbuf_rd = '1' and UNSIGNED(i_hdev_adr) = TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length)) then
---      for i in 0 to (tst_mem_dcnt'length / 8) - 1 loop
---      tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i) <= tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i)
---                                                 + TO_UNSIGNED((tst_mem_dcnt'length / 8), 8);
---      end loop;
---    end if;
---  end if;
---end if;
---end process;
-----gen_swap : for i in 0 to (tst_mem_dcnt'length / 8) - 1 generate
-----tst_mem_dcnt_swap(8 * (((tst_mem_dcnt'length / 8 - 1) - i) + 1) - 1
-----                     downto 8 * ((tst_mem_dcnt'length / 8 - 1) - i)) <= tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i);
-----end generate gen_swap;
---tst_mem_dcnt_swap <= tst_mem_dcnt;
 
 --user device ctrl
 p_out_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT) <= (i_dmatrn_mrd_done and sr_dma_work) or i_dev_drdy;

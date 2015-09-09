@@ -74,10 +74,10 @@ signal i_host_dev_txd                   : std_logic_vector(C_HDEV_DWIDTH - 1 dow
 signal i_host_dev_rxd                   : std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 signal i_host_dev_wr                    : std_logic;
 signal i_host_dev_rd                    : std_logic;
-signal i_host_dev_status                : std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
-signal i_host_dev_irq                   : std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
-signal i_host_dev_opt_in                : std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
-signal i_host_dev_opt_out               : std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
+signal i_host_dev_status                : std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto C_HREG_DEV_STATUS_FST_BIT);
+signal i_host_dev_irq                   : std_logic_vector((C_HIRQ_COUNT - 1) downto C_HIRQ_FST_BIT);
+signal i_host_dev_opt_in                : std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto C_HDEV_OPTIN_FST_BIT);
+signal i_host_dev_opt_out               : std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto C_HDEV_OPTOUT_FST_BIT);
 
 signal i_host_devadr                    : unsigned(C_HREG_DEV_CTRL_ADR_M_BIT
                                                               - C_HREG_DEV_CTRL_ADR_L_BIT downto 0);
@@ -446,8 +446,8 @@ i_host_txd(i) <= i_host_dev_txd;
 end generate gen_dev_dbuf;
 
 i_host_dev_rxd <= i_host_rxd(C_HDEV_CFG) when i_host_devadr = TO_UNSIGNED(C_HDEV_CFG, i_host_devadr'length) else
-                  i_host_rxd(C_HDEV_FG)  when i_host_devadr = TO_UNSIGNED(C_HDEV_FG, i_host_devadr'length) else
                   i_host_rxd(C_HDEV_MEM);
+--                  i_host_rxd(C_HDEV_FG)  when i_host_devadr = TO_UNSIGNED(C_HDEV_FG, i_host_devadr'length) else
 
 --Flags (Host <- User Devices)
 i_host_dev_opt_in(C_HDEV_OPTIN_TXFIFO_FULL_BIT) <= i_host_txbuf_full(C_HDEV_MEM)
