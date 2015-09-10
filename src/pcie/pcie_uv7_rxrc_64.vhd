@@ -18,16 +18,17 @@ use work.pcie_pkg.all;
 
 entity pcie_rx_rc is
 generic (
-G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
-G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
-G_AXISTEN_IF_RC_STRADDLE         : integer := 0;
-G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
-G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1');
+--G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
+--G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
+--G_AXISTEN_IF_RC_STRADDLE         : integer := 0;
+--G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
+--G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1');
+--
+--G_STRB_WIDTH   : integer := 64 / 8 ; -- TSTRB width
+--G_KEEP_WIDTH   : integer := 64 / 32;
+--G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
 
-G_DATA_WIDTH   : integer := 64;
-G_STRB_WIDTH   : integer := 64 / 8 ; -- TSTRB width
-G_KEEP_WIDTH   : integer := 64 / 32;
-G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
+G_DATA_WIDTH : integer := 64
 );
 port(
 -- Requester Completion Interface
@@ -64,12 +65,13 @@ end entity pcie_rx_rc;
 architecture behavioral of pcie_rx_rc is
 
 type TFsmRx_state is (
-S_RX_IDLE,
-S_RX_DH,
-S_RX_DN,
-S_RX_DE
+S_RXRC_IDLE,
+S_RXRC_DH,
+S_RXRC_DH1,
+S_RXRC_DN,
+S_RXRC_DE
 );
-signal i_fsm_rx           : TFsmRx_state;
+signal i_fsm_rxrc         : TFsmRx_state;
 
 signal i_sof              : std_logic_vector(1 downto 0);
 
@@ -120,10 +122,13 @@ end generate;
 --i_utxbuf_di(6) <= i_axi_data(1);
 --i_utxbuf_di(7) <= i_axi_data(2);
 
-i_utxbuf_di(0) <= sr_axi_data(3); --<= sr_axi_data(3);
+--i_utxbuf_di(0) <= sr_axi_data(3); --<= sr_axi_data(3);
+--i_utxbuf_di(1) <= i_axi_data(0); --<= sr_axi_data(4);
+--i_utxbuf_di(2) <= i_axi_data(1); --<= sr_axi_data(5);
+--i_utxbuf_di(3) <= i_axi_data(2); --<= sr_axi_data(6);
+
+i_utxbuf_di(0) <= sr_axi_data(1); --<= sr_axi_data(3);
 i_utxbuf_di(1) <= i_axi_data(0); --<= sr_axi_data(4);
-i_utxbuf_di(2) <= i_axi_data(1); --<= sr_axi_data(5);
-i_utxbuf_di(3) <= i_axi_data(2); --<= sr_axi_data(6);
 
 gen_utxbuf : for i in 0 to i_utxbuf_di'length - 1 generate begin
 p_out_utxbuf_di((32 * (i + 1)) - 1 downto (32 * i)) <= i_utxbuf_di(i);
@@ -163,7 +168,7 @@ if rising_edge(p_in_clk) then
     if (p_in_dma_init = '1') then
         i_dma_init <= '1';
     else
-        if (i_fsm_rx = S_RX_DH) then
+        if (i_fsm_rxrc = S_RXRC_DH) then
           i_dma_init <= '0';
         end if;
     end if;
@@ -185,7 +190,7 @@ begin
 if rising_edge(p_in_clk) then
   if (p_in_rst_n = '0') then
 
-    i_fsm_rx <= S_RX_IDLE;
+    i_fsm_rxrc <= S_RXRC_IDLE;
 
     for i in 0 to sr_axi_data'length - 1 loop
     sr_axi_data(i) <= (others => '0');
@@ -213,9 +218,9 @@ if rising_edge(p_in_clk) then
 
   else
 
-    case i_fsm_rx is
+    case i_fsm_rxrc is
 
-        when S_RX_IDLE =>
+        when S_RXRC_IDLE =>
 
             i_cpld_tlp_work <= '0';
 
@@ -231,7 +236,7 @@ if rising_edge(p_in_clk) then
               end if;
 
               i_axi_rc_tready <= '1';
-              i_fsm_rx <= S_RX_DH;
+              i_fsm_rxrc <= S_RXRC_DH;
 
             else
               if (i_dma_init = '1') then
@@ -242,19 +247,14 @@ if rising_edge(p_in_clk) then
         --#######################################################################
         --Detect start of packet
         --#######################################################################
-        when S_RX_DH =>
+        when S_RXRC_DH =>
 
             err_out := (others => '0');
 
             if (i_sof(0) = '1' and i_sof(1) = '0' and p_in_dma_mrd_en = '1'
                 and p_in_axi_rc_tvalid = '1' and p_in_utxbuf_full = '0') then
 
-                if (p_in_axi_rc_tkeep(2 downto 0) = "111") then
-
-                      for i in 3 to sr_axi_data'length - 1 loop
-                      sr_axi_data(i) <= i_axi_data(i); --user data
-                      sr_axi_be(i) <= p_in_axi_rc_tuser((i * 4) + 3 downto (i * 4)); --(15...12)
-                      end loop;
+                if (p_in_axi_rc_tkeep(1 downto 0) = "11") then
 
                       --Check Completion Status
                       if (i_axi_data(1)(13 downto 11) = C_PCIE_COMPL_STATUS_SC) then
@@ -262,33 +262,7 @@ if rising_edge(p_in_clk) then
                           i_cpld_byte <= i_cpld_byte_t;
                           i_cpld_dw <= i_cpld_dw_t;
 
-                          i_cpld_tlp_work <= '1';
-
-                          --Check DW Count
-                          if (i_cpld_dw_t > TO_UNSIGNED(1, i_cpld_dw_t'length)) then
-
-                              i_cpld_dw_rem <= (i_cpld_len(i_cpld_len'high - (log2(G_DATA_WIDTH / 32)) downto 0)
-                                                & TO_UNSIGNED(0, (log2(G_DATA_WIDTH / 32))))  - i_cpld_dw_t;
-
-                              i_fsm_rx <= S_RX_DN;
-
-                          else
-
-                              if (p_in_axi_rc_tlast = '1') then
-
-                                  if ((i_dma_dw_cnt + RESIZE(i_cpld_dw_t, i_cpld_dw_cnt'length)) = i_dma_dw_len) then
-                                    i_mrd_done <= '1';
-                                  else
-                                    i_mrd_done <= '0';
-                                  end if;
-
-                                  i_dma_dw_cnt <= i_dma_dw_cnt + RESIZE(i_cpld_dw_t, i_cpld_dw_cnt'length);
-
-                                  i_axi_rc_tready <= '0';
-                                  i_fsm_rx <= S_RX_IDLE;
-                              end if;
-
-                          end if;
+                          i_fsm_rxrc <= S_RXRC_DH1;
 
                       else
                         ----Check Error Code
@@ -304,11 +278,59 @@ if rising_edge(p_in_clk) then
 
             end if;
 
+        when S_RXRC_DH1 =>
+
+            err_out := (others => '0');
+
+            if (p_in_axi_rc_tvalid = '1' and p_in_utxbuf_full = '0') then
+
+                if (p_in_axi_rc_tkeep(1 downto 0) = "11") then
+
+                      for i in 1 to sr_axi_data'length - 1 loop
+                      sr_axi_data(i) <= i_axi_data(i); --user data
+                      sr_axi_be(i) <= p_in_axi_rc_tuser((i * 4) + 3 downto (i * 4)); --(15...12)
+                      end loop;
+
+                      --Check Completion Status
+                      i_cpld_tlp_work <= '1';
+
+                      --Check DW Count
+                      if (i_cpld_dw > TO_UNSIGNED(1, i_cpld_dw_t'length)) then
+
+                          i_cpld_dw_rem <= (i_cpld_len(i_cpld_len'high - (log2(G_DATA_WIDTH / 32)) downto 0)
+                                            & TO_UNSIGNED(0, (log2(G_DATA_WIDTH / 32))))  - i_cpld_dw_t;
+
+                          i_fsm_rxrc <= S_RXRC_DN;
+
+                      else
+
+                          if (p_in_axi_rc_tlast = '1') then
+
+                              if ((i_dma_dw_cnt + RESIZE(i_cpld_dw, i_cpld_dw_cnt'length)) = i_dma_dw_len) then
+                                i_mrd_done <= '1';
+                              else
+                                i_mrd_done <= '0';
+                              end if;
+
+                              i_dma_dw_cnt <= i_dma_dw_cnt + RESIZE(i_cpld_dw, i_cpld_dw_cnt'length);
+
+                              i_axi_rc_tready <= '0';
+                              i_fsm_rxrc <= S_RXRC_IDLE;
+                          end if;
+
+                      end if;
+
+                else
+                  err_out(0) := '1';
+
+                end if;
+
+            end if;
 
         --#######################################################################
         --
         --#######################################################################
-        when S_RX_DN =>
+        when S_RXRC_DN =>
 
             if (p_in_axi_rc_tvalid = '1' and p_in_utxbuf_full = '0') then
 
@@ -319,7 +341,7 @@ if rising_edge(p_in_clk) then
 
                 if (p_in_axi_rc_tlast = '1') then
 
-                    if (i_cpld_dw_rem(3 downto 0) < TO_UNSIGNED(3, 4)) then
+                    if (i_cpld_dw_rem(3 downto 0) = TO_UNSIGNED(0, 4)) then
 
                         i_cpld_tlp_work <= '0';
 
@@ -331,12 +353,12 @@ if rising_edge(p_in_clk) then
 
                         i_dma_dw_cnt <= i_dma_dw_cnt + RESIZE(i_cpld_dw, i_cpld_dw_cnt'length);
 
-                        i_fsm_rx <= S_RX_IDLE;
+                        i_fsm_rxrc <= S_RXRC_IDLE;
 
                     else
 
                       i_axi_rc_tready <= '0';
-                      i_fsm_rx <= S_RX_DE;
+                      i_fsm_rxrc <= S_RXRC_DE;
 
                     end if;
 
@@ -345,7 +367,7 @@ if rising_edge(p_in_clk) then
             end if;
 
 
-        when S_RX_DE =>
+        when S_RXRC_DE =>
 
             if (p_in_utxbuf_full = '0') then
 
@@ -360,11 +382,11 @@ if rising_edge(p_in_clk) then
 
                 i_dma_dw_cnt <= i_dma_dw_cnt + RESIZE(i_cpld_dw, i_cpld_dw_cnt'length);
 
-                i_fsm_rx <= S_RX_IDLE;
+                i_fsm_rxrc <= S_RXRC_IDLE;
 
             end if;
 
-    end case; --case i_fsm_rx is
+    end case; --case i_fsm_rxrc is
 
 
     tst_err <= err_out;
@@ -377,7 +399,7 @@ end process; --fsm
 --#######################################################################
 --DBG
 --#######################################################################
---tst_fsm_rx <= '1' when i_fsm_rx = S_RX_WAIT  else '0';
+--tst_fsm_rx <= '1' when i_fsm_rxrc = S_RXRC_WAIT  else '0';
 
 p_out_tst(0) <= '0';--tst_fsm_rx;
 p_out_tst(3 downto 1) <= (others => '0');

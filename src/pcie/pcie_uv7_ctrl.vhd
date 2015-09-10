@@ -22,19 +22,19 @@ entity pcie_ctrl is
 generic(
 G_SIM : string := "OFF";
 G_DBGCS : string := "OFF";
-G_DATA_WIDTH                     : integer := 64;
-G_KEEP_WIDTH                     : integer := 1;
-G_AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
-G_AXISTEN_IF_RQ_ALIGNMENT_MODE   : string := "FALSE";
-G_AXISTEN_IF_CC_ALIGNMENT_MODE   : string := "FALSE";
-G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
-G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
-G_AXISTEN_IF_ENABLE_CLIENT_TAG   : integer := 1;
-G_AXISTEN_IF_RQ_PARITY_CHECK     : integer := 0;
-G_AXISTEN_IF_CC_PARITY_CHECK     : integer := 0;
-G_AXISTEN_IF_MC_RX_STRADDLE      : integer := 0;
-G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
-G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1')
+G_DATA_WIDTH                     : integer := 64
+--G_KEEP_WIDTH                     : integer := 1;
+--G_AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
+--G_AXISTEN_IF_RQ_ALIGNMENT_MODE   : string := "FALSE";
+--G_AXISTEN_IF_CC_ALIGNMENT_MODE   : string := "FALSE";
+--G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
+--G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
+--G_AXISTEN_IF_ENABLE_CLIENT_TAG   : integer := 1;
+--G_AXISTEN_IF_RQ_PARITY_CHECK     : integer := 0;
+--G_AXISTEN_IF_CC_PARITY_CHECK     : integer := 0;
+--G_AXISTEN_IF_MC_RX_STRADDLE      : integer := 0;
+--G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
+--G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1')
 );
 port(
 --------------------------------------
@@ -65,28 +65,28 @@ p_in_tst        : in    std_logic_vector(127 downto 0);
 p_out_axi_rq_tlast   : out  std_logic                                  ;
 p_out_axi_rq_tdata   : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_out_axi_rq_tuser   : out  std_logic_vector(59 downto 0)              ;
-p_out_axi_rq_tkeep   : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_axi_rq_tkeep   : out  std_logic_vector((G_DATA_WIDTH / 32) - 1  downto 0);
 p_in_axi_rq_tready   : in   std_logic_vector(3 downto 0)               ;
 p_out_axi_rq_tvalid  : out  std_logic                                  ;
 
 p_in_axi_rc_tdata    : in   std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_in_axi_rc_tuser    : in   std_logic_vector(74 downto 0)              ;
 p_in_axi_rc_tlast    : in   std_logic                                  ;
-p_in_axi_rc_tkeep    : in   std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_axi_rc_tkeep    : in   std_logic_vector((G_DATA_WIDTH / 32) - 1  downto 0);
 p_in_axi_rc_tvalid   : in   std_logic                                  ;
 p_out_axi_rc_tready  : out  std_logic_vector(21 downto 0)              ;
 
 p_in_axi_cq_tdata    : in   std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_in_axi_cq_tuser    : in   std_logic_vector(84 downto 0)              ;
 p_in_axi_cq_tlast    : in   std_logic                                  ;
-p_in_axi_cq_tkeep    : in   std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_axi_cq_tkeep    : in   std_logic_vector((G_DATA_WIDTH / 32) - 1  downto 0);
 p_in_axi_cq_tvalid   : in   std_logic                                  ;
 p_out_axi_cq_tready  : out  std_logic_vector(21 downto 0)              ;
 
 p_out_axi_cc_tdata   : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_out_axi_cc_tuser   : out  std_logic_vector(32 downto 0)              ;
 p_out_axi_cc_tlast   : out  std_logic                                  ;
-p_out_axi_cc_tkeep   : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_axi_cc_tkeep   : out  std_logic_vector((G_DATA_WIDTH / 32) - 1  downto 0);
 p_out_axi_cc_tvalid  : out  std_logic                                  ;
 p_in_axi_cc_tready   : in   std_logic_vector(3 downto 0)               ;
 
@@ -447,16 +447,16 @@ end generate gen_rc_trdy;
 
 m_rx : pcie_rx
 generic map(
-G_AXISTEN_IF_CQ_ALIGNMENT_MODE   => G_AXISTEN_IF_CQ_ALIGNMENT_MODE,
-G_AXISTEN_IF_RC_ALIGNMENT_MODE   => G_AXISTEN_IF_RC_ALIGNMENT_MODE,
---G_AXISTEN_IF_RC_STRADDLE         : integer := 0;
-G_AXISTEN_IF_ENABLE_RX_MSG_INTFC => G_AXISTEN_IF_ENABLE_RX_MSG_INTFC,
-G_AXISTEN_IF_ENABLE_MSG_ROUTE    => G_AXISTEN_IF_ENABLE_MSG_ROUTE,
-
-G_DATA_WIDTH   => G_DATA_WIDTH   ,
-G_STRB_WIDTH   => CI_STRB_WIDTH  ,
-G_KEEP_WIDTH   => CI_KEEP_WIDTH  ,
-G_PARITY_WIDTH => CI_PARITY_WIDTH
+--G_AXISTEN_IF_CQ_ALIGNMENT_MODE   => G_AXISTEN_IF_CQ_ALIGNMENT_MODE,
+--G_AXISTEN_IF_RC_ALIGNMENT_MODE   => G_AXISTEN_IF_RC_ALIGNMENT_MODE,
+----G_AXISTEN_IF_RC_STRADDLE         : integer := 0;
+--G_AXISTEN_IF_ENABLE_RX_MSG_INTFC => G_AXISTEN_IF_ENABLE_RX_MSG_INTFC,
+--G_AXISTEN_IF_ENABLE_MSG_ROUTE    => G_AXISTEN_IF_ENABLE_MSG_ROUTE,
+--
+--G_STRB_WIDTH   => CI_STRB_WIDTH  ,
+--G_KEEP_WIDTH   => CI_KEEP_WIDTH  ,
+--G_PARITY_WIDTH => CI_PARITY_WIDTH,
+G_DATA_WIDTH   => G_DATA_WIDTH
 )
 port map (
 --Completer Request Interface
@@ -524,16 +524,17 @@ p_in_rst_n => i_rst_n
 --######################################
 m_tx : pcie_tx
 generic map (
-G_AXISTEN_IF_RQ_ALIGNMENT_MODE => G_AXISTEN_IF_RQ_ALIGNMENT_MODE,
-G_AXISTEN_IF_CC_ALIGNMENT_MODE => G_AXISTEN_IF_CC_ALIGNMENT_MODE,
-G_AXISTEN_IF_ENABLE_CLIENT_TAG => G_AXISTEN_IF_ENABLE_CLIENT_TAG,
-G_AXISTEN_IF_RQ_PARITY_CHECK   => G_AXISTEN_IF_RQ_PARITY_CHECK  ,
-G_AXISTEN_IF_CC_PARITY_CHECK   => G_AXISTEN_IF_CC_PARITY_CHECK  ,
+--G_AXISTEN_IF_RQ_ALIGNMENT_MODE => G_AXISTEN_IF_RQ_ALIGNMENT_MODE,
+--G_AXISTEN_IF_CC_ALIGNMENT_MODE => G_AXISTEN_IF_CC_ALIGNMENT_MODE,
+--G_AXISTEN_IF_ENABLE_CLIENT_TAG => G_AXISTEN_IF_ENABLE_CLIENT_TAG,
+--G_AXISTEN_IF_RQ_PARITY_CHECK   => G_AXISTEN_IF_RQ_PARITY_CHECK  ,
+--G_AXISTEN_IF_CC_PARITY_CHECK   => G_AXISTEN_IF_CC_PARITY_CHECK  ,
+--
+--G_STRB_WIDTH   => CI_STRB_WIDTH  ,
+--G_KEEP_WIDTH   => CI_KEEP_WIDTH  ,
+--G_PARITY_WIDTH => CI_PARITY_WIDTH,
 
-G_DATA_WIDTH   => G_DATA_WIDTH   ,
-G_STRB_WIDTH   => CI_STRB_WIDTH  ,
-G_KEEP_WIDTH   => CI_KEEP_WIDTH  ,
-G_PARITY_WIDTH => CI_PARITY_WIDTH
+G_DATA_WIDTH   => G_DATA_WIDTH
 )
 port map(
 --AXI-S Completer Competion Interface
@@ -722,7 +723,7 @@ cfg_power_state_change_ack       => p_out_cfg_power_state_change_ack
 --DBG
 --#############################################
 
---gen_dbg_rc_tdata : for i in 7 to G_KEEP_WIDTH - 1 generate begin
+--gen_dbg_rc_tdata : for i in 7 to (G_DATA_WIDTH / 32) - 1 generate begin
 --p_out_dbg.axi_rc_tdata(i) <= i_utxbuf_di((32 * (i + 1)) - 1 downto (32 * i));
 --end generate gen_dbg_rc_tdata;
 p_out_dbg.axi_rc_tkeep  <= p_in_axi_rc_tkeep;
@@ -730,7 +731,7 @@ p_out_dbg.axi_rc_tvalid <= p_in_axi_rc_tvalid;
 p_out_dbg.axi_rc_tlast  <= p_in_axi_rc_tlast;
 p_out_dbg.axi_rc_tready <= i_axi_rc_tready;
 
---gen_dbg_rq_tdata : for i in 7 to G_KEEP_WIDTH - 1 generate begin
+--gen_dbg_rq_tdata : for i in 7 to (G_DATA_WIDTH / 32) - 1 generate begin
 --p_out_dbg.axi_rq_tdata(i) <= tst_tx_out(((280 * 1) + 11 + (32 * (i + 1)) - 1) downto ((280 * 1) + 11 + (32 * i))); --p_in_axi_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
 --end generate gen_dbg_rq_tdata;
 p_out_dbg.axi_rq_fsm    <= tst_tx_out(((280 * 1) +  3) downto ((280 * 1) + 0));

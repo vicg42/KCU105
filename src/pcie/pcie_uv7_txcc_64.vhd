@@ -18,14 +18,15 @@ use work.pcie_pkg.all;
 
 entity pcie_tx_cc is
 generic (
-G_AXISTEN_IF_CC_ALIGNMENT_MODE : string := "FALSE";
---G_AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
-G_AXISTEN_IF_CC_PARITY_CHECK   : integer := 0;
+--G_AXISTEN_IF_CC_ALIGNMENT_MODE : string := "FALSE";
+----G_AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
+--G_AXISTEN_IF_CC_PARITY_CHECK   : integer := 0;
+--
+--G_STRB_WIDTH   : integer := 64 / 8 ; --TSTRB width
+--G_KEEP_WIDTH   : integer := 64 / 32;
+--G_PARITY_WIDTH : integer := 64 / 8   --TPARITY width
 
-G_DATA_WIDTH   : integer := 64;
-G_STRB_WIDTH   : integer := 64 / 8 ; --TSTRB width
-G_KEEP_WIDTH   : integer := 64 / 32;
-G_PARITY_WIDTH : integer := 64 / 8   --TPARITY width
+G_DATA_WIDTH : integer := 64
 );
 port(
 --AXI-S Completer Competion Interface
@@ -75,15 +76,16 @@ end entity pcie_tx_cc;
 architecture behavioral of pcie_tx_cc is
 
 type TFsmTx_state is (
-S_TX_IDLE  ,
-S_TX_CPL
+S_TXCC_IDLE,
+S_TXCC_CPL,
+S_TXCC_CPL2
 );
-signal i_fsm_tx         : TFsmTx_state;
+signal i_fsm_txcc       : TFsmTx_state;
 
 signal i_axi_cc_tparity : std_logic_vector(31 downto 0) := (others => '0');
 
-signal i_axi_cc_tdata   : std_logic_vector(127 downto 0);
-signal i_axi_cc_tkeep   : std_logic_vector(3 downto 0);
+signal i_axi_cc_tdata   : std_logic_vector(63 downto 0);
+signal i_axi_cc_tkeep   : std_logic_vector(1 downto 0);
 signal i_axi_cc_tlast   : std_logic;
 signal i_axi_cc_tvalid  : std_logic;
 signal i_axi_cc_tuser   : std_logic_vector(32 downto 0);
@@ -205,7 +207,7 @@ begin
 if rising_edge(p_in_clk) then
   if (p_in_rst_n = '0') then
 
-    i_fsm_tx <= S_TX_IDLE;
+    i_fsm_txcc <= S_TXCC_IDLE;
 
     i_axi_cc_tdata  <= (others => '0');
     i_axi_cc_tkeep  <= (others => '0');
@@ -217,11 +219,11 @@ if rising_edge(p_in_clk) then
 
   else
 
-    case i_fsm_tx is
+    case i_fsm_txcc is
         --#######################################################################
         --
         --#######################################################################
-        when S_TX_IDLE =>
+        when S_TXCC_IDLE =>
 
             i_axi_cc_tdata  <= (others => '0');
             i_axi_cc_tkeep  <= (others => '0');
@@ -232,40 +234,19 @@ if rising_edge(p_in_clk) then
             i_compl_done <= '0';
 
             if (p_in_req_compl = '1') then
-              i_fsm_tx <= S_TX_CPL;
+              i_fsm_txcc <= S_TXCC_CPL;
             end if;
 
 
         --#######################################################################
         --
         --#######################################################################
-        when S_TX_CPL =>
+        when S_TXCC_CPL =>
 
-          if (sr_req_compl(sr_req_compl'high) = '1') then
+          if ((sr_req_compl(sr_req_compl'high) = '1') and (p_in_axi_cc_tready = '1')) then
 
+            i_axi_cc_tkeep <= "11";
             i_axi_cc_tvalid <= '1';
-            i_axi_cc_tlast  <= '1';
-
-            if (   (i_req.pkt = C_PCIE3_PKT_TYPE_MEM_RD_ND)
-                or (i_req.pkt = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND)
-                or (i_req.pkt = C_PCIE3_PKT_TYPE_IO_RD_ND) ) then
-
-              i_axi_cc_tdata((32 * 4) - 1 downto (32 * 3)) <= p_in_ureg_do;
-              i_axi_cc_tkeep <= "1111";
-
-            else
-              i_axi_cc_tdata((32 * 4) - 1 downto (32 * 3)) <= (others => '0');
-              i_axi_cc_tkeep <= "0111";
-
-            end if;
-
-            i_axi_cc_tdata((32 * 2) + 31)                      <= '0';       -- Force ECRC
-            i_axi_cc_tdata((32 * 2) + 30 downto (32 * 2) + 28) <= std_logic_vector(RESIZE(UNSIGNED(i_req.attr), 3));
-            i_axi_cc_tdata((32 * 2) + 27 downto (32 * 2) + 25) <= i_req.tc;  --
-            i_axi_cc_tdata((32 * 2) + 24)                      <= '0';       --Completer ID to control selection of Client Supplied Bus number
-            i_axi_cc_tdata((32 * 2) + 23 downto (32 * 2) + 16) <= p_in_completer_id(15 downto 8); --Completer Bus number - selected if Compl ID = 1
-            i_axi_cc_tdata((32 * 2) + 15 downto (32 * 2) +  8) <= p_in_completer_id(7 downto 0);  --Compl Dev / Func no - sel if Compl ID = 1
-            i_axi_cc_tdata((32 * 2) +  7 downto (32 * 2) +  0) <= i_req.tag; --Matching Request Tag
 
             i_axi_cc_tdata((32 * 1) + 31 downto (32 * 1) + 16) <= i_req.rid; --Requester ID - 16 bits
             i_axi_cc_tdata((32 * 1) + 15)                      <= '0';       --Rsvd
@@ -298,21 +279,46 @@ if rising_edge(p_in_clk) then
               i_axi_cc_tdata((32 * 0) +  6 downto (32 * 0) +  0) <= (others => '0');
             end if;
 
+            i_axi_cc_tuser <= (others => '0');
 
---            if (G_AXISTEN_IF_CC_PARITY_CHECK = 0) then
-              i_axi_cc_tuser <= (others => '0');
---            else
---              i_axi_cc_tuser <= std_logic_vector(RESIZE(UNSIGNED(i_axi_cc_tparity), i_axi_cc_tuser'length));
---            end if;
+            i_fsm_txcc <= S_TXCC_CPL2;
+          end if;
 
-            if (p_in_axi_cc_tready = '1') then
-              i_compl_done <= '1';
-              i_fsm_tx <= S_TX_IDLE;
+        when S_TXCC_CPL2 =>
+
+          if (p_in_axi_cc_tready = '1') then
+
+            i_axi_cc_tvalid <= '1';
+            i_axi_cc_tlast  <= '1';
+
+            if (   (i_req.pkt = C_PCIE3_PKT_TYPE_MEM_RD_ND)
+                or (i_req.pkt = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND)
+                or (i_req.pkt = C_PCIE3_PKT_TYPE_IO_RD_ND) ) then
+
+              i_axi_cc_tdata((32 * 2) - 1 downto (32 * 1)) <= p_in_ureg_do;
+              i_axi_cc_tkeep <= "11";
+
+            else
+              i_axi_cc_tdata((32 * 2) - 1 downto (32 * 1)) <= (others => '0');
+              i_axi_cc_tkeep <= "01";
+
             end if;
+
+            i_axi_cc_tdata((32 * 0) + 31)                      <= '0';       -- Force ECRC
+            i_axi_cc_tdata((32 * 0) + 30 downto (32 * 0) + 28) <= std_logic_vector(RESIZE(UNSIGNED(i_req.attr), 3));
+            i_axi_cc_tdata((32 * 0) + 27 downto (32 * 0) + 25) <= i_req.tc;  --
+            i_axi_cc_tdata((32 * 0) + 24)                      <= '0';       --Completer ID to control selection of Client Supplied Bus number
+            i_axi_cc_tdata((32 * 0) + 23 downto (32 * 0) + 16) <= p_in_completer_id(15 downto 8); --Completer Bus number - selected if Compl ID = 1
+            i_axi_cc_tdata((32 * 0) + 15 downto (32 * 0) +  8) <= p_in_completer_id(7 downto 0);  --Compl Dev / Func no - sel if Compl ID = 1
+            i_axi_cc_tdata((32 * 0) +  7 downto (32 * 0) +  0) <= i_req.tag; --Matching Request Tag
+
+
+            i_compl_done <= '1';
+            i_fsm_txcc <= S_TXCC_IDLE;
 
           end if;
 
-    end case; --case i_fsm_tx is
+    end case; --case i_fsm_txcc is
   end if;--p_in_rst_n
 end if;--p_in_clk
 end process; --fsm
@@ -321,7 +327,7 @@ end process; --fsm
 --#######################################################################
 --DBG
 --#######################################################################
-tst_fsm_tx <= '1' when i_fsm_tx = S_TX_CPL  else '0';
+tst_fsm_tx <= '1' when i_fsm_txcc = S_TXCC_CPL  else '0';
 
 p_out_tst(0) <= tst_fsm_tx;
 p_out_tst(3 downto 1) <= (others => '0');

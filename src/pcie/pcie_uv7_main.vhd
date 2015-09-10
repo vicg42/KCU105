@@ -18,6 +18,7 @@ library work;
 use work.pcie_pkg.all;
 use work.prj_def.all;
 use work.prj_cfg.all;
+use work.vicg_common_pkg.all;
 
 entity pcie_main is
 generic (
@@ -62,19 +63,19 @@ end entity pcie_main;
 architecture behavioral of pcie_main is
 
 constant CI_DATA_WIDTH                     : integer := C_PCGF_PCIE_DWIDTH;
-constant CI_KEEP_WIDTH                     : integer := CI_DATA_WIDTH / 32;
+--constant CI_KEEP_WIDTH                     : integer := CI_DATA_WIDTH / 32;
 
-constant CI_AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
-constant CI_AXISTEN_IF_RQ_ALIGNMENT_MODE   : string := "FALSE";
-constant CI_AXISTEN_IF_CC_ALIGNMENT_MODE   : string := "FALSE";
-constant CI_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
-constant CI_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
-constant CI_AXISTEN_IF_ENABLE_CLIENT_TAG   : integer := 0;
-constant CI_AXISTEN_IF_RQ_PARITY_CHECK     : integer := 0;
-constant CI_AXISTEN_IF_CC_PARITY_CHECK     : integer := 0;
-constant CI_AXISTEN_IF_MC_RX_STRADDLE      : integer := 0;
-constant CI_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
-constant CI_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := std_logic_vector(TO_UNSIGNED(16#2FFFF#, 18));
+--constant CI_AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
+--constant CI_AXISTEN_IF_RQ_ALIGNMENT_MODE   : string := "FALSE";
+--constant CI_AXISTEN_IF_CC_ALIGNMENT_MODE   : string := "FALSE";
+--constant CI_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
+--constant CI_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
+--constant CI_AXISTEN_IF_ENABLE_CLIENT_TAG   : integer := 0;
+--constant CI_AXISTEN_IF_RQ_PARITY_CHECK     : integer := 0;
+--constant CI_AXISTEN_IF_CC_PARITY_CHECK     : integer := 0;
+--constant CI_AXISTEN_IF_MC_RX_STRADDLE      : integer := 0;
+--constant CI_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
+--constant CI_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := std_logic_vector(TO_UNSIGNED(16#2FFFF#, 18));
 
 
 component pcie3_core
@@ -87,25 +88,25 @@ user_clk : OUT STD_LOGIC;
 user_reset : OUT STD_LOGIC;
 user_lnk_up : OUT STD_LOGIC;
 s_axis_rq_tdata : IN STD_LOGIC_VECTOR(CI_DATA_WIDTH - 1 DOWNTO 0);
-s_axis_rq_tkeep : IN STD_LOGIC_VECTOR(CI_KEEP_WIDTH - 1 DOWNTO 0);
+s_axis_rq_tkeep : IN STD_LOGIC_VECTOR((CI_DATA_WIDTH / 32) - 1 DOWNTO 0);
 s_axis_rq_tlast : IN STD_LOGIC;
 s_axis_rq_tready : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
 s_axis_rq_tuser : IN STD_LOGIC_VECTOR(59 DOWNTO 0);
 s_axis_rq_tvalid : IN STD_LOGIC;
 m_axis_rc_tdata : OUT STD_LOGIC_VECTOR(CI_DATA_WIDTH - 1 DOWNTO 0);
-m_axis_rc_tkeep : OUT STD_LOGIC_VECTOR(CI_KEEP_WIDTH - 1 DOWNTO 0);
+m_axis_rc_tkeep : OUT STD_LOGIC_VECTOR((CI_DATA_WIDTH / 32) - 1 DOWNTO 0);
 m_axis_rc_tlast : OUT STD_LOGIC;
 m_axis_rc_tready : IN STD_LOGIC;
 m_axis_rc_tuser : OUT STD_LOGIC_VECTOR(74 DOWNTO 0);
 m_axis_rc_tvalid : OUT STD_LOGIC;
 m_axis_cq_tdata : OUT STD_LOGIC_VECTOR(CI_DATA_WIDTH - 1 DOWNTO 0);
-m_axis_cq_tkeep : OUT STD_LOGIC_VECTOR(CI_KEEP_WIDTH - 1 DOWNTO 0);
+m_axis_cq_tkeep : OUT STD_LOGIC_VECTOR((CI_DATA_WIDTH / 32) - 1 DOWNTO 0);
 m_axis_cq_tlast : OUT STD_LOGIC;
 m_axis_cq_tready : IN STD_LOGIC;
 m_axis_cq_tuser : OUT STD_LOGIC_VECTOR(84 DOWNTO 0);
 m_axis_cq_tvalid : OUT STD_LOGIC;
 s_axis_cc_tdata : IN STD_LOGIC_VECTOR(CI_DATA_WIDTH - 1 DOWNTO 0);
-s_axis_cc_tkeep : IN STD_LOGIC_VECTOR(CI_KEEP_WIDTH - 1 DOWNTO 0);
+s_axis_cc_tkeep : IN STD_LOGIC_VECTOR((CI_DATA_WIDTH / 32) - 1 DOWNTO 0);
 s_axis_cc_tlast : IN STD_LOGIC;
 s_axis_cc_tready : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
 s_axis_cc_tuser : IN STD_LOGIC_VECTOR(32 DOWNTO 0);
@@ -248,9 +249,21 @@ sys_reset : IN STD_LOGIC;
 pcie_perstn1_in : IN STD_LOGIC;
 pcie_perstn0_out : OUT STD_LOGIC;
 pcie_perstn1_out : OUT STD_LOGIC;
-int_qpll1lock_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-int_qpll1outrefclk_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-int_qpll1outclk_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0)
+
+--for PCIEx4 (GEN3); PCIEx2 (GEN3)
+int_qpll1lock_out      : OUT STD_LOGIC_VECTOR(selval(1, 0, (CI_DATA_WIDTH = 256)) DOWNTO 0);
+int_qpll1outrefclk_out : OUT STD_LOGIC_VECTOR(selval(1, 0, (CI_DATA_WIDTH = 256)) DOWNTO 0);
+int_qpll1outclk_out    : OUT STD_LOGIC_VECTOR(selval(1, 0, (CI_DATA_WIDTH = 256)) DOWNTO 0)
+
+----for PCIEx8 (GEN3)
+--int_qpll1lock_out      : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+--int_qpll1outrefclk_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+--int_qpll1outclk_out    : OUT STD_LOGIC_VECTOR(1 DOWNTO 0)
+
+----for PCIEx4 (GEN3); PCIEx2 (GEN3)
+--int_qpll1lock_out      : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+--int_qpll1outrefclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+--int_qpll1outclk_out    : OUT STD_LOGIC_VECTOR(0 DOWNTO 0)
 );
 END component pcie3_core;
 
@@ -259,19 +272,19 @@ component pcie_ctrl
 generic(
 G_SIM : string := "OFF";
 G_DBGCS : string := "OFF";
-G_DATA_WIDTH                     : integer := 64;
-G_KEEP_WIDTH                     : integer := 1;
-G_AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
-G_AXISTEN_IF_RQ_ALIGNMENT_MODE   : string := "FALSE";
-G_AXISTEN_IF_CC_ALIGNMENT_MODE   : string := "FALSE";
-G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
-G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
-G_AXISTEN_IF_ENABLE_CLIENT_TAG   : integer := 1;
-G_AXISTEN_IF_RQ_PARITY_CHECK     : integer := 0;
-G_AXISTEN_IF_CC_PARITY_CHECK     : integer := 0;
-G_AXISTEN_IF_MC_RX_STRADDLE      : integer := 0;
-G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
-G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1')
+G_DATA_WIDTH                     : integer := 64
+--G_KEEP_WIDTH                     : integer := 1;
+--G_AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
+--G_AXISTEN_IF_RQ_ALIGNMENT_MODE   : string := "FALSE";
+--G_AXISTEN_IF_CC_ALIGNMENT_MODE   : string := "FALSE";
+--G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
+--G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
+--G_AXISTEN_IF_ENABLE_CLIENT_TAG   : integer := 1;
+--G_AXISTEN_IF_RQ_PARITY_CHECK     : integer := 0;
+--G_AXISTEN_IF_CC_PARITY_CHECK     : integer := 0;
+--G_AXISTEN_IF_MC_RX_STRADDLE      : integer := 0;
+--G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
+--G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1')
 );
 port (
 --------------------------------------
@@ -302,28 +315,28 @@ p_in_tst        : in    std_logic_vector(127 downto 0);
 p_out_axi_rq_tlast  : out  std_logic                                  ;
 p_out_axi_rq_tdata  : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_out_axi_rq_tuser  : out  std_logic_vector(59 downto 0)              ;
-p_out_axi_rq_tkeep  : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_axi_rq_tkeep  : out  std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_in_axi_rq_tready  : in   std_logic_vector(3 downto 0)               ;
 p_out_axi_rq_tvalid : out  std_logic                                  ;
 
 p_in_axi_rc_tdata   : in   std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_in_axi_rc_tuser   : in   std_logic_vector(74 downto 0)              ;
 p_in_axi_rc_tlast   : in   std_logic                                  ;
-p_in_axi_rc_tkeep   : in   std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_axi_rc_tkeep   : in   std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_in_axi_rc_tvalid  : in   std_logic                                  ;
 p_out_axi_rc_tready : out  std_logic_vector(21 downto 0)              ;
 
 p_in_axi_cq_tdata   : in   std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_in_axi_cq_tuser   : in   std_logic_vector(84 downto 0)              ;
 p_in_axi_cq_tlast   : in   std_logic                                  ;
-p_in_axi_cq_tkeep   : in   std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_axi_cq_tkeep   : in   std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_in_axi_cq_tvalid  : in   std_logic                                  ;
 p_out_axi_cq_tready : out  std_logic_vector(21 downto 0)              ;
 
 p_out_axi_cc_tdata  : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_out_axi_cc_tuser  : out  std_logic_vector(32 downto 0)              ;
 p_out_axi_cc_tlast  : out  std_logic                                  ;
-p_out_axi_cc_tkeep  : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_axi_cc_tkeep  : out  std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_out_axi_cc_tvalid : out  std_logic                                  ;
 p_in_axi_cc_tready  : in   std_logic_vector(3 downto 0)               ;
 
@@ -453,28 +466,28 @@ signal i_user_lnk_up      : std_logic;
 signal i_axi_rq_tlast     : std_logic                                   ;
 signal i_axi_rq_tdata     : std_logic_vector(CI_DATA_WIDTH - 1 downto 0);
 signal i_axi_rq_tuser     : std_logic_vector(59 downto 0)               ;
-signal i_axi_rq_tkeep     : std_logic_vector(CI_KEEP_WIDTH - 1 downto 0);
+signal i_axi_rq_tkeep     : std_logic_vector((CI_DATA_WIDTH / 32) - 1 downto 0);
 signal i_axi_rq_tready    : std_logic_vector(3 downto 0)                ;
 signal i_axi_rq_tvalid    : std_logic                                   ;
 
 signal i_axi_rc_tdata     : std_logic_vector(CI_DATA_WIDTH - 1 downto 0);
 signal i_axi_rc_tuser     : std_logic_vector(74 downto 0)               ;
 signal i_axi_rc_tlast     : std_logic                                   ;
-signal i_axi_rc_tkeep     : std_logic_vector(CI_KEEP_WIDTH - 1 downto 0);
+signal i_axi_rc_tkeep     : std_logic_vector((CI_DATA_WIDTH / 32) - 1 downto 0);
 signal i_axi_rc_tvalid    : std_logic                                   ;
 signal i_axi_rc_tready    : std_logic_vector(21 downto 0)               ;
 
 signal i_axi_cq_tdata     : std_logic_vector(CI_DATA_WIDTH - 1 downto 0);
 signal i_axi_cq_tuser     : std_logic_vector(84 downto 0)               ;
 signal i_axi_cq_tlast     : std_logic                                   ;
-signal i_axi_cq_tkeep     : std_logic_vector(CI_KEEP_WIDTH - 1 downto 0);
+signal i_axi_cq_tkeep     : std_logic_vector((CI_DATA_WIDTH / 32) - 1 downto 0);
 signal i_axi_cq_tvalid    : std_logic                                   ;
 signal i_axi_cq_tready    : std_logic_vector(21 downto 0)               ;
 
 signal i_axi_cc_tdata     : std_logic_vector(CI_DATA_WIDTH - 1 downto 0);
 signal i_axi_cc_tuser     : std_logic_vector(32 downto 0)               ;
 signal i_axi_cc_tlast     : std_logic                                   ;
-signal i_axi_cc_tkeep     : std_logic_vector(CI_KEEP_WIDTH - 1 downto 0);
+signal i_axi_cc_tkeep     : std_logic_vector((CI_DATA_WIDTH / 32) - 1 downto 0);
 signal i_axi_cc_tvalid    : std_logic                                   ;
 signal i_axi_cc_tready    : std_logic_vector(3 downto 0)                ;
 
@@ -787,19 +800,19 @@ m_ctrl : pcie_ctrl
 generic map(
 G_SIM => G_SIM,
 G_DBGCS => G_DBGCS,
-G_DATA_WIDTH                     => CI_DATA_WIDTH                     ,
-G_KEEP_WIDTH                     => CI_KEEP_WIDTH                     ,
-G_AXISTEN_IF_WIDTH               => CI_AXISTEN_IF_WIDTH               ,
-G_AXISTEN_IF_RQ_ALIGNMENT_MODE   => CI_AXISTEN_IF_RQ_ALIGNMENT_MODE   ,
-G_AXISTEN_IF_CC_ALIGNMENT_MODE   => CI_AXISTEN_IF_CC_ALIGNMENT_MODE   ,
-G_AXISTEN_IF_CQ_ALIGNMENT_MODE   => CI_AXISTEN_IF_CQ_ALIGNMENT_MODE   ,
-G_AXISTEN_IF_RC_ALIGNMENT_MODE   => CI_AXISTEN_IF_RC_ALIGNMENT_MODE   ,
-G_AXISTEN_IF_ENABLE_CLIENT_TAG   => CI_AXISTEN_IF_ENABLE_CLIENT_TAG   ,
-G_AXISTEN_IF_RQ_PARITY_CHECK     => CI_AXISTEN_IF_RQ_PARITY_CHECK     ,
-G_AXISTEN_IF_CC_PARITY_CHECK     => CI_AXISTEN_IF_CC_PARITY_CHECK     ,
-G_AXISTEN_IF_MC_RX_STRADDLE      => CI_AXISTEN_IF_MC_RX_STRADDLE      ,
-G_AXISTEN_IF_ENABLE_RX_MSG_INTFC => CI_AXISTEN_IF_ENABLE_RX_MSG_INTFC ,
-G_AXISTEN_IF_ENABLE_MSG_ROUTE    => CI_AXISTEN_IF_ENABLE_MSG_ROUTE
+G_DATA_WIDTH                     => CI_DATA_WIDTH
+--G_KEEP_WIDTH                     => CI_KEEP_WIDTH                     ,
+--G_AXISTEN_IF_WIDTH               => CI_AXISTEN_IF_WIDTH               ,
+--G_AXISTEN_IF_RQ_ALIGNMENT_MODE   => CI_AXISTEN_IF_RQ_ALIGNMENT_MODE   ,
+--G_AXISTEN_IF_CC_ALIGNMENT_MODE   => CI_AXISTEN_IF_CC_ALIGNMENT_MODE   ,
+--G_AXISTEN_IF_CQ_ALIGNMENT_MODE   => CI_AXISTEN_IF_CQ_ALIGNMENT_MODE   ,
+--G_AXISTEN_IF_RC_ALIGNMENT_MODE   => CI_AXISTEN_IF_RC_ALIGNMENT_MODE   ,
+--G_AXISTEN_IF_ENABLE_CLIENT_TAG   => CI_AXISTEN_IF_ENABLE_CLIENT_TAG   ,
+--G_AXISTEN_IF_RQ_PARITY_CHECK     => CI_AXISTEN_IF_RQ_PARITY_CHECK     ,
+--G_AXISTEN_IF_CC_PARITY_CHECK     => CI_AXISTEN_IF_CC_PARITY_CHECK     ,
+--G_AXISTEN_IF_MC_RX_STRADDLE      => CI_AXISTEN_IF_MC_RX_STRADDLE      ,
+--G_AXISTEN_IF_ENABLE_RX_MSG_INTFC => CI_AXISTEN_IF_ENABLE_RX_MSG_INTFC ,
+--G_AXISTEN_IF_ENABLE_MSG_ROUTE    => CI_AXISTEN_IF_ENABLE_MSG_ROUTE
 )
 port map(
 --------------------------------------
@@ -830,28 +843,28 @@ p_in_tst        => p_in_usr_tst ,
 p_out_axi_rq_tlast  => i_axi_rq_tlast ,--: out  std_logic                                   ;
 p_out_axi_rq_tdata  => i_axi_rq_tdata ,--: out  std_logic_vector(G_DATA_WIDTH - 1 downto 0) ;
 p_out_axi_rq_tuser  => i_axi_rq_tuser ,--: out  std_logic_vector(59 downto 0)               ;
-p_out_axi_rq_tkeep  => i_axi_rq_tkeep ,--: out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0)   ;
+p_out_axi_rq_tkeep  => i_axi_rq_tkeep ,--: out  std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0)   ;
 p_in_axi_rq_tready  => i_axi_rq_tready,--: in   std_logic_vector(3 downto 0)                ;
 p_out_axi_rq_tvalid => i_axi_rq_tvalid,--: out  std_logic                                   ;
 
 p_in_axi_rc_tdata   => i_axi_rc_tdata ,--: in   std_logic_vector(G_DATA_WIDTH - 1 downto 0) ;
 p_in_axi_rc_tuser   => i_axi_rc_tuser ,--: in   std_logic_vector(74 downto 0)               ;
 p_in_axi_rc_tlast   => i_axi_rc_tlast ,--: in   std_logic                                   ;
-p_in_axi_rc_tkeep   => i_axi_rc_tkeep ,--: in   std_logic_vector(G_KEEP_WIDTH - 1 downto 0)   ;
+p_in_axi_rc_tkeep   => i_axi_rc_tkeep ,--: in   std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0)   ;
 p_in_axi_rc_tvalid  => i_axi_rc_tvalid,--: in   std_logic                                   ;
 p_out_axi_rc_tready => i_axi_rc_tready,--: out  std_logic_vector(21 downto 0)               ;
 
 p_in_axi_cq_tdata   => i_axi_cq_tdata ,--: in   std_logic_vector(G_DATA_WIDTH - 1 downto 0) ;
 p_in_axi_cq_tuser   => i_axi_cq_tuser ,--: in   std_logic_vector(84 downto 0)               ;
 p_in_axi_cq_tlast   => i_axi_cq_tlast ,--: in   std_logic                                   ;
-p_in_axi_cq_tkeep   => i_axi_cq_tkeep ,--: in   std_logic_vector(G_KEEP_WIDTH - 1 downto 0)   ;
+p_in_axi_cq_tkeep   => i_axi_cq_tkeep ,--: in   std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0)   ;
 p_in_axi_cq_tvalid  => i_axi_cq_tvalid,--: in   std_logic                                   ;
 p_out_axi_cq_tready => i_axi_cq_tready,--: out  std_logic_vector(21 downto 0)               ;
 
 p_out_axi_cc_tdata  => i_axi_cc_tdata ,--: out  std_logic_vector(G_DATA_WIDTH - 1 downto 0) ;
 p_out_axi_cc_tuser  => i_axi_cc_tuser ,--: out  std_logic_vector(32 downto 0)               ;
 p_out_axi_cc_tlast  => i_axi_cc_tlast ,--: out  std_logic                                   ;
-p_out_axi_cc_tkeep  => i_axi_cc_tkeep ,--: out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0)   ;
+p_out_axi_cc_tkeep  => i_axi_cc_tkeep ,--: out  std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0)   ;
 p_out_axi_cc_tvalid => i_axi_cc_tvalid,--: out  std_logic                                   ;
 p_in_axi_cc_tready  => i_axi_cc_tready,--: in   std_logic_vector(3 downto 0)                ;
 

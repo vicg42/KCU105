@@ -31,16 +31,17 @@ end component pio_to_ctrl;
 
 component pcie_rx
 generic(
-G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
-G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
-G_AXISTEN_IF_RC_STRADDLE         : integer := 0;
-G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
-G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1');
+--G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
+--G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
+--G_AXISTEN_IF_RC_STRADDLE         : integer := 0;
+--G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
+--G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1');
+--
+--G_STRB_WIDTH   : integer := 64 / 8 ; -- TSTRB width
+--G_KEEP_WIDTH   : integer := 64 / 32;
+--G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
 
-G_DATA_WIDTH   : integer := 64     ;
-G_STRB_WIDTH   : integer := 64 / 8 ; -- TSTRB width
-G_KEEP_WIDTH   : integer := 64 / 32;
-G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
+G_DATA_WIDTH : integer := 64
 );
 port (
 -- Completer Request Interface
@@ -48,7 +49,7 @@ p_in_axi_cq_tdata    : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_in_axi_cq_tlast    : in  std_logic;
 p_in_axi_cq_tvalid   : in  std_logic;
 p_in_axi_cq_tuser    : in  std_logic_vector(84 downto 0);
-p_in_axi_cq_tkeep    : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_axi_cq_tkeep    : in  std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_out_axi_cq_tready  : out std_logic;
 
 p_in_pcie_cq_np_req_count : in  std_logic_vector(5 downto 0);
@@ -58,7 +59,7 @@ p_out_pcie_cq_np_req      : out std_logic;
 p_in_axi_rc_tdata    : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_in_axi_rc_tlast    : in  std_logic;
 p_in_axi_rc_tvalid   : in  std_logic;
-p_in_axi_rc_tkeep    : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_axi_rc_tkeep    : in  std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_in_axi_rc_tuser    : in  std_logic_vector(74 downto 0);
 p_out_axi_rc_tready  : out std_logic;
 
@@ -87,7 +88,7 @@ p_out_ureg_wrbe: out std_logic_vector(3 downto 0);
 p_out_ureg_wr  : out std_logic;
 p_out_ureg_rd  : out std_logic;
 
---p_out_utxbuf_be   : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+--p_out_utxbuf_be   : out  std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_out_utxbuf_di   : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_out_utxbuf_wr   : out  std_logic;
 p_out_utxbuf_last : out  std_logic;
@@ -105,21 +106,22 @@ end component pcie_rx;
 
 component pcie_tx
 generic (
-G_AXISTEN_IF_RQ_ALIGNMENT_MODE : string := "FALSE";
-G_AXISTEN_IF_CC_ALIGNMENT_MODE : string := "FALSE";
-G_AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
-G_AXISTEN_IF_RQ_PARITY_CHECK   : integer := 0;
-G_AXISTEN_IF_CC_PARITY_CHECK   : integer := 0;
+--G_AXISTEN_IF_RQ_ALIGNMENT_MODE : string := "FALSE";
+--G_AXISTEN_IF_CC_ALIGNMENT_MODE : string := "FALSE";
+--G_AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
+--G_AXISTEN_IF_RQ_PARITY_CHECK   : integer := 0;
+--G_AXISTEN_IF_CC_PARITY_CHECK   : integer := 0;
+--
+--G_PARITY_WIDTH : integer := 64 /8 ;
+--G_KEEP_WIDTH   : integer := 64 /32;
+--G_STRB_WIDTH   : integer := 64 / 8
 
-G_DATA_WIDTH : integer := 64;
-G_PARITY_WIDTH : integer := 64 /8 ;
-G_KEEP_WIDTH   : integer := 64 /32;
-G_STRB_WIDTH   : integer := 64 / 8
+G_DATA_WIDTH : integer := 64
 );
 port (
 --AXI-S Completer Competion Interface
 p_out_axi_cc_tdata  : out std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_out_axi_cc_tkeep  : out std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_axi_cc_tkeep  : out std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_out_axi_cc_tlast  : out std_logic;
 p_out_axi_cc_tvalid : out std_logic;
 p_out_axi_cc_tuser  : out std_logic_vector(32 downto 0);
@@ -127,7 +129,7 @@ p_in_axi_cc_tready  : in  std_logic;
 
 --AXI-S Requester Request Interface
 p_out_axi_rq_tdata  : out std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_out_axi_rq_tkeep  : out std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_axi_rq_tkeep  : out std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_out_axi_rq_tlast  : out std_logic;
 p_out_axi_rq_tvalid : out std_logic;
 p_out_axi_rq_tuser  : out std_logic_vector(59 downto 0);

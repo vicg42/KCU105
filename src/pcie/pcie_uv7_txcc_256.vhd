@@ -18,19 +18,20 @@ use work.pcie_pkg.all;
 
 entity pcie_tx_cc is
 generic (
-G_AXISTEN_IF_CC_ALIGNMENT_MODE : string := "FALSE";
---G_AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
-G_AXISTEN_IF_CC_PARITY_CHECK   : integer := 0;
+--G_AXISTEN_IF_CC_ALIGNMENT_MODE : string := "FALSE";
+----G_AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
+--G_AXISTEN_IF_CC_PARITY_CHECK   : integer := 0;
+--
+--G_STRB_WIDTH   : integer := 64 / 8 ; --TSTRB width
+--G_KEEP_WIDTH   : integer := 64 / 32;
+--G_PARITY_WIDTH : integer := 64 / 8   --TPARITY width
 
-G_DATA_WIDTH   : integer := 64     ;
-G_STRB_WIDTH   : integer := 64 / 8 ; --TSTRB width
-G_KEEP_WIDTH   : integer := 64 / 32;
-G_PARITY_WIDTH : integer := 64 / 8   --TPARITY width
+G_DATA_WIDTH : integer := 64
 );
 port(
 --AXI-S Completer Competion Interface
 p_out_axi_cc_tdata  : out std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_out_axi_cc_tkeep  : out std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_axi_cc_tkeep  : out std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_out_axi_cc_tlast  : out std_logic;
 p_out_axi_cc_tvalid : out std_logic;
 p_out_axi_cc_tuser  : out std_logic_vector(32 downto 0);
@@ -75,10 +76,10 @@ end entity pcie_tx_cc;
 architecture behavioral of pcie_tx_cc is
 
 type TFsmTx_state is (
-S_TX_IDLE  ,
-S_TX_CPL
+S_TXCC_IDLE,
+S_TXCC_CPL
 );
-signal i_fsm_tx         : TFsmTx_state;
+signal i_fsm_txcc       : TFsmTx_state;
 
 signal i_axi_cc_tparity : std_logic_vector(31 downto 0) := (others => '0');
 
@@ -205,7 +206,7 @@ begin
 if rising_edge(p_in_clk) then
   if (p_in_rst_n = '0') then
 
-    i_fsm_tx <= S_TX_IDLE;
+    i_fsm_txcc <= S_TXCC_IDLE;
 
     i_axi_cc_tdata  <= (others => '0');
     i_axi_cc_tkeep  <= (others => '0');
@@ -217,11 +218,11 @@ if rising_edge(p_in_clk) then
 
   else
 
-    case i_fsm_tx is
+    case i_fsm_txcc is
         --#######################################################################
         --
         --#######################################################################
-        when S_TX_IDLE =>
+        when S_TXCC_IDLE =>
 
             i_axi_cc_tdata  <= (others => '0');
             i_axi_cc_tkeep  <= (others => '0');
@@ -232,16 +233,16 @@ if rising_edge(p_in_clk) then
             i_compl_done <= '0';
 
             if (p_in_req_compl = '1') then
-              i_fsm_tx <= S_TX_CPL;
+              i_fsm_txcc <= S_TXCC_CPL;
             end if;
 
 
         --#######################################################################
         --
         --#######################################################################
-        when S_TX_CPL =>
+        when S_TXCC_CPL =>
 
-          if (sr_req_compl(sr_req_compl'high) = '1') then
+          if (sr_req_compl(sr_req_compl'high) = '1') and (p_in_axi_cc_tready = '1') then
 
             i_axi_cc_tvalid <= '1';
             i_axi_cc_tlast  <= '1';
@@ -299,20 +300,20 @@ if rising_edge(p_in_clk) then
             end if;
 
 
-            if (G_AXISTEN_IF_CC_PARITY_CHECK = 0) then
+--            if (G_AXISTEN_IF_CC_PARITY_CHECK = 0) then
               i_axi_cc_tuser <= (others => '0');
-            else
-              i_axi_cc_tuser <= std_logic_vector(RESIZE(UNSIGNED(i_axi_cc_tparity), i_axi_cc_tuser'length));
-            end if;
+--            else
+--              i_axi_cc_tuser <= std_logic_vector(RESIZE(UNSIGNED(i_axi_cc_tparity), i_axi_cc_tuser'length));
+--            end if;
 
-            if (p_in_axi_cc_tready = '1') then
+--            if (p_in_axi_cc_tready = '1') then
               i_compl_done <= '1';
-              i_fsm_tx <= S_TX_IDLE;
-            end if;
+              i_fsm_txcc <= S_TXCC_IDLE;
+--            end if;
 
           end if;
 
-    end case; --case i_fsm_tx is
+    end case; --case i_fsm_txcc is
   end if;--p_in_rst_n
 end if;--p_in_clk
 end process; --fsm
@@ -321,7 +322,7 @@ end process; --fsm
 --#######################################################################
 --DBG
 --#######################################################################
-tst_fsm_tx <= '1' when i_fsm_tx = S_TX_CPL  else '0';
+tst_fsm_tx <= '1' when i_fsm_txcc = S_TXCC_CPL  else '0';
 
 p_out_tst(0) <= tst_fsm_tx;
 p_out_tst(3 downto 1) <= (others => '0');

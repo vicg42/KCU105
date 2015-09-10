@@ -18,23 +18,23 @@ use work.pcie_pkg.all;
 
 entity pcie_rx_rc is
 generic (
-G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
-G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
-G_AXISTEN_IF_RC_STRADDLE         : integer := 0;
-G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
-G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1');
-
-G_DATA_WIDTH   : integer := 64     ;
-G_STRB_WIDTH   : integer := 64 / 8 ; -- TSTRB width
-G_KEEP_WIDTH   : integer := 64 / 32;
-G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
+--G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
+--G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
+--G_AXISTEN_IF_RC_STRADDLE         : integer := 0;
+--G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
+--G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1');
+--
+--G_STRB_WIDTH   : integer := 64 / 8 ; -- TSTRB width
+--G_KEEP_WIDTH   : integer := 64 / 32;
+--G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
+G_DATA_WIDTH   : integer := 64
 );
 port(
 -- Requester Completion Interface
 p_in_axi_rc_tdata   : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_in_axi_rc_tlast   : in  std_logic;
 p_in_axi_rc_tvalid  : in  std_logic;
-p_in_axi_rc_tkeep   : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_axi_rc_tkeep   : in  std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_in_axi_rc_tuser   : in  std_logic_vector(74 downto 0);
 p_out_axi_rc_tready : out std_logic;
 
@@ -46,7 +46,7 @@ p_out_dma_mrd_done : out std_logic;
 p_out_dma_mrd_rxdwcount : out std_logic_vector(31 downto 0);
 
 --usr app
---p_out_utxbuf_be   : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+--p_out_utxbuf_be   : out  std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_out_utxbuf_di   : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_out_utxbuf_wr   : out  std_logic;
 p_out_utxbuf_last : out  std_logic;
@@ -64,12 +64,12 @@ end entity pcie_rx_rc;
 architecture behavioral of pcie_rx_rc is
 
 type TFsmRx_state is (
-S_RX_IDLE,
-S_RX_DH,
-S_RX_DN,
-S_RX_DE
+S_RXRC_IDLE,
+S_RXRC_DH,
+S_RXRC_DN,
+S_RXRC_DE
 );
-signal i_fsm_rx           : TFsmRx_state;
+signal i_fsm_rxrc         : TFsmRx_state;
 
 signal i_sof              : std_logic_vector(1 downto 0);
 
@@ -92,7 +92,7 @@ signal i_axi_rc_tready    : std_logic;
 
 type TByteEn is array (0 to (G_DATA_WIDTH / 8) - 1) of std_logic_vector(3 downto 0);
 signal sr_axi_be          : TByteEn;
-type TData is array (0 to G_KEEP_WIDTH - 1) of std_logic_vector(31 downto 0);
+type TData is array (0 to (G_DATA_WIDTH / 32) - 1) of std_logic_vector(31 downto 0);
 signal sr_axi_data        : TData;
 signal i_axi_data         : TData;
 signal i_utxbuf_di        : TData;
@@ -104,7 +104,7 @@ signal tst_fsm_rx         : std_logic;
 begin --architecture behavioral of pcie_rx_rc
 
 
-gen : for i in 0 to 7 generate begin
+gen : for i in 0 to (G_DATA_WIDTH / 32) - 1 generate begin
 i_axi_data(i) <= p_in_axi_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
 end generate;
 
@@ -151,7 +151,7 @@ if rising_edge(p_in_clk) then
     if (p_in_dma_init = '1') then
         i_dma_init <= '1';
     else
-        if (i_fsm_rx = S_RX_DH) then
+        if (i_fsm_rxrc = S_RXRC_DH) then
           i_dma_init <= '0';
         end if;
     end if;
@@ -173,7 +173,7 @@ begin
 if rising_edge(p_in_clk) then
   if (p_in_rst_n = '0') then
 
-    i_fsm_rx <= S_RX_IDLE;
+    i_fsm_rxrc <= S_RXRC_IDLE;
 
     for i in 0 to sr_axi_data'length - 1 loop
     sr_axi_data(i) <= (others => '0');
@@ -201,9 +201,9 @@ if rising_edge(p_in_clk) then
 
   else
 
-    case i_fsm_rx is
+    case i_fsm_rxrc is
 
-        when S_RX_IDLE =>
+        when S_RXRC_IDLE =>
 
             i_cpld_tlp_work <= '0';
 
@@ -219,7 +219,7 @@ if rising_edge(p_in_clk) then
               end if;
 
               i_axi_rc_tready <= '1';
-              i_fsm_rx <= S_RX_DH;
+              i_fsm_rxrc <= S_RXRC_DH;
 
             else
               if (i_dma_init = '1') then
@@ -230,7 +230,7 @@ if rising_edge(p_in_clk) then
         --#######################################################################
         --Detect start of packet
         --#######################################################################
-        when S_RX_DH =>
+        when S_RXRC_DH =>
 
             err_out := (others => '0');
 
@@ -258,7 +258,7 @@ if rising_edge(p_in_clk) then
                               i_cpld_dw_rem <= (i_cpld_len(i_cpld_len'high - (log2(G_DATA_WIDTH / 32)) downto 0)
                                                 & TO_UNSIGNED(0, (log2(G_DATA_WIDTH / 32))))  - i_cpld_dw_t;
 
-                              i_fsm_rx <= S_RX_DN;
+                              i_fsm_rxrc <= S_RXRC_DN;
 
                           else
 
@@ -273,7 +273,7 @@ if rising_edge(p_in_clk) then
                                   i_dma_dw_cnt <= i_dma_dw_cnt + RESIZE(i_cpld_dw_t, i_cpld_dw_cnt'length);
 
                                   i_axi_rc_tready <= '0';
-                                  i_fsm_rx <= S_RX_IDLE;
+                                  i_fsm_rxrc <= S_RXRC_IDLE;
                               end if;
 
                           end if;
@@ -296,7 +296,7 @@ if rising_edge(p_in_clk) then
         --#######################################################################
         --
         --#######################################################################
-        when S_RX_DN =>
+        when S_RXRC_DN =>
 
             if (p_in_axi_rc_tvalid = '1' and p_in_utxbuf_full = '0') then
 
@@ -319,12 +319,12 @@ if rising_edge(p_in_clk) then
 
                         i_dma_dw_cnt <= i_dma_dw_cnt + RESIZE(i_cpld_dw, i_cpld_dw_cnt'length);
 
-                        i_fsm_rx <= S_RX_IDLE;
+                        i_fsm_rxrc <= S_RXRC_IDLE;
 
                     else
 
                       i_axi_rc_tready <= '0';
-                      i_fsm_rx <= S_RX_DE;
+                      i_fsm_rxrc <= S_RXRC_DE;
 
                     end if;
 
@@ -333,7 +333,7 @@ if rising_edge(p_in_clk) then
             end if;
 
 
-        when S_RX_DE =>
+        when S_RXRC_DE =>
 
             if (p_in_utxbuf_full = '0') then
 
@@ -348,11 +348,11 @@ if rising_edge(p_in_clk) then
 
                 i_dma_dw_cnt <= i_dma_dw_cnt + RESIZE(i_cpld_dw, i_cpld_dw_cnt'length);
 
-                i_fsm_rx <= S_RX_IDLE;
+                i_fsm_rxrc <= S_RXRC_IDLE;
 
             end if;
 
-    end case; --case i_fsm_rx is
+    end case; --case i_fsm_rxrc is
 
 
     tst_err <= err_out;
@@ -365,7 +365,7 @@ end process; --fsm
 --#######################################################################
 --DBG
 --#######################################################################
---tst_fsm_rx <= '1' when i_fsm_rx = S_RX_WAIT  else '0';
+--tst_fsm_rx <= '1' when i_fsm_rxrc = S_RXRC_WAIT  else '0';
 
 p_out_tst(0) <= '0';--tst_fsm_rx;
 p_out_tst(3 downto 1) <= (others => '0');

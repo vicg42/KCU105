@@ -18,19 +18,20 @@ use work.pcie_pkg.all;
 
 entity pcie_tx_rq is
 generic (
-G_AXISTEN_IF_RQ_ALIGNMENT_MODE : string := "FALSE";
-G_AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
-G_AXISTEN_IF_RQ_PARITY_CHECK   : integer := 0;
+--G_AXISTEN_IF_RQ_ALIGNMENT_MODE : string := "FALSE";
+--G_AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
+--G_AXISTEN_IF_RQ_PARITY_CHECK   : integer := 0;
+--
+--G_STRB_WIDTH   : integer := 64 / 8 ; --TSTRB width
+--G_KEEP_WIDTH   : integer := 64 / 32;
+--G_PARITY_WIDTH : integer := 64 / 8   --TPARITY width
 
-G_DATA_WIDTH   : integer := 64     ;
-G_STRB_WIDTH   : integer := 64 / 8 ; --TSTRB width
-G_KEEP_WIDTH   : integer := 64 / 32;
-G_PARITY_WIDTH : integer := 64 / 8   --TPARITY width
+G_DATA_WIDTH : integer := 64
 );
 port(
 --AXI-S Requester Request Interface
 p_out_axi_rq_tdata  : out std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_out_axi_rq_tkeep  : out std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_axi_rq_tkeep  : out std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_out_axi_rq_tlast  : out std_logic;
 p_out_axi_rq_tvalid : out std_logic;
 p_out_axi_rq_tuser  : out std_logic_vector(59 downto 0);
@@ -91,7 +92,7 @@ S_TXRQ_CPLD_WAIT
 signal i_fsm_txrq        : TFsmTxRq_state;
 
 signal i_axi_rq_tdata    : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-signal i_axi_rq_tkeep    : std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+signal i_axi_rq_tkeep    : std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 signal i_axi_rq_tlast    : std_logic;
 signal i_axi_rq_tvalid   : std_logic;
 signal i_axi_rq_tuser    : std_logic_vector(11 downto 0);

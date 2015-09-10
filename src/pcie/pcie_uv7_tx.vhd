@@ -18,21 +18,22 @@ use work.pcie_pkg.all;
 
 entity pcie_tx is
 generic (
-G_AXISTEN_IF_RQ_ALIGNMENT_MODE : string := "FALSE";
-G_AXISTEN_IF_CC_ALIGNMENT_MODE : string := "FALSE";
-G_AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
-G_AXISTEN_IF_RQ_PARITY_CHECK   : integer := 0;
-G_AXISTEN_IF_CC_PARITY_CHECK   : integer := 0;
+--G_AXISTEN_IF_RQ_ALIGNMENT_MODE : string := "FALSE";
+--G_AXISTEN_IF_CC_ALIGNMENT_MODE : string := "FALSE";
+--G_AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
+--G_AXISTEN_IF_RQ_PARITY_CHECK   : integer := 0;
+--G_AXISTEN_IF_CC_PARITY_CHECK   : integer := 0;
+--
+--G_STRB_WIDTH   : integer := 64 / 8 ; --TSTRB width
+--G_KEEP_WIDTH   : integer := 64 / 32;
+--G_PARITY_WIDTH : integer := 64 / 8   --TPARITY width
 
-G_DATA_WIDTH   : integer := 64     ;
-G_STRB_WIDTH   : integer := 64 / 8 ; --TSTRB width
-G_KEEP_WIDTH   : integer := 64 / 32;
-G_PARITY_WIDTH : integer := 64 / 8   --TPARITY width
+G_DATA_WIDTH : integer := 64
 );
 port(
 --AXI-S Completer Competion Interface
 p_out_axi_cc_tdata  : out std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_out_axi_cc_tkeep  : out std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_axi_cc_tkeep  : out std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_out_axi_cc_tlast  : out std_logic;
 p_out_axi_cc_tvalid : out std_logic;
 p_out_axi_cc_tuser  : out std_logic_vector(32 downto 0);
@@ -40,7 +41,7 @@ p_in_axi_cc_tready  : in  std_logic;
 
 --AXI-S Requester Request Interface
 p_out_axi_rq_tdata  : out std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_out_axi_rq_tkeep  : out std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_axi_rq_tkeep  : out std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_out_axi_rq_tlast  : out std_logic;
 p_out_axi_rq_tvalid : out std_logic;
 p_out_axi_rq_tuser  : out std_logic_vector(59 downto 0);
@@ -112,19 +113,20 @@ architecture behavioral of pcie_tx is
 
 component pcie_tx_cc is
 generic (
-G_AXISTEN_IF_CC_ALIGNMENT_MODE : string := "FALSE";
---G_AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
-G_AXISTEN_IF_CC_PARITY_CHECK   : integer := 0;
+--G_AXISTEN_IF_CC_ALIGNMENT_MODE : string := "FALSE";
+----G_AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
+--G_AXISTEN_IF_CC_PARITY_CHECK   : integer := 0;
+--
+--G_STRB_WIDTH   : integer := 64 / 8 ; --TSTRB width
+--G_KEEP_WIDTH   : integer := 64 / 32;
+--G_PARITY_WIDTH : integer := 64 / 8   --TPARITY width
 
-G_DATA_WIDTH   : integer := 64     ;
-G_STRB_WIDTH   : integer := 64 / 8 ; --TSTRB width
-G_KEEP_WIDTH   : integer := 64 / 32;
-G_PARITY_WIDTH : integer := 64 / 8   --TPARITY width
+G_DATA_WIDTH : integer := 64
 );
 port(
 --AXI-S Completer Competion Interface
 p_out_axi_cc_tdata  : out std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_out_axi_cc_tkeep  : out std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_axi_cc_tkeep  : out std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_out_axi_cc_tlast  : out std_logic;
 p_out_axi_cc_tvalid : out std_logic;
 p_out_axi_cc_tuser  : out std_logic_vector(32 downto 0);
@@ -169,19 +171,20 @@ end component pcie_tx_cc;
 
 component pcie_tx_rq is
 generic (
-G_AXISTEN_IF_RQ_ALIGNMENT_MODE : string := "FALSE";
-G_AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
-G_AXISTEN_IF_RQ_PARITY_CHECK   : integer := 0;
+--G_AXISTEN_IF_RQ_ALIGNMENT_MODE : string := "FALSE";
+--G_AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
+--G_AXISTEN_IF_RQ_PARITY_CHECK   : integer := 0;
+--
+--G_STRB_WIDTH   : integer := 64 / 8 ; --TSTRB width
+--G_KEEP_WIDTH   : integer := 64 / 32;
+--G_PARITY_WIDTH : integer := 64 / 8   --TPARITY width
 
-G_DATA_WIDTH   : integer := 64     ;
-G_STRB_WIDTH   : integer := 64 / 8 ; --TSTRB width
-G_KEEP_WIDTH   : integer := 64 / 32;
-G_PARITY_WIDTH : integer := 64 / 8   --TPARITY width
+G_DATA_WIDTH : integer := 64
 );
 port(
 --AXI-S Requester Request Interface
 p_out_axi_rq_tdata  : out std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_out_axi_rq_tkeep  : out std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_axi_rq_tkeep  : out std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_out_axi_rq_tlast  : out std_logic;
 p_out_axi_rq_tvalid : out std_logic;
 p_out_axi_rq_tuser  : out std_logic_vector(59 downto 0);
@@ -230,14 +233,15 @@ begin --architecture behavioral of pcie_tx
 
 m_tx_cc : pcie_tx_cc
 generic map(
-G_AXISTEN_IF_CC_ALIGNMENT_MODE => G_AXISTEN_IF_CC_ALIGNMENT_MODE,
---G_AXISTEN_IF_ENABLE_CLIENT_TAG => G_AXISTEN_IF_ENABLE_CLIENT_TAG,
-G_AXISTEN_IF_CC_PARITY_CHECK   => G_AXISTEN_IF_CC_PARITY_CHECK  ,
+--G_AXISTEN_IF_CC_ALIGNMENT_MODE => G_AXISTEN_IF_CC_ALIGNMENT_MODE,
+----G_AXISTEN_IF_ENABLE_CLIENT_TAG => G_AXISTEN_IF_ENABLE_CLIENT_TAG,
+--G_AXISTEN_IF_CC_PARITY_CHECK   => G_AXISTEN_IF_CC_PARITY_CHECK  ,
+--
+--G_STRB_WIDTH   => G_STRB_WIDTH  ,
+--G_KEEP_WIDTH   => G_KEEP_WIDTH  ,
+--G_PARITY_WIDTH => G_PARITY_WIDTH
 
-G_DATA_WIDTH   => G_DATA_WIDTH  ,
-G_STRB_WIDTH   => G_STRB_WIDTH  ,
-G_KEEP_WIDTH   => G_KEEP_WIDTH  ,
-G_PARITY_WIDTH => G_PARITY_WIDTH
+G_DATA_WIDTH => G_DATA_WIDTH
 )
 port map(
 --AXI-S Completer Competion Interface
@@ -287,14 +291,15 @@ p_in_rst_n => p_in_rst_n
 
 m_tx_rq : pcie_tx_rq
 generic map(
-G_AXISTEN_IF_RQ_ALIGNMENT_MODE => G_AXISTEN_IF_RQ_ALIGNMENT_MODE,
-G_AXISTEN_IF_ENABLE_CLIENT_TAG => G_AXISTEN_IF_ENABLE_CLIENT_TAG,
-G_AXISTEN_IF_RQ_PARITY_CHECK   => G_AXISTEN_IF_RQ_PARITY_CHECK  ,
+--G_AXISTEN_IF_RQ_ALIGNMENT_MODE => G_AXISTEN_IF_RQ_ALIGNMENT_MODE,
+--G_AXISTEN_IF_ENABLE_CLIENT_TAG => G_AXISTEN_IF_ENABLE_CLIENT_TAG,
+--G_AXISTEN_IF_RQ_PARITY_CHECK   => G_AXISTEN_IF_RQ_PARITY_CHECK  ,
+--
+--G_STRB_WIDTH   => G_STRB_WIDTH  ,
+--G_KEEP_WIDTH   => G_KEEP_WIDTH  ,
+--G_PARITY_WIDTH => G_PARITY_WIDTH
 
-G_DATA_WIDTH   => G_DATA_WIDTH  ,
-G_STRB_WIDTH   => G_STRB_WIDTH  ,
-G_KEEP_WIDTH   => G_KEEP_WIDTH  ,
-G_PARITY_WIDTH => G_PARITY_WIDTH
+G_DATA_WIDTH => G_DATA_WIDTH
 )
 port map(
 --AXI-S Requester Request Interface

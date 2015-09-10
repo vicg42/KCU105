@@ -18,16 +18,16 @@ use work.pcie_pkg.all;
 
 entity pcie_rx is
 generic (
-G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
-G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
-G_AXISTEN_IF_RC_STRADDLE         : integer := 0;
-G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
-G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1');
-
-G_DATA_WIDTH   : integer := 64     ;
-G_STRB_WIDTH   : integer := 64 / 8 ; -- TSTRB width
-G_KEEP_WIDTH   : integer := 64 / 32;
-G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
+--G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
+--G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
+--G_AXISTEN_IF_RC_STRADDLE         : integer := 0;
+--G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
+--G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1');
+--
+--G_STRB_WIDTH   : integer := 64 / 8 ; -- TSTRB width
+--G_KEEP_WIDTH   : integer := 64 / 32;
+--G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
+G_DATA_WIDTH   : integer := 64
 );
 port(
 -- Completer Request Interface
@@ -35,7 +35,7 @@ p_in_axi_cq_tdata      : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_in_axi_cq_tlast      : in  std_logic;
 p_in_axi_cq_tvalid     : in  std_logic;
 p_in_axi_cq_tuser      : in  std_logic_vector(84 downto 0);
-p_in_axi_cq_tkeep      : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_axi_cq_tkeep      : in  std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_in_pcie_cq_np_req_count : in  std_logic_vector(5 downto 0);
 p_out_axi_cq_tready    : out std_logic;
 
@@ -45,7 +45,7 @@ p_out_pcie_cq_np_req   : out std_logic;
 p_in_axi_rc_tdata    : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_in_axi_rc_tlast    : in  std_logic;
 p_in_axi_rc_tvalid   : in  std_logic;
-p_in_axi_rc_tkeep    : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_axi_rc_tkeep    : in  std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_in_axi_rc_tuser    : in  std_logic_vector(74 downto 0);
 p_out_axi_rc_tready  : out std_logic;
 
@@ -74,7 +74,7 @@ p_out_ureg_wrbe: out std_logic_vector(3 downto 0);
 p_out_ureg_wr  : out std_logic;
 p_out_ureg_rd  : out std_logic;
 
---p_out_utxbuf_be   : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+--p_out_utxbuf_be   : out  std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_out_utxbuf_di   : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_out_utxbuf_wr   : out  std_logic;
 p_out_utxbuf_last : out  std_logic;
@@ -93,12 +93,13 @@ architecture behavioral of pcie_rx is
 
 component pcie_rx_cq is
 generic (
-G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
-G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
-G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1');
+--G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
+--G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
+--G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1');
+--
+--G_KEEP_WIDTH : integer := 64 / 32
 
-G_DATA_WIDTH : integer := 64;
-G_KEEP_WIDTH : integer := 64 / 32
+G_DATA_WIDTH : integer := 64
 );
 port(
 -- Completer Request Interface
@@ -106,7 +107,7 @@ p_in_axi_cq_tdata   : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_in_axi_cq_tlast   : in  std_logic;
 p_in_axi_cq_tvalid  : in  std_logic;
 p_in_axi_cq_tuser   : in  std_logic_vector(84 downto 0);
-p_in_axi_cq_tkeep   : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_axi_cq_tkeep   : in  std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_out_axi_cq_tready : out std_logic;
 
 p_in_pcie_cq_np_req_count : in  std_logic_vector(5 downto 0);
@@ -142,23 +143,24 @@ end component pcie_rx_cq;
 
 component pcie_rx_rc
 generic (
-G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
-G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
-G_AXISTEN_IF_RC_STRADDLE         : integer := 0;
-G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
-G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1');
+--G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
+--G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
+--G_AXISTEN_IF_RC_STRADDLE         : integer := 0;
+--G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
+--G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1');
+--
+--G_STRB_WIDTH   : integer := 64 / 8 ; -- TSTRB width
+--G_KEEP_WIDTH   : integer := 64 / 32;
+--G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
 
-G_DATA_WIDTH   : integer := 64     ;
-G_STRB_WIDTH   : integer := 64 / 8 ; -- TSTRB width
-G_KEEP_WIDTH   : integer := 64 / 32;
-G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
+G_DATA_WIDTH : integer := 64
 );
 port(
 -- Requester Completion Interface
 p_in_axi_rc_tdata   : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_in_axi_rc_tlast   : in  std_logic;
 p_in_axi_rc_tvalid  : in  std_logic;
-p_in_axi_rc_tkeep   : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_axi_rc_tkeep   : in  std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_in_axi_rc_tuser   : in  std_logic_vector(74 downto 0);
 p_out_axi_rc_tready : out std_logic;
 
@@ -170,7 +172,7 @@ p_out_dma_mrd_done : out std_logic;
 p_out_dma_mrd_rxdwcount : out std_logic_vector(31 downto 0);
 
 --usr app
---p_out_utxbuf_be   : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+--p_out_utxbuf_be   : out  std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_out_utxbuf_di   : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_out_utxbuf_wr   : out  std_logic;
 p_out_utxbuf_last : out  std_logic;
@@ -191,12 +193,11 @@ begin --architecture behavioral of pcie_rx
 
 m_rx_cq : pcie_rx_cq
 generic map(
-G_AXISTEN_IF_CQ_ALIGNMENT_MODE   => G_AXISTEN_IF_CQ_ALIGNMENT_MODE  ,
-G_AXISTEN_IF_ENABLE_RX_MSG_INTFC => G_AXISTEN_IF_ENABLE_RX_MSG_INTFC,
-G_AXISTEN_IF_ENABLE_MSG_ROUTE    => G_AXISTEN_IF_ENABLE_MSG_ROUTE   ,
-
-G_DATA_WIDTH   => G_DATA_WIDTH,
-G_KEEP_WIDTH   => G_KEEP_WIDTH
+--G_AXISTEN_IF_CQ_ALIGNMENT_MODE   => G_AXISTEN_IF_CQ_ALIGNMENT_MODE  ,
+--G_AXISTEN_IF_ENABLE_RX_MSG_INTFC => G_AXISTEN_IF_ENABLE_RX_MSG_INTFC,
+--G_AXISTEN_IF_ENABLE_MSG_ROUTE    => G_AXISTEN_IF_ENABLE_MSG_ROUTE   ,
+--G_KEEP_WIDTH   => G_KEEP_WIDTH,
+G_DATA_WIDTH   => G_DATA_WIDTH
 )
 port map(
 --Completer Request Interface
@@ -239,16 +240,16 @@ p_in_rst_n => p_in_rst_n
 
 m_rx_rc : pcie_rx_rc
 generic map(
-G_AXISTEN_IF_CQ_ALIGNMENT_MODE   => G_AXISTEN_IF_CQ_ALIGNMENT_MODE  ,
-G_AXISTEN_IF_RC_ALIGNMENT_MODE   => G_AXISTEN_IF_RC_ALIGNMENT_MODE  ,
-G_AXISTEN_IF_RC_STRADDLE         => G_AXISTEN_IF_RC_STRADDLE        ,
-G_AXISTEN_IF_ENABLE_RX_MSG_INTFC => G_AXISTEN_IF_ENABLE_RX_MSG_INTFC,
-G_AXISTEN_IF_ENABLE_MSG_ROUTE    => G_AXISTEN_IF_ENABLE_MSG_ROUTE   ,
-
-G_DATA_WIDTH   => G_DATA_WIDTH  ,
-G_STRB_WIDTH   => G_STRB_WIDTH  ,
-G_KEEP_WIDTH   => G_KEEP_WIDTH  ,
-G_PARITY_WIDTH => G_PARITY_WIDTH
+--G_AXISTEN_IF_CQ_ALIGNMENT_MODE   => G_AXISTEN_IF_CQ_ALIGNMENT_MODE  ,
+--G_AXISTEN_IF_RC_ALIGNMENT_MODE   => G_AXISTEN_IF_RC_ALIGNMENT_MODE  ,
+--G_AXISTEN_IF_RC_STRADDLE         => G_AXISTEN_IF_RC_STRADDLE        ,
+--G_AXISTEN_IF_ENABLE_RX_MSG_INTFC => G_AXISTEN_IF_ENABLE_RX_MSG_INTFC,
+--G_AXISTEN_IF_ENABLE_MSG_ROUTE    => G_AXISTEN_IF_ENABLE_MSG_ROUTE   ,
+--
+--G_STRB_WIDTH   => G_STRB_WIDTH  ,
+--G_KEEP_WIDTH   => G_KEEP_WIDTH  ,
+--G_PARITY_WIDTH => G_PARITY_WIDTH,
+G_DATA_WIDTH   => G_DATA_WIDTH
 )
 port map(
 -- Requester Completion Interface
@@ -267,7 +268,7 @@ p_out_dma_mrd_done => p_out_dma_mrd_done,
 p_out_dma_mrd_rxdwcount => p_out_dma_mrd_rxdwcount,
 
 --usr app
---p_out_utxbuf_be   : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+--p_out_utxbuf_be   : out  std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_out_utxbuf_di   => p_out_utxbuf_di  ,
 p_out_utxbuf_wr   => p_out_utxbuf_wr  ,
 p_out_utxbuf_last => p_out_utxbuf_last,

@@ -18,11 +18,11 @@ use work.pcie_pkg.all;
 
 entity pcie_rx_cq is
 generic (
-G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
-G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
-G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1');
-G_DATA_WIDTH   : integer := 64;
-G_KEEP_WIDTH : integer := 64 / 32
+--G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
+--G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
+--G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1');
+--G_KEEP_WIDTH : integer := 64 / 32
+G_DATA_WIDTH : integer := 64
 );
 port(
 -- Completer Request Interface
@@ -68,11 +68,11 @@ end entity pcie_rx_cq;
 architecture behavioral of pcie_rx_cq is
 
 type TFsmRx_state is (
-S_RX_IDLE,
-S_RX_RCV ,
-S_RX_WAIT
+S_RXCQ_IDLE,
+S_RXCQ_D ,
+S_RXCQ_WAIT
 );
-signal i_fsm_rx           : TFsmRx_state;
+signal i_fsm_rxcq         : TFsmRx_state;
 
 signal i_sop              : std_logic;
 
@@ -133,7 +133,7 @@ begin
 if rising_edge(p_in_clk) then
   if (p_in_rst_n = '0') then
 
-    i_fsm_rx <= S_RX_IDLE;
+    i_fsm_rxcq <= S_RXCQ_IDLE;
 
     i_axi_cq_tready <= '0';
 
@@ -163,11 +163,11 @@ if rising_edge(p_in_clk) then
 
   else
 
-    case i_fsm_rx is
+    case i_fsm_rxcq is
         --#######################################################################
         --Detect start of packet
         --#######################################################################
-        when S_RX_IDLE =>
+        when S_RXCQ_IDLE =>
 
             i_reg_wr <= '0';
 
@@ -197,20 +197,18 @@ if rising_edge(p_in_clk) then
                             | C_PCIE3_PKT_TYPE_IO_RD_ND
                             | C_PCIE3_PKT_TYPE_IO_WR_D =>
 
-                          i_axi_cq_tready <= '0';
-
                           i_req_des(0) <= p_in_axi_cq_tdata((32 * 1) - 1 downto (32 * 0));
                           i_req_des(1) <= p_in_axi_cq_tdata((32 * 2) - 1 downto (32 * 1));
                           i_req_des(2) <= p_in_axi_cq_tdata((32 * 3) - 1 downto (32 * 2));
                           i_req_des(3) <= p_in_axi_cq_tdata((32 * 4) - 1 downto (32 * 3));
 
-                          i_fsm_rx <= S_RX_RCV;
+                          i_fsm_rxcq <= S_RXCQ_D;
 
                         -------------------------------------------------------------------------
                         --
                         -------------------------------------------------------------------------
                          when others =>
-                            i_fsm_rx <= S_RX_IDLE;
+                            i_fsm_rxcq <= S_RXCQ_IDLE;
 
                     end case;--Req Type
               else
@@ -218,7 +216,7 @@ if rising_edge(p_in_clk) then
               end if;
             end if;
 
-        when S_RX_RCV =>
+        when S_RXCQ_D =>
 
           if (p_in_axi_cq_tvalid = '1') then
 
@@ -247,6 +245,8 @@ if rising_edge(p_in_clk) then
                         end if;
 
                     else
+
+                        i_axi_cq_tready <= '0';
                         i_req_compl <= '1';
 
                         if (i_req_des(2)(14 downto 11) = C_PCIE3_PKT_TYPE_IO_WR_D) then
@@ -272,14 +272,14 @@ if rising_edge(p_in_clk) then
 
                 end if;
 
-                i_fsm_rx <= S_RX_WAIT;
+                i_fsm_rxcq <= S_RXCQ_WAIT;
 
           end if;
 
         --#######################################################################
         --
         --#######################################################################
-        when S_RX_WAIT =>
+        when S_RXCQ_WAIT =>
 
             i_reg_cs <= '0';
             i_reg_wr <= '0';
@@ -290,11 +290,11 @@ if rising_edge(p_in_clk) then
             if (p_in_compl_done = '1' or i_req_compl = '0') then
 
               i_axi_cq_tready <= '1';
-              i_fsm_rx <= S_RX_IDLE;
+              i_fsm_rxcq <= S_RXCQ_IDLE;
 
             end if;
 
-    end case; --case i_fsm_rx is
+    end case; --case i_fsm_rxcq is
 
 
     tst_err <= err_out;
@@ -307,7 +307,7 @@ end process; --fsm
 --#######################################################################
 --DBG
 --#######################################################################
-tst_fsm_rx <= '1' when i_fsm_rx = S_RX_WAIT  else '0';
+tst_fsm_rx <= '1' when i_fsm_rxcq = S_RXCQ_WAIT  else '0';
 
 p_out_tst(0) <= tst_fsm_rx;
 p_out_tst(3 downto 1) <= (others => '0');
