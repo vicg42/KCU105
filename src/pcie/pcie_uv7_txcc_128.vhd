@@ -22,7 +22,7 @@ G_AXISTEN_IF_CC_ALIGNMENT_MODE : string := "FALSE";
 --G_AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
 G_AXISTEN_IF_CC_PARITY_CHECK   : integer := 0;
 
-G_DATA_WIDTH   : integer := 64     ;
+G_DATA_WIDTH   : integer := 64;
 G_STRB_WIDTH   : integer := 64 / 8 ; --TSTRB width
 G_KEEP_WIDTH   : integer := 64 / 32;
 G_PARITY_WIDTH : integer := 64 / 8   --TPARITY width
@@ -30,7 +30,7 @@ G_PARITY_WIDTH : integer := 64 / 8   --TPARITY width
 port(
 --AXI-S Completer Competion Interface
 p_out_axi_cc_tdata  : out std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_out_axi_cc_tkeep  : out std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_axi_cc_tkeep  : out std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_out_axi_cc_tlast  : out std_logic;
 p_out_axi_cc_tvalid : out std_logic;
 p_out_axi_cc_tuser  : out std_logic_vector(32 downto 0);
@@ -119,8 +119,8 @@ begin --architecture behavioral of pcie_tx_cc
 p_out_compl_done <= i_compl_done;
 
 --AXI-S Completer Competion Interface
-p_out_axi_cc_tdata  <= std_logic_vector(RESIZE(UNSIGNED(i_axi_cc_tdata), 256));
-p_out_axi_cc_tkeep  <= std_logic_vector(RESIZE(UNSIGNED(i_axi_cc_tkeep), 8)) ;
+p_out_axi_cc_tdata  <= std_logic_vector(RESIZE(UNSIGNED(i_axi_cc_tdata), p_out_axi_cc_tdata'length));
+p_out_axi_cc_tkeep  <= std_logic_vector(RESIZE(UNSIGNED(i_axi_cc_tkeep), p_out_axi_cc_tkeep'length));
 p_out_axi_cc_tlast  <= i_axi_cc_tlast ;
 p_out_axi_cc_tvalid <= i_axi_cc_tvalid;
 p_out_axi_cc_tuser  <= i_axi_cc_tuser ;
@@ -299,11 +299,11 @@ if rising_edge(p_in_clk) then
             end if;
 
 
-            if (G_AXISTEN_IF_CC_PARITY_CHECK = 0) then
+--            if (G_AXISTEN_IF_CC_PARITY_CHECK = 0) then
               i_axi_cc_tuser <= (others => '0');
-            else
-              i_axi_cc_tuser <= std_logic_vector(RESIZE(UNSIGNED(i_axi_cc_tparity), i_axi_cc_tuser'length));
-            end if;
+--            else
+--              i_axi_cc_tuser <= std_logic_vector(RESIZE(UNSIGNED(i_axi_cc_tparity), i_axi_cc_tuser'length));
+--            end if;
 
             if (p_in_axi_cc_tready = '1') then
               i_compl_done <= '1';

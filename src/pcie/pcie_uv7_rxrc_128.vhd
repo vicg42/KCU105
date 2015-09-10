@@ -24,7 +24,7 @@ G_AXISTEN_IF_RC_STRADDLE         : integer := 0;
 G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
 G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1');
 
-G_DATA_WIDTH   : integer := 64     ;
+G_DATA_WIDTH   : integer := 64;
 G_STRB_WIDTH   : integer := 64 / 8 ; -- TSTRB width
 G_KEEP_WIDTH   : integer := 64 / 32;
 G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
@@ -34,7 +34,7 @@ port(
 p_in_axi_rc_tdata   : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_in_axi_rc_tlast   : in  std_logic;
 p_in_axi_rc_tvalid  : in  std_logic;
-p_in_axi_rc_tkeep   : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_axi_rc_tkeep   : in  std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_in_axi_rc_tuser   : in  std_logic_vector(74 downto 0);
 p_out_axi_rc_tready : out std_logic;
 
@@ -46,7 +46,7 @@ p_out_dma_mrd_done : out std_logic;
 p_out_dma_mrd_rxdwcount : out std_logic_vector(31 downto 0);
 
 --usr app
---p_out_utxbuf_be   : out  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+--p_out_utxbuf_be   : out  std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_out_utxbuf_di   : out  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_out_utxbuf_wr   : out  std_logic;
 p_out_utxbuf_last : out  std_logic;
@@ -92,7 +92,7 @@ signal i_axi_rc_tready    : std_logic;
 
 type TByteEn is array (0 to (G_DATA_WIDTH / 8) - 1) of std_logic_vector(3 downto 0);
 signal sr_axi_be          : TByteEn;
-type TData is array (0 to G_KEEP_WIDTH - 1) of std_logic_vector(31 downto 0);
+type TData is array (0 to (G_DATA_WIDTH / 32) - 1) of std_logic_vector(31 downto 0);
 signal sr_axi_data        : TData;
 signal i_axi_data         : TData;
 signal i_utxbuf_di        : TData;
@@ -103,23 +103,35 @@ signal tst_fsm_rx         : std_logic;
 
 begin --architecture behavioral of pcie_rx_rc
 
+--gen : for i in 0 to (G_DATA_WIDTH / 32) - 1 generate begin
+--i_axi_data_be(i) <= p_in_axi_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
+--end generate;
 
-gen : for i in 0 to 7 generate begin
+gen : for i in 0 to (G_DATA_WIDTH / 32) - 1 generate begin
 i_axi_data(i) <= p_in_axi_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
 end generate;
 
-i_utxbuf_di(0) <= sr_axi_data(3);
-i_utxbuf_di(1) <= sr_axi_data(4);
-i_utxbuf_di(2) <= sr_axi_data(5);
-i_utxbuf_di(3) <= sr_axi_data(6);
-i_utxbuf_di(4) <= sr_axi_data(7);
-i_utxbuf_di(5) <= i_axi_data(0);
-i_utxbuf_di(6) <= i_axi_data(1);
-i_utxbuf_di(7) <= i_axi_data(2);
+--i_utxbuf_di(0) <= sr_axi_data(3);
+--i_utxbuf_di(1) <= sr_axi_data(4);
+--i_utxbuf_di(2) <= sr_axi_data(5);
+--i_utxbuf_di(3) <= sr_axi_data(6);
+--i_utxbuf_di(4) <= sr_axi_data(7);
+--i_utxbuf_di(5) <= i_axi_data(0);
+--i_utxbuf_di(6) <= i_axi_data(1);
+--i_utxbuf_di(7) <= i_axi_data(2);
+
+i_utxbuf_di(0) <= sr_axi_data(3); --<= sr_axi_data(3);
+i_utxbuf_di(1) <= i_axi_data(0); --<= sr_axi_data(4);
+i_utxbuf_di(2) <= i_axi_data(1); --<= sr_axi_data(5);
+i_utxbuf_di(3) <= i_axi_data(2); --<= sr_axi_data(6);
 
 gen_utxbuf : for i in 0 to i_utxbuf_di'length - 1 generate begin
 p_out_utxbuf_di((32 * (i + 1)) - 1 downto (32 * i)) <= i_utxbuf_di(i);
 end generate gen_utxbuf;
+
+--(i_cpld_dw_rem(3 downto 0) < TO_UNSIGNED(3, 4))
+--p_out_utxbuf_be <= p_in_axi_rc_tuser((i * 4) + 3 downto (i * 4))
+
 p_out_utxbuf_wr   <= i_cpld_tlp_work and not p_in_utxbuf_full;
 p_out_utxbuf_last <= '0';--: out  std_logic;
 
@@ -241,7 +253,7 @@ if rising_edge(p_in_clk) then
 
                       for i in 3 to sr_axi_data'length - 1 loop
                       sr_axi_data(i) <= i_axi_data(i); --user data
-                      sr_axi_be(i) <= p_in_axi_rc_tuser((i * 4) + 3 downto (i * 4));
+                      sr_axi_be(i) <= p_in_axi_rc_tuser((i * 4) + 3 downto (i * 4)); --(15...12)
                       end loop;
 
                       --Check Completion Status
@@ -253,7 +265,7 @@ if rising_edge(p_in_clk) then
                           i_cpld_tlp_work <= '1';
 
                           --Check DW Count
-                          if (i_cpld_dw_t > TO_UNSIGNED(5, i_cpld_dw_t'length)) then
+                          if (i_cpld_dw_t > TO_UNSIGNED(1, i_cpld_dw_t'length)) then
 
                               i_cpld_dw_rem <= (i_cpld_len(i_cpld_len'high - (log2(G_DATA_WIDTH / 32)) downto 0)
                                                 & TO_UNSIGNED(0, (log2(G_DATA_WIDTH / 32))))  - i_cpld_dw_t;

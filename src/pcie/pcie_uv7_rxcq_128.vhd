@@ -21,9 +21,8 @@ generic (
 G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
 G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
 G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1');
-
 G_DATA_WIDTH   : integer := 64;
-G_KEEP_WIDTH   : integer := 64 / 32
+G_KEEP_WIDTH : integer := 64 / 32
 );
 port(
 -- Completer Request Interface
@@ -31,7 +30,7 @@ p_in_axi_cq_tdata   : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 p_in_axi_cq_tlast   : in  std_logic;
 p_in_axi_cq_tvalid  : in  std_logic;
 p_in_axi_cq_tuser   : in  std_logic_vector(84 downto 0);
-p_in_axi_cq_tkeep   : in  std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_in_axi_cq_tkeep   : in  std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_out_axi_cq_tready : out std_logic;
 
 p_in_pcie_cq_np_req_count : in  std_logic_vector(5 downto 0);
@@ -52,8 +51,8 @@ p_in_compl_done    : in  std_logic;
 p_out_req_prm      : out TPCIE_reqprm;
 
 --usr app
+p_out_ureg_wrbe : out std_logic_vector(3 downto 0);
 p_out_ureg_di  : out std_logic_vector(31 downto 0);
-p_out_ureg_wrbe: out std_logic_vector(3 downto 0);
 p_out_ureg_wr  : out std_logic;
 p_out_ureg_rd  : out std_logic;
 
@@ -70,6 +69,7 @@ architecture behavioral of pcie_rx_cq is
 
 type TFsmRx_state is (
 S_RX_IDLE,
+S_RX_RCV ,
 S_RX_WAIT
 );
 signal i_fsm_rx           : TFsmRx_state;
@@ -204,57 +204,7 @@ if rising_edge(p_in_clk) then
                           i_req_des(2) <= p_in_axi_cq_tdata((32 * 3) - 1 downto (32 * 2));
                           i_req_des(3) <= p_in_axi_cq_tdata((32 * 4) - 1 downto (32 * 3));
 
-                          --Check length data payload (DW)
-                          if (UNSIGNED(p_in_axi_cq_tdata(((32 * 2) + 10) downto ((32 * 2) + 0))) = TO_UNSIGNED(16#01#, 11) ) then
-
-                              --if (target_fuction = 0) and ((bar_id = 0) or (bar_id = 1))
-                              if ( (p_in_axi_cq_tdata(((32 * 3) + 15) downto ((32 * 3) +  8)) = "00000000") and
-                                 (UNSIGNED(p_in_axi_cq_tdata(((32 * 3) + 18) downto ((32 * 3) + 16))) <= TO_UNSIGNED(1, 3)) )then
-
-                                  i_reg_cs <= '1';
-                              end if;
-
-                              i_reg_d    <= p_in_axi_cq_tdata((32 * 5) - 1 downto (32 * 4));
-                              i_reg_wrbe <= p_in_axi_cq_tuser((8 + (4 * 5)) - 1 downto (8 + (4 * 4)));
-
-                              --Compl
-                              if (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
-
-                                  i_req_compl <= '0';
-
-                                  if p_in_axi_cq_tkeep(4) = '1' then
-                                    i_reg_wr <= '1';
-                                  else
-                                    err_out(1) := '1';
-                                  end if;
-
-                              else
-                                  i_req_compl <= '1';
-
-                                  if (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_IO_WR_D) then
-
-                                    if (p_in_axi_cq_tkeep(4) = '1') then
-                                      i_reg_wr <= '1';
-                                    else
-                                      err_out(1) := '1';
-                                    end if;
-
-                                  elsif ( (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_IO_RD_ND)
-                                       or (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_MEM_RD_ND)
-                                       or (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND) ) then
-
-                                      i_reg_rd <= '1';
-
-                                  end if;
-                              end if;
-
-                          else
-                            i_req_compl    <= '0';
-                            i_req_compl_ur <= '1';--Unsupported Request
-
-                          end if;
-
-                          i_fsm_rx <= S_RX_WAIT;
+                          i_fsm_rx <= S_RX_RCV;
 
                         -------------------------------------------------------------------------
                         --
@@ -267,6 +217,64 @@ if rising_edge(p_in_clk) then
                 err_out(0) := '1';
               end if;
             end if;
+
+        when S_RX_RCV =>
+
+          if (p_in_axi_cq_tvalid = '1') then
+
+                --Check length data payload (DW)
+                if (UNSIGNED(i_req_des(2)(10 downto 0)) = TO_UNSIGNED(16#01#, 11) ) then
+
+                    --if (target_fuction = 0) and ((bar_id = 0) or (bar_id = 1))
+                    if ( (i_req_des(3)(15 downto 8) = "00000000") and
+                       (UNSIGNED(i_req_des(3)(18 downto 16)) <= TO_UNSIGNED(1, 3)) ) then
+
+                        i_reg_cs <= '1';
+                    end if;
+
+                    i_reg_d    <= p_in_axi_cq_tdata((32 * 1) - 1 downto (32 * 0));
+                    i_reg_wrbe <= p_in_axi_cq_tuser((8 + (4 * 1)) - 1 downto (8 + (4 * 0)));
+
+                    --Compl
+                    if (i_req_des(2)(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
+
+                        i_req_compl <= '0';
+
+                        if p_in_axi_cq_tkeep(0) = '1' then
+                          i_reg_wr <= '1';
+                        else
+                          err_out(1) := '1';
+                        end if;
+
+                    else
+                        i_req_compl <= '1';
+
+                        if (i_req_des(2)(14 downto 11) = C_PCIE3_PKT_TYPE_IO_WR_D) then
+
+                          if (p_in_axi_cq_tkeep(4) = '1') then
+                            i_reg_wr <= '1';
+                          else
+                            err_out(1) := '1';
+                          end if;
+
+                        elsif ( (i_req_des(2)(14 downto 11) = C_PCIE3_PKT_TYPE_IO_RD_ND)
+                             or (i_req_des(2)(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_RD_ND)
+                             or (i_req_des(2)(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND) ) then
+
+                            i_reg_rd <= '1';
+
+                        end if;
+                    end if;
+
+                else
+                  i_req_compl    <= '0';
+                  i_req_compl_ur <= '1';--Unsupported Request
+
+                end if;
+
+                i_fsm_rx <= S_RX_WAIT;
+
+          end if;
 
         --#######################################################################
         --

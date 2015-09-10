@@ -22,7 +22,7 @@ G_AXISTEN_IF_RQ_ALIGNMENT_MODE : string := "FALSE";
 G_AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
 G_AXISTEN_IF_RQ_PARITY_CHECK   : integer := 0;
 
-G_DATA_WIDTH   : integer := 64     ;
+G_DATA_WIDTH   : integer := 64;
 G_STRB_WIDTH   : integer := 64 / 8 ; --TSTRB width
 G_KEEP_WIDTH   : integer := 64 / 32;
 G_PARITY_WIDTH : integer := 64 / 8   --TPARITY width
@@ -30,7 +30,7 @@ G_PARITY_WIDTH : integer := 64 / 8   --TPARITY width
 port(
 --AXI-S Requester Request Interface
 p_out_axi_rq_tdata  : out std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-p_out_axi_rq_tkeep  : out std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+p_out_axi_rq_tkeep  : out std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 p_out_axi_rq_tlast  : out std_logic;
 p_out_axi_rq_tvalid : out std_logic;
 p_out_axi_rq_tuser  : out std_logic_vector(59 downto 0);
@@ -82,7 +82,6 @@ S_TXRQ_MWR_C0,--calc
 S_TXRQ_MWR_C1,
 S_TXRQ_MWR_D0,--data first
 S_TXRQ_MWR_DN,--data n
-S_TXRQ_MWR_DE,--data end
 
 S_TXRQ_MRD_C0,
 S_TXRQ_MRD_N,
@@ -91,7 +90,7 @@ S_TXRQ_CPLD_WAIT
 signal i_fsm_txrq        : TFsmTxRq_state;
 
 signal i_axi_rq_tdata    : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-signal i_axi_rq_tkeep    : std_logic_vector(G_KEEP_WIDTH - 1 downto 0);
+signal i_axi_rq_tkeep    : std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 signal i_axi_rq_tlast    : std_logic;
 signal i_axi_rq_tvalid   : std_logic;
 signal i_axi_rq_tuser    : std_logic_vector(11 downto 0);
@@ -212,7 +211,6 @@ if rising_edge(p_in_clk) then
 
           if (p_in_axi_rq_tready = '1') then
 
---            i_axi_rq_tdata  <= (others => '0');
             i_axi_rq_tkeep  <= (others => '0');
             i_axi_rq_tlast  <= '0';
             i_axi_rq_tvalid <= '0';
@@ -378,65 +376,7 @@ if rising_edge(p_in_clk) then
 
                 i_mem_adr_byte <= i_mem_adr_byte + RESIZE(i_mem_tpl_byte, i_mem_adr_byte'length);
 
-                i_axi_rq_tdata((32 * 8) - 1 downto (32 * 4)) <= std_logic_vector(p_in_urxbuf_do((32 * 4) - 1 downto (32 * 0)));
-
-                sr_usr_rxbuf_do((32 * 4) - 1 downto (32 * 0)) <= p_in_urxbuf_do((32 * 8) - 1 downto (32 * 4));
-
-                --Counter send data (current transaction)
-                if (i_mem_tpl_cnt = (i_mem_tpl_len - 1)) then
-
-                    i_mwr_work <= '0';
-
-                    if (i_mem_tpl_dw_rem(3 downto 0) < TO_UNSIGNED(4, 4)) then
-
-                      i_axi_rq_tlast <= '0';
-
-                      i_axi_rq_tkeep(7 downto 0) <= "11111111"; --i_mem_tpl_dw_rem = (3...0)
-
-                      i_fsm_txrq <= S_TXRQ_MWR_DE;
-
-                    else
-
-                      i_mem_tpl_cnt <= (others => '0');
-
-                      case (i_mem_tpl_dw_rem(1 downto 0)) is
-                      when "11" => i_axi_rq_tkeep(7 downto 4) <= "0001"; --i_mem_tpl_dw_rem = 7
-                      when "10" => i_axi_rq_tkeep(7 downto 4) <= "0011"; --i_mem_tpl_dw_rem = 6
-                      when "01" => i_axi_rq_tkeep(7 downto 4) <= "0111"; --i_mem_tpl_dw_rem = 5
-                      when "00" => i_axi_rq_tkeep(7 downto 4) <= "1111"; --i_mem_tpl_dw_rem = 4
-                      when others => null;
-                      end case;
-
-                      i_axi_rq_tkeep(3 downto 0) <= "1111";
-
-                      i_axi_rq_tlast <= '1';
-
-                      i_mem_tpl_tag <= i_mem_tpl_tag + 1;
-
-                      if (i_mem_tpl_last = '1') then
-                        i_mem_tx_byte <= (others => '0');
-                        i_mwr_done <= '1';
-
-                      else
-                        i_mem_tx_byte <= i_mem_tx_byte + RESIZE(i_mem_tpl_byte, i_mem_tx_byte'length);
-
-                      end if;
-
-                      i_fsm_txrq <= S_TXRQ_IDLE;
-
-                    end if;
-
-                else --if i_mem_tpl_cnt /= (i_mem_tpl_len - 1) then
-
-                    i_mem_tpl_cnt <= i_mem_tpl_cnt + 1;
-
-                    i_axi_rq_tlast <= '0';
-
-                    i_axi_rq_tkeep(7 downto 0) <= "11111111";
-
-                    i_fsm_txrq <= S_TXRQ_MWR_DN;
-
-                end if;
+                i_fsm_txrq <= S_TXRQ_MWR_DN;
 
             end if;
         --end S_TXRQ_MWR_D0
@@ -448,54 +388,39 @@ if rising_edge(p_in_clk) then
 
                 i_axi_rq_tvalid <= '1';
 
-                i_axi_rq_tdata((32 * 4) - 1 downto (32 * 0)) <= std_logic_vector(sr_usr_rxbuf_do((32 * 4) - 1 downto (32 * 0)));
-                i_axi_rq_tdata((32 * 8) - 1 downto (32 * 4)) <= std_logic_vector(p_in_urxbuf_do((32 * 4) - 1 downto (32 * 0)));
-
-                sr_usr_rxbuf_do((32 * 4) - 1 downto (32 * 0)) <= p_in_urxbuf_do((32 * 8) - 1 downto (32 * 4));
+                i_axi_rq_tdata((32 * 4) - 1 downto (32 * 0)) <= std_logic_vector(p_in_urxbuf_do((32 * 4) - 1 downto (32 * 0)));
 
                 --Counter send data (current transaction)
                 if (i_mem_tpl_cnt = (i_mem_tpl_len - 1)) then
 
                     i_mwr_work <= '0';
 
-                    if (i_mem_tpl_dw_rem(3 downto 0) < TO_UNSIGNED(4, 4)) then
+                    i_mem_tpl_cnt <= (others => '0');
 
-                      i_axi_rq_tlast <= '0';
+                    case (i_mem_tpl_dw_rem(1 downto 0)) is
+                    when "11" => i_axi_rq_tkeep(3 downto 0) <= "0001"; --i_mem_tpl_dw_rem = 3
+                    when "10" => i_axi_rq_tkeep(3 downto 0) <= "0011"; --i_mem_tpl_dw_rem = 2
+                    when "01" => i_axi_rq_tkeep(3 downto 0) <= "0111"; --i_mem_tpl_dw_rem = 1
+                    when "00" => i_axi_rq_tkeep(3 downto 0) <= "1111"; --i_mem_tpl_dw_rem = 0
+                    when others => null;
+                    end case;
 
-                      i_axi_rq_tkeep(7 downto 0) <= "11111111"; --i_mem_tpl_dw_rem = (3...0)
+                    i_axi_rq_tkeep(3 downto 0) <= "1111";
 
-                      i_fsm_txrq <= S_TXRQ_MWR_DE;
+                    i_axi_rq_tlast <= '1';
+
+                    i_mem_tpl_tag <= i_mem_tpl_tag + 1;
+
+                    if (i_mem_tpl_last = '1') then
+                      i_mem_tx_byte <= (others => '0');
+                      i_mwr_done <= '1';
 
                     else
-
-                        i_mem_tpl_cnt <= (others => '0');
-
-                        case (i_mem_tpl_dw_rem(1 downto 0)) is
-                        when "11" => i_axi_rq_tkeep(7 downto 4) <= "0001"; --i_mem_tpl_dw_rem = 7
-                        when "10" => i_axi_rq_tkeep(7 downto 4) <= "0011"; --i_mem_tpl_dw_rem = 6
-                        when "01" => i_axi_rq_tkeep(7 downto 4) <= "0111"; --i_mem_tpl_dw_rem = 5
-                        when "00" => i_axi_rq_tkeep(7 downto 4) <= "1111"; --i_mem_tpl_dw_rem = 4
-                        when others => null;
-                        end case;
-
-                        i_axi_rq_tkeep(3 downto 0) <= "1111";
-
-                        i_axi_rq_tlast <= '1';
-
-                        i_mem_tpl_tag <= i_mem_tpl_tag + 1;
-
-                        if (i_mem_tpl_last = '1') then
-                          i_mem_tx_byte <= (others => '0');
-                          i_mwr_done <= '1';
-
-                        else
-                          i_mem_tx_byte <= i_mem_tx_byte + RESIZE(i_mem_tpl_byte, i_mem_tx_byte'length);
-
-                        end if;
-
-                        i_fsm_txrq <= S_TXRQ_IDLE;
+                      i_mem_tx_byte <= i_mem_tx_byte + RESIZE(i_mem_tpl_byte, i_mem_tx_byte'length);
 
                     end if;
+
+                    i_fsm_txrq <= S_TXRQ_IDLE;
 
                 else --if i_mem_tpl_cnt /= (i_mem_tpl_len - 1) then
 
@@ -517,44 +442,6 @@ if rising_edge(p_in_clk) then
 
             end if;
         --end S_TXRQ_MWR_DN
-
-
-        when S_TXRQ_MWR_DE =>
-
-            if (p_in_axi_rq_tready = '1') then
-
-                i_mem_tpl_cnt <= (others => '0');
-
-                i_axi_rq_tdata((32 * 4) - 1 downto (32 * 0)) <= std_logic_vector(sr_usr_rxbuf_do((32 * 4) - 1 downto (32 * 0)));
-                i_axi_rq_tdata((32 * 8) - 1 downto (32 * 4)) <= (others => '0');
-
-                case (i_mem_tpl_dw_rem(1 downto 0)) is
-                when "11" => i_axi_rq_tkeep(3 downto 0) <= "0001"; --i_mem_tpl_dw_rem = 3
-                when "10" => i_axi_rq_tkeep(3 downto 0) <= "0011"; --i_mem_tpl_dw_rem = 2
-                when "01" => i_axi_rq_tkeep(3 downto 0) <= "0111"; --i_mem_tpl_dw_rem = 1
-                when "00" => i_axi_rq_tkeep(3 downto 0) <= "1111"; --i_mem_tpl_dw_rem = 0
-                when others => null;
-                end case;
-
-                i_axi_rq_tkeep(7 downto 4) <= "0000";
-
-                i_axi_rq_tvalid <= '1';
-                i_axi_rq_tlast <= '1';
-
-                i_mem_tpl_tag <= i_mem_tpl_tag + 1;
-
-                if (i_mem_tpl_last = '1') then
-                  i_mem_tx_byte <= (others => '0');
-                  i_mwr_done <= '1';
-
-                else
-                  i_mem_tx_byte <= i_mem_tx_byte + RESIZE(i_mem_tpl_byte, i_mem_tx_byte'length);
-
-                end if;
-
-                i_fsm_txrq <= S_TXRQ_IDLE;
-
-            end if;
         --END: MWr , +data
 
 
@@ -595,9 +482,7 @@ if rising_edge(p_in_clk) then
                 i_axi_rq_tdata((32 * 3) + 30) <= '0'; --Attr (ID-Based Ordering)
                 i_axi_rq_tdata((32 * 3) + 31) <= '0'; --Force ECRC
 
-                i_axi_rq_tdata((32 * 8) - 1 downto (32 * 4)) <= (others => '0');
-
-                i_axi_rq_tkeep(7 downto 0) <= "00001111";
+                i_axi_rq_tkeep(3 downto 0) <= "1111";
 
                 i_axi_rq_tvalid <= '1';
                 i_axi_rq_tlast <= '1';
@@ -689,7 +574,6 @@ i_mem_tx_dw <= RESIZE(i_mem_tx_byte(i_mem_tx_byte'high downto log2(32 / 8)), i_m
 tst_fsm <= TO_UNSIGNED(8, tst_fsm'length) when i_fsm_txrq = S_TXRQ_CPLD_WAIT else
            TO_UNSIGNED(7, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MRD_N     else
            TO_UNSIGNED(6, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MRD_C0    else
-           TO_UNSIGNED(5, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MWR_DE    else
            TO_UNSIGNED(4, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MWR_DN    else
            TO_UNSIGNED(3, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MWR_D0    else
            TO_UNSIGNED(2, tst_fsm'length) when i_fsm_txrq = S_TXRQ_MWR_C1    else
