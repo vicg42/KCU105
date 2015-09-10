@@ -18,15 +18,6 @@ use work.pcie_pkg.all;
 
 entity pcie_rx_rc is
 generic (
---G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
---G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
---G_AXISTEN_IF_RC_STRADDLE         : integer := 0;
---G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
---G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1');
---
---G_STRB_WIDTH   : integer := 64 / 8 ; -- TSTRB width
---G_KEEP_WIDTH   : integer := 64 / 32;
---G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
 G_DATA_WIDTH : integer := 64
 );
 port(

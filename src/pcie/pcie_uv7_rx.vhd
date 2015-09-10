@@ -18,16 +18,7 @@ use work.pcie_pkg.all;
 
 entity pcie_rx is
 generic (
---G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
---G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
---G_AXISTEN_IF_RC_STRADDLE         : integer := 0;
---G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
---G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1');
---
---G_STRB_WIDTH   : integer := 64 / 8 ; -- TSTRB width
---G_KEEP_WIDTH   : integer := 64 / 32;
---G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
-G_DATA_WIDTH   : integer := 64
+G_DATA_WIDTH : integer := 64
 );
 port(
 -- Completer Request Interface
@@ -93,12 +84,6 @@ architecture behavioral of pcie_rx is
 
 component pcie_rx_cq is
 generic (
---G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
---G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
---G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1');
---
---G_KEEP_WIDTH : integer := 64 / 32
-
 G_DATA_WIDTH : integer := 64
 );
 port(
@@ -143,16 +128,6 @@ end component pcie_rx_cq;
 
 component pcie_rx_rc
 generic (
---G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
---G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
---G_AXISTEN_IF_RC_STRADDLE         : integer := 0;
---G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
---G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1');
---
---G_STRB_WIDTH   : integer := 64 / 8 ; -- TSTRB width
---G_KEEP_WIDTH   : integer := 64 / 32;
---G_PARITY_WIDTH : integer := 64 / 8   -- TPARITY width
-
 G_DATA_WIDTH : integer := 64
 );
 port(
@@ -193,11 +168,7 @@ begin --architecture behavioral of pcie_rx
 
 m_rx_cq : pcie_rx_cq
 generic map(
---G_AXISTEN_IF_CQ_ALIGNMENT_MODE   => G_AXISTEN_IF_CQ_ALIGNMENT_MODE  ,
---G_AXISTEN_IF_ENABLE_RX_MSG_INTFC => G_AXISTEN_IF_ENABLE_RX_MSG_INTFC,
---G_AXISTEN_IF_ENABLE_MSG_ROUTE    => G_AXISTEN_IF_ENABLE_MSG_ROUTE   ,
---G_KEEP_WIDTH   => G_KEEP_WIDTH,
-G_DATA_WIDTH   => G_DATA_WIDTH
+G_DATA_WIDTH => G_DATA_WIDTH
 )
 port map(
 --Completer Request Interface
@@ -240,16 +211,7 @@ p_in_rst_n => p_in_rst_n
 
 m_rx_rc : pcie_rx_rc
 generic map(
---G_AXISTEN_IF_CQ_ALIGNMENT_MODE   => G_AXISTEN_IF_CQ_ALIGNMENT_MODE  ,
---G_AXISTEN_IF_RC_ALIGNMENT_MODE   => G_AXISTEN_IF_RC_ALIGNMENT_MODE  ,
---G_AXISTEN_IF_RC_STRADDLE         => G_AXISTEN_IF_RC_STRADDLE        ,
---G_AXISTEN_IF_ENABLE_RX_MSG_INTFC => G_AXISTEN_IF_ENABLE_RX_MSG_INTFC,
---G_AXISTEN_IF_ENABLE_MSG_ROUTE    => G_AXISTEN_IF_ENABLE_MSG_ROUTE   ,
---
---G_STRB_WIDTH   => G_STRB_WIDTH  ,
---G_KEEP_WIDTH   => G_KEEP_WIDTH  ,
---G_PARITY_WIDTH => G_PARITY_WIDTH,
-G_DATA_WIDTH   => G_DATA_WIDTH
+G_DATA_WIDTH => G_DATA_WIDTH
 )
 port map(
 -- Requester Completion Interface

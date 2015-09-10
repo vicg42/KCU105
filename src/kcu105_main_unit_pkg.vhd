@@ -55,6 +55,7 @@ end component clocks;
 
 component pcie_main is
 generic(
+G_SIM : string := "OFF";
 G_DBGCS : string := "OFF"
 );
 port(

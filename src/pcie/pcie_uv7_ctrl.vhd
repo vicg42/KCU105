@@ -22,19 +22,7 @@ entity pcie_ctrl is
 generic(
 G_SIM : string := "OFF";
 G_DBGCS : string := "OFF";
-G_DATA_WIDTH                     : integer := 64
---G_KEEP_WIDTH                     : integer := 1;
---G_AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
---G_AXISTEN_IF_RQ_ALIGNMENT_MODE   : string := "FALSE";
---G_AXISTEN_IF_CC_ALIGNMENT_MODE   : string := "FALSE";
---G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
---G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
---G_AXISTEN_IF_ENABLE_CLIENT_TAG   : integer := 1;
---G_AXISTEN_IF_RQ_PARITY_CHECK     : integer := 0;
---G_AXISTEN_IF_CC_PARITY_CHECK     : integer := 0;
---G_AXISTEN_IF_MC_RX_STRADDLE      : integer := 0;
---G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
---G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1')
+G_DATA_WIDTH : integer := 64
 );
 port(
 --------------------------------------
@@ -202,10 +190,6 @@ p_in_user_lnk_up : in   std_logic
 end entity pcie_ctrl;
 
 architecture struct of pcie_ctrl is
-
-constant CI_STRB_WIDTH   : integer := G_DATA_WIDTH / 8 ; -- TSTRB width
-constant CI_KEEP_WIDTH   : integer := G_DATA_WIDTH / 32;
-constant CI_PARITY_WIDTH : integer := G_DATA_WIDTH / 8 ;  -- TPARITY width
 
 signal i_pcie_prm              : TPCIE_cfgprm;
 
@@ -446,17 +430,8 @@ p_out_axi_rc_tready(i) <= i_axi_rc_tready;
 end generate gen_rc_trdy;
 
 m_rx : pcie_rx
-generic map(
---G_AXISTEN_IF_CQ_ALIGNMENT_MODE   => G_AXISTEN_IF_CQ_ALIGNMENT_MODE,
---G_AXISTEN_IF_RC_ALIGNMENT_MODE   => G_AXISTEN_IF_RC_ALIGNMENT_MODE,
-----G_AXISTEN_IF_RC_STRADDLE         : integer := 0;
---G_AXISTEN_IF_ENABLE_RX_MSG_INTFC => G_AXISTEN_IF_ENABLE_RX_MSG_INTFC,
---G_AXISTEN_IF_ENABLE_MSG_ROUTE    => G_AXISTEN_IF_ENABLE_MSG_ROUTE,
---
---G_STRB_WIDTH   => CI_STRB_WIDTH  ,
---G_KEEP_WIDTH   => CI_KEEP_WIDTH  ,
---G_PARITY_WIDTH => CI_PARITY_WIDTH,
-G_DATA_WIDTH   => G_DATA_WIDTH
+generic map (
+G_DATA_WIDTH => G_DATA_WIDTH
 )
 port map (
 --Completer Request Interface
@@ -524,17 +499,7 @@ p_in_rst_n => i_rst_n
 --######################################
 m_tx : pcie_tx
 generic map (
---G_AXISTEN_IF_RQ_ALIGNMENT_MODE => G_AXISTEN_IF_RQ_ALIGNMENT_MODE,
---G_AXISTEN_IF_CC_ALIGNMENT_MODE => G_AXISTEN_IF_CC_ALIGNMENT_MODE,
---G_AXISTEN_IF_ENABLE_CLIENT_TAG => G_AXISTEN_IF_ENABLE_CLIENT_TAG,
---G_AXISTEN_IF_RQ_PARITY_CHECK   => G_AXISTEN_IF_RQ_PARITY_CHECK  ,
---G_AXISTEN_IF_CC_PARITY_CHECK   => G_AXISTEN_IF_CC_PARITY_CHECK  ,
---
---G_STRB_WIDTH   => CI_STRB_WIDTH  ,
---G_KEEP_WIDTH   => CI_KEEP_WIDTH  ,
---G_PARITY_WIDTH => CI_PARITY_WIDTH,
-
-G_DATA_WIDTH   => G_DATA_WIDTH
+G_DATA_WIDTH => G_DATA_WIDTH
 )
 port map(
 --AXI-S Completer Competion Interface

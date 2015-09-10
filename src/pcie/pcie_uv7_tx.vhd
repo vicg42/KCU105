@@ -18,16 +18,6 @@ use work.pcie_pkg.all;
 
 entity pcie_tx is
 generic (
---G_AXISTEN_IF_RQ_ALIGNMENT_MODE : string := "FALSE";
---G_AXISTEN_IF_CC_ALIGNMENT_MODE : string := "FALSE";
---G_AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
---G_AXISTEN_IF_RQ_PARITY_CHECK   : integer := 0;
---G_AXISTEN_IF_CC_PARITY_CHECK   : integer := 0;
---
---G_STRB_WIDTH   : integer := 64 / 8 ; --TSTRB width
---G_KEEP_WIDTH   : integer := 64 / 32;
---G_PARITY_WIDTH : integer := 64 / 8   --TPARITY width
-
 G_DATA_WIDTH : integer := 64
 );
 port(
@@ -113,14 +103,6 @@ architecture behavioral of pcie_tx is
 
 component pcie_tx_cc is
 generic (
---G_AXISTEN_IF_CC_ALIGNMENT_MODE : string := "FALSE";
-----G_AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
---G_AXISTEN_IF_CC_PARITY_CHECK   : integer := 0;
---
---G_STRB_WIDTH   : integer := 64 / 8 ; --TSTRB width
---G_KEEP_WIDTH   : integer := 64 / 32;
---G_PARITY_WIDTH : integer := 64 / 8   --TPARITY width
-
 G_DATA_WIDTH : integer := 64
 );
 port(
@@ -171,14 +153,6 @@ end component pcie_tx_cc;
 
 component pcie_tx_rq is
 generic (
---G_AXISTEN_IF_RQ_ALIGNMENT_MODE : string := "FALSE";
---G_AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
---G_AXISTEN_IF_RQ_PARITY_CHECK   : integer := 0;
---
---G_STRB_WIDTH   : integer := 64 / 8 ; --TSTRB width
---G_KEEP_WIDTH   : integer := 64 / 32;
---G_PARITY_WIDTH : integer := 64 / 8   --TPARITY width
-
 G_DATA_WIDTH : integer := 64
 );
 port(
@@ -233,14 +207,6 @@ begin --architecture behavioral of pcie_tx
 
 m_tx_cc : pcie_tx_cc
 generic map(
---G_AXISTEN_IF_CC_ALIGNMENT_MODE => G_AXISTEN_IF_CC_ALIGNMENT_MODE,
-----G_AXISTEN_IF_ENABLE_CLIENT_TAG => G_AXISTEN_IF_ENABLE_CLIENT_TAG,
---G_AXISTEN_IF_CC_PARITY_CHECK   => G_AXISTEN_IF_CC_PARITY_CHECK  ,
---
---G_STRB_WIDTH   => G_STRB_WIDTH  ,
---G_KEEP_WIDTH   => G_KEEP_WIDTH  ,
---G_PARITY_WIDTH => G_PARITY_WIDTH
-
 G_DATA_WIDTH => G_DATA_WIDTH
 )
 port map(
@@ -291,14 +257,6 @@ p_in_rst_n => p_in_rst_n
 
 m_tx_rq : pcie_tx_rq
 generic map(
---G_AXISTEN_IF_RQ_ALIGNMENT_MODE => G_AXISTEN_IF_RQ_ALIGNMENT_MODE,
---G_AXISTEN_IF_ENABLE_CLIENT_TAG => G_AXISTEN_IF_ENABLE_CLIENT_TAG,
---G_AXISTEN_IF_RQ_PARITY_CHECK   => G_AXISTEN_IF_RQ_PARITY_CHECK  ,
---
---G_STRB_WIDTH   => G_STRB_WIDTH  ,
---G_KEEP_WIDTH   => G_KEEP_WIDTH  ,
---G_PARITY_WIDTH => G_PARITY_WIDTH
-
 G_DATA_WIDTH => G_DATA_WIDTH
 )
 port map(

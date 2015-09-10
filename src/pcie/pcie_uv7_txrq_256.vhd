@@ -18,14 +18,6 @@ use work.pcie_pkg.all;
 
 entity pcie_tx_rq is
 generic (
---G_AXISTEN_IF_RQ_ALIGNMENT_MODE : string := "FALSE";
---G_AXISTEN_IF_ENABLE_CLIENT_TAG : integer := 0;
---G_AXISTEN_IF_RQ_PARITY_CHECK   : integer := 0;
---
---G_STRB_WIDTH   : integer := 64 / 8 ; --TSTRB width
---G_KEEP_WIDTH   : integer := 64 / 32;
---G_PARITY_WIDTH : integer := 64 / 8   --TPARITY width
-
 G_DATA_WIDTH : integer := 64
 );
 port(

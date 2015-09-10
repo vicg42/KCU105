@@ -63,7 +63,6 @@ end entity pcie_main;
 architecture behavioral of pcie_main is
 
 constant CI_DATA_WIDTH                     : integer := C_PCGF_PCIE_DWIDTH;
---constant CI_KEEP_WIDTH                     : integer := CI_DATA_WIDTH / 32;
 
 --constant CI_AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
 --constant CI_AXISTEN_IF_RQ_ALIGNMENT_MODE   : string := "FALSE";
@@ -272,19 +271,7 @@ component pcie_ctrl
 generic(
 G_SIM : string := "OFF";
 G_DBGCS : string := "OFF";
-G_DATA_WIDTH                     : integer := 64
---G_KEEP_WIDTH                     : integer := 1;
---G_AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
---G_AXISTEN_IF_RQ_ALIGNMENT_MODE   : string := "FALSE";
---G_AXISTEN_IF_CC_ALIGNMENT_MODE   : string := "FALSE";
---G_AXISTEN_IF_CQ_ALIGNMENT_MODE   : string := "FALSE";
---G_AXISTEN_IF_RC_ALIGNMENT_MODE   : string := "FALSE";
---G_AXISTEN_IF_ENABLE_CLIENT_TAG   : integer := 1;
---G_AXISTEN_IF_RQ_PARITY_CHECK     : integer := 0;
---G_AXISTEN_IF_CC_PARITY_CHECK     : integer := 0;
---G_AXISTEN_IF_MC_RX_STRADDLE      : integer := 0;
---G_AXISTEN_IF_ENABLE_RX_MSG_INTFC : integer := 0;
---G_AXISTEN_IF_ENABLE_MSG_ROUTE    : std_logic_vector(17 downto 0) := (others => '1')
+G_DATA_WIDTH : integer := 64
 );
 port (
 --------------------------------------
@@ -800,19 +787,7 @@ m_ctrl : pcie_ctrl
 generic map(
 G_SIM => G_SIM,
 G_DBGCS => G_DBGCS,
-G_DATA_WIDTH                     => CI_DATA_WIDTH
---G_KEEP_WIDTH                     => CI_KEEP_WIDTH                     ,
---G_AXISTEN_IF_WIDTH               => CI_AXISTEN_IF_WIDTH               ,
---G_AXISTEN_IF_RQ_ALIGNMENT_MODE   => CI_AXISTEN_IF_RQ_ALIGNMENT_MODE   ,
---G_AXISTEN_IF_CC_ALIGNMENT_MODE   => CI_AXISTEN_IF_CC_ALIGNMENT_MODE   ,
---G_AXISTEN_IF_CQ_ALIGNMENT_MODE   => CI_AXISTEN_IF_CQ_ALIGNMENT_MODE   ,
---G_AXISTEN_IF_RC_ALIGNMENT_MODE   => CI_AXISTEN_IF_RC_ALIGNMENT_MODE   ,
---G_AXISTEN_IF_ENABLE_CLIENT_TAG   => CI_AXISTEN_IF_ENABLE_CLIENT_TAG   ,
---G_AXISTEN_IF_RQ_PARITY_CHECK     => CI_AXISTEN_IF_RQ_PARITY_CHECK     ,
---G_AXISTEN_IF_CC_PARITY_CHECK     => CI_AXISTEN_IF_CC_PARITY_CHECK     ,
---G_AXISTEN_IF_MC_RX_STRADDLE      => CI_AXISTEN_IF_MC_RX_STRADDLE      ,
---G_AXISTEN_IF_ENABLE_RX_MSG_INTFC => CI_AXISTEN_IF_ENABLE_RX_MSG_INTFC ,
---G_AXISTEN_IF_ENABLE_MSG_ROUTE    => CI_AXISTEN_IF_ENABLE_MSG_ROUTE
+G_DATA_WIDTH => CI_DATA_WIDTH
 )
 port map(
 --------------------------------------
