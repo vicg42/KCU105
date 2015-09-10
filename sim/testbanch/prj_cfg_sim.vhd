@@ -21,8 +21,8 @@ constant C_PCFG_BOARD                  : string := "SIM";
 
 --PCI-Express
 constant C_PCGF_PCIE_DBGCS             : string := "OFF";
-constant C_PCGF_PCIE_LINK_WIDTH        : integer := 8; --if change count link than need regenerat core PCI-Express
-constant C_PCGF_PCIE_DWIDTH            : integer := 256;
+constant C_PCGF_PCIE_LINK_WIDTH        : integer := 2; --if change count link than need regenerat core PCI-Express
+constant C_PCGF_PCIE_DWIDTH            : integer := 64;
 
 --FG(frame grabber)
 constant C_PCFG_FG_PIXBIT              : integer := 16; --Count bit/pix

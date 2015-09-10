@@ -855,10 +855,25 @@ module pcie3_uscale_rp_top  (
     .drp_di (16'b0),
    //---------- CHANNEL DRP  --------------------------------
    .ext_ch_gt_drpclk ( ),
-   .ext_ch_gt_drpaddr({8{9'b0}}),
-   .ext_ch_gt_drpen  ({8{1'b0}}),
-   .ext_ch_gt_drpdi  ({8{16'b0}}),
-   .ext_ch_gt_drpwe  ({8{1'b0}}),
+
+//for PCIEx2 (GEN3)
+   .ext_ch_gt_drpaddr({2{9'b0}}),
+   .ext_ch_gt_drpen  ({2{1'b0}}),
+   .ext_ch_gt_drpdi  ({2{16'b0}}),
+   .ext_ch_gt_drpwe  ({2{1'b0}}),
+
+////for PCIEx4 (GEN3)
+//   .ext_ch_gt_drpaddr({4{9'b0}}),
+//   .ext_ch_gt_drpen  ({4{1'b0}}),
+//   .ext_ch_gt_drpdi  ({4{16'b0}}),
+//   .ext_ch_gt_drpwe  ({4{1'b0}}),
+
+////for PCIEx8 (GEN3)
+//   .ext_ch_gt_drpaddr({8{9'b0}}),
+//   .ext_ch_gt_drpen  ({8{1'b0}}),
+//   .ext_ch_gt_drpdi  ({8{16'b0}}),
+//   .ext_ch_gt_drpwe  ({8{1'b0}}),
+
    .ext_ch_gt_drpdo  ( ),
    .ext_ch_gt_drprdy ( ),
     .user_tph_stt_address ( 5'b0),
