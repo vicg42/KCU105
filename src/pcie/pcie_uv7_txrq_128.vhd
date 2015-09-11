@@ -356,16 +356,6 @@ if rising_edge(p_in_clk) then
 
                 i_axi_rq_tuser(10 downto 8) <= (others => '0');--addr_offset; Used only in addres-alogen mode
                 i_axi_rq_tuser(11) <= '0';--Discontinue;
---
---                i_axi_rq_tuser(12)           <= '0';            --TPH_present;
---                i_axi_rq_tuser(14 downto 13) <= (others => '0');--TPH_type;
---                i_axi_rq_tuser(15)           <= '0';            --TPH_indirect_tag_en;
---                i_axi_rq_tuser(23 downto 16) <= (others => '0');--TPH_st_tag;
---
---                i_axi_rq_tuser(27 downto 24) <= (others => '0');--seq_num[3:0];
---
---                i_axi_rq_tuser(59 downto 28) <= (others => '0');--parity[31:0];
-
 
                 i_mem_adr_byte <= i_mem_adr_byte + RESIZE(i_mem_tpl_byte, i_mem_adr_byte'length);
 
@@ -428,10 +418,6 @@ if rising_edge(p_in_clk) then
             elsif (p_in_axi_rq_tready = '1' and p_in_urxbuf_empty = '1') then
 
               i_axi_rq_tvalid <= '0';
-
---            elsif trn_tdst_rdy_n = '1' then
---
---              i_trn_tsrc_rdy_n <= '0';
 
             end if;
         --end S_TXRQ_MWR_DN
@@ -509,16 +495,6 @@ if rising_edge(p_in_clk) then
 
                 i_axi_rq_tuser(10 downto 8) <= (others => '0');--addr_offset; ################  ????????????????  ##################
                 i_axi_rq_tuser(11) <= '0';--Discontinue;
---
---                i_axi_rq_tuser(12)           <= '0';            --TPH_present;
---                i_axi_rq_tuser(14 downto 13) <= (others => '0');--TPH_type;
---                i_axi_rq_tuser(15)           <= '0';            --TPH_indirect_tag_en;
---                i_axi_rq_tuser(23 downto 16) <= (others => '0');--TPH_st_tag;
---
---                i_axi_rq_tuser(27 downto 24) <= (others => '0');--seq_num[3:0];
---
---                i_axi_rq_tuser(59 downto 28) <= (others => '0');--parity[31:0];
-
 
                 i_mem_adr_byte <= i_mem_adr_byte + RESIZE(i_mem_tpl_byte, i_mem_adr_byte'length);
 

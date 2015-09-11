@@ -426,10 +426,6 @@ if rising_edge(p_in_clk) then
 
               i_axi_rq_tvalid <= '0';
 
---            elsif trn_tdst_rdy_n = '1' then
---
---              i_trn_tsrc_rdy_n <= '0';
-
             end if;
         --end S_TXRQ_MWR_DN
         --END: MWr , +data

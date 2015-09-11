@@ -102,27 +102,16 @@ gen : for i in 0 to (G_DATA_WIDTH / 32) - 1 generate begin
 i_axi_data(i) <= p_in_axi_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
 end generate;
 
---i_utxbuf_di(0) <= sr_axi_data(3);
---i_utxbuf_di(1) <= sr_axi_data(4);
---i_utxbuf_di(2) <= sr_axi_data(5);
---i_utxbuf_di(3) <= sr_axi_data(6);
---i_utxbuf_di(4) <= sr_axi_data(7);
---i_utxbuf_di(5) <= i_axi_data(0);
---i_utxbuf_di(6) <= i_axi_data(1);
---i_utxbuf_di(7) <= i_axi_data(2);
-
-i_utxbuf_di(0) <= sr_axi_data(3); --<= sr_axi_data(3);
-i_utxbuf_di(1) <= i_axi_data(0); --<= sr_axi_data(4);
-i_utxbuf_di(2) <= i_axi_data(1); --<= sr_axi_data(5);
-i_utxbuf_di(3) <= i_axi_data(2); --<= sr_axi_data(6);
+i_utxbuf_di(0) <= sr_axi_data(3);
+i_utxbuf_di(1) <= i_axi_data(0);
+i_utxbuf_di(2) <= i_axi_data(1);
+i_utxbuf_di(3) <= i_axi_data(2);
 
 gen_utxbuf : for i in 0 to i_utxbuf_di'length - 1 generate begin
 p_out_utxbuf_di((32 * (i + 1)) - 1 downto (32 * i)) <= i_utxbuf_di(i);
 end generate gen_utxbuf;
 
---(i_cpld_dw_rem(3 downto 0) < TO_UNSIGNED(3, 4))
---p_out_utxbuf_be <= p_in_axi_rc_tuser((i * 4) + 3 downto (i * 4))
-
+--p_out_utxbuf_be <=
 p_out_utxbuf_wr   <= i_cpld_tlp_work and not p_in_utxbuf_full;
 p_out_utxbuf_last <= '0';--: out  std_logic;
 

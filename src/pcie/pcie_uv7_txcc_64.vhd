@@ -99,7 +99,6 @@ signal i_req            : TReq;
 
 signal i_req_be         : std_logic_vector(7 downto 0);
 
---signal i_lower_addr_tmp     : std_logic_vector(6 downto 0);
 signal i_lower_addr     : std_logic_vector(6 downto 0);
 
 signal sr_req_compl     : std_logic_vector(0 to 1);
@@ -156,29 +155,6 @@ begin
   end case;
 end process;
 
---i_lower_addr <= i_lower_addr_tmp when req_compl_wd_qqq = '1' else (others => '0');
-
-
---gen_cc_align_off : if strcmp(G_AXISTEN_IF_CC_ALIGNMENT_MODE, "FALSE") generate begin
---i_tkeep <= std_logic_vector(TO_UNSIGNED(16#01#, i_tkeep'length));
---end generate gen_cc_align_off;
---
---gen_cc_align_on : if strcmp(G_AXISTEN_IF_CC_ALIGNMENT_MODE, "TRUE") generate begin
---process (i_lower_addr)
---begin
---  case (i_lower_addr(4 downto 2)) is
---    when "000" => i_tkeep <= std_logic_vector(TO_UNSIGNED(16#01#, i_tkeep'length));
---    when "001" => i_tkeep <= std_logic_vector(TO_UNSIGNED(16#03#, i_tkeep'length));
---    when "010" => i_tkeep <= std_logic_vector(TO_UNSIGNED(16#07#, i_tkeep'length));
---    when "011" => i_tkeep <= std_logic_vector(TO_UNSIGNED(16#0F#, i_tkeep'length));
---    when "100" => i_tkeep <= std_logic_vector(TO_UNSIGNED(16#1F#, i_tkeep'length));
---    when "101" => i_tkeep <= std_logic_vector(TO_UNSIGNED(16#3F#, i_tkeep'length));
---    when "110" => i_tkeep <= std_logic_vector(TO_UNSIGNED(16#7F#, i_tkeep'length));
---    when "111" => i_tkeep <= std_logic_vector(TO_UNSIGNED(16#FF#, i_tkeep'length));
---    when others => null;
---  end case;
---end process;
---end generate gen_cc_align_on;
 
 process(p_in_clk)
 begin
@@ -190,7 +166,6 @@ if rising_edge(p_in_clk) then
   end if;
 end if;
 end process;
-
 
 
 --Tx State Machine

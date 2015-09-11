@@ -112,8 +112,8 @@ begin --architecture behavioral of pcie_tx_cc
 p_out_compl_done <= i_compl_done;
 
 --AXI-S Completer Competion Interface
-p_out_axi_cc_tdata  <= std_logic_vector(RESIZE(UNSIGNED(i_axi_cc_tdata), 256));
-p_out_axi_cc_tkeep  <= std_logic_vector(RESIZE(UNSIGNED(i_axi_cc_tkeep), 8)) ;
+p_out_axi_cc_tdata  <= std_logic_vector(RESIZE(UNSIGNED(i_axi_cc_tdata), p_out_axi_cc_tdata'length));
+p_out_axi_cc_tkeep  <= std_logic_vector(RESIZE(UNSIGNED(i_axi_cc_tkeep), p_out_axi_cc_tkeep'length));
 p_out_axi_cc_tlast  <= i_axi_cc_tlast ;
 p_out_axi_cc_tvalid <= i_axi_cc_tvalid;
 p_out_axi_cc_tuser  <= i_axi_cc_tuser ;
@@ -157,28 +157,6 @@ end process;
 
 --i_lower_addr <= i_lower_addr_tmp when req_compl_wd_qqq = '1' else (others => '0');
 
-
---gen_cc_align_off : if strcmp(G_AXISTEN_IF_CC_ALIGNMENT_MODE, "FALSE") generate begin
---i_tkeep <= std_logic_vector(TO_UNSIGNED(16#01#, i_tkeep'length));
---end generate gen_cc_align_off;
---
---gen_cc_align_on : if strcmp(G_AXISTEN_IF_CC_ALIGNMENT_MODE, "TRUE") generate begin
---process (i_lower_addr)
---begin
---  case (i_lower_addr(4 downto 2)) is
---    when "000" => i_tkeep <= std_logic_vector(TO_UNSIGNED(16#01#, i_tkeep'length));
---    when "001" => i_tkeep <= std_logic_vector(TO_UNSIGNED(16#03#, i_tkeep'length));
---    when "010" => i_tkeep <= std_logic_vector(TO_UNSIGNED(16#07#, i_tkeep'length));
---    when "011" => i_tkeep <= std_logic_vector(TO_UNSIGNED(16#0F#, i_tkeep'length));
---    when "100" => i_tkeep <= std_logic_vector(TO_UNSIGNED(16#1F#, i_tkeep'length));
---    when "101" => i_tkeep <= std_logic_vector(TO_UNSIGNED(16#3F#, i_tkeep'length));
---    when "110" => i_tkeep <= std_logic_vector(TO_UNSIGNED(16#7F#, i_tkeep'length));
---    when "111" => i_tkeep <= std_logic_vector(TO_UNSIGNED(16#FF#, i_tkeep'length));
---    when others => null;
---  end case;
---end process;
---end generate gen_cc_align_on;
-
 process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
@@ -189,7 +167,6 @@ if rising_edge(p_in_clk) then
   end if;
 end if;
 end process;
-
 
 
 --Tx State Machine
@@ -291,17 +268,10 @@ if rising_edge(p_in_clk) then
               i_axi_cc_tdata((32 * 0) +  6 downto (32 * 0) +  0) <= (others => '0');
             end if;
 
+            i_axi_cc_tuser <= (others => '0');
 
---            if (G_AXISTEN_IF_CC_PARITY_CHECK = 0) then
-              i_axi_cc_tuser <= (others => '0');
---            else
---              i_axi_cc_tuser <= std_logic_vector(RESIZE(UNSIGNED(i_axi_cc_tparity), i_axi_cc_tuser'length));
---            end if;
-
---            if (p_in_axi_cc_tready = '1') then
-              i_compl_done <= '1';
-              i_fsm_txcc <= S_TXCC_IDLE;
---            end if;
+            i_compl_done <= '1';
+            i_fsm_txcc <= S_TXCC_IDLE;
 
           end if;
 

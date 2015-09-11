@@ -181,7 +181,7 @@ if rising_edge(p_in_clk) then
               i_tph.t_type  <= p_in_axi_cq_tuser(44 downto 43);
               i_tph.st_tag  <= p_in_axi_cq_tuser(52 downto 45);
 
-              if (p_in_axi_cq_tkeep(3 downto 0) = "1111") then --if p_in_axi_cq_tkeep(7 downto 0) = "00011111" then
+              if (p_in_axi_cq_tkeep(3 downto 0) = "1111") then
                     --Req Type
                     case (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) ) is
                         -------------------------------------------------------------------------
