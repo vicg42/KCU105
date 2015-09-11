@@ -214,4 +214,81 @@ p_in_rst          : in    std_logic
 );
 end component fg;
 
+
+component switch_data is
+generic(
+G_ETH_CH_COUNT : integer:=1;
+G_ETH_DWIDTH : integer:=32;
+G_VBUFI_OWIDTH : integer:=32;
+G_HOST_DWIDTH : integer:=32
+);
+port(
+-------------------------------
+--CFG
+-------------------------------
+p_in_cfg_clk           : in   std_logic;
+
+p_in_cfg_adr           : in   std_logic_vector(7 downto 0);
+p_in_cfg_adr_ld        : in   std_logic;
+p_in_cfg_adr_fifo      : in   std_logic;
+
+p_in_cfg_txdata        : in   std_logic_vector(15 downto 0);
+p_in_cfg_wd            : in   std_logic;
+
+p_out_cfg_rxdata       : out  std_logic_vector(15 downto 0);
+p_in_cfg_rd            : in   std_logic;
+
+p_in_cfg_done          : in   std_logic;
+
+---------------------------------
+----HOST
+---------------------------------
+----host -> dev
+--p_in_eth_htxbuf_di     : in   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+--p_in_eth_htxbuf_wr     : in   std_logic;
+--p_out_eth_htxbuf_full  : out  std_logic;
+--p_out_eth_htxbuf_empty : out  std_logic;
+--
+------host <- dev
+----p_out_eth_hrxbuf_do    : out  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+----p_in_eth_hrxbuf_rd     : in   std_logic;
+----p_out_eth_hrxbuf_full  : out  std_logic;
+----p_out_eth_hrxbuf_empty : out  std_logic;
+----
+----p_out_eth_hirq         : out  std_logic;
+--
+--p_in_hclk              : in   std_logic;
+--
+-----------------------------------
+------ETH
+-----------------------------------
+----p_in_eth_tmr_irq       : in   std_logic;
+----p_in_eth_tmr_en        : in   std_logic;
+----p_in_eth_clk           : in   std_logic;
+----p_in_eth               : in   TEthOUTs;
+----p_out_eth              : out  TEthINs;
+--
+---------------------------------
+----FG_BUFI
+---------------------------------
+--p_in_vbufi_rdclk       : in   std_logic;
+--p_out_vbufi_do         : out  std_logic_vector(G_VBUFI_OWIDTH - 1 downto 0);
+--p_in_vbufi_rd          : in   std_logic;
+--p_out_vbufi_empty      : out  std_logic;
+--p_out_vbufi_full       : out  std_logic;
+--p_out_vbufi_pfull      : out  std_logic;
+
+-------------------------------
+--DBG
+-------------------------------
+p_in_tst               : in   std_logic_vector(31 downto 0);
+p_out_tst              : out  std_logic_vector(31 downto 0);
+
+-------------------------------
+--System
+-------------------------------
+p_in_rst     : in    std_logic
+);
+end component switch_data;
+
 end package kcu105_main_unit_pkg;

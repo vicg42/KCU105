@@ -201,8 +201,8 @@ end record;
 
 signal i_dbg    : TMAIN_dbg;
 
-attribute mark_debug : string;
-attribute mark_debug of i_dbg  : signal is "true";
+--attribute mark_debug : string;
+--attribute mark_debug of i_dbg  : signal is "true";
 
 
 begin --architecture struct
@@ -292,7 +292,7 @@ p_out_tst            => i_cfg_tst_out,
 p_in_rst             => i_glob_rst
 );
 
-i_cfg_rxd <= i_cfg_rxd_dev(C_CFGDEV_FG);
+i_cfg_rxd <= i_cfg_rxd_dev(C_CFGDEV_SWT);
 
 gen_cfg_dev : for i in 0 to C_CFGDEV_COUNT - 1 generate
 i_cfg_wr_dev(i)   <= i_cfg_wr   when UNSIGNED(i_cfg_dadr) = i else '0';
@@ -301,15 +301,93 @@ i_cfg_done_dev(i) <= i_cfg_done when UNSIGNED(i_cfg_dadr) = i else '0';
 end generate gen_cfg_dev;
 
 
+--#########################################
+--Switch
+--#########################################
+m_switch : switch_data
+generic map(
+--G_ETH_CH_COUNT => ,--: integer:=1;
+G_ETH_DWIDTH   => C_HDEV_DWIDTH, --C_AXIS_DWIDTH(2),
+G_VBUFI_OWIDTH => C_AXIS_DWIDTH(2),
+G_HOST_DWIDTH  => C_HDEV_DWIDTH
+)
+port map(
+-------------------------------
+--CFG
+-------------------------------
+p_in_cfg_clk      => g_host_clk,
+
+p_in_cfg_adr      => i_cfg_radr(7 downto 0),
+p_in_cfg_adr_ld   => i_cfg_radr_ld,
+p_in_cfg_adr_fifo => i_cfg_radr_fifo,
+
+p_in_cfg_txdata   => i_cfg_txd,
+p_in_cfg_wd       => i_cfg_wr_dev(C_CFGDEV_SWT),
+
+p_out_cfg_rxdata  => i_cfg_rxd_dev(C_CFGDEV_SWT),
+p_in_cfg_rd       => i_cfg_rd_dev(C_CFGDEV_SWT),
+
+p_in_cfg_done     => i_cfg_done_dev(C_CFGDEV_SWT),
+
+---------------------------------
+----HOST
+---------------------------------
+----host -> dev
+--p_in_eth_htxbuf_di     => i_host_txd(C_HDEV_ETH),
+--p_in_eth_htxbuf_wr     => i_host_wr(C_HDEV_ETH),
+--p_out_eth_htxbuf_full  => i_host_txbuf_full(C_HDEV_ETH),
+--p_out_eth_htxbuf_empty => i_host_txbuf_empty(C_HDEV_ETH),
+--
+------host <- dev
+----p_out_eth_hrxbuf_do    => i_host_rxd(C_HDEV_ETH),
+----p_in_eth_hrxbuf_rd     => i_host_rd(C_HDEV_ETH),
+----p_out_eth_hrxbuf_full  => i_host_rxbuf_full(C_HDEV_ETH),
+----p_out_eth_hrxbuf_empty => i_host_rxbuf_empty(C_HDEV_ETH),
+----
+----p_out_eth_hirq         => i_host_dev_irq(C_HIRQ_ETH),
+--
+--p_in_hclk              => g_host_clk,
+--
+-----------------------------------
+------ETH
+-----------------------------------
+----p_in_eth_tmr_irq       : in   std_logic;
+----p_in_eth_tmr_en        : in   std_logic;
+----p_in_eth_clk           : in   std_logic;
+----p_in_eth               : in   TEthOUTs;
+----p_out_eth              : out  TEthINs;
+--
+---------------------------------
+----FG_BUFI
+---------------------------------
+--p_in_vbufi_rdclk  => g_usr_highclk,
+--p_out_vbufi_do    => i_fg_bufi_do, --: out  std_logic_vector(G_VBUFI_OWIDTH - 1 downto 0);
+--p_in_vbufi_rd     => i_fg_bufi_rd,
+--p_out_vbufi_empty => i_fg_bufi_empty,
+--p_out_vbufi_full  => i_fg_bufi_full,
+--p_out_vbufi_pfull => i_fg_bufi_pfull,
+
+-------------------------------
+--DBG
+-------------------------------
+p_in_tst  => (others => '0'),
+p_out_tst => open,
+
+-------------------------------
+--System
+-------------------------------
+p_in_rst  => i_arb_mem_rst
+);
+
+
 ----#########################################
 ----Frame Grabber
 ----#########################################
---i_fr_rd_start <= i_host_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)
+--i_fg_rd_start <= i_host_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)
 --                  when i_host_devadr = TO_UNSIGNED(C_HDEV_FG, i_host_devadr'length) else '0';
 --
 --m_fg : fg
 --generic map(
---G_VSYN_ACTIVE => C_PCFG_VSYN_ACTIVE,
 --G_DBGCS => "OFF",
 --G_MEM_AWIDTH => C_AXI_AWIDTH,
 --G_MEMWR_DWIDTH => C_AXIS_DWIDTH(2),
@@ -337,7 +415,7 @@ end generate gen_cfg_dev;
 ----HOST
 ---------------------------------
 --p_in_hrdchsel     => i_host_dev_ctrl(C_HREG_DEV_CTRL_FG_CH_M_BIT downto C_HREG_DEV_CTRL_FG_CH_L_BIT),
---p_in_hrdstart     => i_fr_rd_start,
+--p_in_hrdstart     => i_fg_rd_start,
 --p_in_hrddone      => i_host_gctrl(C_HREG_CTRL_FG_RDDONE_BIT),
 --p_out_hirq        => i_host_dev_irq((C_HIRQ_FG_VCH0 + C_FG_VCH_COUNT) - 1 downto C_HIRQ_FG_VCH0),
 --p_out_hdrdy       => i_host_dev_status((C_HREG_DEV_STATUS_FG_VCH0_RDY_BIT
@@ -353,7 +431,11 @@ end generate gen_cfg_dev;
 ---------------------------------
 ----VBUFI -> MEM(VBUF)
 ---------------------------------
---p_in_vbufi        => i_fg_vbufi,
+--p_in_vbufi_do     => i_fg_bufi_do,
+--p_out_vbufi_rd    => i_fg_bufi_rd,
+--p_in_vbufi_empty  => i_fg_bufi_empty,
+--p_in_vbufi_full   => i_fg_bufi_full,
+--p_in_vbufi_pfull  => i_fg_bufi_pfull,
 --
 -----------------------------------
 ----MEM
@@ -368,7 +450,7 @@ end generate gen_cfg_dev;
 ---------------------------------
 ----DBG
 ---------------------------------
---p_in_tst          => i_fg_tst_in,
+--p_in_tst          => (others => '0'),--i_fg_tst_in,
 --p_out_tst         => i_fg_tst_out,
 --
 ---------------------------------
@@ -435,6 +517,10 @@ i_host_dev_status(C_HREG_DEV_STATUS_CFG_TXRDY_BIT) <= i_host_txbuf_empty(C_HDEV_
 
 i_host_dev_status(C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT) <= OR_reduce(i_mem_ctrl_status.rdy);
 
+i_host_dev_status(C_HREG_DEV_STATUS_ETH_RDY_BIT) <= '1';--i_ethphy_out.rdy;
+i_host_dev_status(C_HREG_DEV_STATUS_ETH_LINK_BIT) <= '1';--i_ethphy_out.link;
+i_host_dev_status(C_HREG_DEV_STATUS_ETH_RXRDY_BIT) <= '0';--not i_host_rxbuf_empty(C_HDEV_ETH);
+i_host_dev_status(C_HREG_DEV_STATUS_ETH_TXRDY_BIT) <= '1';--i_host_txbuf_empty(C_HDEV_ETH);
 
 --Host Write/Read data of user devices
 gen_dev_dbuf : for i in 0 to i_host_wr'length - 1 generate
@@ -454,9 +540,9 @@ i_host_dev_opt_in(C_HDEV_OPTIN_TXFIFO_FULL_BIT) <= i_host_txbuf_full(C_HDEV_MEM)
                                                     when i_host_devadr = TO_UNSIGNED(C_HDEV_MEM, i_host_devadr'length) else '0';
 
 i_host_dev_opt_in(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) <= i_host_rxbuf_empty(C_HDEV_MEM)
-                                                    when i_host_devadr = TO_UNSIGNED(C_HDEV_MEM , i_host_devadr'length) else
-                                                    i_host_rxbuf_empty(C_HDEV_FG)
-                                                    when i_host_devadr = TO_UNSIGNED(C_HDEV_FG , i_host_devadr'length) else '0';
+                                                    when i_host_devadr = TO_UNSIGNED(C_HDEV_MEM , i_host_devadr'length) else '0';
+--                                                    i_host_rxbuf_empty(C_HDEV_FG)
+--                                                    when i_host_devadr = TO_UNSIGNED(C_HDEV_FG , i_host_devadr'length) else '0';
 
 i_host_dev_opt_in(C_HDEV_OPTIN_MEM_DONE_BIT) <= i_host_mem_status.done;
 
@@ -647,92 +733,128 @@ pin_out_led_lpc(3) <= i_test_led(0);
 
 
 
---adress
-process(g_host_clk)
-begin
-if rising_edge(g_host_clk) then
-  if i_glob_rst = '1' then
-    i_reg_adr <= (others => '0');
-  else
-    if i_cfg_radr_ld = '1' then
-      i_reg_adr <= UNSIGNED(i_cfg_radr(3 downto 0));
-    else
-      if i_cfg_radr_fifo = '0' and (i_cfg_wr_dev(C_CFGDEV_FG) = '1' or i_cfg_rd_dev(C_CFGDEV_FG) = '1') then
-        i_reg_adr <= i_reg_adr + 1;
-      end if;
-    end if;
-  end if;
-end if;
-end process;
-
---write registers
-process(g_host_clk)
-begin
-if rising_edge(g_host_clk) then
-  if i_glob_rst = '1' then
-    i_reg_ctrl <= (others => '0');
-    i_reg_tst0 <= (others => '0');
-    i_reg_mem <= (others => '0');
-
-  else
-
-    if i_cfg_wr_dev(C_CFGDEV_FG) = '1' then
-      if i_reg_adr = TO_UNSIGNED(C_FG_REG_CTRL, i_reg_adr'length) then
-        i_reg_ctrl <= i_cfg_txd;
-
-      elsif i_reg_adr = TO_UNSIGNED(C_FG_REG_MEM_CTRL, i_reg_adr'length) then
-        i_reg_mem <= i_cfg_txd;
-
-      elsif i_reg_adr = TO_UNSIGNED(C_FG_REG_TST0, i_reg_adr'length) then
-        i_reg_tst0 <= i_cfg_txd;
-
-      end if;
-    end if;
-
-  end if;
-end if;
-end process;
-
-i_cfg_rxd_dev(C_CFGDEV_FG)
-                  <= i_reg_ctrl when i_reg_adr = TO_UNSIGNED(C_FG_REG_CTRL, i_reg_adr'length) else
-                        i_reg_mem when i_reg_adr = TO_UNSIGNED(C_FG_REG_MEM_CTRL, i_reg_adr'length) else
-                          i_reg_tst0 when i_reg_adr = TO_UNSIGNED(C_FG_REG_TST0, i_reg_adr'length) else
-                            (others => '0');
-
-
-
---#############################################
---DBGCS
---#############################################
-gen_dbgcs_on : if strcmp(C_PCFG_MAIN_DBGCS, "ON") generate
-begin
-
-i_dbg.pcie <= i_host_dbg;
-
---i_dbg.h2m.mem_start   <= i_host_mem_tst_out(0)         ;-- <= i_mem_start;
---i_dbg.h2m.mem_done    <= i_host_mem_tst_out(1)         ;-- <= i_mem_done;
---i_dbg.h2m.mem_wr_fsm  <= i_host_mem_tst_out(5 downto 2);-- <= tst_mem_ctrl_out(5 downto 2);--m_mem_wr/tst_fsm_cs;
-----i_dbg.h2m.d2h_buf_di    <= i_host_mem_tst_out(95 downto 64);-- <= i_rxbuf_din(31 downto 0);--RAM->PCIE
---i_dbg.h2m.d2h_buf_wr    <= i_host_mem_tst_out(10)          ;-- <= i_rxbuf_din_wr ;--RAM->PCIE
---i_dbg.h2m.d2h_buf_empty <= i_host_mem_tst_out(6)           ;-- <= i_rxbuf_empty;  --RAM->PCIE
---i_dbg.h2m.d2h_buf_full  <= i_host_mem_tst_out(7)           ;-- <= i_rxbuf_full;   --RAM->PCIE
-----i_dbg.h2m.h2d_buf_do    <= i_host_mem_tst_out(63 downto 32);-- <= i_txbuf_dout(31 downto 0);--RAM<-PCIE
---i_dbg.h2m.h2d_buf_rd    <= i_host_mem_tst_out(11)          ;-- <= i_txbuf_dout_rd;--RAM<-PCIE
---i_dbg.h2m.h2d_buf_empty <= i_host_mem_tst_out(8)           ;-- <= i_txbuf_empty;  --RAM<-PCIE
---i_dbg.h2m.h2d_buf_full  <= i_host_mem_tst_out(9)           ;-- <= i_txbuf_full;   --RAM<-PCIE
+----adress
+--process(g_host_clk)
+--begin
+--if rising_edge(g_host_clk) then
+--  if i_glob_rst = '1' then
+--    i_reg_adr <= (others => '0');
+--  else
+--    if i_cfg_radr_ld = '1' then
+--      i_reg_adr <= UNSIGNED(i_cfg_radr(3 downto 0));
+--    else
+--      if i_cfg_radr_fifo = '0' and (i_cfg_wr_dev(C_CFGDEV_FG) = '1' or i_cfg_rd_dev(C_CFGDEV_FG) = '1') then
+--        i_reg_adr <= i_reg_adr + 1;
+--      end if;
+--    end if;
+--  end if;
+--end if;
+--end process;
 --
-----DEV -> MEM
---i_dbg.h2m.axiw_d      <= i_memin_ch(0).axiw.data(31 downto 0);
---i_dbg.h2m.axiw_dvalid <= i_memin_ch(0).axiw.dvalid;
---i_dbg.h2m.axiw_dvlast <= i_memin_ch(0).axiw.dlast ;
+----write registers
+--process(g_host_clk)
+--begin
+--if rising_edge(g_host_clk) then
+--  if i_glob_rst = '1' then
+--    i_reg_ctrl <= (others => '0');
+--    i_reg_tst0 <= (others => '0');
+--    i_reg_mem <= (others => '0');
 --
-----DEV <- MEM
---i_dbg.h2m.axir_d      <= i_reg_tst0 & i_reg_mem;--i_memout_ch(0).axir.data(31 downto 0);
---i_dbg.h2m.axir_dvalid <= i_memout_ch(0).axir.dvalid;
---i_dbg.h2m.axir_dvlast <= i_memout_ch(0).axir.dlast ;
+--  else
+--
+--    if i_cfg_wr_dev(C_CFGDEV_FG) = '1' then
+--      if i_reg_adr = TO_UNSIGNED(C_FG_REG_CTRL, i_reg_adr'length) then
+--        i_reg_ctrl <= i_cfg_txd;
+--
+--      elsif i_reg_adr = TO_UNSIGNED(C_FG_REG_MEM_CTRL, i_reg_adr'length) then
+--        i_reg_mem <= i_cfg_txd;
+--
+--      elsif i_reg_adr = TO_UNSIGNED(C_FG_REG_TST0, i_reg_adr'length) then
+--        i_reg_tst0 <= i_cfg_txd;
+--
+--      end if;
+--    end if;
+--
+--  end if;
+--end if;
+--end process;
+--
+--i_cfg_rxd_dev(C_CFGDEV_FG)
+--                  <= i_reg_ctrl when i_reg_adr = TO_UNSIGNED(C_FG_REG_CTRL, i_reg_adr'length) else
+--                        i_reg_mem when i_reg_adr = TO_UNSIGNED(C_FG_REG_MEM_CTRL, i_reg_adr'length) else
+--                          i_reg_tst0 when i_reg_adr = TO_UNSIGNED(C_FG_REG_TST0, i_reg_adr'length) else
+--                            (others => '0');
 
 
---##########################
+
+----#############################################
+----DBGCS
+----#############################################
+--gen_dbgcs_on : if strcmp(C_PCFG_MAIN_DBGCS, "ON") generate
+--begin
+--
+--i_dbg.pcie <= i_host_dbg;
+--
+----i_dbg.h2m.mem_start   <= i_host_mem_tst_out(0)         ;-- <= i_mem_start;
+----i_dbg.h2m.mem_done    <= i_host_mem_tst_out(1)         ;-- <= i_mem_done;
+----i_dbg.h2m.mem_wr_fsm  <= i_host_mem_tst_out(5 downto 2);-- <= tst_mem_ctrl_out(5 downto 2);--m_mem_wr/tst_fsm_cs;
+------i_dbg.h2m.d2h_buf_di    <= i_host_mem_tst_out(95 downto 64);-- <= i_rxbuf_din(31 downto 0);--RAM->PCIE
+----i_dbg.h2m.d2h_buf_wr    <= i_host_mem_tst_out(10)          ;-- <= i_rxbuf_din_wr ;--RAM->PCIE
+----i_dbg.h2m.d2h_buf_empty <= i_host_mem_tst_out(6)           ;-- <= i_rxbuf_empty;  --RAM->PCIE
+----i_dbg.h2m.d2h_buf_full  <= i_host_mem_tst_out(7)           ;-- <= i_rxbuf_full;   --RAM->PCIE
+------i_dbg.h2m.h2d_buf_do    <= i_host_mem_tst_out(63 downto 32);-- <= i_txbuf_dout(31 downto 0);--RAM<-PCIE
+----i_dbg.h2m.h2d_buf_rd    <= i_host_mem_tst_out(11)          ;-- <= i_txbuf_dout_rd;--RAM<-PCIE
+----i_dbg.h2m.h2d_buf_empty <= i_host_mem_tst_out(8)           ;-- <= i_txbuf_empty;  --RAM<-PCIE
+----i_dbg.h2m.h2d_buf_full  <= i_host_mem_tst_out(9)           ;-- <= i_txbuf_full;   --RAM<-PCIE
+----
+------DEV -> MEM
+----i_dbg.h2m.axiw_d      <= i_memin_ch(0).axiw.data(31 downto 0);
+----i_dbg.h2m.axiw_dvalid <= i_memin_ch(0).axiw.dvalid;
+----i_dbg.h2m.axiw_dvlast <= i_memin_ch(0).axiw.dlast ;
+----
+------DEV <- MEM
+----i_dbg.h2m.axir_d      <= i_reg_tst0 & i_reg_mem;--i_memout_ch(0).axir.data(31 downto 0);
+----i_dbg.h2m.axir_dvalid <= i_memout_ch(0).axir.dvalid;
+----i_dbg.h2m.axir_dvlast <= i_memout_ch(0).axir.dlast ;
+--
+--
+----##########################
+----m_dbg_hostclk : dbgcs_ila_hostclk
+----port map (
+----clk => g_host_clk,
+----
+------pc <- fpga
+----probe0(0) => i_dbg.pcie.axi_rq_tvalid,
+----probe0(1) => i_dbg.pcie.axi_rq_tlast ,
+----probe0(2) => i_dbg.pcie.axi_rq_tready,
+----
+------pc -> fpga
+----probe0(3) => i_dbg.pcie.axi_rc_tvalid,
+----probe0(4) => i_dbg.pcie.axi_rc_tlast ,
+----probe0(5) => i_dbg.pcie.axi_rc_tready,
+----
+----probe0(9 downto 6) => i_dbg.pcie.dev_num  ,
+----probe0(10)         => i_dbg.pcie.dma_start,
+----probe0(11)         => i_dbg.pcie.dma_irq  ,
+----
+----probe0(12)         => i_dbg.pcie.h2d_buf_wr   ,--PCIE -> DEV
+----probe0(13)         => i_dbg.pcie.h2d_buf_full ,--PCIE -> DEV
+----probe0(14)         => i_dbg.pcie.d2h_buf_rd   ,--PCIE <- DEV
+----probe0(15)         => i_dbg.pcie.d2h_buf_empty,--PCIE <- DEV
+----
+----probe0(16) => i_dbg.pcie.irq_int ,
+----probe0(17) => i_dbg.pcie.irq_pend,
+----probe0(18) => i_dbg.pcie.irq_sent,
+----probe0(19) => i_dbg.pcie.irq_msi ,
+----
+----probe0(20) => i_dbg.pcie.test_speed_bit,
+----
+----probe0(24 downto 21) => i_dbg.pcie.axi_rq_fsm,
+----
+----probe0(56 downto 25) => i_dbg.pcie.h2d_buf_di(0),
+----probe0(88 downto 57) => i_dbg.pcie.d2h_buf_do(0)
+----);
+--
 --m_dbg_hostclk : dbgcs_ila_hostclk
 --port map (
 --clk => g_host_clk,
@@ -759,82 +881,46 @@ i_dbg.pcie <= i_host_dbg;
 --probe0(16) => i_dbg.pcie.irq_int ,
 --probe0(17) => i_dbg.pcie.irq_pend,
 --probe0(18) => i_dbg.pcie.irq_sent,
---probe0(19) => i_dbg.pcie.irq_msi ,
 --
---probe0(20) => i_dbg.pcie.test_speed_bit,
+--probe0(19) => i_dbg.pcie.irq_msi_en,
+--probe0(20) => i_dbg.pcie.irq_msi_int,
+--probe0(21) => i_dbg.pcie.irq_msi_send,
+--probe0(22) => i_dbg.pcie.irq_msi_fail,
+--probe0(23) => i_dbg.pcie.irq_msi_pending_status,
+--probe0(29 downto 24) => i_dbg.pcie.irq_msi_vf_enable,
+--probe0(35 downto 30) => i_dbg.pcie.irq_msi_mmenable,
 --
---probe0(24 downto 21) => i_dbg.pcie.axi_rq_fsm,
---
---probe0(56 downto 25) => i_dbg.pcie.h2d_buf_di(0),
---probe0(88 downto 57) => i_dbg.pcie.d2h_buf_do(0)
+--probe0(36) => i_dbg.pcie.test_speed_bit
 --);
-
-m_dbg_hostclk : dbgcs_ila_hostclk
-port map (
-clk => g_host_clk,
-
---pc <- fpga
-probe0(0) => i_dbg.pcie.axi_rq_tvalid,
-probe0(1) => i_dbg.pcie.axi_rq_tlast ,
-probe0(2) => i_dbg.pcie.axi_rq_tready,
-
---pc -> fpga
-probe0(3) => i_dbg.pcie.axi_rc_tvalid,
-probe0(4) => i_dbg.pcie.axi_rc_tlast ,
-probe0(5) => i_dbg.pcie.axi_rc_tready,
-
-probe0(9 downto 6) => i_dbg.pcie.dev_num  ,
-probe0(10)         => i_dbg.pcie.dma_start,
-probe0(11)         => i_dbg.pcie.dma_irq  ,
-
-probe0(12)         => i_dbg.pcie.h2d_buf_wr   ,--PCIE -> DEV
-probe0(13)         => i_dbg.pcie.h2d_buf_full ,--PCIE -> DEV
-probe0(14)         => i_dbg.pcie.d2h_buf_rd   ,--PCIE <- DEV
-probe0(15)         => i_dbg.pcie.d2h_buf_empty,--PCIE <- DEV
-
-probe0(16) => i_dbg.pcie.irq_int ,
-probe0(17) => i_dbg.pcie.irq_pend,
-probe0(18) => i_dbg.pcie.irq_sent,
-
-probe0(19) => i_dbg.pcie.irq_msi_en,
-probe0(20) => i_dbg.pcie.irq_msi_int,
-probe0(21) => i_dbg.pcie.irq_msi_send,
-probe0(22) => i_dbg.pcie.irq_msi_fail,
-probe0(23) => i_dbg.pcie.irq_msi_pending_status,
-probe0(29 downto 24) => i_dbg.pcie.irq_msi_vf_enable,
-probe0(35 downto 30) => i_dbg.pcie.irq_msi_mmenable,
-
-probe0(36) => i_dbg.pcie.test_speed_bit
-);
-
-
---m_dbg_usr_highclk : dbgcs_ila_usr_highclk
---port map (
---clk => g_usr_highclk,
 --
---probe0(0)          => i_dbg.h2m.mem_start  ,
---probe0(1)          => i_dbg.h2m.mem_done   ,
---probe0(5 downto 2) => i_dbg.h2m.mem_wr_fsm ,
---probe0(6)          => i_dbg.h2m.d2h_buf_empty,--RAM->PCIE
---probe0(7)          => i_dbg.h2m.d2h_buf_full ,--RAM->PCIE
---probe0(8)          => i_dbg.h2m.h2d_buf_empty,--RAM<-PCIE
---probe0(9)          => i_dbg.h2m.h2d_buf_full , --RAM<-PCIE
---probe0(10)           => i_dbg.h2m.d2h_buf_wr,--: std_logic;
---probe0(11)           => i_dbg.h2m.h2d_buf_rd,--: std_logic;
---probe0(43 downto 12) => i_dbg.h2m.axiw_d,--i_dbg.h2m.d2h_buf_di,--: std_logic_vector(31 downto 0);
---probe0(75 downto 44) => i_dbg.h2m.axir_d,--i_dbg.h2m.h2d_buf_do --: std_logic_vector(31 downto 0);
 --
---probe0(76)           => i_dbg.h2m.axiw_dvalid,
---probe0(77)           => i_dbg.h2m.axiw_dvlast,
+----m_dbg_usr_highclk : dbgcs_ila_usr_highclk
+----port map (
+----clk => g_usr_highclk,
+----
+----probe0(0)          => i_dbg.h2m.mem_start  ,
+----probe0(1)          => i_dbg.h2m.mem_done   ,
+----probe0(5 downto 2) => i_dbg.h2m.mem_wr_fsm ,
+----probe0(6)          => i_dbg.h2m.d2h_buf_empty,--RAM->PCIE
+----probe0(7)          => i_dbg.h2m.d2h_buf_full ,--RAM->PCIE
+----probe0(8)          => i_dbg.h2m.h2d_buf_empty,--RAM<-PCIE
+----probe0(9)          => i_dbg.h2m.h2d_buf_full , --RAM<-PCIE
+----probe0(10)           => i_dbg.h2m.d2h_buf_wr,--: std_logic;
+----probe0(11)           => i_dbg.h2m.h2d_buf_rd,--: std_logic;
+----probe0(43 downto 12) => i_dbg.h2m.axiw_d,--i_dbg.h2m.d2h_buf_di,--: std_logic_vector(31 downto 0);
+----probe0(75 downto 44) => i_dbg.h2m.axir_d,--i_dbg.h2m.h2d_buf_do --: std_logic_vector(31 downto 0);
+----
+----probe0(76)           => i_dbg.h2m.axiw_dvalid,
+----probe0(77)           => i_dbg.h2m.axiw_dvlast,
+----
+----probe0(78)           => i_dbg.h2m.axir_dvalid,
+----probe0(79)           => i_dbg.h2m.axir_dvlast
+----);
 --
---probe0(78)           => i_dbg.h2m.axir_dvalid,
---probe0(79)           => i_dbg.h2m.axir_dvlast
---);
-
-
-
-
-end generate gen_dbgcs_on;
+--
+--
+--
+--end generate gen_dbgcs_on;
 
 end architecture struct;
 
