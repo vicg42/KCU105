@@ -657,6 +657,7 @@ board.RP.cfg_usrapp.TSK_READ_CFG_DW(32'h00000000);
                           board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
 
                         $display("[%t] : WAIT IRQ.... ", $realtime);
+//                        wait (board.RP.cfg_usrapp.cfg_msg_received == 1'b1);
                         #1500;
 
                         $display("[%t] : WAIT IRQ HEADER....", $realtime);
