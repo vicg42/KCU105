@@ -37,7 +37,7 @@ Type TFG_FrXYPrms is array (0 to C_FG_VCH_COUNT - 1) of TFG_FrXYPrm;
 type TFG_VCHPrm is record
 fr     : TFG_FrXYPrm;
 mirror : TFG_FrMirror;
-steprd : std_logic_vector(15 downto 0); --Step read frame (Count Line)
+step_rd: std_logic_vector(15 downto 0); --Step read frame (Count Line)
 end record;
 type TFG_VCHPrms is array (0 to C_FG_VCH_COUNT - 1) of TFG_VCHPrm;
 

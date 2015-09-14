@@ -39,6 +39,7 @@ port(
 --CFG
 -------------------------------
 p_in_usrprm          : in    TFGRD_Prms;
+p_in_memtrn          : in    std_logic_vector(7 downto 0);
 --p_in_work_en         : in    std_logic;
 
 p_in_hrd_chsel       : in    std_logic_vector(2 downto 0);--Host: Channel number for read
@@ -105,6 +106,8 @@ signal i_mem_adr_out               : unsigned(31 downto 0) := (others => '0');
 signal i_mem_adr_t                 : unsigned(31 downto 0) := (others => '0');
 signal i_mem_adr                   : unsigned(31 downto 0) := (others => '0');
 signal i_mem_rqlen                 : unsigned(15 downto 0) := (others => '0');
+signal i_mem_trnlen                : unsigned(p_in_memtrn'range);
+signal i_mem_trnlen_out            : unsigned(15 downto 0);
 signal i_mem_start                 : std_logic;
 signal i_mem_dir                   : std_logic;
 signal i_mem_done                  : std_logic;
@@ -156,7 +159,7 @@ if rising_edge(p_in_clk) then
     i_mem_start <= '0';
     i_fr_rowcnt <= (others => '0');
 
-    i_prm.mem_trnlen <= std_logic_vector(TO_UNSIGNED(16#4040#, i_prm.mem_trnlen'length));
+--    i_prm.mem_trnlen <= std_logic_vector(TO_UNSIGNED(16#4040#, i_prm.mem_trnlen'length));
     i_prm.frwr.pixcount <= (others => '0');
     i_prm.frwr.rowcount <= (others => '0');
 
@@ -216,6 +219,7 @@ if rising_edge(p_in_clk) then
                          + (TO_UNSIGNED(0, i_mem_rqlen'length - 2)
                             & OR_reduce(i_prm.frrd.act.pixcount(log2(G_MEM_DWIDTH / 8) - 1 downto 0)));
 
+        i_mem_trnlen <= UNSIGNED(p_in_memtrn);
         i_mem_dir <= C_MEMWR_READ;
         i_mem_start <= '1';
         i_fsm_state_cs <= S_MEM_RD; i_eof <= '0';
@@ -263,6 +267,8 @@ i_mem_adr_out(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT) <= i_chnum(G_MEM_VCH_M_BIT
 i_mem_adr_out(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT) <= i_frbuf;
 i_mem_adr_out(G_MEM_VLINE_M_BIT downto 0) <= i_mem_adr(G_MEM_VLINE_M_BIT downto 0);
 
+i_mem_trnlen_out <= RESIZE(i_mem_trnlen, i_mem_trnlen_out'length);
+
 m_mem_wr : mem_wr
 generic map(
 --G_USR_OPT        => G_USR_OPT,
@@ -277,7 +283,7 @@ port map
 --CFG
 -------------------------------
 p_in_cfg_mem_adr     => std_logic_vector(i_mem_adr_out),
-p_in_cfg_mem_trn_len => std_logic_vector(RESIZE(UNSIGNED(i_prm.mem_trnlen), 16)),
+p_in_cfg_mem_trn_len => std_logic_vector(i_mem_trnlen_out),--RESIZE(UNSIGNED(p_in_memtrn), 16)),
 p_in_cfg_mem_dlen_rq => std_logic_vector(i_mem_rqlen),
 p_in_cfg_mem_wr      => i_mem_dir,
 p_in_cfg_mem_start   => i_mem_start,
@@ -317,8 +323,8 @@ p_in_rst             => p_in_rst
 ------------------------------------
 p_out_tst(5 downto 0) <= tst_mem_wr_out(5 downto 0);
 p_out_tst(7 downto 6) <= (others => '0');
-p_out_tst(10 downto 8) <= std_logic_vector(tst_fsm_cs_dly(2 downto 0));
-p_out_tst(31 downto 11) <= (others => '0');
+p_out_tst(11 downto 8) <= std_logic_vector(tst_fsm_cs_dly(3 downto 0));
+p_out_tst(31 downto 12) <= (others => '0');
 
 
 process(p_in_clk)
