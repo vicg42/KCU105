@@ -125,7 +125,7 @@ dev_ctrl : std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
 mem_adr  : std_logic_vector(C_HREG_MEM_ADR_LAST_BIT downto 0);
 mem_ctrl : std_logic_vector(C_HREG_MEM_CTRL_LAST_BIT downto 0);
 irq      : std_logic_vector(C_HREG_IRQ_NUM_M_WBIT downto C_HREG_IRQ_NUM_L_WBIT);
-pcie     : std_logic_vector(C_HREG_PCIE_SPEED_TESTING_BIT downto C_HREG_PCIE_SPEED_TESTING_BIT);
+pcie     : std_logic_vector(C_HREG_PCIE_EN_TESTD_GEN_BIT downto C_HREG_PCIE_SPEED_TESTING_BIT);
 tst0     : std_logic_vector(31 downto 0);
 tst1     : std_logic_vector(31 downto 0);
 end record;
@@ -315,7 +315,7 @@ if rising_edge(p_in_clk) then
             dev_drdy := p_in_reg_din(C_HREG_DEV_CTRL_DRDY_BIT);
 
         elsif (i_reg_adr = TO_UNSIGNED(C_HREG_PCIE, 5)) then
-            i_reg.pcie <= p_in_reg_din(C_HREG_PCIE_SPEED_TESTING_BIT downto C_HREG_PCIE_SPEED_TESTING_BIT);
+            i_reg.pcie <= p_in_reg_din(C_HREG_PCIE_EN_TESTD_GEN_BIT downto C_HREG_PCIE_SPEED_TESTING_BIT);
 
         elsif (i_reg_adr = TO_UNSIGNED(C_HREG_MEM_ADR, 5)) then
           i_reg.mem_adr <= p_in_reg_din(i_reg.mem_adr'high downto 0);
@@ -406,6 +406,7 @@ if rising_edge(p_in_clk) then
             txd(C_HREG_PCIE_MASTER_EN_BIT) := p_in_pcie_prm.master_en(0);
 
             txd(C_HREG_PCIE_SPEED_TESTING_BIT) := i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
+            txd(C_HREG_PCIE_EN_TESTD_GEN_BIT) := i_reg.pcie(C_HREG_PCIE_EN_TESTD_GEN_BIT);
 
         elsif (i_reg_adr = TO_UNSIGNED(C_HREG_MEM_ADR, 5)) then
             txd := std_logic_vector(RESIZE(UNSIGNED(i_reg.mem_adr), txd'length));
