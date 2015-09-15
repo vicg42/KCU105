@@ -151,7 +151,8 @@ constant C_HREG_PCIE_NEG_MAX_RD_REQ_M_BIT     : integer := 20;
 constant C_HREG_PCIE_MASTER_EN_BIT            : integer := 24;
 --constant RESERV                             : integer := 27...25;
 constant C_HREG_PCIE_SPEED_TESTING_BIT        : integer := 28;
-constant C_HREG_PCIE_LAST_BIT                 : integer := C_HREG_PCIE_SPEED_TESTING_BIT;
+constant C_HREG_PCIE_EN_TESTD_GEN_BIT         : integer := 29;
+constant C_HREG_PCIE_LAST_BIT                 : integer := C_HREG_PCIE_EN_TESTD_GEN_BIT;
 
 
 --Register C_HREG_FUNC / Bit Map:

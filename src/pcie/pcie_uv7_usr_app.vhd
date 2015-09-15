@@ -202,6 +202,7 @@ signal i_dev_drdy                  : std_logic;
 
 signal i_mem_adr                   : unsigned(31 - log2(C_HDEV_DWIDTH / 8) downto 0) := (others => '0');
 
+constant CI_TESTDATA_WIDTH : integer := 32;
 signal tst_mem_dcnt,tst_mem_dcnt_swap : unsigned(C_HDEV_DWIDTH - 1 downto 0);
 
 signal tst_cnt : unsigned(7 downto 0) := (others => '0');
@@ -734,35 +735,34 @@ begin
 p_out_rxbuf_do <= std_logic_vector(tst_mem_dcnt_swap);
 --p_out_rxbuf_do <= p_in_dev_dout
 --                      when UNSIGNED(i_hdev_adr) /= TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length) else std_logic_vector(tst_mem_dcnt_swap);
-
+end generate gen_sim_on;
 --Generator test data (counter)
 process(p_in_rst_n, i_usr_grst, p_in_clk)
 begin
 if rising_edge(p_in_clk) then
   if (p_in_rst_n = '0' or i_usr_grst = '1') then
-    for i in 0 to (tst_mem_dcnt'length / 8) - 1 loop
-    tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i) <= TO_UNSIGNED(i, 8);
+    for i in 0 to (tst_mem_dcnt'length / CI_TESTDATA_WIDTH) - 1 loop
+    tst_mem_dcnt(CI_TESTDATA_WIDTH * (i + 1) - 1 downto CI_TESTDATA_WIDTH * i) <= TO_UNSIGNED(i, CI_TESTDATA_WIDTH);
     end loop;
   else
     if (p_in_rxbuf_rd = '1' and UNSIGNED(i_hdev_adr) = TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length)) then
-      for i in 0 to (tst_mem_dcnt'length / 8) - 1 loop
-      tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i) <= tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i)
-                                                 + TO_UNSIGNED((tst_mem_dcnt'length / 8), 8);
+      for i in 0 to (tst_mem_dcnt'length / CI_TESTDATA_WIDTH) - 1 loop
+      tst_mem_dcnt(CI_TESTDATA_WIDTH * (i + 1) - 1 downto CI_TESTDATA_WIDTH * i) <= tst_mem_dcnt(CI_TESTDATA_WIDTH * (i + 1) - 1 downto CI_TESTDATA_WIDTH * i)
+                                                 + TO_UNSIGNED((tst_mem_dcnt'length / CI_TESTDATA_WIDTH), CI_TESTDATA_WIDTH);
       end loop;
     end if;
   end if;
 end if;
 end process;
---gen_swap : for i in 0 to (tst_mem_dcnt'length / 8) - 1 generate
---tst_mem_dcnt_swap(8 * (((tst_mem_dcnt'length / 8 - 1) - i) + 1) - 1
---                     downto 8 * ((tst_mem_dcnt'length / 8 - 1) - i)) <= tst_mem_dcnt(8 * (i + 1) - 1 downto 8 * i);
+--gen_swap : for i in 0 to (tst_mem_dcnt'length / CI_TESTDATA_WIDTH) - 1 generate
+--tst_mem_dcnt_swap(CI_TESTDATA_WIDTH * (((tst_mem_dcnt'length / CI_TESTDATA_WIDTH - 1) - i) + 1) - 1
+--                     downto CI_TESTDATA_WIDTH * ((tst_mem_dcnt'length / CI_TESTDATA_WIDTH - 1) - i)) <= tst_mem_dcnt(CI_TESTDATA_WIDTH * (i + 1) - 1 downto CI_TESTDATA_WIDTH * i);
 --end generate gen_swap;
 tst_mem_dcnt_swap <= tst_mem_dcnt;
 
-end generate gen_sim_on;
 
 gen_sim_off : if strcmp(G_SIM, "OFF") generate begin
-p_out_rxbuf_do <= p_in_dev_dout;
+p_out_rxbuf_do <= p_in_dev_dout when i_reg.pcie(C_HREG_PCIE_EN_TESTD_GEN_BIT) = '0' else std_logic_vector(tst_mem_dcnt_swap);
 end generate gen_sim_off;
 
 p_out_txbuf_full <= p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_FULL_BIT) and not i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
