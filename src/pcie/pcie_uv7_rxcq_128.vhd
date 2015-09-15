@@ -247,7 +247,7 @@ if rising_edge(p_in_clk) then
 
                         if (i_req_des(2)(14 downto 11) = C_PCIE3_PKT_TYPE_IO_WR_D) then
 
-                          if (p_in_axi_cq_tkeep(4) = '1') then
+                          if (p_in_axi_cq_tkeep(3) = '1') then
                             i_reg_wr <= '1';
                           else
                             err_out(1) := '1';
