@@ -23,7 +23,7 @@ constant C_AXIS_IDWIDTH    : integer := 4;
 constant C_AXIM_IDWIDTH    : integer := 8;
 
 constant C_AXI_AWIDTH      : integer := 31;
-constant C_AXIM_DWIDTH     : integer := 256;
+constant C_AXIM_DWIDTH     : integer := C_PCGF_PCIE_DWIDTH;
 
 type TAXIS_DWIDTH is array (0 to C_MEMCH_COUNT_MAX - 1) of integer;
 ------------------------------------------------------------------------------------------------------------
