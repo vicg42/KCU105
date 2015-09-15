@@ -87,6 +87,7 @@ type TData is array (0 to (G_DATA_WIDTH / 32) - 1) of std_logic_vector(31 downto
 signal sr_axi_data        : TData;
 signal i_axi_data         : TData;
 signal i_utxbuf_di        : TData;
+signal i_utxbuf_wr        : std_logic := '0';
 
 signal tst_err            : std_logic_vector(1 downto 0);
 signal tst_fsm_rx         : std_logic;
@@ -94,34 +95,40 @@ signal tst_fsm_rx         : std_logic;
 
 begin --architecture behavioral of pcie_rx_rc
 
---gen : for i in 0 to (G_DATA_WIDTH / 32) - 1 generate begin
---i_axi_data_be(i) <= p_in_axi_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
---end generate;
 
 gen : for i in 0 to (G_DATA_WIDTH / 32) - 1 generate begin
 i_axi_data(i) <= p_in_axi_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
 end generate;
 
+process(p_in_clk)
+begin
+if rising_edge(p_in_clk) then
 i_utxbuf_di(0) <= sr_axi_data(3);
 i_utxbuf_di(1) <= i_axi_data(0);
 i_utxbuf_di(2) <= i_axi_data(1);
 i_utxbuf_di(3) <= i_axi_data(2);
+
+if (i_fsm_rxrc = S_RXRC_DE) then
+i_utxbuf_wr <= i_cpld_tlp_work and (not p_in_utxbuf_full);
+else
+i_utxbuf_wr <= i_cpld_tlp_work and (not p_in_utxbuf_full) and p_in_axi_rc_tvalid;
+end if;
+end if;
+end process;
 
 gen_utxbuf : for i in 0 to i_utxbuf_di'length - 1 generate begin
 p_out_utxbuf_di((32 * (i + 1)) - 1 downto (32 * i)) <= i_utxbuf_di(i);
 end generate gen_utxbuf;
 
 --p_out_utxbuf_be <=
-p_out_utxbuf_wr   <= i_cpld_tlp_work and not p_in_utxbuf_full;
-p_out_utxbuf_last <= '0';--: out  std_logic;
+p_out_utxbuf_wr   <= i_utxbuf_wr;
+p_out_utxbuf_last <= '0';
 
 p_out_dma_mrd_done <= i_mrd_done;
 
 p_out_dma_mrd_rxdwcount <= std_logic_vector(i_dma_dw_cnt);
 
 p_out_axi_rc_tready <= i_axi_rc_tready and not p_in_utxbuf_full;
-
---i_axi_rc_tready <= not p_in_utxbuf_full;
 
 
 i_sof(0) <= p_in_axi_rc_tuser(32);
