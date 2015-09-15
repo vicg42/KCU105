@@ -691,50 +691,51 @@ cfg_power_state_change_ack       => p_out_cfg_power_state_change_ack
 --gen_dbg_rc_tdata : for i in 7 to (G_DATA_WIDTH / 32) - 1 generate begin
 --p_out_dbg.axi_rc_tdata(i) <= i_utxbuf_di((32 * (i + 1)) - 1 downto (32 * i));
 --end generate gen_dbg_rc_tdata;
-p_out_dbg.axi_rc_tkeep  <= p_in_axi_rc_tkeep;
-p_out_dbg.axi_rc_tvalid <= p_in_axi_rc_tvalid;
-p_out_dbg.axi_rc_tlast  <= p_in_axi_rc_tlast;
-p_out_dbg.axi_rc_tready <= i_axi_rc_tready;
+--p_out_dbg.axi_rc_tkeep  <= p_in_axi_rc_tkeep;
+--p_out_dbg.axi_rc_tvalid <= p_in_axi_rc_tvalid;
+--p_out_dbg.axi_rc_tlast  <= p_in_axi_rc_tlast;
+--p_out_dbg.axi_rc_tready <= i_axi_rc_tready;
 
---gen_dbg_rq_tdata : for i in 7 to (G_DATA_WIDTH / 32) - 1 generate begin
---p_out_dbg.axi_rq_tdata(i) <= tst_tx_out(((280 * 1) + 11 + (32 * (i + 1)) - 1) downto ((280 * 1) + 11 + (32 * i))); --p_in_axi_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
---end generate gen_dbg_rq_tdata;
-p_out_dbg.axi_rq_fsm    <= tst_tx_out(((280 * 1) +  3) downto ((280 * 1) + 0));
-p_out_dbg.axi_rq_tvalid <= tst_tx_out( (280 * 1) +  8);
-p_out_dbg.axi_rq_tlast  <= tst_tx_out( (280 * 1) +  9);
-p_out_dbg.axi_rq_tready <= tst_tx_out( (280 * 1) + 10);
+------gen_dbg_rq_tdata : for i in 0 to (G_DATA_WIDTH / 32) - 1 generate begin
+------p_out_dbg.axi_rq_tdata(i) <= tst_tx_out(((280 * 1) + 11 + (32 * (i + 1)) - 1) downto ((280 * 1) + 11 + (32 * i))); --p_in_axi_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
+------end generate gen_dbg_rq_tdata;
+----p_out_dbg.axi_rq_fsm    <= tst_tx_out(((280 * 1) +  3) downto ((280 * 1) + 0));
+--p_out_dbg.axi_rq_tkeep  <= tst_tx_out( (280 * 1) + 274 downto (280 * 1) + 267);
+--p_out_dbg.axi_rq_tvalid <= tst_tx_out( (280 * 1) +  8);
+--p_out_dbg.axi_rq_tlast  <= tst_tx_out( (280 * 1) +  9);
+--p_out_dbg.axi_rq_tready <= tst_tx_out( (280 * 1) + 10);
 
 p_out_dbg.dev_num   <= tst_uapp_out(120 downto 117);-- <= i_reg.dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT); --(22..19)
 p_out_dbg.dma_start <= tst_uapp_out(121);--            <= i_dma_start;
 p_out_dbg.dma_irq   <= tst_uapp_out(109);--tst_uapp_out(116 downto 109) <= std_logic_vector(RESIZE(UNSIGNED(i_irq_set(C_HIRQ_COUNT - 1 downto 0)), 8));
 
 
---gen_dbg_h2d_buf_di : for i in 0 to 0 generate begin
+--gen_dbg_h2d_buf_di : for i in 0 to 7 generate begin
 --p_out_dbg.h2d_buf_di(i) <= i_utxbuf_di((32 * (i + 1)) - 1 downto (32 * i));
 --end generate gen_dbg_h2d_buf_di;
-p_out_dbg.h2d_buf_wr    <= i_utxbuf_wr   ;--pcie -> dev
-p_out_dbg.h2d_buf_full  <= i_utxbuf_full ;
+--p_out_dbg.h2d_buf_wr    <= i_utxbuf_wr   ;--pcie -> dev
+--p_out_dbg.h2d_buf_full  <= i_utxbuf_full ;
 
---gen_dbg_d2h_buf_do : for i in 0 to 0 generate begin
---p_out_dbg.d2h_buf_do(i) <= i_urxbuf_do((32 * (i + 1)) - 1 downto (32 * i));
---end generate gen_dbg_d2h_buf_do;
+gen_dbg_d2h_buf_do : for i in 0 to 3 generate begin
+p_out_dbg.d2h_buf_do(i) <= i_urxbuf_do((32 * (i + 1)) - 1 downto (32 * i));
+end generate gen_dbg_d2h_buf_do;
 p_out_dbg.d2h_buf_rd    <= i_urxbuf_rd   ;--pcie <- dev
 p_out_dbg.d2h_buf_empty <= i_urxbuf_empty;
 
 
-p_out_dbg.test_speed_bit <= tst_uapp_out(122);-- i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
-
-p_out_dbg.irq_int  <= i_pcie_irq;
-p_out_dbg.irq_pend <= i_pcie_irq_assert;
-p_out_dbg.irq_sent <= p_in_cfg_interrupt_sent;
-
-p_out_dbg.irq_msi_en  <= p_in_cfg_interrupt_msi_enable(0);
-p_out_dbg.irq_msi_int <= i_pcie_irq_msi_int(0);
-p_out_dbg.irq_msi_pending_status  <= i_pcie_irq_msi_pending_status;
-p_out_dbg.irq_msi_send <= p_in_cfg_interrupt_msi_sent;
-p_out_dbg.irq_msi_fail <= p_in_cfg_interrupt_msi_fail;
-p_out_dbg.irq_msi_vf_enable <= p_in_cfg_interrupt_msi_vf_enable;
-p_out_dbg.irq_msi_mmenable <= p_in_cfg_interrupt_msi_mmenable;
+--p_out_dbg.test_speed_bit <= tst_uapp_out(122);-- i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
+--
+--p_out_dbg.irq_int  <= i_pcie_irq;
+--p_out_dbg.irq_pend <= i_pcie_irq_assert;
+--p_out_dbg.irq_sent <= p_in_cfg_interrupt_sent;
+--
+--p_out_dbg.irq_msi_en  <= p_in_cfg_interrupt_msi_enable(0);
+--p_out_dbg.irq_msi_int <= i_pcie_irq_msi_int(0);
+--p_out_dbg.irq_msi_pending_status  <= i_pcie_irq_msi_pending_status;
+--p_out_dbg.irq_msi_send <= p_in_cfg_interrupt_msi_sent;
+--p_out_dbg.irq_msi_fail <= p_in_cfg_interrupt_msi_fail;
+--p_out_dbg.irq_msi_vf_enable <= p_in_cfg_interrupt_msi_vf_enable;
+--p_out_dbg.irq_msi_mmenable <= p_in_cfg_interrupt_msi_mmenable;
 
 
 

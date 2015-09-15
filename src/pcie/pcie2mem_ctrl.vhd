@@ -96,6 +96,8 @@ signal i_rxbuf_din          : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 signal i_rxbuf_din_wr       : std_logic;
 signal i_rxbuf_full         : std_logic;
 signal i_rxbuf_empty        : std_logic;
+signal sr_rxbuf_din         : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+signal sr_rxbuf_din_wr      : std_logic;
 
 signal i_req_len_byte       : unsigned(17 downto 0) := (others => '0');
 signal i_mem_adr            : std_logic_vector(31 downto 0) := (others => '0');--(BYTE)
@@ -138,10 +140,18 @@ rst         => p_in_rst
 );
 
 --RAM->PCIE
+process(p_in_clk)
+begin
+if rising_edge(p_in_clk) then
+sr_rxbuf_din    <= i_rxbuf_din   ;
+sr_rxbuf_din_wr <= i_rxbuf_din_wr;
+end if;
+end process;
+
 m_rxbuf : pcie2mem_fifo
 port map(
-din         => i_rxbuf_din,
-wr_en       => i_rxbuf_din_wr,
+din         => sr_rxbuf_din,
+wr_en       => sr_rxbuf_din_wr,
 wr_clk      => p_in_clk,
 
 dout        => p_out_hrxbuf_do,
@@ -169,6 +179,7 @@ p_out_htxbuf_full <= i_txbuf_full;
 ----------------------------------------------------
 m_mem_wr : mem_wr
 generic map(
+G_DBG => G_DBG,
 G_MEM_BANK_M_BIT => G_MEM_BANK_M_BIT,
 G_MEM_BANK_L_BIT => G_MEM_BANK_L_BIT,
 G_MEM_AWIDTH     => G_MEM_AWIDTH,
@@ -294,7 +305,9 @@ p_out_tst(11) <= i_txbuf_dout_rd;--RAM<-PCIE
 p_out_tst(25 downto 12) <= (others => '0');
 --p_out_tst(25 downto 10) <= std_logic_vector(i_mem_lenreq);
 p_out_tst(31 downto 26) <= tst_mem_ctrl_out(21 downto 16);--m_mem_wr/i_mem_trn_len;
-
+--
+--p_out_tst(287 downto 32) <= std_logic_vector(RESIZE(UNSIGNED(i_txbuf_dout), 256));
+--p_out_tst(543 downto 288) <= std_logic_vector(RESIZE(UNSIGNED(i_rxbuf_din), 256))
 
 
 end architecture behavioral;
