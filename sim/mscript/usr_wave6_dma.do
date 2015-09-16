@@ -195,6 +195,9 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_in_pcie_cq_np_req_count
 add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/p_out_pcie_cq_np_req
 add wave -noupdate -color {Medium Slate Blue} -itemcolor Gold /board/EP/m_main/m_ctrl/m_rx/m_rx_rc/i_fsm_rxrc
 add wave -noupdate -color {Medium Slate Blue} -itemcolor Gold /board/EP/m_main/m_ctrl/m_rx/m_rx_cq/i_fsm_rxcq
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_rx_cq/i_reg_wr
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_rx_cq/i_reg_rd
+add wave -noupdate /board/EP/m_main/m_ctrl/m_rx/m_rx_cq/i_reg_cs
 add wave -noupdate -divider TX_ENGENE
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_in_clk
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_in_req_compl
@@ -208,9 +211,9 @@ add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_out_axi_cc_tvalid
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_out_axi_cc_tuser
 add wave -noupdate /board/EP/m_main/m_ctrl/m_tx/p_in_axi_cc_tready
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {201275583 ps} 0}
+WaveRestoreCursors {{Cursor 1} {218123630 ps} 0}
 quietly wave cursor active 1
-configure wave -namecolwidth 210
+configure wave -namecolwidth 201
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
 configure wave -signalnamewidth 1
@@ -224,4 +227,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {0 ps} {310233395 ps}
+WaveRestoreZoom {218098379 ps} {218150433 ps}
