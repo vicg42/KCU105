@@ -542,6 +542,25 @@ board.RP.cfg_usrapp.TSK_READ_CFG_DW(32'h00000000);
                           $display("[%t] : Config DMA to Memory 32 Space BAR %x", $realtime,
                               board.RP.tx_usrapp.ii);
 
+
+                          // make sure P_READ_DATA has known initial value
+                          board.RP.tx_usrapp.P_READ_DATA = 32'hffff_ffff;
+
+                          // Default 1DW PIO
+                          fork
+                             board.RP.tx_usrapp.TSK_TX_MEMORY_READ_32(board.RP.tx_usrapp.DEFAULT_TAG,
+                                                                      board.RP.tx_usrapp.DEFAULT_TC, 11'd1,
+                                                                      board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 0), // Address
+                                                                      4'h0, 4'hF);
+                             board.RP.tx_usrapp.TSK_WAIT_FOR_READ_DATA;
+                          join
+                          $display("[%t] : Read FPGA firmware : %x ", $realtime, board.RP.tx_usrapp.P_READ_DATA);
+
+                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(10);
+                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
+
+
+
                           //C_HREG_IRQ (DMA IRQ EN)
                           board.RP.tx_usrapp.USR_DATA[3:0] = 0;//NUM IRQ
                           board.RP.tx_usrapp.USR_DATA[12:4] = 0;
