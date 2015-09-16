@@ -828,7 +828,7 @@ p_out_tst(47 downto 32)   <= std_logic_vector(RESIZE(UNSIGNED(i_reg.tst1(7 downt
 p_out_tst(55 downto 48)   <= i_dmabuf_count;
 p_out_tst(57 downto 56)   <= i_dmatrn_mem_done;
 p_out_tst(61 downto 58)   <= i_hdev_adr;
-p_out_tst(62)             <= p_in_dma_mrd_rcv_err;
+p_out_tst(62)             <= i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
 p_out_tst(63)             <= i_reg_bar and (p_in_reg_wr or i_reg_rd);
 p_out_tst(95 downto 64)   <= (others => '0');
 p_out_tst(96)             <= i_irq_status_clr;
