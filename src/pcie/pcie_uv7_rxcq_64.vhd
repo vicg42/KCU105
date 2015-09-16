@@ -266,50 +266,45 @@ if rising_edge(p_in_clk) then
 
           if (p_in_axi_cq_tvalid = '1') then
 
-                --Check length data payload (DW)
-                if (UNSIGNED(i_req_des(2)(10 downto 0)) = TO_UNSIGNED(16#01#, 11) ) then
+                --if (target_fuction = 0) and ((bar_id = 0) or (bar_id = 1))
+                if ( (i_req_des(3)(15 downto 8) = "00000000") and
+                   (UNSIGNED(i_req_des(3)(18 downto 16)) <= TO_UNSIGNED(1, 3)) ) then
 
-                    --if (target_fuction = 0) and ((bar_id = 0) or (bar_id = 1))
-                    if ( (i_req_des(3)(15 downto 8) = "00000000") and
-                       (UNSIGNED(i_req_des(3)(18 downto 16)) <= TO_UNSIGNED(1, 3)) ) then
+                    i_reg_cs <= '1';
+                end if;
 
-                        i_reg_cs <= '1';
-                    end if;
+                i_reg_d    <= p_in_axi_cq_tdata((32 * 1) - 1 downto (32 * 0));
+                i_reg_wrbe <= p_in_axi_cq_tuser((8 + (4 * 1)) - 1 downto (8 + (4 * 0)));
 
-                    i_reg_d    <= p_in_axi_cq_tdata((32 * 1) - 1 downto (32 * 0));
-                    i_reg_wrbe <= p_in_axi_cq_tuser((8 + (4 * 1)) - 1 downto (8 + (4 * 0)));
+                --Compl
+                if (i_req_des(2)(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
 
-                    --Compl
-                    if (i_req_des(2)(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
+                    i_req_compl <= '0';
 
-                        i_req_compl <= '0';
-
-                        if p_in_axi_cq_tkeep(0) = '1' then
-                          i_reg_wr <= '1';
-                        else
-                          err_out(1) := '1';
-                        end if;
-
-                        i_fsm_rxcq <= S_RXCQ_IDLE;
-
+                    if p_in_axi_cq_tkeep(0) = '1' then
+                      i_reg_wr <= '1';
                     else
-
-                        i_axi_cq_tready <= '0';
-                        i_req_compl <= '1';
-
-                        if (i_req_des(2)(14 downto 11) = C_PCIE3_PKT_TYPE_IO_WR_D) then
-
-                          if (p_in_axi_cq_tkeep(0) = '1') then
-                            i_reg_wr <= '1';
-                          else
-                            err_out(1) := '1';
-                          end if;
-
-                          i_fsm_rxcq <= S_RXCQ_WAIT;
-
-                        end if;
+                      err_out(1) := '1';
                     end if;
 
+                    i_fsm_rxcq <= S_RXCQ_IDLE;
+
+                else
+
+                    i_axi_cq_tready <= '0';
+                    i_req_compl <= '1';
+
+                    if (i_req_des(2)(14 downto 11) = C_PCIE3_PKT_TYPE_IO_WR_D) then
+
+                      if (p_in_axi_cq_tkeep(0) = '1') then
+                        i_reg_wr <= '1';
+                      else
+                        err_out(1) := '1';
+                      end if;
+
+                      i_fsm_rxcq <= S_RXCQ_WAIT;
+
+                    end if;
                 end if;
 
           end if;
