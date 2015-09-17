@@ -298,8 +298,6 @@ if rising_edge(p_in_clk) then
 
         when S_TXRQ_MWR_C1 =>
 
-            i_mwr_work <= '1';
-
             i_mem_tpl_dw_rem <= (i_mem_tpl_len(i_mem_tpl_len'high - (log2(G_DATA_WIDTH / 8) - 2) downto 0)
                                  & TO_UNSIGNED(0, (log2(G_DATA_WIDTH / 8) - 2))) - i_mem_tpl_dw;
 
@@ -370,6 +368,8 @@ if rising_edge(p_in_clk) then
                 i_axi_rq_tdata((32 * 1) + 31) <= '0'; --Force ECRC
 
                 i_mem_adr_byte <= i_mem_adr_byte + RESIZE(i_mem_tpl_byte, i_mem_adr_byte'length);
+
+                i_mwr_work <= '1';
 
                 i_fsm_txrq <= S_TXRQ_MWR_DN;
 
