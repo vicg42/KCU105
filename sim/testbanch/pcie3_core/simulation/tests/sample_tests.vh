@@ -631,7 +631,7 @@ board.RP.cfg_usrapp.TSK_READ_CFG_DW(32'h00000000);
 
 
                           //C_HREG_DMAPRM_LEN
-                          board.RP.tx_usrapp.USR_DATA = 1024 * 1;
+                          board.RP.tx_usrapp.USR_DATA = 1024 * 2;
 
                           board.RP.tx_usrapp.DATA_STORE[0] = board.RP.tx_usrapp.USR_DATA[ 7: 0];
                           board.RP.tx_usrapp.DATA_STORE[1] = board.RP.tx_usrapp.USR_DATA[15: 8];
@@ -642,6 +642,27 @@ board.RP.cfg_usrapp.TSK_READ_CFG_DW(32'h00000000);
                               board.RP.tx_usrapp.DEFAULT_TC,
                               11'd1, // Length (in DW)
                               board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 3), // Address
+                              4'h0,  // Last DW Byte Enable
+                              4'hF,  // First DW Byte Enable
+                              1'b0); // Poisoned Data: Payload is invalid if set
+
+                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
+                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
+
+
+                          //C_HREG_PCIE
+                          //set  C_HREG_PCIE_SPEED_TESTING_BIT, C_HREG_PCIE_EN_TESTD_GEN_BIT
+                          board.RP.tx_usrapp.USR_DATA = 32'h30000000;
+
+                          board.RP.tx_usrapp.DATA_STORE[0] = board.RP.tx_usrapp.USR_DATA[ 7: 0];
+                          board.RP.tx_usrapp.DATA_STORE[1] = board.RP.tx_usrapp.USR_DATA[15: 8];
+                          board.RP.tx_usrapp.DATA_STORE[2] = board.RP.tx_usrapp.USR_DATA[23:16];
+                          board.RP.tx_usrapp.DATA_STORE[3] = board.RP.tx_usrapp.USR_DATA[31:24];
+
+                          board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
+                              board.RP.tx_usrapp.DEFAULT_TC,
+                              11'd1, // Length (in DW)
+                              board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 13), // Address
                               4'h0,  // Last DW Byte Enable
                               4'hF,  // First DW Byte Enable
                               1'b0); // Poisoned Data: Payload is invalid if set
@@ -675,9 +696,16 @@ board.RP.cfg_usrapp.TSK_READ_CFG_DW(32'h00000000);
                           board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
                           board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
 
-                        $display("[%t] : WAIT IRQ.... ", $realtime);
-//                        wait (board.RP.cfg_usrapp.cfg_msg_received == 1'b1);
-                        #1500;
+                        fork
+                        while (!board.RP.cfg_usrapp.cfg_msg_received) @(posedge user_clk);
+                            begin
+                              $display("[%t] : WAIT IRQ.... ", $realtime);
+                            end
+                        join
+
+//                      $display("[%t] : WAIT IRQ.... ", $realtime);
+////                        wait (board.RP.cfg_usrapp.cfg_msg_received == 1'b1);
+//                        #1500;
 
                         $display("[%t] : WAIT IRQ HEADER....", $realtime);
                           //C_HREG_IRQ (DMA IRQ EN)
