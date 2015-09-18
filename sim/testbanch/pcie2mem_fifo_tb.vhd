@@ -16,13 +16,13 @@ generic(
 G_MEM_DWIDTH : integer := 64
 );
 port(
-p_out_dout  : out std_logic_vector(G_MEM_DWIDTH - 1 downto 0)
+p_out_dout  : out std_logic_vector(G_MEM_DWIDTH - 1 downto 0) := (others => '0')
 );
 end entity pcie2mem_fifo_tb;
 
 architecture behavioral of pcie2mem_fifo_tb is
 
-constant CI_WRCLK_PERIOD : time := 4.0 ns;
+constant CI_WRCLK_PERIOD : time := 3.2 ns;
 constant CI_RDCLK_PERIOD : time := 6.6 ns;
 
 component pcie2mem_fifo
@@ -30,12 +30,12 @@ port(
 din         : in std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 wr_en       : in std_logic;
 wr_clk      : in std_logic;
-wr_data_count    : out std_logic_vector(3 downto 0);
+--wr_data_count    : out std_logic_vector(3 downto 0);
 
 dout        : out std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 rd_en       : in std_logic;
 rd_clk      : in std_logic;
-rd_data_count    : out std_logic_vector(3 downto 0);
+--rd_data_count    : out std_logic_vector(3 downto 0);
 
 empty       : out std_logic;
 full        : out std_logic;
@@ -55,6 +55,7 @@ signal i_fifo_di            : unsigned(G_MEM_DWIDTH - 1 downto 0) := (others => 
 signal i_fifo_di_wr         : std_logic := '0';
 signal i_fifo_di_wrclk      : std_logic := '0';
 
+signal i_fifo_do_rdclk_div  : std_logic := '0';
 signal i_fifo_do            : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 signal i_fifo_do_rd         : std_logic := '0';
 signal i_fifo_do_rdclk      : std_logic := '0';
@@ -70,8 +71,6 @@ signal sr_wr_en             : std_logic := '0';
 
 begin --architecture behavioral
 
-
-p_out_dout <= i_fifo_do;
 
 gen_wrclk : process
 begin
@@ -97,12 +96,12 @@ port map(
 din       => std_logic_vector(i_fifo_di),
 wr_en     => i_fifo_di_wr,
 wr_clk    => i_fifo_di_wrclk,
-wr_data_count => open,
+--wr_data_count => open,
 
 dout      => i_fifo_do,
 rd_en     => i_fifo_do_rd,
 rd_clk    => i_fifo_do_rdclk,
-rd_data_count => open,
+--rd_data_count => open,
 
 empty     => i_fifo_empty,
 full      => i_fifo_full,
@@ -112,6 +111,14 @@ prog_full => i_fifo_pfull,
 rst       => i_rst
 );
 
+process(i_fifo_do_rdclk)
+begin
+if rising_edge(i_fifo_do_rdclk) then
+  if i_fifo_do_rd = '1' then
+    p_out_dout <= i_fifo_do;
+  end if;
+end if;
+end process;
 
 i_wr_en <= '0','1' after 2 us;
 
@@ -132,20 +139,12 @@ end if;
 end process;
 
 
+i_fifo_do_rd <= i_fifo_do_rdclk_div and (not i_fifo_empty);
+
 process(i_fifo_do_rdclk)
 begin
 if rising_edge(i_fifo_do_rdclk) then
---  i_fifo_do_rdclk <= not i_fifo_do_rdclk;
-
-  if i_fifo_rd_en = '0' then
-    i_fifo_do_rd <= '0';
-    if i_fifo_empty = '0' then
-      i_fifo_rd_en <= '1';
-    end if;
-  else
-    i_fifo_do_rd <= '1';
-    i_fifo_rd_en <= '0';
-  end if;
+  i_fifo_do_rdclk_div <= not i_fifo_do_rdclk_div;
 
 end if;
 end process;
