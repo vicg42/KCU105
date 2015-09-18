@@ -39,7 +39,7 @@ do pcie2mem_fifo_tb_wave.do
 view wave
 view structure
 view signals
-run 2500ns
+run 4000ns
 
 #quit -force
 

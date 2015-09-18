@@ -25,6 +25,9 @@ architecture behavioral of pcie2mem_fifo_tb is
 constant CI_WRCLK_PERIOD : time := 3.2 ns;
 constant CI_RDCLK_PERIOD : time := 6.6 ns;
 
+constant CI_TEST_DCOUNT  : integer := 40;
+
+
 component pcie2mem_fifo
 port(
 din         : in std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
@@ -54,12 +57,18 @@ signal i_fifo_di_wrclk_div  : std_logic := '0';
 signal i_fifo_di            : unsigned(G_MEM_DWIDTH - 1 downto 0) := (others => '0');
 signal i_fifo_di_wr         : std_logic := '0';
 signal i_fifo_di_wrclk      : std_logic := '0';
+signal i_fifo_wr_cnt        : unsigned(15 downto 0) := (others => '0');
+signal i_fifo_wr_stop       : std_logic := '0';
+signal i_fifo_di_o          : unsigned(G_MEM_DWIDTH - 1 downto 0) := (others => '0');
+signal i_fifo_di_wr_o       : std_logic := '0';
 
 signal i_fifo_do_rdclk_div  : std_logic := '0';
 signal i_fifo_do            : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 signal i_fifo_do_rd         : std_logic := '0';
 signal i_fifo_do_rdclk      : std_logic := '0';
 signal i_fifo_rd_en         : std_logic := '0';
+signal i_fifo_rd_cnt        : unsigned(15 downto 0) := (others => '0');
+signal i_fifo_rd_stop       : std_logic := '0';
 
 signal i_fifo_empty         : std_logic := '1';
 signal i_fifo_full          : std_logic := '0';
@@ -93,8 +102,8 @@ i_rst <= '1', '0' after 1 us;
 
 fifo : pcie2mem_fifo
 port map(
-din       => std_logic_vector(i_fifo_di),
-wr_en     => i_fifo_di_wr,
+din       => std_logic_vector(i_fifo_di_o),
+wr_en     => i_fifo_di_wr_o,
 wr_clk    => i_fifo_di_wrclk,
 --wr_data_count => open,
 
@@ -122,7 +131,7 @@ end process;
 
 i_wr_en <= '0','1' after 2 us;
 
-i_fifo_di_wr <= i_fifo_di_wrclk_div and sr_wr_en;
+i_fifo_di_wr <= i_fifo_di_wrclk_div and sr_wr_en and (not i_fifo_pfull) and (not i_fifo_wr_stop);
 
 process(i_fifo_di_wrclk)
 begin
@@ -130,22 +139,41 @@ if rising_edge(i_fifo_di_wrclk) then
   i_fifo_di_wrclk_div <= not i_fifo_di_wrclk_div;
 
   if i_fifo_di_wrclk_div = '1' then
-    sr_wr_en <= i_wr_en and (not i_fifo_pfull);
-    if i_fifo_pfull = '0' and sr_wr_en = '1' then
+    sr_wr_en <= i_wr_en;
+    if sr_wr_en = '1' and i_fifo_pfull = '0' and i_fifo_wr_stop = '0' then
     i_fifo_di <= i_fifo_di + 1;
     end if;
   end if;
+
+  if i_fifo_di_wr_o = '1' then
+    if (i_fifo_wr_cnt = CI_TEST_DCOUNT) then
+      i_fifo_wr_stop <= '1';
+    else
+      i_fifo_wr_cnt <= i_fifo_wr_cnt + 1;
+    end if;
+  end if;
+
+  i_fifo_di_o <= i_fifo_di;
+  i_fifo_di_wr_o <= i_fifo_di_wr;
+
 end if;
 end process;
 
 
-i_fifo_do_rd <= i_fifo_do_rdclk_div and (not i_fifo_empty);
+i_fifo_do_rd <= i_fifo_do_rdclk_div and (not i_fifo_empty) and (not i_fifo_rd_stop);
 
 process(i_fifo_do_rdclk)
 begin
 if rising_edge(i_fifo_do_rdclk) then
   i_fifo_do_rdclk_div <= not i_fifo_do_rdclk_div;
 
+  if i_fifo_do_rd = '1' then
+    if (i_fifo_rd_cnt = CI_TEST_DCOUNT) then
+      i_fifo_rd_stop <= '1';
+    else
+      i_fifo_rd_cnt <= i_fifo_rd_cnt + 1;
+    end if;
+  end if;
 end if;
 end process;
 
