@@ -74,13 +74,7 @@ signal i_mrd_done         : std_logic;
 
 signal i_cpld_tlp_de      : std_logic;
 signal i_cpld_tlp_work    : std_logic;
---signal i_cpld_dw_cnt      : unsigned(31 downto 0);
---signal i_cpld_byte_t      : unsigned(12 downto 0);
---signal i_cpld_byte        : unsigned(12 downto 0);
 signal i_cpld_tpl_cntdw   : unsigned(10 downto 0);
---signal i_cpld_dw_t        : unsigned(10 downto 0);
---signal i_cpld_dw_rem      : unsigned(10 downto 0);
---signal i_cpld_len         : unsigned(10 downto 0);
 
 signal i_axi_rc_tready    : std_logic;
 --signal i_axi_data_be      : std_logic_vector((G_DATA_WIDTH / 8) - 1 downto 0);
@@ -167,12 +161,6 @@ end if;
 end process;--init
 
 
---i_cpld_byte_t <= UNSIGNED(i_axi_data(0)(28 downto 16)); --CPLD Byte Count
---i_cpld_dw_t <= UNSIGNED(i_axi_data(1)(10 downto 0)); --CPLD Length data payload (DW)
---i_cpld_len <= RESIZE(i_cpld_dw_t(10 downto log2(G_DATA_WIDTH / 32)), i_cpld_len'length)
---            + (TO_UNSIGNED(0, i_cpld_len'length - 2)
---                & OR_reduce(i_cpld_dw_t(log2(G_DATA_WIDTH / 32) - 1 downto 0)));
-
 --Rx State Machine
 fsm : process(p_in_clk)
 begin
@@ -215,7 +203,8 @@ if rising_edge(p_in_clk) then
               if (i_dma_init = '1') then
 
               i_dma_dw_cnt <= (others => '0');
-              i_dma_dw_len <= RESIZE(UNSIGNED(p_in_dma_prm.len(p_in_dma_prm.len'high downto log2(32 / 8))), i_dma_dw_len'length)
+              i_dma_dw_len <= RESIZE(UNSIGNED(p_in_dma_prm.len(p_in_dma_prm.len'high downto log2(32 / 8)))
+                                                                                        , i_dma_dw_len'length)
                               + (TO_UNSIGNED(0, i_dma_dw_len'length - 2)
                                   & OR_reduce(p_in_dma_prm.len(log2(32 / 8) - 1 downto 0)));
 
@@ -235,8 +224,7 @@ if rising_edge(p_in_clk) then
         --#######################################################################
         when S_RXRC_DH =>
 
-            if (i_sof(0) = '1' and i_sof(1) = '0' and p_in_dma_mrd_en = '1'
-                and p_in_axi_rc_tvalid = '1') then
+            if (i_sof(0) = '1' and i_sof(1) = '0' and p_in_dma_mrd_en = '1' and p_in_axi_rc_tvalid = '1') then
 
                 if (p_in_axi_rc_tkeep(1 downto 0) = "11") then
 
@@ -371,7 +359,6 @@ tst_fsm <= TO_UNSIGNED(4, tst_fsm'length) when i_fsm_rxrc = S_RXRC_DE   else
            TO_UNSIGNED(0, tst_fsm'length);-- when i_fsm_rxrc = S_RXRC_IDLE else
 
 p_out_tst(2 downto 0) <= std_logic_vector(tst_fsm);
---p_out_tst(3 downto 1) <= (others => '0');
 p_out_tst(5 downto 3) <= (others => '0');
 p_out_tst(7 downto 6) <= (others => '0');
 p_out_tst(31 downto 3) <= (others => '0');
