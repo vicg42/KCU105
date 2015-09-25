@@ -198,8 +198,11 @@ begin
 
     --Last data into current transaction
     if i_mem_dir = C_MEMWR_WRITE then
-      if (i_mem_wr = '1' or fsm_state_cs = S_MEM_WAIT_RQ_EN) and i_mem_trn_len = TO_UNSIGNED(1, i_mem_trn_len'length) then
+      if (i_mem_wr = '1' or fsm_state_cs = S_MEM_WAIT_RQ_EN)
+          and i_mem_trn_len = TO_UNSIGNED(1, i_mem_trn_len'length) then
+
         i_mem_term <= '1';
+
       elsif i_mem_wr = '1' and i_mem_trn_len = (i_mem_trn_len'range => '0') then
         i_mem_term <= '0';
       end if;
@@ -214,8 +217,11 @@ end process mem_term;
 --------------------------------------------------
 p_out_cfg_mem_done <= i_mem_done;
 
-i_mem_rd <= i_mem_trn_work and p_in_mem.axir.dvalid and not p_in_usr_rxbuf_full when i_mem_dir = C_MEMWR_READ  else '0';
-i_mem_wr <= i_mem_trn_work and p_in_mem.axiw.wready and not p_in_usr_txbuf_empty when i_mem_dir = C_MEMWR_WRITE else '0';
+i_mem_rd <= i_mem_trn_work and p_in_mem.axir.dvalid and not p_in_usr_rxbuf_full
+                                                      when i_mem_dir = C_MEMWR_READ  else '0';
+
+i_mem_wr <= i_mem_trn_work and p_in_mem.axiw.wready and not p_in_usr_txbuf_empty
+                                                      when i_mem_dir = C_MEMWR_WRITE else '0';
 
 fsm : process(p_in_clk)
   variable update_addr : unsigned(i_mem_trn_len'length + log2(G_MEM_DWIDTH / 8) - 1 downto 0);
