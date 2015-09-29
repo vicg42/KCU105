@@ -422,7 +422,7 @@ if rising_edge(p_in_clk) then
 
                 end if;
 
-            elsif (p_in_axi_rq_tready = '1' and p_in_urxbuf_empty = '1') then
+            elsif (p_in_urxbuf_empty = '1') then
 
               i_axi_rq_tvalid <= '0';
 
