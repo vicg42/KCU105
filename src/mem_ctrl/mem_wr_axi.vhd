@@ -189,8 +189,13 @@ p_out_mem.axir.prot   <= std_logic_vector(TO_UNSIGNED(0, p_out_mem.axir.prot'len
 p_out_mem.axir.qos    <= std_logic_vector(TO_UNSIGNED(0, p_out_mem.axir.qos'length));
 p_out_mem.axir.avalid <= i_axir_avalid;
 --RData Port
-p_out_mem.axir.rready <= i_mem_trn_work when i_mem_dir = C_MEMWR_READ else '0';
+gen_axir_rready0 : if (C_MEMWR_READ = '0') generate begin
+p_out_mem.axir.rready <= i_mem_trn_work and (not p_in_usr_rxbuf_full) and (not i_mem_dir);
+end generate gen_axir_rready0;
 
+gen_axir_rready1 : if (C_MEMWR_READ = '1') generate begin
+p_out_mem.axir.rready <= i_mem_trn_work and (not p_in_usr_rxbuf_full) and i_mem_dir;
+end generate gen_axir_rready1;
 
 mem_term : process(p_in_clk)
 begin
@@ -217,11 +222,16 @@ end process mem_term;
 --------------------------------------------------
 p_out_cfg_mem_done <= i_mem_done;
 
-i_mem_rd <= i_mem_trn_work and p_in_mem.axir.dvalid and not p_in_usr_rxbuf_full
-                                                      when i_mem_dir = C_MEMWR_READ  else '0';
+gen_mem_dir0 : if (C_MEMWR_READ = '0') generate begin
+i_mem_rd <= i_mem_trn_work and p_in_mem.axir.dvalid and (not p_in_usr_rxbuf_full) and (not i_mem_dir);
+i_mem_wr <= i_mem_trn_work and p_in_mem.axiw.wready and (not p_in_usr_txbuf_empty) and i_mem_dir;
+end generate gen_mem_dir0;
 
-i_mem_wr <= i_mem_trn_work and p_in_mem.axiw.wready and not p_in_usr_txbuf_empty
-                                                      when i_mem_dir = C_MEMWR_WRITE else '0';
+gen_mem_dir1 : if (C_MEMWR_READ = '1') generate begin
+i_mem_rd <= i_mem_trn_work and p_in_mem.axir.dvalid and (not p_in_usr_rxbuf_full) and i_mem_dir;
+i_mem_wr <= i_mem_trn_work and p_in_mem.axiw.wready and (not p_in_usr_txbuf_empty) and (not i_mem_dir);
+end generate gen_mem_dir1;
+
 
 fsm : process(p_in_clk)
   variable update_addr : unsigned(i_mem_trn_len'length + log2(G_MEM_DWIDTH / 8) - 1 downto 0);
@@ -303,11 +313,11 @@ if rising_edge(p_in_clk) then
 
         if i_mem_dir = C_MEMWR_WRITE then
           i_axiw_avalid <= '1';
-          fsm_state_cs <= S_MEM_WAIT_RQ_EN;
         else
           i_axir_avalid <= '1';
-          fsm_state_cs <= S_MEM_WAIT_RQ_EN;
         end if;
+
+        fsm_state_cs <= S_MEM_WAIT_RQ_EN;
 
       --------------------------------------
       --Wait acknowledge - adress valid
