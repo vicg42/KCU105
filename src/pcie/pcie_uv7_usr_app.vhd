@@ -731,12 +731,12 @@ end generate gen_irq;
 ---------------------------------------------------------------------
 --User devices CTRL
 ---------------------------------------------------------------------
-gen_sim_on : if strcmp(G_SIM, "ON") generate
-begin
-p_out_rxbuf_do <= std_logic_vector(tst_mem_dcnt_swap);
---p_out_rxbuf_do <= p_in_dev_dout
---                      when UNSIGNED(i_hdev_adr) /= TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length) else std_logic_vector(tst_mem_dcnt_swap);
-end generate gen_sim_on;
+--gen_sim_on : if strcmp(G_SIM, "ON") generate
+--begin
+--p_out_rxbuf_do <= std_logic_vector(tst_mem_dcnt_swap);
+----p_out_rxbuf_do <= p_in_dev_dout
+----                      when UNSIGNED(i_hdev_adr) /= TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length) else std_logic_vector(tst_mem_dcnt_swap);
+--end generate gen_sim_on;
 --Generator test data (counter)
 process(p_in_rst_n, i_usr_grst, p_in_clk)
 begin
@@ -762,9 +762,9 @@ end process;
 tst_mem_dcnt_swap <= tst_mem_dcnt;
 
 
-gen_sim_off : if strcmp(G_SIM, "OFF") generate begin
+--gen_sim_off : if strcmp(G_SIM, "OFF") generate begin
 p_out_rxbuf_do <= p_in_dev_dout when i_reg.pcie(C_HREG_PCIE_EN_TESTD_GEN_BIT) = '0' else std_logic_vector(tst_mem_dcnt_swap);
-end generate gen_sim_off;
+--end generate gen_sim_off;
 
 p_out_txbuf_full <= p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_FULL_BIT) and not i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 p_out_rxbuf_empty <= p_in_dev_opt(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) and not i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
@@ -830,7 +830,8 @@ p_out_tst(57 downto 56)   <= i_dmatrn_mem_done;
 p_out_tst(61 downto 58)   <= i_hdev_adr;
 p_out_tst(62)             <= i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
 p_out_tst(63)             <= i_reg_bar and (p_in_reg_wr or i_reg_rd);
-p_out_tst(95 downto 64)   <= (others => '0');
+p_out_tst(64)             <= i_memtrn_done;
+p_out_tst(95 downto 65)   <= (others => '0');
 p_out_tst(96)             <= i_irq_status_clr;
 p_out_tst(100 downto 97)  <= std_logic_vector(RESIZE(UNSIGNED(i_reg.irq(C_HREG_IRQ_NUM_M_WBIT downto C_HREG_IRQ_NUM_L_WBIT)), 4));
 p_out_tst(108 downto 101) <= std_logic_vector(RESIZE(UNSIGNED(i_irq_status), 8));
