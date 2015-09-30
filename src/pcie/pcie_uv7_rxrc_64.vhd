@@ -224,7 +224,7 @@ if rising_edge(p_in_clk) then
         --#######################################################################
         when S_RXRC_DH =>
 
-            if (i_sof(0) = '1' and i_sof(1) = '0' and p_in_dma_mrd_en = '1' and p_in_axi_rc_tvalid = '1') then
+            if (i_sof(0) = '1' and i_sof(1) = '0' and p_in_axi_rc_tvalid = '1') then
 
                 if (p_in_axi_rc_tkeep(1 downto 0) = "11") then
 
