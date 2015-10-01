@@ -236,9 +236,7 @@ if rising_edge(p_in_clk) then
                   i_mem_tx_byte_remain <= UNSIGNED(p_in_dma_prm.len) - i_mem_tx_byte;
                 end if;
 
-                if (p_in_urxbuf_empty = '0') then
-                  i_fsm_txrq <= S_TXRQ_MWR_C0;
-                end if;
+                i_fsm_txrq <= S_TXRQ_MWR_C0;
 
             elsif (p_in_dma_mrd_en = '1' and i_mrd_done = '0' and p_in_pcie_prm.master_en(0) = '1') then
                 if (i_dma_init = '1') then
