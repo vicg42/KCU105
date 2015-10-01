@@ -70,7 +70,9 @@ architecture behavioral of pcie_tx_cc is
 type TFsmTx_state is (
 S_TXCC_IDLE,
 S_TXCC_CPL,
-S_TXCC_CPL2
+S_TXCC_CPL2,
+S_TXCC_DONE,
+S_TXCC_DONE2
 );
 signal i_fsm_txcc       : TFsmTx_state;
 
@@ -192,18 +194,15 @@ if rising_edge(p_in_clk) then
         --#######################################################################
         when S_TXCC_IDLE =>
 
-            i_axi_cc_tdata  <= (others => '0');
-            i_axi_cc_tkeep  <= (others => '0');
-            i_axi_cc_tlast  <= '0';
-            i_axi_cc_tvalid <= '0';
-            i_axi_cc_tuser  <= (others => '0');
+          i_axi_cc_tdata  <= (others => '0');
+          i_axi_cc_tkeep  <= (others => '0');
+          i_axi_cc_tlast  <= '0';
+          i_axi_cc_tvalid <= '0';
+          i_axi_cc_tuser  <= (others => '0');
 
-            i_compl_done <= '0';
-
-            if (p_in_req_compl = '1') then
-              i_fsm_txcc <= S_TXCC_CPL;
-            end if;
-
+          if (p_in_req_compl = '1') then
+            i_fsm_txcc <= S_TXCC_CPL;
+          end if;
 
         --#######################################################################
         --
@@ -212,8 +211,9 @@ if rising_edge(p_in_clk) then
 
           if ((sr_req_compl(sr_req_compl'high) = '1') and (p_in_axi_cc_tready = '1')) then
 
-            i_axi_cc_tkeep <= "11";
             i_axi_cc_tvalid <= '1';
+
+            i_axi_cc_tkeep <= "11";
 
             i_axi_cc_tdata((32 * 1) + 31 downto (32 * 1) + 16) <= i_req.rid; --Requester ID - 16 bits
             i_axi_cc_tdata((32 * 1) + 15)                      <= '0';       --Rsvd
@@ -279,10 +279,31 @@ if rising_edge(p_in_clk) then
             i_axi_cc_tdata((32 * 0) + 15 downto (32 * 0) +  8) <= p_in_completer_id(7 downto 0);  --Compl Dev / Func no - sel if Compl ID = 1
             i_axi_cc_tdata((32 * 0) +  7 downto (32 * 0) +  0) <= i_req.tag; --Matching Request Tag
 
-
             i_compl_done <= '1';
-            i_fsm_txcc <= S_TXCC_IDLE;
+            i_fsm_txcc <= S_TXCC_DONE;
 
+          end if;
+
+        when S_TXCC_DONE =>
+
+          if (p_in_axi_cc_tready = '1') then
+
+            i_axi_cc_tdata  <= (others => '0');
+            i_axi_cc_tkeep  <= (others => '0');
+            i_axi_cc_tlast  <= '0';
+            i_axi_cc_tvalid <= '0';
+            i_axi_cc_tuser  <= (others => '0');
+
+            i_compl_done <= '0';
+
+            i_fsm_txcc <= S_TXCC_DONE2;
+
+          end if;
+
+        when S_TXCC_DONE2 =>
+
+          if p_in_req_compl = '0' then
+            i_fsm_txcc <= S_TXCC_IDLE;
           end if;
 
     end case; --case i_fsm_txcc is

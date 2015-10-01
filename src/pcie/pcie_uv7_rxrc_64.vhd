@@ -226,7 +226,7 @@ if rising_edge(p_in_clk) then
 
             if (i_sof(0) = '1' and i_sof(1) = '0' and p_in_axi_rc_tvalid = '1') then
 
-                if (p_in_axi_rc_tkeep(1 downto 0) = "11") then
+                if (p_in_axi_rc_tkeep = "11") then
 
                     --Check Completion Status
                     if (i_axi_data(1)(13 downto 11) = C_PCIE_COMPL_STATUS_SC) then
@@ -246,7 +246,7 @@ if rising_edge(p_in_clk) then
 
             if (p_in_axi_rc_tvalid = '1') then
 
-                if (p_in_axi_rc_tkeep(1 downto 0) = "11") then
+                if (p_in_axi_rc_tkeep = "11") then
 
                       for i in 1 to sr_axi_data'length - 1 loop
                       sr_axi_data(i) <= i_axi_data(i); --user data
@@ -283,25 +283,25 @@ if rising_edge(p_in_clk) then
                 sr_axi_be(i) <= p_in_axi_rc_tuser((i * 4) + 3 downto (i * 4));
                 end loop;
 
-                if (p_in_axi_rc_tkeep(1 downto 0) = "01") then
-                  i_cpld_tpl_cntdw <= i_cpld_tpl_cntdw + 1;
-                else
+                if (p_in_axi_rc_tkeep = "11") then
                   i_cpld_tpl_cntdw <= i_cpld_tpl_cntdw + 2;
+                else
+                  i_cpld_tpl_cntdw <= i_cpld_tpl_cntdw + 1;
                 end if;
 
                 if (p_in_axi_rc_tlast = '1') then
 
                     i_axi_rc_tready <= '0';
 
-                    if (p_in_axi_rc_tkeep(1 downto 0) = "01") then
-
-                      i_cpld_tlp_work <= '0';
-                      i_fsm_rxrc <= S_RXRC_CHKE;
-
-                    else
+                    if (p_in_axi_rc_tkeep = "11") then
 
                       i_cpld_tlp_de <= '1';
                       i_fsm_rxrc <= S_RXRC_DE;
+
+                    else
+
+                      i_cpld_tlp_work <= '0';
+                      i_fsm_rxrc <= S_RXRC_CHKE;
 
                     end if;
                 end if;
@@ -352,7 +352,8 @@ end process; --fsm
 --#######################################################################
 --DBG
 --#######################################################################
-tst_fsm <= TO_UNSIGNED(4, tst_fsm'length) when i_fsm_rxrc = S_RXRC_DE   else
+tst_fsm <= TO_UNSIGNED(5, tst_fsm'length) when i_fsm_rxrc = S_RXRC_CHKE else
+           TO_UNSIGNED(4, tst_fsm'length) when i_fsm_rxrc = S_RXRC_DE   else
            TO_UNSIGNED(3, tst_fsm'length) when i_fsm_rxrc = S_RXRC_DN   else
            TO_UNSIGNED(2, tst_fsm'length) when i_fsm_rxrc = S_RXRC_DH1  else
            TO_UNSIGNED(1, tst_fsm'length) when i_fsm_rxrc = S_RXRC_DH   else

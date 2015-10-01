@@ -307,11 +307,11 @@ if rising_edge(p_in_clk) then
 
             if (i_urxbuf_rd = '1') then
 
+                i_axi_rq_tkeep <= "11";
+
                 i_axi_rq_tvalid <= '1';
 
                 i_axi_rq_tdata((32 * 2) - 1 downto (32 * 0)) <= std_logic_vector(RESIZE(i_mem_adr_byte(31 downto 2), (32 * 2) - 2)) & "00";
-
-                i_axi_rq_tkeep <= std_logic_vector(TO_UNSIGNED(3, i_axi_rq_tkeep'length));
 
                 --First DW BE, Last DW BE - only for address divided 32 byte
                 --1st DW Byte Enable (first_be)
@@ -394,8 +394,8 @@ if rising_edge(p_in_clk) then
                     i_mem_tpl_cnt <= (others => '0');
 
                     case (i_mem_tpl_dw_rem(1 downto 0)) is
-                    when "01" => i_axi_rq_tkeep <= std_logic_vector(TO_UNSIGNED(1, i_axi_rq_tkeep'length));--"0111"; --i_mem_tpl_dw_rem = 1
-                    when "00" => i_axi_rq_tkeep <= std_logic_vector(TO_UNSIGNED(3, i_axi_rq_tkeep'length));--"1111"; --i_mem_tpl_dw_rem = 0
+                    when "01" => i_axi_rq_tkeep <= "01";--i_mem_tpl_dw_rem = 1
+                    when "00" => i_axi_rq_tkeep <= "11";--i_mem_tpl_dw_rem = 0
                     when others => null;
                     end case;
 
@@ -417,9 +417,6 @@ if rising_edge(p_in_clk) then
                 else --if i_mem_tpl_cnt /= (i_mem_tpl_len - 1) then
 
                     i_mem_tpl_cnt <= i_mem_tpl_cnt + 1;
-
-                    --i_axi_rq_tlast <= '0';
-                    --i_axi_rq_tkeep <= std_logic_vector(TO_UNSIGNED(3, i_axi_rq_tkeep'length));
 
                     i_fsm_txrq <= S_TXRQ_MWR_DN;
 
@@ -455,11 +452,11 @@ if rising_edge(p_in_clk) then
 
             if (p_in_axi_rq_tready = '1') then
 
-                i_axi_rq_tdata((32 * 2) - 1 downto (32 * 0)) <= std_logic_vector(RESIZE(i_mem_adr_byte(31 downto 2), (32 * 2) - 2) & "00");
-
-                i_axi_rq_tkeep <= std_logic_vector(TO_UNSIGNED(3, i_axi_rq_tkeep'length));
+                i_axi_rq_tkeep <= "11";
 
                 i_axi_rq_tvalid <= '1';
+
+                i_axi_rq_tdata((32 * 2) - 1 downto (32 * 0)) <= std_logic_vector(RESIZE(i_mem_adr_byte(31 downto 2), (32 * 2) - 2) & "00");
 
                 --First DW BE, Last DW BE - only for address divided 32 byte
                 --1st DW Byte Enable (first_be)
@@ -513,9 +510,6 @@ if rising_edge(p_in_clk) then
                 i_axi_rq_tdata((32 * 1) + 30) <= '0'; --Attr (ID-Based Ordering)
                 i_axi_rq_tdata((32 * 1) + 31) <= '0'; --Force ECRC
 
-                --i_axi_rq_tkeep <= std_logic_vector(TO_UNSIGNED(3, i_axi_rq_tkeep'length));
-
-                --i_axi_rq_tvalid <= '1';
                 i_axi_rq_tlast <= '1';
 
                 i_mem_adr_byte <= i_mem_adr_byte + RESIZE(i_mem_tpl_byte, i_mem_adr_byte'length);
@@ -538,7 +532,6 @@ if rising_edge(p_in_clk) then
 
           if (p_in_axi_rq_tready = '1') then
 
-              --i_axi_rq_tdata  <= (others => '0');
               i_axi_rq_tkeep  <= (others => '0');
               i_axi_rq_tlast  <= '0';
               i_axi_rq_tvalid <= '0';

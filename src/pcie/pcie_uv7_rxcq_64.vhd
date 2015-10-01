@@ -67,7 +67,8 @@ type TFsmRx_state is (
 S_RXCQ_IDLE,
 S_RXCQ_H1,
 S_RXCQ_D ,
-S_RXCQ_WAIT
+S_RXCQ_WAIT,
+S_RXCQ_WAIT2
 );
 signal i_fsm_rxcq         : TFsmRx_state;
 
@@ -179,7 +180,7 @@ if rising_edge(p_in_clk) then
               i_tph.t_type  <= p_in_axi_cq_tuser(44 downto 43);
               i_tph.st_tag  <= p_in_axi_cq_tuser(52 downto 45);
 
-              if (p_in_axi_cq_tkeep(1 downto 0) = "11") then
+              if (p_in_axi_cq_tkeep = "11") then
 
                 i_first_be <= p_in_axi_cq_tuser(3 downto 0);
                 i_last_be <= p_in_axi_cq_tuser(7 downto 4);
@@ -198,7 +199,7 @@ if rising_edge(p_in_clk) then
 
             if (p_in_axi_cq_tvalid = '1') then
 
-                if (p_in_axi_cq_tkeep(1 downto 0) = "11") then
+                if (p_in_axi_cq_tkeep = "11") then
 
                     --Req Type
                     case (p_in_axi_cq_tdata(((32 * 0) + 14) downto ((32 * 0) + 11)) ) is
@@ -325,14 +326,18 @@ if rising_edge(p_in_clk) then
             i_reg_cs <= '0';
             i_reg_wr <= '0';
             i_reg_rd <= '0';
-            i_req_compl <= '0';
-            i_req_compl_ur <= '0';
 
             if (p_in_compl_done = '1') then
+              i_req_compl <= '0';
+              i_req_compl_ur <= '0';
+              i_fsm_rxcq <= S_RXCQ_WAIT2;
+            end if;
 
+        when S_RXCQ_WAIT2 =>
+
+            if (p_in_compl_done = '0') then
               i_axi_cq_tready <= '1';
               i_fsm_rxcq <= S_RXCQ_IDLE;
-
             end if;
 
     end case; --case i_fsm_rxcq is
