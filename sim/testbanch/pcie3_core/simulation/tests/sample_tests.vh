@@ -212,7 +212,7 @@ begin
 
 
                           board.RP.tx_usrapp.TSK_TX_IO_WRITE(board.RP.tx_usrapp.DEFAULT_TAG,
-                             board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0], 4'hF, 32'hdead_beef);
+                             board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 8'h1D), 4'hF, 32'hdead_beef);
                              @(posedge pcie_rq_tag_vld);
                              exp_tag = pcie_rq_tag;
 
@@ -220,7 +220,7 @@ begin
                           board.RP.com_usrapp.TSK_EXPECT_CPL(3'h0, 1'b0, 1'b0, 2'b0,
                              board.RP.tx_usrapp.EP_BUS_DEV_FNS, 3'h0, 1'b0, 12'h4,
                              board.RP.tx_usrapp.RP_BUS_DEV_FNS, exp_tag,
-                             board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0], test_vars[0]);
+                             board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 8'h1D), test_vars[0]);
 
                           board.RP.tx_usrapp.TSK_TX_CLK_EAT(10);
                           board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
@@ -234,7 +234,7 @@ begin
                           board.RP.tx_usrapp.P_READ_DATA = 32'hffff_ffff;
                           fork
                              board.RP.tx_usrapp.TSK_TX_IO_READ(board.RP.tx_usrapp.DEFAULT_TAG,
-                                board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0], 4'hF);
+                                board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 8'h1D), 4'hF);
                              board.RP.tx_usrapp.TSK_WAIT_FOR_READ_DATA;
                           join
                           if  (board.RP.tx_usrapp.P_READ_DATA != 32'hdead_beef)
@@ -280,7 +280,7 @@ begin
                           // Default 1DW PIO
                           board.RP.tx_usrapp.TSK_TX_MEMORY_WRITE_32(board.RP.tx_usrapp.DEFAULT_TAG,
                                                                     board.RP.tx_usrapp.DEFAULT_TC, 11'd1,
-                                                                    board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h10,
+                                                                    board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 8'h1C),
                                                                     4'h0, 4'hF, 1'b0);
                           board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
                           board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
@@ -307,7 +307,7 @@ begin
                           fork
                              board.RP.tx_usrapp.TSK_TX_MEMORY_READ_32(board.RP.tx_usrapp.DEFAULT_TAG,
                                                                       board.RP.tx_usrapp.DEFAULT_TC, 11'd1,
-                                                                      board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0]+8'h10,
+                                                                      board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 8'h1C),
                                                                       4'h0, 4'hF);
                              board.RP.tx_usrapp.TSK_WAIT_FOR_READ_DATA;
                           join
@@ -582,6 +582,24 @@ board.RP.cfg_usrapp.TSK_READ_CFG_DW(32'h00000000);
 
                           board.RP.tx_usrapp.TSK_TX_CLK_EAT(100);
                           board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
+
+//                          //--------------------------------------------------------------------------
+//                          // IO Write bit TLP
+//                          //--------------------------------------------------------------------------
+//                          board.RP.tx_usrapp.TSK_TX_IO_WRITE(board.RP.tx_usrapp.DEFAULT_TAG,
+//                             board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0] + 8'h80 + (4 * 7),
+//                             4'hF ,
+//                             board.RP.tx_usrapp.USR_DATA); //32'h0000_2000);
+//                             @(posedge pcie_rq_tag_vld);
+//                             exp_tag = pcie_rq_tag;
+//
+//                          board.RP.com_usrapp.TSK_EXPECT_CPL(3'h0, 1'b0, 1'b0, 2'b0,
+//                             board.RP.tx_usrapp.EP_BUS_DEV_FNS, 3'h0, 1'b0, 12'h4,
+//                             board.RP.tx_usrapp.RP_BUS_DEV_FNS, exp_tag,
+//                             board.RP.tx_usrapp.BAR_INIT_P_BAR[board.RP.tx_usrapp.ii][31:0], test_vars[0]);
+//
+//                          board.RP.tx_usrapp.TSK_TX_CLK_EAT(10);
+//                          board.RP.tx_usrapp.DEFAULT_TAG = board.RP.tx_usrapp.DEFAULT_TAG + 1;
 
 
                           //C_HREG_DEV_CTRL
