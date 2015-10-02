@@ -58,7 +58,8 @@ type TFsmRx_state is (
 S_RXRC_IDLE,
 S_RXRC_DH,
 S_RXRC_DN,
-S_RXRC_DE
+S_RXRC_DE,
+S_RXRC_CHKE
 );
 signal i_fsm_rxrc         : TFsmRx_state;
 
@@ -70,16 +71,12 @@ signal i_dma_dw_len       : unsigned(31 downto 0);
 
 signal i_mrd_done         : std_logic;
 
+signal i_cpld_tlp_de      : std_logic;
 signal i_cpld_tlp_work    : std_logic;
-signal i_cpld_dw_cnt      : unsigned(31 downto 0);
-signal i_cpld_byte_t      : unsigned(12 downto 0);
-signal i_cpld_byte        : unsigned(12 downto 0);
-signal i_cpld_dw          : unsigned(10 downto 0);
-signal i_cpld_dw_t        : unsigned(10 downto 0);
-signal i_cpld_dw_rem      : unsigned(10 downto 0);
-signal i_cpld_len         : unsigned(10 downto 0);
+signal i_cpld_tpl_cntdw   : unsigned(10 downto 0);
 
 signal i_axi_rc_tready    : std_logic;
+--signal i_axi_data_be      : std_logic_vector((G_DATA_WIDTH / 8) - 1 downto 0);
 
 type TByteEn is array (0 to (G_DATA_WIDTH / 8) - 1) of std_logic_vector(3 downto 0);
 signal sr_axi_be          : TByteEn;
@@ -89,8 +86,7 @@ signal i_axi_data         : TData;
 signal i_utxbuf_di        : TData;
 signal i_utxbuf_wr        : std_logic := '0';
 
-signal tst_err            : std_logic_vector(1 downto 0);
-signal tst_fsm_rx         : std_logic;
+signal tst_fsm            : unsigned(2 downto 0);
 
 
 begin --architecture behavioral of pcie_rx_rc
@@ -100,21 +96,32 @@ gen : for i in 0 to (G_DATA_WIDTH / 32) - 1 generate begin
 i_axi_data(i) <= p_in_axi_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
 end generate;
 
-process(p_in_clk)
-begin
-if rising_edge(p_in_clk) then
+--process(p_in_clk)
+--begin
+--if rising_edge(p_in_clk) then
+--i_utxbuf_di(0) <= sr_axi_data(3);
+--i_utxbuf_di(1) <= i_axi_data(0);
+--i_utxbuf_di(2) <= i_axi_data(1);
+--i_utxbuf_di(3) <= i_axi_data(2);
+--
+--if (i_fsm_rxrc = S_RXRC_DE) then
+--i_utxbuf_wr <= i_cpld_tlp_work and (not p_in_utxbuf_full);
+--else
+--i_utxbuf_wr <= i_cpld_tlp_work and (not p_in_utxbuf_full) and p_in_axi_rc_tvalid;
+--end if;
+--end if;
+--end process;
+--
+--gen_utxbuf : for i in 0 to i_utxbuf_di'length - 1 generate begin
+--p_out_utxbuf_di((32 * (i + 1)) - 1 downto (32 * i)) <= i_utxbuf_di(i);
+--end generate gen_utxbuf;
+
+i_utxbuf_wr <= i_cpld_tlp_work and (not p_in_utxbuf_full) and (p_in_axi_rc_tvalid or i_cpld_tlp_de);
+
 i_utxbuf_di(0) <= sr_axi_data(3);
 i_utxbuf_di(1) <= i_axi_data(0);
 i_utxbuf_di(2) <= i_axi_data(1);
 i_utxbuf_di(3) <= i_axi_data(2);
-
-if (i_fsm_rxrc = S_RXRC_DE) then
-i_utxbuf_wr <= i_cpld_tlp_work and (not p_in_utxbuf_full);
-else
-i_utxbuf_wr <= i_cpld_tlp_work and (not p_in_utxbuf_full) and p_in_axi_rc_tvalid;
-end if;
-end if;
-end process;
 
 gen_utxbuf : for i in 0 to i_utxbuf_di'length - 1 generate begin
 p_out_utxbuf_di((32 * (i + 1)) - 1 downto (32 * i)) <= i_utxbuf_di(i);
@@ -130,6 +137,7 @@ p_out_dma_mrd_rxdwcount <= std_logic_vector(i_dma_dw_cnt);
 
 p_out_axi_rc_tready <= i_axi_rc_tready and not p_in_utxbuf_full;
 
+--i_axi_data_be <= p_in_axi_rc_tuser((G_DATA_WIDTH / 8 ) - 1 downto 0);
 
 i_sof(0) <= p_in_axi_rc_tuser(32);
 i_sof(1) <= p_in_axi_rc_tuser(33);
@@ -159,15 +167,8 @@ end if;
 end process;--init
 
 
-i_cpld_byte_t <= UNSIGNED(i_axi_data(0)(28 downto 16)); --CPLD Byte Count
-i_cpld_dw_t <= UNSIGNED(i_axi_data(1)(10 downto 0)); --CPLD Length data payload (DW)
-i_cpld_len <= RESIZE(i_cpld_dw_t(10 downto log2(G_DATA_WIDTH / 32)), i_cpld_len'length)
-            + (TO_UNSIGNED(0, i_cpld_len'length - 2)
-                & OR_reduce(i_cpld_dw_t(log2(G_DATA_WIDTH / 32) - 1 downto 0)));
-
 --Rx State Machine
 fsm : process(p_in_clk)
-variable err_out : std_logic_vector(tst_err'range);
 begin
 if rising_edge(p_in_clk) then
   if (p_in_rst_n = '0') then
@@ -184,19 +185,14 @@ if rising_edge(p_in_clk) then
     i_axi_rc_tready <= '0';
 
     i_cpld_tlp_work <= '0';
+    i_cpld_tlp_de <= '0';
 
-    i_cpld_byte <= (others => '0');
-
-    i_cpld_dw_cnt <= (others => '0');
-    i_cpld_dw <= (others => '0');
-    i_cpld_dw_rem <= (others => '0');
+    i_cpld_tpl_cntdw <= (others => '0');
 
     i_dma_dw_cnt <= (others => '0');
     i_dma_dw_len <= (others => '0');
 
     i_mrd_done <= '0';
-
-    tst_err <= (others => '0'); err_out := (others => '0');
 
   else
 
@@ -208,11 +204,14 @@ if rising_edge(p_in_clk) then
 
             if (p_in_dma_mrd_en = '1' and i_mrd_done = '0' and p_in_utxbuf_full = '0') then
 
+              i_cpld_tpl_cntdw <= (others => '0');
+
               if (i_dma_init = '1') then
 
               i_dma_dw_cnt <= (others => '0');
-              i_dma_dw_len <= RESIZE(UNSIGNED(p_in_dma_prm.len(p_in_dma_prm.len'high downto log2(32 / 8))), i_cpld_dw_cnt'length)
-                              + (TO_UNSIGNED(0, i_cpld_dw_cnt'length - 2)
+              i_dma_dw_len <= RESIZE(UNSIGNED(p_in_dma_prm.len(p_in_dma_prm.len'high downto log2(32 / 8)))
+                                                                                        , i_dma_dw_len'length)
+                              + (TO_UNSIGNED(0, i_dma_dw_len'length - 2)
                                   & OR_reduce(p_in_dma_prm.len(log2(32 / 8) - 1 downto 0)));
 
               end if;
@@ -231,61 +230,38 @@ if rising_edge(p_in_clk) then
         --#######################################################################
         when S_RXRC_DH =>
 
-            err_out := (others => '0');
+            if (i_sof(0) = '1' and i_sof(1) = '0' and p_in_axi_rc_tvalid = '1') then
 
-            if (i_sof(0) = '1' and i_sof(1) = '0' and p_in_dma_mrd_en = '1'
-                and p_in_axi_rc_tvalid = '1' and p_in_utxbuf_full = '0') then
+                if (p_in_axi_rc_tkeep = "1111") then
 
-                if (p_in_axi_rc_tkeep(2 downto 0) = "111") then
+                    for i in 3 to sr_axi_data'length - 1 loop
+                    sr_axi_data(i) <= i_axi_data(i); --user data
+                    sr_axi_be(i) <= p_in_axi_rc_tuser((i * 4) + 3 downto (i * 4)); --(15...12)
+                    end loop;
 
-                      for i in 3 to sr_axi_data'length - 1 loop
-                      sr_axi_data(i) <= i_axi_data(i); --user data
-                      sr_axi_be(i) <= p_in_axi_rc_tuser((i * 4) + 3 downto (i * 4)); --(15...12)
-                      end loop;
+                    --Check Completion Status
+                    if (i_axi_data(1)(13 downto 11) = C_PCIE_COMPL_STATUS_SC) then
 
-                      --Check Completion Status
-                      if (i_axi_data(1)(13 downto 11) = C_PCIE_COMPL_STATUS_SC) then
+                        i_cpld_tlp_work <= '1';
 
-                          i_cpld_byte <= i_cpld_byte_t;
-                          i_cpld_dw <= i_cpld_dw_t;
+                        i_cpld_tpl_cntdw <= i_cpld_tpl_cntdw + 1;
 
-                          i_cpld_tlp_work <= '1';
+                        if (p_in_axi_rc_tlast = '1') then
 
-                          --Check DW Count
-                          if (i_cpld_dw_t > TO_UNSIGNED(1, i_cpld_dw_t'length)) then
+                            i_axi_rc_tready <= '0';
+                            i_fsm_rxrc <= S_RXRC_CHKE;
 
-                              i_cpld_dw_rem <= (i_cpld_len(i_cpld_len'high - (log2(G_DATA_WIDTH / 32)) downto 0)
-                                                & TO_UNSIGNED(0, (log2(G_DATA_WIDTH / 32))))  - i_cpld_dw_t;
+                        else
 
-                              i_fsm_rxrc <= S_RXRC_DN;
+                            i_fsm_rxrc <= S_RXRC_DN;
 
-                          else
+                        end if;
 
-                              if (p_in_axi_rc_tlast = '1') then
+                    else
+                      --Check Error Code
+                      i_fsm_rxrc <= S_RXRC_IDLE;
 
-                                  if ((i_dma_dw_cnt + RESIZE(i_cpld_dw_t, i_cpld_dw_cnt'length)) = i_dma_dw_len) then
-                                    i_mrd_done <= '1';
-                                  else
-                                    i_mrd_done <= '0';
-                                  end if;
-
-                                  i_dma_dw_cnt <= i_dma_dw_cnt + RESIZE(i_cpld_dw_t, i_cpld_dw_cnt'length);
-
-                                  i_axi_rc_tready <= '0';
-                                  i_fsm_rxrc <= S_RXRC_IDLE;
-                              end if;
-
-                          end if;
-
-                      else
-                        ----Check Error Code
-                        --if pkt.h(1)(15 downto 12) = ""
-                        --end if;
-                        err_out(1) := '1';
-                      end if;
-
-                else
-                  err_out(0) := '1';
+                    end if;
 
                 end if;
 
@@ -304,57 +280,70 @@ if rising_edge(p_in_clk) then
                 sr_axi_be(i) <= p_in_axi_rc_tuser((i * 4) + 3 downto (i * 4));
                 end loop;
 
+                if (p_in_axi_rc_tkeep = "1111") then
+                  i_cpld_tpl_cntdw <= i_cpld_tpl_cntdw + 4;
+                elsif (p_in_axi_rc_tkeep = "0111") then
+                  i_cpld_tpl_cntdw <= i_cpld_tpl_cntdw + 3;
+                elsif (p_in_axi_rc_tkeep = "0011") then
+                  i_cpld_tpl_cntdw <= i_cpld_tpl_cntdw + 2;
+                else
+                  i_cpld_tpl_cntdw <= i_cpld_tpl_cntdw + 1;
+                end if;
+
                 if (p_in_axi_rc_tlast = '1') then
 
-                    if (i_cpld_dw_rem(3 downto 0) < TO_UNSIGNED(3, 4)) then
+                    i_axi_rc_tready <= '0';
 
-                        i_cpld_tlp_work <= '0';
+                    if (p_in_axi_rc_tkeep = "1111") then
 
-                        if ((i_dma_dw_cnt + RESIZE(i_cpld_dw, i_cpld_dw_cnt'length)) = i_dma_dw_len) then
-                          i_mrd_done <= '1';
-                        else
-                          i_mrd_done <= '0';
-                        end if;
-
-                        i_dma_dw_cnt <= i_dma_dw_cnt + RESIZE(i_cpld_dw, i_cpld_dw_cnt'length);
-
-                        i_fsm_rxrc <= S_RXRC_IDLE;
+                      i_cpld_tlp_de <= '1';
+                      i_fsm_rxrc <= S_RXRC_DE;
 
                     else
 
-                      i_axi_rc_tready <= '0';
-                      i_fsm_rxrc <= S_RXRC_DE;
+                      i_cpld_tlp_work <= '0';
+                      i_fsm_rxrc <= S_RXRC_CHKE;
 
                     end if;
-
                 end if;
 
             end if;
 
 
+        --#######################################################################
+        --Check End DMA
+        --#######################################################################
         when S_RXRC_DE =>
 
             if (p_in_utxbuf_full = '0') then
 
                 i_cpld_tlp_work <= '0';
-                i_axi_rc_tready <= '0';
 
-                if ((i_dma_dw_cnt + RESIZE(i_cpld_dw, i_cpld_dw_cnt'length)) = i_dma_dw_len) then
+                if ((i_dma_dw_cnt + RESIZE(i_cpld_tpl_cntdw, i_dma_dw_cnt'length)) = i_dma_dw_len) then
                   i_mrd_done <= '1';
-                else
-                  i_mrd_done <= '0';
                 end if;
 
-                i_dma_dw_cnt <= i_dma_dw_cnt + RESIZE(i_cpld_dw, i_cpld_dw_cnt'length);
+                i_dma_dw_cnt <= i_dma_dw_cnt + RESIZE(i_cpld_tpl_cntdw, i_dma_dw_cnt'length);
 
+                i_cpld_tlp_de <= '0';
                 i_fsm_rxrc <= S_RXRC_IDLE;
 
             end if;
 
+        when S_RXRC_CHKE =>
+
+            i_cpld_tlp_work <= '0';
+
+            if ((i_dma_dw_cnt + RESIZE(i_cpld_tpl_cntdw, i_dma_dw_cnt'length)) = i_dma_dw_len) then
+              i_mrd_done <= '1';
+            end if;
+
+            i_dma_dw_cnt <= i_dma_dw_cnt + RESIZE(i_cpld_tpl_cntdw, i_dma_dw_cnt'length);
+
+            i_fsm_rxrc <= S_RXRC_IDLE;
+
     end case; --case i_fsm_rxrc is
 
-
-    tst_err <= err_out;
   end if;--p_in_rst_n
 end if;--p_in_clk
 end process; --fsm
@@ -364,11 +353,14 @@ end process; --fsm
 --#######################################################################
 --DBG
 --#######################################################################
---tst_fsm_rx <= '1' when i_fsm_rxrc = S_RXRC_WAIT  else '0';
+tst_fsm <= TO_UNSIGNED(4, tst_fsm'length) when i_fsm_rxrc = S_RXRC_CHKE else
+           TO_UNSIGNED(3, tst_fsm'length) when i_fsm_rxrc = S_RXRC_DE   else
+           TO_UNSIGNED(2, tst_fsm'length) when i_fsm_rxrc = S_RXRC_DN   else
+           TO_UNSIGNED(1, tst_fsm'length) when i_fsm_rxrc = S_RXRC_DH   else
+           TO_UNSIGNED(0, tst_fsm'length);-- when i_fsm_rxrc = S_RXRC_IDLE else
 
-p_out_tst(0) <= '0';--tst_fsm_rx;
-p_out_tst(3 downto 1) <= (others => '0');
-p_out_tst(5 downto 4) <= tst_err;
+p_out_tst(2 downto 0) <= std_logic_vector(tst_fsm);
+p_out_tst(5 downto 3) <= (others => '0');
 p_out_tst(7 downto 6) <= (others => '0');
 p_out_tst(31 downto 3) <= (others => '0');
 

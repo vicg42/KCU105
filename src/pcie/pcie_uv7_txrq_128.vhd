@@ -86,7 +86,7 @@ signal i_axi_rq_tdata    : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 signal i_axi_rq_tkeep    : std_logic_vector((G_DATA_WIDTH / 32) - 1 downto 0);
 signal i_axi_rq_tlast    : std_logic;
 signal i_axi_rq_tvalid   : std_logic;
-signal i_axi_rq_tuser    : std_logic_vector(11 downto 0);
+signal i_axi_rq_tuser    : std_logic_vector(7 downto 0);
 
 signal sr_usr_rxbuf_do      : std_logic_vector((32 * 4) - 1 downto 0);
 signal i_urxbuf_rd          : std_logic;
@@ -132,8 +132,8 @@ p_out_axi_rq_tdata  <= i_axi_rq_tdata ;
 p_out_axi_rq_tkeep  <= i_axi_rq_tkeep ;
 p_out_axi_rq_tvalid <= i_axi_rq_tvalid;
 p_out_axi_rq_tlast  <= i_axi_rq_tlast ;
-p_out_axi_rq_tuser(11 downto 0) <= i_axi_rq_tuser(11 downto 0);
-p_out_axi_rq_tuser(p_out_axi_rq_tuser'high downto 12) <= (others => '0');
+p_out_axi_rq_tuser(7 downto 0) <= i_axi_rq_tuser(7 downto 0);
+p_out_axi_rq_tuser(p_out_axi_rq_tuser'high downto 8) <= (others => '0');
 
 
 
@@ -204,10 +204,8 @@ if rising_edge(p_in_clk) then
 
           if (p_in_axi_rq_tready = '1') then
 
-            i_axi_rq_tkeep  <= (others => '0');
             i_axi_rq_tlast  <= '0';
             i_axi_rq_tvalid <= '0';
-            i_axi_rq_tuser  <= (others => '0');
 
             i_mwr_work <= '0';
             i_mem_tpl_last <= '0';
@@ -234,9 +232,7 @@ if rising_edge(p_in_clk) then
                   i_mem_tx_byte_remain <= UNSIGNED(p_in_dma_prm.len) - i_mem_tx_byte;
                 end if;
 
-                if (p_in_urxbuf_empty = '0') then
-                  i_fsm_txrq <= S_TXRQ_MWR_C0;
-                end if;
+                i_fsm_txrq <= S_TXRQ_MWR_C0;
 
             elsif (p_in_dma_mrd_en = '1' and i_mrd_done = '0' and p_in_pcie_prm.master_en(0) = '1') then
                 if (i_dma_init = '1') then
@@ -296,8 +292,6 @@ if rising_edge(p_in_clk) then
 
         when S_TXRQ_MWR_C1 =>
 
-            i_mwr_work <= '1';
-
             i_mem_tpl_dw_rem <= (i_mem_tpl_len(i_mem_tpl_len'high - (log2(G_DATA_WIDTH / 8) - 2) downto 0)
                                  & TO_UNSIGNED(0, (log2(G_DATA_WIDTH / 8) - 2))) - i_mem_tpl_dw;
 
@@ -309,23 +303,9 @@ if rising_edge(p_in_clk) then
 
             if (i_urxbuf_rd = '1') then
 
+                i_axi_rq_tkeep <= "1111";
+
                 i_axi_rq_tvalid <= '1';
-
-                i_axi_rq_tdata((32 * 2) - 1 downto (32 * 0)) <= std_logic_vector(RESIZE(i_mem_adr_byte(31 downto 2), (32 * 2) - 2) & "00");
-
-                i_axi_rq_tdata((32 * 2) + 10 downto (32 * 2) +  0) <= std_logic_vector(i_mem_tpl_dw(10 downto 0)); --DW count
-                i_axi_rq_tdata((32 * 2) + 14 downto (32 * 2) + 11) <= C_PCIE3_PKT_TYPE_MEM_WR_D; --Req Type
-                i_axi_rq_tdata((32 * 2) + 15) <= '0'; --Poisoned Request
-                i_axi_rq_tdata((32 * 2) + 31 downto (32 * 2) + 16) <= (others => '0'); --Req ID
-
-                i_axi_rq_tdata((32 * 3) +  7 downto (32 * 3) +  0) <= std_logic_vector(i_mem_tpl_tag(7 downto 0)); --Tag
-                i_axi_rq_tdata((32 * 3) + 23 downto (32 * 3) +  8) <= p_in_completer_id; --Completer ID
-                i_axi_rq_tdata((32 * 3) + 24) <= '0'; --Requester ID Enable
-                i_axi_rq_tdata((32 * 3) + 27 downto (32 * 3) + 25) <= (others => '0');--Transaction Class (TC)
-                i_axi_rq_tdata((32 * 3) + 28) <= '0'; --Attr (No Snoop)
-                i_axi_rq_tdata((32 * 3) + 29) <= '0'; --Attr (Relaxed Ordering)
-                i_axi_rq_tdata((32 * 3) + 30) <= '0'; --Attr (ID-Based Ordering)
-                i_axi_rq_tdata((32 * 3) + 31) <= '0'; --Force ECRC
 
                 --First DW BE, Last DW BE - only for address divided 32 byte
                 --1st DW Byte Enable (first_be)
@@ -354,10 +334,28 @@ if rising_edge(p_in_clk) then
                 end case;
                 end if;
 
-                i_axi_rq_tuser(10 downto 8) <= (others => '0');--addr_offset; Used only in addres-alogen mode
-                i_axi_rq_tuser(11) <= '0';--Discontinue;
+--                i_axi_rq_tuser(10 downto 8) <= (others => '0');--addr_offset; Used only in addres-alogen mode
+--                i_axi_rq_tuser(11) <= '0';--Discontinue;
+
+                i_axi_rq_tdata((32 * 2) - 1 downto (32 * 0)) <= std_logic_vector(RESIZE(i_mem_adr_byte(31 downto 2), (32 * 2) - 2)) & "00";
+
+                i_axi_rq_tdata((32 * 2) + 10 downto (32 * 2) +  0) <= std_logic_vector(i_mem_tpl_dw(10 downto 0)); --DW count
+                i_axi_rq_tdata((32 * 2) + 14 downto (32 * 2) + 11) <= C_PCIE3_PKT_TYPE_MEM_WR_D; --Req Type
+                i_axi_rq_tdata((32 * 2) + 15) <= '0'; --Poisoned Request
+                i_axi_rq_tdata((32 * 2) + 31 downto (32 * 2) + 16) <= (others => '0'); --Req ID
+
+                i_axi_rq_tdata((32 * 3) +  7 downto (32 * 3) +  0) <= std_logic_vector(i_mem_tpl_tag(7 downto 0)); --Tag
+                i_axi_rq_tdata((32 * 3) + 23 downto (32 * 3) +  8) <= p_in_completer_id; --Completer ID
+                i_axi_rq_tdata((32 * 3) + 24) <= '0'; --Requester ID Enable
+                i_axi_rq_tdata((32 * 3) + 27 downto (32 * 3) + 25) <= (others => '0');--Transaction Class (TC)
+                i_axi_rq_tdata((32 * 3) + 28) <= '0'; --Attr (No Snoop)
+                i_axi_rq_tdata((32 * 3) + 29) <= '0'; --Attr (Relaxed Ordering)
+                i_axi_rq_tdata((32 * 3) + 30) <= '0'; --Attr (ID-Based Ordering)
+                i_axi_rq_tdata((32 * 3) + 31) <= '0'; --Force ECRC
 
                 i_mem_adr_byte <= i_mem_adr_byte + RESIZE(i_mem_tpl_byte, i_mem_adr_byte'length);
+
+                i_mwr_work <= '1';
 
                 i_fsm_txrq <= S_TXRQ_MWR_DN;
 
@@ -371,7 +369,7 @@ if rising_edge(p_in_clk) then
 
                 i_axi_rq_tvalid <= '1';
 
-                i_axi_rq_tdata((32 * 4) - 1 downto (32 * 0)) <= std_logic_vector(p_in_urxbuf_do((32 * 4) - 1 downto (32 * 0)));
+                i_axi_rq_tdata <= p_in_urxbuf_do;
 
                 --Counter send data (current transaction)
                 if (i_mem_tpl_cnt = (i_mem_tpl_len - 1)) then
@@ -381,14 +379,12 @@ if rising_edge(p_in_clk) then
                     i_mem_tpl_cnt <= (others => '0');
 
                     case (i_mem_tpl_dw_rem(1 downto 0)) is
-                    when "11" => i_axi_rq_tkeep(3 downto 0) <= "0001"; --i_mem_tpl_dw_rem = 3
-                    when "10" => i_axi_rq_tkeep(3 downto 0) <= "0011"; --i_mem_tpl_dw_rem = 2
-                    when "01" => i_axi_rq_tkeep(3 downto 0) <= "0111"; --i_mem_tpl_dw_rem = 1
-                    when "00" => i_axi_rq_tkeep(3 downto 0) <= "1111"; --i_mem_tpl_dw_rem = 0
+                    when "11" => i_axi_rq_tkeep <= "0001"; --i_mem_tpl_dw_rem = 3
+                    when "10" => i_axi_rq_tkeep <= "0011"; --i_mem_tpl_dw_rem = 2
+                    when "01" => i_axi_rq_tkeep <= "0111"; --i_mem_tpl_dw_rem = 1
+                    when "00" => i_axi_rq_tkeep <= "1111"; --i_mem_tpl_dw_rem = 0
                     when others => null;
                     end case;
-
-                    i_axi_rq_tkeep(3 downto 0) <= "1111";
 
                     i_axi_rq_tlast <= '1';
 
@@ -409,13 +405,11 @@ if rising_edge(p_in_clk) then
 
                     i_mem_tpl_cnt <= i_mem_tpl_cnt + 1;
 
-                    i_axi_rq_tlast <= '0';
-
                     i_fsm_txrq <= S_TXRQ_MWR_DN;
 
                 end if;
 
-            elsif (p_in_axi_rq_tready = '1' and p_in_urxbuf_empty = '1') then
+            elsif (p_in_urxbuf_empty = '1') then
 
               i_axi_rq_tvalid <= '0';
 
@@ -445,26 +439,9 @@ if rising_edge(p_in_clk) then
 
             if (p_in_axi_rq_tready = '1') then
 
-                i_axi_rq_tdata((32 * 2) - 1 downto (32 * 0)) <= std_logic_vector(RESIZE(i_mem_adr_byte(31 downto 2), (32 * 2) - 2) & "00");
-
-                i_axi_rq_tdata((32 * 2) + 10 downto (32 * 2) +  0) <= std_logic_vector(i_mem_tpl_dw(10 downto 0)); --DW count
-                i_axi_rq_tdata((32 * 2) + 14 downto (32 * 2) + 11) <= C_PCIE3_PKT_TYPE_MEM_RD_ND; --Req Type
-                i_axi_rq_tdata((32 * 2) + 15) <= '0'; --Poisoned Request
-                i_axi_rq_tdata((32 * 2) + 31 downto (32 * 2) + 16) <= (others => '0'); --Req ID
-
-                i_axi_rq_tdata((32 * 3) +  7 downto (32 * 3) +  0) <= std_logic_vector(i_mem_tpl_tag(7 downto 0)); --Tag
-                i_axi_rq_tdata((32 * 3) + 23 downto (32 * 3) +  8) <= p_in_completer_id; --Completer ID
-                i_axi_rq_tdata((32 * 3) + 24) <= '0'; --Requester ID Enable
-                i_axi_rq_tdata((32 * 3) + 27 downto (32 * 3) + 25) <= (others => '0');--Transaction Class (TC)
-                i_axi_rq_tdata((32 * 3) + 28) <= '0'; --Attr (No Snoop)
-                i_axi_rq_tdata((32 * 3) + 29) <= '0'; --Attr (Relaxed Ordering)
-                i_axi_rq_tdata((32 * 3) + 30) <= '0'; --Attr (ID-Based Ordering)
-                i_axi_rq_tdata((32 * 3) + 31) <= '0'; --Force ECRC
-
-                i_axi_rq_tkeep(3 downto 0) <= "1111";
+                i_axi_rq_tkeep <= "1111";
 
                 i_axi_rq_tvalid <= '1';
-                i_axi_rq_tlast <= '1';
 
                 --First DW BE, Last DW BE - only for address divided 32 byte
                 --1st DW Byte Enable (first_be)
@@ -493,8 +470,26 @@ if rising_edge(p_in_clk) then
                 end case;
                 end if;
 
-                i_axi_rq_tuser(10 downto 8) <= (others => '0');--addr_offset; ################  ????????????????  ##################
-                i_axi_rq_tuser(11) <= '0';--Discontinue;
+--                i_axi_rq_tuser(10 downto 8) <= (others => '0');--addr_offset; ################  ????????????????  ##################
+--                i_axi_rq_tuser(11) <= '0';--Discontinue;
+
+                i_axi_rq_tdata((32 * 2) - 1 downto (32 * 0)) <= std_logic_vector(RESIZE(i_mem_adr_byte(31 downto 2), (32 * 2) - 2) & "00");
+
+                i_axi_rq_tdata((32 * 2) + 10 downto (32 * 2) +  0) <= std_logic_vector(i_mem_tpl_dw(10 downto 0)); --DW count
+                i_axi_rq_tdata((32 * 2) + 14 downto (32 * 2) + 11) <= C_PCIE3_PKT_TYPE_MEM_RD_ND; --Req Type
+                i_axi_rq_tdata((32 * 2) + 15) <= '0'; --Poisoned Request
+                i_axi_rq_tdata((32 * 2) + 31 downto (32 * 2) + 16) <= (others => '0'); --Req ID
+
+                i_axi_rq_tdata((32 * 3) +  7 downto (32 * 3) +  0) <= std_logic_vector(i_mem_tpl_tag(7 downto 0)); --Tag
+                i_axi_rq_tdata((32 * 3) + 23 downto (32 * 3) +  8) <= p_in_completer_id; --Completer ID
+                i_axi_rq_tdata((32 * 3) + 24) <= '0'; --Requester ID Enable
+                i_axi_rq_tdata((32 * 3) + 27 downto (32 * 3) + 25) <= (others => '0');--Transaction Class (TC)
+                i_axi_rq_tdata((32 * 3) + 28) <= '0'; --Attr (No Snoop)
+                i_axi_rq_tdata((32 * 3) + 29) <= '0'; --Attr (Relaxed Ordering)
+                i_axi_rq_tdata((32 * 3) + 30) <= '0'; --Attr (ID-Based Ordering)
+                i_axi_rq_tdata((32 * 3) + 31) <= '0'; --Force ECRC
+
+                i_axi_rq_tlast <= '1';
 
                 i_mem_adr_byte <= i_mem_adr_byte + RESIZE(i_mem_tpl_byte, i_mem_adr_byte'length);
 
@@ -514,17 +509,18 @@ if rising_edge(p_in_clk) then
 
         when S_TXRQ_CPLD_WAIT =>
 
---          i_axi_rq_tdata  <= (others => '0');
-          i_axi_rq_tkeep  <= (others => '0');
-          i_axi_rq_tlast  <= '0';
-          i_axi_rq_tvalid <= '0';
-          i_axi_rq_tuser  <= (others => '0');
+          if (p_in_axi_rq_tready = '1') then
 
-          i_mwr_work <= '0';
-          i_mem_tpl_last <= '0';
+              i_axi_rq_tlast  <= '0';
+              i_axi_rq_tvalid <= '0';
 
-          if (i_mem_tx_dw = UNSIGNED(p_in_dma_mrd_rxdwcount)) then
-            i_fsm_txrq <= S_TXRQ_IDLE;
+              i_mwr_work <= '0';
+              i_mem_tpl_last <= '0';
+
+              if (i_mem_tx_dw = UNSIGNED(p_in_dma_mrd_rxdwcount)) then
+                i_fsm_txrq <= S_TXRQ_IDLE;
+              end if;
+
           end if;
 
     end case; --case i_fsm_txrq is
