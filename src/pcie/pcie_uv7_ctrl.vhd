@@ -216,17 +216,17 @@ signal i_ureg_wrbe             : std_logic_vector(3 downto 0);
 signal i_ureg_wr               : std_logic;
 signal i_ureg_rd               : std_logic;
 
-signal i_urxbuf_empty          : std_logic;
---signal i_urxbuf_dbe             : std_logic_vector();
-signal i_urxbuf_do             : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-signal i_urxbuf_rd             : std_logic;
-signal i_urxbuf_last           : std_logic;
+signal i_d2h_buf_empty         : std_logic;
+--signal i_d2h_buf_dbe            : std_logic_vector();
+signal i_d2h_buf_d             : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+signal i_d2h_buf_rd            : std_logic;
+signal i_d2h_buf_last          : std_logic;
 
-signal i_utxbuf_full           : std_logic;
---signal i_utxbuf_dbe            : std_logic_vector();
-signal i_utxbuf_di             : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-signal i_utxbuf_wr             : std_logic;
-signal i_utxbuf_last           : std_logic;
+signal i_h2d_buf_full          : std_logic;
+--signal i_h2d_buf_dbe           : std_logic_vector();
+signal i_h2d_buf_d             : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+signal i_h2d_buf_wr            : std_logic;
+signal i_h2d_buf_last          : std_logic;
 
 signal i_dma_init              : std_logic;
 signal i_dma_prm               : TPCIE_dmaprm;
@@ -376,18 +376,18 @@ p_in_reg_rd    => i_ureg_rd,
 --Master mode
 --(PC->FPGA)
 --p_in_txbuf_dbe   =>
-p_in_txbuf_di    => i_utxbuf_di  ,
-p_in_txbuf_wr    => i_utxbuf_wr  ,
-p_in_txbuf_last  => i_utxbuf_last,
-p_out_txbuf_full => i_utxbuf_full,
+p_in_txbuf_di    => i_h2d_buf_d   ,
+p_in_txbuf_wr    => i_h2d_buf_wr  ,
+p_in_txbuf_last  => i_h2d_buf_last,
+p_out_txbuf_full => i_h2d_buf_full,
 
 
 --(PC<-FPGA)
 --p_in_rxbuf_dbe    =>
-p_out_rxbuf_do    => i_urxbuf_do   ,
-p_in_rxbuf_rd     => i_urxbuf_rd   ,
-p_in_rxbuf_last   => i_urxbuf_last ,
-p_out_rxbuf_empty => i_urxbuf_empty,
+p_out_rxbuf_do    => i_d2h_buf_d   ,
+p_in_rxbuf_rd     => i_d2h_buf_rd   ,
+p_in_rxbuf_last   => i_d2h_buf_last ,
+p_out_rxbuf_empty => i_d2h_buf_empty,
 
 --DMATRN
 p_out_dmatrn_init => i_dma_init,
@@ -478,11 +478,11 @@ p_out_ureg_wrbe=> i_ureg_wrbe,
 p_out_ureg_wr  => i_ureg_wr  ,
 p_out_ureg_rd  => i_ureg_rd  ,
 
---p_out_utxbuf_be   => i_utxbuf_dbe
-p_out_utxbuf_di   => i_utxbuf_di  ,
-p_out_utxbuf_wr   => i_utxbuf_wr  ,
-p_out_utxbuf_last => i_utxbuf_last,
-p_in_utxbuf_full  => i_utxbuf_full,
+--p_out_utxbuf_be   => i_h2d_buf_dbe
+p_out_utxbuf_di   => i_h2d_buf_d  ,
+p_out_utxbuf_wr   => i_h2d_buf_wr  ,
+p_out_utxbuf_last => i_h2d_buf_last,
+p_in_utxbuf_full  => i_h2d_buf_full,
 
 --DBG
 p_out_tst => tst_rx_out,
@@ -556,10 +556,10 @@ p_in_completer_id => (others => '0'),
 --usr app
 p_in_ureg_do => i_ureg_do,
 
-p_in_urxbuf_empty => i_urxbuf_empty,
-p_in_urxbuf_do    => i_urxbuf_do   ,
-p_out_urxbuf_rd   => i_urxbuf_rd   ,
-p_out_urxbuf_last => i_urxbuf_last ,
+p_in_urxbuf_empty => i_d2h_buf_empty,
+p_in_urxbuf_do    => i_d2h_buf_d    ,
+p_out_urxbuf_rd   => i_d2h_buf_rd   ,
+p_out_urxbuf_last => i_d2h_buf_last ,
 
 --DMA
 p_in_dma_init      => i_dma_init    ,
@@ -576,7 +576,7 @@ p_out_tst => tst_tx_out,
 --system
 p_in_clk   => i_trn_clk,
 p_in_rst_n => i_rst_n
-);
+); --pcie_tx
 
 
 
@@ -618,12 +618,12 @@ p_in_rst_n => i_rst_n
 --bit(1) - PCI_EXPRESS_LEGACY_INTB
 --bit(2) - PCI_EXPRESS_LEGACY_INTC
 --bit(3) - PCI_EXPRESS_LEGACY_INTD
-p_out_cfg_interrupt_int(0) <= i_pcie_irq and not p_in_cfg_interrupt_msi_enable(0);
+p_out_cfg_interrupt_int(0) <= i_pcie_irq_assert and not p_in_cfg_interrupt_msi_enable(0);
 p_out_cfg_interrupt_int(p_out_cfg_interrupt_int'high downto 1) <= (others => '0');
 
 --bit(0) - Function 0
 --bit(1) - Function 1
-p_out_cfg_interrupt_pending(0) <= i_pcie_irq_assert and not p_in_cfg_interrupt_msi_enable(0);
+p_out_cfg_interrupt_pending(0) <= i_pcie_irq and not p_in_cfg_interrupt_msi_enable(0);
 p_out_cfg_interrupt_pending(p_out_cfg_interrupt_pending'high downto 1) <= (others => '0');
 
 
@@ -688,19 +688,21 @@ cfg_power_state_change_ack       => p_out_cfg_power_state_change_ack
 --DBG
 --#############################################
 
---gen_dbg_rc_tdata : for i in 7 to (G_DATA_WIDTH / 32) - 1 generate begin
---p_out_dbg.axi_rc_tdata(i) <= i_utxbuf_di((32 * (i + 1)) - 1 downto (32 * i));
+--gen_dbg_rc_tdata : for i in 0 to 0 generate begin
+----p_out_dbg.axi_rc_tdata(i) <= i_h2d_buf_d((32 * (i + 1)) - 1 downto (32 * i));
+--p_out_dbg.axi_rc_tdata(i) <= p_in_axi_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
 --end generate gen_dbg_rc_tdata;
---p_out_dbg.axi_rc_tkeep  <= p_in_axi_rc_tkeep;
+p_out_dbg.axi_rc_tkeep(1 downto 0) <= p_in_axi_rc_tkeep(1 downto 0);
 p_out_dbg.axi_rc_tvalid <= p_in_axi_rc_tvalid;
 p_out_dbg.axi_rc_tlast  <= p_in_axi_rc_tlast;
 p_out_dbg.axi_rc_tready <= i_axi_rc_tready;
+p_out_dbg.axi_rc_fsm <= tst_rx_out(32 + 2 downto 32 + 0); --tst_fsm
 
-------gen_dbg_rq_tdata : for i in 0 to (G_DATA_WIDTH / 32) - 1 generate begin
-------p_out_dbg.axi_rq_tdata(i) <= tst_tx_out(((280 * 1) + 11 + (32 * (i + 1)) - 1) downto ((280 * 1) + 11 + (32 * i))); --p_in_axi_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
-------end generate gen_dbg_rq_tdata;
+gen_dbg_rq_tdata : for i in 0 to 0 generate begin
+p_out_dbg.axi_rq_tdata(i) <= tst_tx_out(((280 * 1) + 11 + (32 * (i + 1)) - 1) downto ((280 * 1) + 11 + (32 * i))); --p_in_axi_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
+end generate gen_dbg_rq_tdata;
 ----p_out_dbg.axi_rq_fsm    <= tst_tx_out(((280 * 1) +  3) downto ((280 * 1) + 0));
---p_out_dbg.axi_rq_tkeep  <= tst_tx_out( (280 * 1) + 274 downto (280 * 1) + 267);
+p_out_dbg.axi_rq_tkeep(1 downto 0) <= tst_tx_out( (280 * 1) + 267 + 1 downto (280 * 1) + 267);
 p_out_dbg.axi_rq_tvalid <= tst_tx_out( (280 * 1) +  8);
 p_out_dbg.axi_rq_tlast  <= tst_tx_out( (280 * 1) +  9);
 p_out_dbg.axi_rq_tready <= tst_tx_out( (280 * 1) + 10);
@@ -708,26 +710,27 @@ p_out_dbg.axi_rq_tready <= tst_tx_out( (280 * 1) + 10);
 p_out_dbg.dev_num   <= tst_uapp_out(120 downto 117);-- <= i_reg.dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT); --(22..19)
 p_out_dbg.dma_start <= tst_uapp_out(121);--            <= i_dma_start;
 p_out_dbg.dma_dir   <= tst_uapp_out(62) ;--            <= i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
-p_out_dbg.dma_irq   <= tst_uapp_out(109);--tst_uapp_out(116 downto 109) <= std_logic_vector(RESIZE(UNSIGNED(i_irq_set(C_HIRQ_COUNT - 1 downto 0)), 8));
+p_out_dbg.dma_irq_clr <= i_uapp_irq_clr;--tst_uapp_out(109);--tst_uapp_out(116 downto 109) <= std_logic_vector(RESIZE(UNSIGNED(i_irq_set(C_HIRQ_COUNT - 1 downto 0)), 8));
 
 
---gen_dbg_h2d_buf_di : for i in 0 to 7 generate begin
---p_out_dbg.h2d_buf_di(i) <= i_utxbuf_di((32 * (i + 1)) - 1 downto (32 * i));
---end generate gen_dbg_h2d_buf_di;
-p_out_dbg.h2d_buf_wr    <= i_utxbuf_wr   ;--pcie -> dev
-p_out_dbg.h2d_buf_full  <= i_utxbuf_full ;
 
-gen_dbg_d2h_buf_do : for i in 0 to 1 generate begin
-p_out_dbg.d2h_buf_do(i) <= i_urxbuf_do((32 * (i + 1)) - 1 downto (32 * i));
-end generate gen_dbg_d2h_buf_do;
-p_out_dbg.d2h_buf_rd    <= i_urxbuf_rd   ;--pcie <- dev
-p_out_dbg.d2h_buf_empty <= i_urxbuf_empty;
 
+gen_dbg_d2h_buf_d : for i in 0 to 0 generate begin
+p_out_dbg.d2h_buf_d(i) <= i_d2h_buf_d((32 * (i + 1)) - 1 downto (32 * i));
+end generate gen_dbg_d2h_buf_d;
+p_out_dbg.d2h_buf_rd    <= i_d2h_buf_rd   ;--pcie -> dev
+p_out_dbg.d2h_buf_empty <= i_d2h_buf_empty;
+
+--gen_dbg_h2d_buf_d : for i in 0 to 1 generate begin
+--p_out_dbg.h2d_buf_d(i) <= i_h2d_buf_d((32 * (i + 1)) - 1 downto (32 * i));
+--end generate gen_dbg_h2d_buf_d;
+p_out_dbg.h2d_buf_wr   <= i_h2d_buf_wr  ; --pcie <- dev
+p_out_dbg.h2d_buf_full <= i_h2d_buf_full;
 
 --p_out_dbg.test_speed_bit <= tst_uapp_out(122);-- i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 --
---p_out_dbg.irq_int  <= i_pcie_irq;
---p_out_dbg.irq_pend <= i_pcie_irq_assert;
+p_out_dbg.irq_int  <= i_pcie_irq;
+p_out_dbg.irq_pend <= i_pcie_irq_assert;
 --p_out_dbg.irq_sent <= p_in_cfg_interrupt_sent;
 --
 --p_out_dbg.irq_msi_en  <= p_in_cfg_interrupt_msi_enable(0);

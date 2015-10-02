@@ -4,7 +4,7 @@
 -- Create Date : 08.07.2015 13:35:52
 -- Module Name : pcie_rx_cq.vhd
 --
--- Description :
+-- Description : Host -> UsrReg
 --
 -------------------------------------------------------------------------
 library ieee;
@@ -80,7 +80,7 @@ signal i_axi_rc_tready    : std_logic := '1';
 signal i_req_pkt          : std_logic_vector(3 downto 0);
 
 signal i_req_des          : TPCIEDesc;
-signal i_tph              : TPCIEtph;
+--signal i_tph              : TPCIEtph;
 signal i_first_be         : std_logic_vector(3 downto 0);
 signal i_last_be          : std_logic_vector(3 downto 0);
 
@@ -106,9 +106,10 @@ p_out_ureg_wrbe <= i_reg_wrbe;
 p_out_ureg_di <= i_reg_d;
 
 p_out_req_prm.desc <= i_req_des;
-p_out_req_prm.thp.present <= i_tph.present;
-p_out_req_prm.thp.t_type <= i_tph.t_type  ;
-p_out_req_prm.thp.st_tag <= i_tph.st_tag  ;
+p_out_req_prm.thp.present <= '0'            ;--i_tph.present;
+p_out_req_prm.thp.t_type  <= (others => '0');--i_tph.t_type ;
+p_out_req_prm.thp.st_tag  <= (others => '0');--i_tph.st_tag ;
+
 p_out_req_prm.first_be <= i_first_be;
 p_out_req_prm.last_be <= i_last_be;
 
@@ -132,7 +133,7 @@ if rising_edge(p_in_clk) then
 
     i_fsm_rxcq <= S_RXCQ_IDLE;
 
-    i_axi_cq_tready <= '0';
+    i_axi_cq_tready <= '1';
 
     i_req_compl    <= '0';
     i_req_compl_ur <= '0';
@@ -146,9 +147,9 @@ if rising_edge(p_in_clk) then
     i_first_be <= (others => '0');
     i_last_be <= (others => '0');
 
-    i_tph.present <= '0';
-    i_tph.t_type <= (others => '0');
-    i_tph.st_tag <= (others => '0');
+--    i_tph.present <= '0';
+--    i_tph.t_type <= (others => '0');
+--    i_tph.st_tag <= (others => '0');
 
     i_reg_d <= (others => '0');
     i_reg_wrbe <= (others => '0');
@@ -161,6 +162,7 @@ if rising_edge(p_in_clk) then
   else
 
     case i_fsm_rxcq is
+
         --#######################################################################
         --Detect start of packet
         --#######################################################################
@@ -171,14 +173,11 @@ if rising_edge(p_in_clk) then
 
             err_out := (others => '0');
 
-            if (p_in_axi_cq_tvalid = '0') then
-              i_axi_cq_tready <= '1';
+            if (i_sop = '1' and p_in_axi_cq_tvalid = '1') then
 
-            elsif (i_sop = '1') then
-
-              i_tph.present <= p_in_axi_cq_tuser(42);
-              i_tph.t_type  <= p_in_axi_cq_tuser(44 downto 43);
-              i_tph.st_tag  <= p_in_axi_cq_tuser(52 downto 45);
+--              i_tph.present <= p_in_axi_cq_tuser(42);
+--              i_tph.t_type  <= p_in_axi_cq_tuser(44 downto 43);
+--              i_tph.st_tag  <= p_in_axi_cq_tuser(52 downto 45);
 
               if (p_in_axi_cq_tkeep = "11") then
 
@@ -193,6 +192,7 @@ if rising_edge(p_in_clk) then
               else
                 err_out(0) := '1';
               end if;
+
             end if;
 
         when S_RXCQ_H1 =>
@@ -223,6 +223,8 @@ if rising_edge(p_in_clk) then
                                  (UNSIGNED(p_in_axi_cq_tdata(((32 * 1) + 18) downto ((32 * 1) + 16))) <= TO_UNSIGNED(1, 3)) ) then
 
                                   i_reg_cs <= '1';
+                              else
+                                  i_reg_cs <= '0';
                               end if;
 
                               --Compl
@@ -275,13 +277,6 @@ if rising_edge(p_in_clk) then
 
           if (p_in_axi_cq_tvalid = '1') then
 
-                --if (target_fuction = 0) and ((bar_id = 0) or (bar_id = 1))
-                if ( (i_req_des(3)(15 downto 8) = "00000000") and
-                   (UNSIGNED(i_req_des(3)(18 downto 16)) <= TO_UNSIGNED(1, 3)) ) then
-
-                    i_reg_cs <= '1';
-                end if;
-
                 i_reg_d    <= p_in_axi_cq_tdata((32 * 1) - 1 downto (32 * 0));
                 i_reg_wrbe <= p_in_axi_cq_tuser((8 + (4 * 1)) - 1 downto (8 + (4 * 0)));
 
@@ -314,6 +309,7 @@ if rising_edge(p_in_clk) then
                       i_fsm_rxcq <= S_RXCQ_WAIT;
 
                     end if;
+
                 end if;
 
           end if;

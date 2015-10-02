@@ -4,7 +4,7 @@
 -- Create Date : 08.07.2015 13:35:52
 -- Module Name : pcie_rx_cq.vhd
 --
--- Description :
+-- Description : Host -> UsrReg
 --
 -------------------------------------------------------------------------
 library ieee;
@@ -66,7 +66,8 @@ architecture behavioral of pcie_rx_cq is
 type TFsmRx_state is (
 S_RXCQ_IDLE,
 S_RXCQ_D ,
-S_RXCQ_WAIT
+S_RXCQ_WAIT,
+S_RXCQ_WAIT2
 );
 signal i_fsm_rxcq         : TFsmRx_state;
 
@@ -78,7 +79,7 @@ signal i_axi_rc_tready    : std_logic := '1';
 signal i_req_pkt          : std_logic_vector(3 downto 0);
 
 signal i_req_des          : TPCIEDesc;
-signal i_tph              : TPCIEtph;
+--signal i_tph              : TPCIEtph;
 signal i_first_be         : std_logic_vector(3 downto 0);
 signal i_last_be          : std_logic_vector(3 downto 0);
 
@@ -104,9 +105,9 @@ p_out_ureg_wrbe <= i_reg_wrbe;
 p_out_ureg_di <= i_reg_d;
 
 p_out_req_prm.desc <= i_req_des;
-p_out_req_prm.thp.present <= i_tph.present;
-p_out_req_prm.thp.t_type <= i_tph.t_type  ;
-p_out_req_prm.thp.st_tag <= i_tph.st_tag  ;
+p_out_req_prm.thp.present <= '0'            ; --i_tph.present;
+p_out_req_prm.thp.t_type  <= (others => '0'); --i_tph.t_type ;
+p_out_req_prm.thp.st_tag  <= (others => '0'); --i_tph.st_tag ;
 p_out_req_prm.first_be <= i_first_be;
 p_out_req_prm.last_be <= i_last_be;
 
@@ -116,7 +117,6 @@ p_out_req_compl_ur <= i_req_compl_ur;
 p_out_pcie_cq_np_req <= '1';
 
 p_out_axi_cq_tready <= i_axi_cq_tready;
---p_out_axi_rc_tready <= '1';--i_axi_rc_tready;
 
 
 i_sop <= p_in_axi_cq_tuser(40);
@@ -125,13 +125,14 @@ i_sop <= p_in_axi_cq_tuser(40);
 --Rx State Machine
 fsm : process(p_in_clk)
 variable err_out : std_logic_vector(tst_err'range);
+variable reg_cs : std_logic;
 begin
 if rising_edge(p_in_clk) then
   if (p_in_rst_n = '0') then
 
     i_fsm_rxcq <= S_RXCQ_IDLE;
 
-    i_axi_cq_tready <= '0';
+    i_axi_cq_tready <= '1';
 
     i_req_compl    <= '0';
     i_req_compl_ur <= '0';
@@ -145,13 +146,13 @@ if rising_edge(p_in_clk) then
     i_first_be <= (others => '0');
     i_last_be <= (others => '0');
 
-    i_tph.present <= '0';
-    i_tph.t_type <= (others => '0');
-    i_tph.st_tag <= (others => '0');
+--    i_tph.present <= '0';
+--    i_tph.t_type <= (others => '0');
+--    i_tph.st_tag <= (others => '0');
 
     i_reg_d <= (others => '0');
     i_reg_wrbe <= (others => '0');
-    i_reg_cs   <= '0';
+    i_reg_cs   <= '0'; reg_cs := '0';
     i_reg_wr   <= '0';
     i_reg_rd   <= '0';
 
@@ -165,23 +166,22 @@ if rising_edge(p_in_clk) then
         --#######################################################################
         when S_RXCQ_IDLE =>
 
+            reg_cs := '0';
             i_reg_wr <= '0';
 
             err_out := (others => '0');
 
-            if (p_in_axi_cq_tvalid = '0') then
-              i_axi_cq_tready <= '1';
+            if (i_sop = '1' and p_in_axi_cq_tvalid = '1') then
 
-            elsif (i_sop = '1') then
+--              i_tph.present <= p_in_axi_cq_tuser(42);
+--              i_tph.t_type  <= p_in_axi_cq_tuser(44 downto 43);
+--              i_tph.st_tag  <= p_in_axi_cq_tuser(52 downto 45);
 
-              i_first_be <= p_in_axi_cq_tuser(3 downto 0);
-              i_last_be <= p_in_axi_cq_tuser(7 downto 4);
+              if (p_in_axi_cq_tkeep = "1111") then
 
-              i_tph.present <= p_in_axi_cq_tuser(42);
-              i_tph.t_type  <= p_in_axi_cq_tuser(44 downto 43);
-              i_tph.st_tag  <= p_in_axi_cq_tuser(52 downto 45);
+                i_first_be <= p_in_axi_cq_tuser(3 downto 0);
+                i_last_be <= p_in_axi_cq_tuser(7 downto 4);
 
-              if (p_in_axi_cq_tkeep(3 downto 0) = "1111") then
                     --Req Type
                     case (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) ) is
                         -------------------------------------------------------------------------
@@ -198,7 +198,48 @@ if rising_edge(p_in_clk) then
                           i_req_des(2) <= p_in_axi_cq_tdata((32 * 3) - 1 downto (32 * 2));
                           i_req_des(3) <= p_in_axi_cq_tdata((32 * 4) - 1 downto (32 * 3));
 
-                          i_fsm_rxcq <= S_RXCQ_D;
+                          --Check length data payload (DW)
+                          if (UNSIGNED(p_in_axi_cq_tdata(((32 * 2) + 10) downto ((32 * 2) + 0))) = TO_UNSIGNED(16#01#, 11) ) then
+
+                              --if (target_fuction = 0) and ((bar_id = 0) or (bar_id = 1))
+                              if ( (p_in_axi_cq_tdata(((32 * 3) + 15) downto ((32 * 3) + 8)) = "00000000") and
+                                 (UNSIGNED(p_in_axi_cq_tdata(((32 * 3) + 18) downto ((32 * 3) + 16))) <= TO_UNSIGNED(1, 3)) ) then
+
+                                  reg_cs := '1';
+
+                              end if;
+
+                              --Compl
+                              if (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_MEM_WR_D)
+                                or (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_IO_WR_D) then
+
+                                  i_fsm_rxcq <= S_RXCQ_D;
+
+                              elsif ( (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_IO_RD_ND)
+                                   or (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_MEM_RD_ND)
+                                   or (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND) ) then
+
+                                  i_axi_cq_tready <= '0';
+
+                                  i_req_compl <= '1';
+                                  i_reg_rd <= '1';
+
+                                  i_fsm_rxcq <= S_RXCQ_WAIT;
+
+                              else
+                                i_req_compl    <= '0';
+                                i_req_compl_ur <= '1';--Unsupported Request
+
+                                i_fsm_rxcq <= S_RXCQ_WAIT;
+                              end if;
+
+                          else
+                            i_req_compl    <= '0';
+                            i_req_compl_ur <= '1';--Unsupported Request
+
+                            i_fsm_rxcq <= S_RXCQ_WAIT;
+
+                          end if;
 
                         -------------------------------------------------------------------------
                         --
@@ -207,68 +248,50 @@ if rising_edge(p_in_clk) then
                             i_fsm_rxcq <= S_RXCQ_IDLE;
 
                     end case;--Req Type
+
               else
                 err_out(0) := '1';
               end if;
+
             end if;
 
         when S_RXCQ_D =>
 
           if (p_in_axi_cq_tvalid = '1') then
 
-                --Check length data payload (DW)
-                if (UNSIGNED(i_req_des(2)(10 downto 0)) = TO_UNSIGNED(16#01#, 11) ) then
+                i_reg_d    <= p_in_axi_cq_tdata((32 * 1) - 1 downto (32 * 0));
+                i_reg_wrbe <= p_in_axi_cq_tuser((8 + (4 * 1)) - 1 downto (8 + (4 * 0)));
 
-                    --if (target_fuction = 0) and ((bar_id = 0) or (bar_id = 1))
-                    if ( (i_req_des(3)(15 downto 8) = "00000000") and
-                       (UNSIGNED(i_req_des(3)(18 downto 16)) <= TO_UNSIGNED(1, 3)) ) then
+                --Compl
+                if (i_req_des(2)(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
 
-                        i_reg_cs <= '1';
-                    end if;
+                    i_req_compl <= '0';
 
-                    i_reg_d    <= p_in_axi_cq_tdata((32 * 1) - 1 downto (32 * 0));
-                    i_reg_wrbe <= p_in_axi_cq_tuser((8 + (4 * 1)) - 1 downto (8 + (4 * 0)));
-
-                    --Compl
-                    if (i_req_des(2)(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
-
-                        i_req_compl <= '0';
-
-                        if p_in_axi_cq_tkeep(0) = '1' then
-                          i_reg_wr <= '1';
-                        else
-                          err_out(1) := '1';
-                        end if;
-
+                    if p_in_axi_cq_tkeep(0) = '1' then
+                      i_reg_wr <= '1';
                     else
-
-                        i_axi_cq_tready <= '0';
-                        i_req_compl <= '1';
-
-                        if (i_req_des(2)(14 downto 11) = C_PCIE3_PKT_TYPE_IO_WR_D) then
-
-                          if (p_in_axi_cq_tkeep(3) = '1') then
-                            i_reg_wr <= '1';
-                          else
-                            err_out(1) := '1';
-                          end if;
-
-                        elsif ( (i_req_des(2)(14 downto 11) = C_PCIE3_PKT_TYPE_IO_RD_ND)
-                             or (i_req_des(2)(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_RD_ND)
-                             or (i_req_des(2)(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND) ) then
-
-                            i_reg_rd <= '1';
-
-                        end if;
+                      err_out(1) := '1';
                     end if;
+
+                    i_fsm_rxcq <= S_RXCQ_IDLE;
 
                 else
-                  i_req_compl    <= '0';
-                  i_req_compl_ur <= '1';--Unsupported Request
 
+                    i_axi_cq_tready <= '0';
+                    i_req_compl <= '1';
+
+                    if (i_req_des(2)(14 downto 11) = C_PCIE3_PKT_TYPE_IO_WR_D) then
+
+                      if (p_in_axi_cq_tkeep(0) = '1') then
+                        i_reg_wr <= '1';
+                      else
+                        err_out(1) := '1';
+                      end if;
+
+                      i_fsm_rxcq <= S_RXCQ_WAIT;
+
+                    end if;
                 end if;
-
-                i_fsm_rxcq <= S_RXCQ_WAIT;
 
           end if;
 
@@ -280,19 +303,23 @@ if rising_edge(p_in_clk) then
             i_reg_cs <= '0';
             i_reg_wr <= '0';
             i_reg_rd <= '0';
-            i_req_compl <= '0';
-            i_req_compl_ur <= '0';
 
-            if (p_in_compl_done = '1' or i_req_compl = '0') then
+            if (p_in_compl_done = '1') then
+              i_req_compl <= '0';
+              i_req_compl_ur <= '0';
+              i_fsm_rxcq <= S_RXCQ_WAIT2;
+            end if;
 
+        when S_RXCQ_WAIT2 =>
+
+            if (p_in_compl_done = '0') then
               i_axi_cq_tready <= '1';
               i_fsm_rxcq <= S_RXCQ_IDLE;
-
             end if;
 
     end case; --case i_fsm_rxcq is
 
-
+    i_reg_cs <= reg_cs;
     tst_err <= err_out;
   end if;--p_in_rst_n
 end if;--p_in_clk
