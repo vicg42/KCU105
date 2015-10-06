@@ -4,7 +4,7 @@
 --Create Date : 23.07.2015 11:21:07
 --Module Name : pcie_tx_rq.vhd
 --
---Description : Requester Request
+--Description : DMA: Host <- FPGA (MemWR + MemRD request)
 --
 -------------------------------------------------------------------------
 library ieee;
@@ -132,7 +132,7 @@ p_out_axi_rq_tdata  <= i_axi_rq_tdata ;
 p_out_axi_rq_tkeep  <= i_axi_rq_tkeep ;
 p_out_axi_rq_tvalid <= i_axi_rq_tvalid;
 p_out_axi_rq_tlast  <= i_axi_rq_tlast ;
-p_out_axi_rq_tuser(7 downto 0) <= i_axi_rq_tuser(7 downto 0);
+p_out_axi_rq_tuser(7 downto 0) <= i_axi_rq_tuser;
 p_out_axi_rq_tuser(p_out_axi_rq_tuser'high downto 8) <= (others => '0');
 
 
@@ -376,6 +376,8 @@ if rising_edge(p_in_clk) then
 
                     i_mwr_work <= '0';
 
+                    i_mem_tpl_tag <= i_mem_tpl_tag + 1;
+
                     i_mem_tpl_cnt <= (others => '0');
 
                     case (i_mem_tpl_dw_rem(1 downto 0)) is
@@ -387,8 +389,6 @@ if rising_edge(p_in_clk) then
                     end case;
 
                     i_axi_rq_tlast <= '1';
-
-                    i_mem_tpl_tag <= i_mem_tpl_tag + 1;
 
                     if (i_mem_tpl_last = '1') then
                       i_mem_tx_byte <= (others => '0');
@@ -409,7 +409,7 @@ if rising_edge(p_in_clk) then
 
                 end if;
 
-            elsif (p_in_urxbuf_empty = '1') then
+            elsif (p_in_urxbuf_empty = '1' and p_in_axi_rq_tready = '1') then
 
               i_axi_rq_tvalid <= '0';
 
@@ -473,7 +473,7 @@ if rising_edge(p_in_clk) then
 --                i_axi_rq_tuser(10 downto 8) <= (others => '0');--addr_offset; ################  ????????????????  ##################
 --                i_axi_rq_tuser(11) <= '0';--Discontinue;
 
-                i_axi_rq_tdata((32 * 2) - 1 downto (32 * 0)) <= std_logic_vector(RESIZE(i_mem_adr_byte(31 downto 2), (32 * 2) - 2) & "00");
+                i_axi_rq_tdata((32 * 2) - 1 downto (32 * 0)) <= std_logic_vector(RESIZE(i_mem_adr_byte(31 downto 2), (32 * 2) - 2)) & "00";
 
                 i_axi_rq_tdata((32 * 2) + 10 downto (32 * 2) +  0) <= std_logic_vector(i_mem_tpl_dw(10 downto 0)); --DW count
                 i_axi_rq_tdata((32 * 2) + 14 downto (32 * 2) + 11) <= C_PCIE3_PKT_TYPE_MEM_RD_ND; --Req Type

@@ -56,17 +56,16 @@ S_IRQ_DEASSERT_DONE
 );
 signal fsm_cs: fsm_state;
 
+signal i_irq_int     : std_logic;
+signal i_irq_pad     : std_logic;
 signal i_irq_ack     : std_logic;
-signal i_irq_assert  : std_logic;
-signal i_irq         : std_logic;
-
 
 begin --architecture behavioral
 
 p_out_irq_ack <= i_irq_ack;
 
-p_out_cfg_irq_assert <= i_irq_assert;
-p_out_cfg_irq        <= i_irq;
+p_out_cfg_irq_assert <= i_irq_int;
+p_out_cfg_irq        <= i_irq_pad;
 
 
 process(p_in_clk)
@@ -74,9 +73,9 @@ begin
 if rising_edge(p_in_clk) then
   if (p_in_rst_n = '0') then
 
-    i_irq_ack    <= '0';
-    i_irq_assert <= '0';
-    i_irq        <= '0';
+    i_irq_ack <= '0';
+    i_irq_int <= '0';
+    i_irq_pad <= '0';
     fsm_cs <= S_IRQ_IDLE;
 
   else
@@ -89,8 +88,8 @@ if rising_edge(p_in_clk) then
       when S_IRQ_IDLE =>
 
         if (p_in_irq_set = '1') then
-          i_irq        <= '1';
-          i_irq_assert <= '1';--ASSERT IRQ
+          i_irq_pad <= '1';
+          i_irq_int <= '1';--ASSERT IRQ
           fsm_cs <= S_IRQ_ASSERT_DONE;
         end if;
 
@@ -101,11 +100,11 @@ if rising_edge(p_in_clk) then
 
         --Wait acknowledge from CORE
         if (p_in_cfg_irq_rdy = '1') then
---          i_irq <= '0';
+
           i_irq_ack <= '1';
 
           if (p_in_cfg_msi = '1') then
-            i_irq_assert <= '0';
+            i_irq_int <= '0';
           end if;
 
           fsm_cs <= S_IRQ_WAIT_CLR;
@@ -121,8 +120,8 @@ if rising_edge(p_in_clk) then
         if (p_in_irq_clr = '1') then
           --Interrupt mode Legacy
           if (p_in_cfg_msi = '0') then
-            i_irq        <= '0';
-            i_irq_assert <= '0';--DEASSERT IRQ
+            i_irq_pad <= '1';
+            i_irq_int <= '0';--DEASSERT IRQ
             fsm_cs <= S_IRQ_DEASSERT_DONE;
           else
             fsm_cs <= S_IRQ_IDLE;
@@ -136,8 +135,8 @@ if rising_edge(p_in_clk) then
 
         --Wait acknowledge from CORE
         if (p_in_cfg_irq_rdy = '1') then
-          i_irq_assert <= '0';
-          i_irq        <= '0';
+          i_irq_int <= '0';
+          i_irq_pad <= '0';
           fsm_cs <= S_IRQ_IDLE;
         end if;
 

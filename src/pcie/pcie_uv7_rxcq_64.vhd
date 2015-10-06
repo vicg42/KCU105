@@ -77,8 +77,6 @@ signal i_sop              : std_logic;
 signal i_axi_cq_tready    : std_logic := '0';
 signal i_axi_rc_tready    : std_logic := '1';
 
-signal i_req_pkt          : std_logic_vector(3 downto 0);
-
 signal i_req_des          : TPCIEDesc;
 --signal i_tph              : TPCIEtph;
 signal i_first_be         : std_logic_vector(3 downto 0);
@@ -137,8 +135,6 @@ if rising_edge(p_in_clk) then
 
     i_req_compl    <= '0';
     i_req_compl_ur <= '0';
-
-    i_req_pkt <= (others => '0');
 
     for i in 0 to (i_req_des'length - 1) loop
     i_req_des(i) <= (others => '0');

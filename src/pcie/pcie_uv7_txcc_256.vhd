@@ -4,7 +4,7 @@
 --Create Date : 08.07.2015 13:35:52
 --Module Name : pcie_tx_cc.vhd
 --
---Description :
+--Description : Host <- UsrReg
 --
 -------------------------------------------------------------------------
 library ieee;
@@ -69,17 +69,15 @@ architecture behavioral of pcie_tx_cc is
 
 type TFsmTx_state is (
 S_TXCC_IDLE,
-S_TXCC_CPL
+S_TXCC_DONE,
+S_TXCC_DONE2
 );
 signal i_fsm_txcc       : TFsmTx_state;
-
-signal i_axi_cc_tparity : std_logic_vector(31 downto 0) := (others => '0');
 
 signal i_axi_cc_tdata   : std_logic_vector(127 downto 0);
 signal i_axi_cc_tkeep   : std_logic_vector(3 downto 0);
 signal i_axi_cc_tlast   : std_logic;
 signal i_axi_cc_tvalid  : std_logic;
-signal i_axi_cc_tuser   : std_logic_vector(32 downto 0);
 
 signal i_compl_done     : std_logic;
 
@@ -98,7 +96,6 @@ signal i_req            : TReq;
 
 signal i_req_be         : std_logic_vector(7 downto 0);
 
---signal i_lower_addr_tmp     : std_logic_vector(6 downto 0);
 signal i_lower_addr     : std_logic_vector(6 downto 0);
 
 signal sr_req_compl     : std_logic_vector(0 to 1);
@@ -116,7 +113,7 @@ p_out_axi_cc_tdata  <= std_logic_vector(RESIZE(UNSIGNED(i_axi_cc_tdata), p_out_a
 p_out_axi_cc_tkeep  <= std_logic_vector(RESIZE(UNSIGNED(i_axi_cc_tkeep), p_out_axi_cc_tkeep'length));
 p_out_axi_cc_tlast  <= i_axi_cc_tlast ;
 p_out_axi_cc_tvalid <= i_axi_cc_tvalid;
-p_out_axi_cc_tuser  <= i_axi_cc_tuser ;
+p_out_axi_cc_tuser  <= (others => '0');
 
 --TX Message Interface
 p_out_cfg_msg_transmit      <= '0';
@@ -155,7 +152,6 @@ begin
   end case;
 end process;
 
---i_lower_addr <= i_lower_addr_tmp when req_compl_wd_qqq = '1' else (others => '0');
 
 process(p_in_clk)
 begin
@@ -181,40 +177,23 @@ if rising_edge(p_in_clk) then
     i_axi_cc_tkeep  <= (others => '0');
     i_axi_cc_tlast  <= '0';
     i_axi_cc_tvalid <= '0';
-    i_axi_cc_tuser  <= (others => '0');
 
     i_compl_done <= '0';
 
   else
 
     case i_fsm_txcc is
+
         --#######################################################################
         --
         --#######################################################################
         when S_TXCC_IDLE =>
 
-            i_axi_cc_tdata  <= (others => '0');
-            i_axi_cc_tkeep  <= (others => '0');
-            i_axi_cc_tlast  <= '0';
-            i_axi_cc_tvalid <= '0';
-            i_axi_cc_tuser  <= (others => '0');
+          if (sr_req_compl(sr_req_compl'high) = '1' and p_in_axi_cc_tready = '1') then
 
-            i_compl_done <= '0';
-
-            if (p_in_req_compl = '1') then
-              i_fsm_txcc <= S_TXCC_CPL;
-            end if;
-
-
-        --#######################################################################
-        --
-        --#######################################################################
-        when S_TXCC_CPL =>
-
-          if (sr_req_compl(sr_req_compl'high) = '1') and (p_in_axi_cc_tready = '1') then
+            i_axi_cc_tlast  <= '1';
 
             i_axi_cc_tvalid <= '1';
-            i_axi_cc_tlast  <= '1';
 
             if (   (i_req.pkt = C_PCIE3_PKT_TYPE_MEM_RD_ND)
                 or (i_req.pkt = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND)
@@ -224,7 +203,7 @@ if rising_edge(p_in_clk) then
               i_axi_cc_tkeep <= "1111";
 
             else
-              i_axi_cc_tdata((32 * 4) - 1 downto (32 * 3)) <= (others => '0');
+
               i_axi_cc_tkeep <= "0111";
 
             end if;
@@ -268,11 +247,27 @@ if rising_edge(p_in_clk) then
               i_axi_cc_tdata((32 * 0) +  6 downto (32 * 0) +  0) <= (others => '0');
             end if;
 
-            i_axi_cc_tuser <= (others => '0');
-
             i_compl_done <= '1';
-            i_fsm_txcc <= S_TXCC_IDLE;
+            i_fsm_txcc <= S_TXCC_DONE;
 
+          end if;
+
+        when S_TXCC_DONE =>
+
+          if (p_in_axi_cc_tready = '1') then
+
+            i_axi_cc_tlast  <= '0';
+            i_axi_cc_tvalid <= '0';
+
+            i_fsm_txcc <= S_TXCC_DONE2;
+
+          end if;
+
+        when S_TXCC_DONE2 =>
+
+          if (sr_req_compl(sr_req_compl'high) = '0') then
+            i_compl_done <= '0';
+            i_fsm_txcc <= S_TXCC_IDLE;
           end if;
 
     end case; --case i_fsm_txcc is
@@ -284,9 +279,9 @@ end process; --fsm
 --#######################################################################
 --DBG
 --#######################################################################
-tst_fsm_tx <= '1' when i_fsm_txcc = S_TXCC_CPL  else '0';
+--tst_fsm_tx <= '1' when i_fsm_txcc = S_TXCC_CPL  else '0';
 
-p_out_tst(0) <= tst_fsm_tx;
+p_out_tst(0) <= '0';--tst_fsm_tx;
 p_out_tst(3 downto 1) <= (others => '0');
 p_out_tst(7 downto 4) <= (others => '0');
 

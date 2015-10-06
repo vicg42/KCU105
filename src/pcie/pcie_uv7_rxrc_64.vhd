@@ -4,7 +4,7 @@
 -- Create Date : 23.07.2015 11:20:31
 -- Module Name : pcie_rx_rc.vhd
 --
--- Description : Requestor Completion
+-- Description : DMA: Host -> FPGA (MemRd CplD)
 --
 -------------------------------------------------------------------------
 library ieee;
