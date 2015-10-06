@@ -60,11 +60,11 @@
 `timescale 1ps / 1ps
 (* DowngradeIPIdentifiedWarnings = "yes" *)
 module xilinx_pcie3_uscale_ep # (
-  parameter          C_DATA_WIDTH                        = 256,         // RX/TX interface data width
+  parameter          C_DATA_WIDTH                        = 128,         // RX/TX interface data width
   parameter          KEEP_WIDTH                          = C_DATA_WIDTH / 32,
   parameter          EXT_PIPE_SIM                        = "FALSE",  // This Parameter has effect on selecting Enable External PIPE Interface in GUI.
   parameter          PL_LINK_CAP_MAX_LINK_SPEED          = 4,  // 1- GEN1, 2 - GEN2, 4 - GEN3
-  parameter          PL_LINK_CAP_MAX_LINK_WIDTH          = 8  // 1- X1, 2 - X2, 4 - X4, 8 - X8
+  parameter          PL_LINK_CAP_MAX_LINK_WIDTH          = 4  // 1- X1, 2 - X2, 4 - X4, 8 - X8
 ) (
   output  [(PL_LINK_CAP_MAX_LINK_WIDTH - 1) : 0]  pci_exp_txp,
   output  [(PL_LINK_CAP_MAX_LINK_WIDTH - 1) : 0]  pci_exp_txn,

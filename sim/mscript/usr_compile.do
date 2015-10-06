@@ -36,11 +36,11 @@ vcom -64 -93 -work xil_defaultlib   \
 "../../src/pcie/pcie_uv7_unit_pkg.vhd" \
 "../../src/pcie/pcie_uv7_irq.vhd" \
 "../../src/pcie/pcie_uv7_rx.vhd" \
-"../../src/pcie/pcie_uv7_rxcq_256.vhd" \
-"../../src/pcie/pcie_uv7_rxrc_256.vhd" \
+"../../src/pcie/pcie_uv7_rxcq_128.vhd" \
+"../../src/pcie/pcie_uv7_rxrc_128.vhd" \
 "../../src/pcie/pcie_uv7_tx.vhd" \
-"../../src/pcie/pcie_uv7_txrq_256.vhd" \
-"../../src/pcie/pcie_uv7_txcc_256.vhd" \
+"../../src/pcie/pcie_uv7_txrq_128.vhd" \
+"../../src/pcie/pcie_uv7_txcc_128.vhd" \
 "../../src/pcie/pcie_uv7_usr_app.vhd" \
 "../../src/pcie/pcie_uv7_ctrl.vhd" \
 "../../src/pcie/pcie_uv7_main.vhd" \

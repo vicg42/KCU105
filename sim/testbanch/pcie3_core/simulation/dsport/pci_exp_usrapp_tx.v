@@ -158,9 +158,9 @@ module pci_exp_usrapp_tx #(
 parameter    Tcq = 1;
 
 //localparam   [3:0] LINK_CAP_MAX_LINK_WIDTH_EP = 4'h8; //for PCIEx8 (GEN3)
-//localparam   [3:0] LINK_CAP_MAX_LINK_WIDTH_EP = 4'h4; //for PCIEx4 (GEN3)
+localparam   [3:0] LINK_CAP_MAX_LINK_WIDTH_EP = 4'h4; //for PCIEx4 (GEN3)
 //localparam   [3:0] LINK_CAP_MAX_LINK_WIDTH_EP = 4'h2; //for PCIEx2 (GEN3)
-localparam   [3:0] LINK_CAP_MAX_LINK_WIDTH_EP = 4'h1; //for PCIEx1 (GEN3)
+//localparam   [3:0] LINK_CAP_MAX_LINK_WIDTH_EP = 4'h1; //for PCIEx1 (GEN3)
 localparam   [2:0] LINK_CAP_MAX_LINK_SPEED_EP = 3'h4;
 
 localparam   [3:0] MAX_LINK_SPEED = (LINK_CAP_MAX_LINK_SPEED_EP==3'h4) ? 4'h3 : ((LINK_CAP_MAX_LINK_SPEED_EP==3'h2) ? 4'h2 : 4'h1);
