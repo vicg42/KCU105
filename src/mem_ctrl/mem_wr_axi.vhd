@@ -190,11 +190,13 @@ p_out_mem.axir.qos    <= std_logic_vector(TO_UNSIGNED(0, p_out_mem.axir.qos'leng
 p_out_mem.axir.avalid <= i_axir_avalid;
 --RData Port
 gen_axir_rready0 : if (C_MEMWR_READ = '0') generate begin
-p_out_mem.axir.rready <= i_mem_trn_work and (not p_in_usr_rxbuf_full) and (not i_mem_dir);
+--p_out_mem.axir.rready <= i_mem_trn_work and (not p_in_usr_rxbuf_full) and (not i_mem_dir);
+p_out_mem.axir.rready <= i_mem_trn_work and (not i_mem_dir);
 end generate gen_axir_rready0;
 
 gen_axir_rready1 : if (C_MEMWR_READ = '1') generate begin
-p_out_mem.axir.rready <= i_mem_trn_work and (not p_in_usr_rxbuf_full) and i_mem_dir;
+--p_out_mem.axir.rready <= i_mem_trn_work and (not p_in_usr_rxbuf_full) and i_mem_dir;
+p_out_mem.axir.rready <= i_mem_trn_work and i_mem_dir;
 end generate gen_axir_rready1;
 
 mem_term : process(p_in_clk)
@@ -223,12 +225,14 @@ end process mem_term;
 p_out_cfg_mem_done <= i_mem_done;
 
 gen_mem_dir0 : if (C_MEMWR_READ = '0') generate begin
-i_mem_rd <= i_mem_trn_work and p_in_mem.axir.dvalid and (not p_in_usr_rxbuf_full) and (not i_mem_dir);
+--i_mem_rd <= i_mem_trn_work and p_in_mem.axir.dvalid and (not p_in_usr_rxbuf_full) and (not i_mem_dir);
+i_mem_rd <= i_mem_trn_work and p_in_mem.axir.dvalid and (not i_mem_dir);
 i_mem_wr <= i_mem_trn_work and p_in_mem.axiw.wready and (not p_in_usr_txbuf_empty) and i_mem_dir;
 end generate gen_mem_dir0;
 
 gen_mem_dir1 : if (C_MEMWR_READ = '1') generate begin
-i_mem_rd <= i_mem_trn_work and p_in_mem.axir.dvalid and (not p_in_usr_rxbuf_full) and i_mem_dir;
+--i_mem_rd <= i_mem_trn_work and p_in_mem.axir.dvalid and (not p_in_usr_rxbuf_full) and i_mem_dir;
+i_mem_rd <= i_mem_trn_work and p_in_mem.axir.dvalid and i_mem_dir;
 i_mem_wr <= i_mem_trn_work and p_in_mem.axiw.wready and (not p_in_usr_txbuf_empty) and (not i_mem_dir);
 end generate gen_mem_dir1;
 
