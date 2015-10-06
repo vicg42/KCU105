@@ -132,7 +132,7 @@ p_in_mem          : in    TMemOUT;
 --DBG
 -------------------------------
 p_in_tst          : in    std_logic_vector(31 downto 0);
-p_out_tst         : out   std_logic_vector(31 downto 0);
+p_out_tst         : out   std_logic_vector(63 downto 0);
 
 -------------------------------
 --System

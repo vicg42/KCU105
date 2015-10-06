@@ -56,7 +56,7 @@ p_in_mem          : in    TMemOUT;
 --DBG
 -------------------------------
 p_in_tst          : in    std_logic_vector(31 downto 0);
-p_out_tst         : out   std_logic_vector(31 downto 0);
+p_out_tst         : out   std_logic_vector(63 downto 0);
 
 -------------------------------
 --System
@@ -87,6 +87,45 @@ rst         : in std_logic
 );
 end component;
 
+--component pcie2mem_rxfifo
+--port (
+--din    : in std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+--wr_en  : in std_logic;
+--wr_clk : in std_logic;
+--
+--dout   : out std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+--rd_en  : in std_logic;
+--rd_clk : in std_logic;
+--
+--empty     : out std_logic;
+--full      : out std_logic;
+--prog_full : out std_logic;
+--
+--wr_rst_busy : out std_logic;
+--rd_rst_busy : out std_logic;
+--srst        : in std_logic
+--);
+--end component;
+--
+--component pcie2mem_txfifo
+--port (
+--din    : in std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+--wr_en  : in std_logic;
+--wr_clk : in std_logic;
+--
+--dout   : out std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+--rd_en  : in std_logic;
+--rd_clk : in std_logic;
+--
+--empty     : out std_logic;
+--full      : out std_logic;
+--prog_full : out std_logic;
+--
+--wr_rst_busy : out std_logic;
+--rd_rst_busy : out std_logic;
+--srst        : in std_logic
+--);
+--end component;
 
 signal i_txbuf_dout         : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 signal i_txbuf_dout_rd      : std_logic;
@@ -96,8 +135,6 @@ signal i_rxbuf_din          : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 signal i_rxbuf_din_wr       : std_logic;
 signal i_rxbuf_full         : std_logic;
 signal i_rxbuf_empty        : std_logic;
-signal sr_rxbuf_din         : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-signal sr_rxbuf_din_wr      : std_logic;
 
 signal i_req_len_byte       : unsigned(17 downto 0) := (others => '0');
 signal i_mem_adr            : std_logic_vector(31 downto 0) := (others => '0');--(BYTE)
@@ -113,6 +150,11 @@ signal sr_mem_start         : std_logic_vector(0 to 2) := (others => '0');
 signal i_mem_done_out       : std_logic := '0';
 
 signal tst_mem_ctrl_out     : std_logic_vector(31 downto 0);
+signal sr_txbuf_full        : std_logic;
+signal sr_rxbuf_empty       : std_logic;
+
+signal tst_htxbuf_wr_cnt    : unsigned(15 downto 0);
+signal tst_htxbuf_rd_cnt    : unsigned(15 downto 0);
 
 
 begin --architecture behavioral
@@ -139,19 +181,32 @@ empty       => i_txbuf_empty,
 rst         => p_in_rst
 );
 
---RAM->PCIE
-process(p_in_clk)
-begin
-if rising_edge(p_in_clk) then
-sr_rxbuf_din    <= i_rxbuf_din   ;
-sr_rxbuf_din_wr <= i_rxbuf_din_wr;
-end if;
-end process;
+--m_txbuf : pcie2mem_txfifo
+--port map(
+--din         => p_in_htxbuf_di,
+--wr_en       => p_in_htxbuf_wr,
+--wr_clk      => p_in_hclk,
+--
+--dout        => i_txbuf_dout,
+--rd_en       => i_txbuf_dout_rd,
+--rd_clk      => p_in_clk,
+--
+--full        => open,
+----almost_full => open,
+--prog_full   => i_txbuf_full,
+--empty       => i_txbuf_empty,
+--
+--wr_rst_busy => open,
+--rd_rst_busy => open,
+--srst        => p_in_tst(0)
+--);
 
+
+--RAM->PCIE
 m_rxbuf : pcie2mem_fifo
 port map(
-din         => sr_rxbuf_din,
-wr_en       => sr_rxbuf_din_wr,
+din         => i_rxbuf_din,
+wr_en       => i_rxbuf_din_wr,
 wr_clk      => p_in_clk,
 
 dout        => p_out_hrxbuf_do,
@@ -166,6 +221,26 @@ empty       => i_rxbuf_empty,
 --clk         => p_in_clk,
 rst         => p_in_rst
 );
+
+--m_rxbuf : pcie2mem_rxfifo
+--port map(
+--din         => i_rxbuf_din,
+--wr_en       => i_rxbuf_din_wr,
+--wr_clk      => p_in_clk,
+--
+--dout        => p_out_hrxbuf_do,
+--rd_en       => p_in_hrxbuf_rd,
+--rd_clk      => p_in_hclk,
+--
+--full        => open,
+----almost_full => i_rxbuf_full,
+--prog_full   => i_rxbuf_full,
+--empty       => i_rxbuf_empty,
+--
+--wr_rst_busy => open,
+--rd_rst_busy => open,
+--srst        => p_in_tst(0)
+--);
 
 p_out_hrxbuf_empty <= i_rxbuf_empty;
 p_out_hrxbuf_full <= i_rxbuf_full;
@@ -296,18 +371,49 @@ p_out_status.done <= i_mem_done_out;--Resynch to mem_ctrl clk domen NOT need, it
 p_out_tst(0) <= i_mem_start;
 p_out_tst(1) <= i_mem_done;
 p_out_tst(5 downto 2) <= tst_mem_ctrl_out(5 downto 2);--m_mem_wr/tst_fsm_cs;
-p_out_tst(6) <= i_rxbuf_empty;
+p_out_tst(6) <= sr_rxbuf_empty;--i_rxbuf_empty;
 p_out_tst(7) <= i_rxbuf_full;
 p_out_tst(8) <= i_txbuf_empty;
-p_out_tst(9) <= i_txbuf_full;
+p_out_tst(9) <= sr_txbuf_full;
 p_out_tst(10) <= i_rxbuf_din_wr ;--RAM->PCIE
 p_out_tst(11) <= i_txbuf_dout_rd;--RAM<-PCIE
 p_out_tst(25 downto 12) <= (others => '0');
 --p_out_tst(25 downto 10) <= std_logic_vector(i_mem_lenreq);
 p_out_tst(31 downto 26) <= tst_mem_ctrl_out(21 downto 16);--m_mem_wr/i_mem_trn_len;
---
---p_out_tst(287 downto 32) <= std_logic_vector(RESIZE(UNSIGNED(i_txbuf_dout), 256));
---p_out_tst(543 downto 288) <= std_logic_vector(RESIZE(UNSIGNED(i_rxbuf_din), 256))
 
+p_out_tst(47 downto 32) <= std_logic_vector(tst_htxbuf_wr_cnt);
+p_out_tst(63 downto 48) <= std_logic_vector(tst_htxbuf_rd_cnt);
+
+process(p_in_clk)
+begin
+if rising_edge(p_in_clk) then
+sr_txbuf_full <= i_txbuf_full;
+sr_rxbuf_empty <= i_rxbuf_empty;
+end if;
+end process;
+
+
+
+process(p_in_hclk)
+begin
+if rising_edge(p_in_hclk) then
+  if p_in_ctrl.start = '1' then
+    tst_htxbuf_wr_cnt <= (others => '0');
+  elsif (p_in_htxbuf_wr = '1') then
+    tst_htxbuf_wr_cnt <= tst_htxbuf_wr_cnt + 1;
+  end if;
+end if;
+end process;
+
+process(p_in_clk)
+begin
+if rising_edge(p_in_clk) then
+  if i_mem_start = '1' then
+    tst_htxbuf_rd_cnt <= (others => '0');
+  elsif (i_txbuf_dout_rd = '1') then
+    tst_htxbuf_rd_cnt <= tst_htxbuf_rd_cnt + 1;
+  end if;
+end if;
+end process;
 
 end architecture behavioral;

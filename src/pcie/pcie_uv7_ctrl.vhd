@@ -701,34 +701,29 @@ p_out_dbg.axi_rc_fsm <= tst_rx_out(32 + 2 downto 32 + 0); --tst_fsm
 gen_dbg_rq_tdata : for i in 0 to 0 generate begin
 p_out_dbg.axi_rq_tdata(i) <= tst_tx_out(((280 * 1) + 11 + (32 * (i + 1)) - 1) downto ((280 * 1) + 11 + (32 * i))); --p_in_axi_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
 end generate gen_dbg_rq_tdata;
-----p_out_dbg.axi_rq_fsm    <= tst_tx_out(((280 * 1) +  3) downto ((280 * 1) + 0));
 p_out_dbg.axi_rq_tkeep(1 downto 0) <= tst_tx_out( (280 * 1) + 267 + 1 downto (280 * 1) + 267);
 p_out_dbg.axi_rq_tvalid <= tst_tx_out( (280 * 1) +  8);
 p_out_dbg.axi_rq_tlast  <= tst_tx_out( (280 * 1) +  9);
 p_out_dbg.axi_rq_tready <= tst_tx_out( (280 * 1) + 10);
+--p_out_dbg.axi_rq_fsm <= tst_tx_out(((280 * 1) +  3) downto ((280 * 1) + 0));
 
-p_out_dbg.dev_num   <= tst_uapp_out(120 downto 117);-- <= i_reg.dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT); --(22..19)
-p_out_dbg.dma_start <= tst_uapp_out(121);--            <= i_dma_start;
-p_out_dbg.dma_dir   <= tst_uapp_out(62) ;--            <= i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
-p_out_dbg.dma_irq_clr <= i_uapp_irq_clr;--tst_uapp_out(109);--tst_uapp_out(116 downto 109) <= std_logic_vector(RESIZE(UNSIGNED(i_irq_set(C_HIRQ_COUNT - 1 downto 0)), 8));
-
-
-
+p_out_dbg.dev_num   <= tst_uapp_out(120 downto 117);-- i_reg.dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT); --(22..19)
+p_out_dbg.dma_start <= tst_uapp_out(121);-- i_dma_start;
+p_out_dbg.dma_dir   <= tst_uapp_out(62) ;-- i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
+p_out_dbg.dma_irq_clr <= i_uapp_irq_clr;
 
 gen_dbg_d2h_buf_d : for i in 0 to 0 generate begin
 p_out_dbg.d2h_buf_d(i) <= i_d2h_buf_d((32 * (i + 1)) - 1 downto (32 * i));
 end generate gen_dbg_d2h_buf_d;
-p_out_dbg.d2h_buf_rd    <= i_d2h_buf_rd   ;--pcie -> dev
+p_out_dbg.d2h_buf_rd    <= i_d2h_buf_rd   ;
 p_out_dbg.d2h_buf_empty <= i_d2h_buf_empty;
 
 --gen_dbg_h2d_buf_d : for i in 0 to 1 generate begin
 --p_out_dbg.h2d_buf_d(i) <= i_h2d_buf_d((32 * (i + 1)) - 1 downto (32 * i));
 --end generate gen_dbg_h2d_buf_d;
-p_out_dbg.h2d_buf_wr   <= i_h2d_buf_wr  ; --pcie <- dev
+p_out_dbg.h2d_buf_wr   <= i_h2d_buf_wr  ;
 p_out_dbg.h2d_buf_full <= i_h2d_buf_full;
 
---p_out_dbg.test_speed_bit <= tst_uapp_out(122);-- i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
---
 p_out_dbg.irq_int  <= i_pcie_irq;
 p_out_dbg.irq_pend <= i_pcie_irq_assert;
 --p_out_dbg.irq_sent <= p_in_cfg_interrupt_sent;
@@ -741,12 +736,11 @@ p_out_dbg.irq_pend <= i_pcie_irq_assert;
 --p_out_dbg.irq_msi_vf_enable <= p_in_cfg_interrupt_msi_vf_enable;
 --p_out_dbg.irq_msi_mmenable <= p_in_cfg_interrupt_msi_mmenable;
 
-
-
 --p_out_dbg.axi_rc_sop(0) <= p_in_axi_rc_tuser(32);
 --p_out_dbg.axi_rc_sop(1) <= p_in_axi_rc_tuser(33);
 --p_out_dbg.axi_rc_disc   <= p_in_axi_rc_tuser(42);
 
+--p_out_dbg.test_speed_bit <= tst_uapp_out(122);-- i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 
 end architecture struct;
 
