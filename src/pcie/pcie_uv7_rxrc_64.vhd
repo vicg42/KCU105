@@ -248,25 +248,27 @@ if rising_edge(p_in_clk) then
 
                 if (p_in_axi_rc_tkeep = "11") then
 
-                      for i in 1 to sr_axi_data'length - 1 loop
-                      sr_axi_data(i) <= i_axi_data(i); --user data
-                      sr_axi_be(i) <= p_in_axi_rc_tuser((i * 4) + 3 downto (i * 4)); --(15...12)
-                      end loop;
+                    for i in 1 to sr_axi_data'length - 1 loop
+                    sr_axi_data(i) <= i_axi_data(i); --user data
+                    sr_axi_be(i) <= p_in_axi_rc_tuser((i * 4) + 3 downto (i * 4)); --(15...12)
+                    end loop;
 
-                      i_cpld_tlp_work <= '1';
+                    i_cpld_tlp_work <= '1';
 
-                      i_cpld_tpl_cntdw <= i_cpld_tpl_cntdw + 1;
+                    i_cpld_tpl_cntdw <= i_cpld_tpl_cntdw + 1;
 
-                      if (p_in_axi_rc_tlast = '1') then
+                    if (p_in_axi_rc_tlast = '1') then
 
-                          i_axi_rc_tready <= '0';
-                          i_fsm_rxrc <= S_RXRC_CHKE;
+                        i_axi_rc_tready <= '0';
 
-                      else
+                        i_cpld_tlp_de <= '1';
+                        i_fsm_rxrc <= S_RXRC_DE;
 
-                          i_fsm_rxrc <= S_RXRC_DN;
+                    else
 
-                      end if;
+                        i_fsm_rxrc <= S_RXRC_DN;
+
+                    end if;
 
                 end if;
             end if;
