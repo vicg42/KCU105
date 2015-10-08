@@ -82,8 +82,8 @@ constant C_HREG_DEV_CTRL_LAST_BIT             : integer := C_HREG_DEV_CTRL_FG_CH
 constant C_HDEV_CFG                           : integer := 0;--CFG
 constant C_HDEV_MEM                           : integer := 1;--RAM
 constant C_HDEV_FG                            : integer := 2;--Frame Grabber
---constant C_HDEV_PROM                          : integer := 3;
-constant C_HDEV_COUNT                         : integer := C_HDEV_FG + 1;
+constant C_HDEV_ETH                           : integer := 3;
+constant C_HDEV_COUNT                         : integer := C_HDEV_ETH + 1;
 constant C_HDEV_COUNT_MAX                     : integer := pwr(2, (C_HREG_DEV_CTRL_ADR_M_BIT - C_HREG_DEV_CTRL_ADR_L_BIT + 1));
 
 
@@ -117,10 +117,10 @@ constant C_HREG_IRQ_STATUS_M_RBIT             : integer := 31;
 
 --field C_HREG_IRQ_NUM - interrupt numbers:
 constant C_HIRQ_PCIE_DMA                      : integer := 0;--DONE
-constant C_HIRQ_CFG                           : integer := 1;--RxD RDY
---constant C_HIRQ_ETH                           : integer := 2;--RxData
+constant C_HIRQ_CFG                           : integer := 1;--RxD_RDY
+constant C_HIRQ_ETH                           : integer := 2;--RxD_RDY
 --constant C_HIRQ_FG_VCH0                       : integer := 3;
-constant C_HIRQ_COUNT                         : integer := C_HIRQ_CFG + 1;
+constant C_HIRQ_COUNT                         : integer := C_HIRQ_ETH + 1;
 constant C_HIRQ_FST_BIT                       : integer := selval(0, 1, (C_HIRQ_COUNT = 1));
 --constant C_HIRQ_COUNT_MAX                     : integer := pwr(2, (C_HREG_IRQ_NUM_M_WBIT - C_HREG_IRQ_NUM_L_WBIT + 1));
 
@@ -206,7 +206,8 @@ constant C_HDEV_OPTOUT_LAST_BIT               : integer := C_HDEV_OPTOUT_MEM_TRN
 --CFG Device Address map:
 constant C_CFGDEV_FG                          : integer := 0;
 constant C_CFGDEV_SWT                         : integer := 1;
-constant C_CFGDEV_COUNT                       : integer := C_CFGDEV_SWT + 1;
+constant C_CFGDEV_TMR                         : integer := 2;
+constant C_CFGDEV_COUNT                       : integer := C_CFGDEV_TMR + 1;
 constant C_CFGDEV_COUNT_MAX                   : integer := 8;
 
 
@@ -230,10 +231,9 @@ constant C_TMR_REG_CTRL_LAST_BIT              : integer := C_TMR_REG_CTRL_DIS_BI
 
 
 --
-constant C_TMR_COUNT                          : integer := 1;
-constant C_TMR_COUNT_MAX                      : integer := 2;
+constant C_TMR_ETH                            : integer := 0;
 
-constant C_TMR_TICK                           : integer := 0;
+constant C_TMR_COUNT                          : integer := C_TMR_ETH + 1;--max=3
 
 
 ----------------------------------------------------------------
@@ -242,7 +242,6 @@ constant C_TMR_TICK                           : integer := 0;
 constant C_SWT_REG_CTRL                       : integer := 16#07#;
 constant C_SWT_REG_FRR_ETH_HOST               : integer := 16#08#;
 constant C_SWT_REG_FRR_ETH_FG                 : integer := 16#10#;
-constant C_SWT_REG_FRR_ETH_HDD                : integer := 16#18#;
 
 
 --Register C_SWT_REG_CTRL / Bit Map:
@@ -257,7 +256,6 @@ constant C_SWT_FRR_COUNT_MAX                  : integer := 8;
 --
 constant C_SWT_ETH_HOST_FRR_COUNT             : integer := 3; --Кол-во правил машрутизации пакетов ETH-HOST
 constant C_SWT_ETH_FG_FRR_COUNT               : integer := C_PCFG_FG_VCH_COUNT;--Кол-во правил машрутизации пакетов ETH-VCTRL
-constant C_SWT_ETH_HDD_FRR_COUNT              : integer := 3; --Кол-во правил машрутизации пакетов ETH-HDD
 
 Type TEthFRRGet is array (0 to C_SWT_FRR_COUNT_MAX - 1) of integer;
 ----------------------------------------------------------------------------------------
