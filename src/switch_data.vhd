@@ -65,16 +65,16 @@ p_in_eth_tmr_en        : in   std_logic;
 p_in_eth_clk           : in   std_logic;
 ----p_in_eth               : in   TEthOUTs;
 ----p_out_eth              : out  TEthINs;
---
----------------------------------
-----FG_BUFI
----------------------------------
---p_in_vbufi_rdclk       : in   std_logic;
---p_out_vbufi_do         : out  std_logic_vector(G_VBUFI_OWIDTH - 1 downto 0);
---p_in_vbufi_rd          : in   std_logic;
---p_out_vbufi_empty      : out  std_logic;
---p_out_vbufi_full       : out  std_logic;
---p_out_vbufi_pfull      : out  std_logic;
+
+-------------------------------
+--FG_BUFI
+-------------------------------
+p_in_vbufi_rdclk       : in   std_logic;
+p_out_vbufi_do         : out  std_logic_vector(G_VBUFI_OWIDTH - 1 downto 0);
+p_in_vbufi_rd          : in   std_logic;
+p_out_vbufi_empty      : out  std_logic;
+p_out_vbufi_full       : out  std_logic;
+p_out_vbufi_pfull      : out  std_logic;
 
 -------------------------------
 --DBG
@@ -91,7 +91,7 @@ end entity switch_data;
 
 architecture behavioral of switch_data is
 
-component host2eth_fifo
+component fifo_host2eth
 port (
 din       : in  std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
 wr_en     : in  std_logic;
@@ -111,7 +111,7 @@ srst      : in  std_logic
 );
 end component;
 
-component eth2host_fifo
+component fifo_eth2host
 port (
 din       : in  std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
 wr_en     : in  std_logic;
@@ -131,24 +131,29 @@ srst      : in  std_logic
 );
 end component;
 
---component eth2fg_fifo
---port(
---din         : IN  std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
---wr_en       : IN  std_logic;
---wr_clk      : IN  std_logic;
+component fifo_eth2fg
+port (
+din       : in  std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
+wr_en     : in  std_logic;
+wr_clk    : in  std_logic;
+
+dout      : out std_logic_vector(G_VBUFI_OWIDTH - 1 downto 0);
+rd_en     : in  std_logic;
+rd_clk    : in  std_logic;
+
+empty     : out std_logic;
+full      : out std_logic;
+prog_full : out std_logic;
+
+--wr_rst_busy : out std_logic;
+--rd_rst_busy : out std_logic;
 --
---dout        : OUT std_logic_vector(G_VBUFI_OWIDTH - 1 downto 0);
---rd_en       : IN  std_logic;
---rd_clk      : IN  std_logic;
---
---empty       : OUT std_logic;
---full        : OUT std_logic;
---prog_full   : OUT std_logic;
---
---rst         : IN  std_logic
---);
---end component;
---
+--clk       : in  std_logic;
+--srst      : in  std_logic
+rst       : in  std_logic
+);
+end component;
+
 --component pkt_filter
 --generic(
 --G_DWIDTH : integer := 32;
@@ -223,8 +228,11 @@ signal i_eth_rx_irq_out              : std_logic;
 signal i_eth_htxd_rdy                : std_logic;
 signal sr_eth_htxd_rdy               : std_logic;
 signal i_eth_txbuf_empty_en          : std_logic;
-signal i_txbuf_empty                 : std_logic;
 signal sr_eth_rxbuf_fltr_den         : std_logic_vector(0 to 1);
+
+signal tst_txbuf_empty               : std_logic;
+signal tst_eth_rxbuf_den             : std_logic;
+signal tst_eth_rxbuf_dout            : std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
 
 signal i_vbufi_fltr_dout             : std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
 signal i_vbufi_fltr_dout_swap        : std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
@@ -413,7 +421,7 @@ p_out_eth_htxbuf_full <= i_eth_txbuf_full;
 --p_out_eth(0).txbuf_empty <= not (not i_eth_txbuf_empty and i_eth_txbuf_empty_en)
 --                            when i_eth_tmr_en = '1' else i_eth_txbuf_empty;
 
-i_txbuf_empty <= not (not i_eth_txbuf_empty and i_eth_txbuf_empty_en)
+tst_txbuf_empty <= not (not i_eth_txbuf_empty and i_eth_txbuf_empty_en)
                   when i_eth_tmr_en = '1'
                     else (not (not i_eth_txbuf_empty and sr_eth_htxd_rdy));
 
@@ -438,14 +446,14 @@ if rising_edge(p_in_eth_clk) then
 end if;
 end process;
 
-m_host2eth_buf : host2eth_fifo
+m_buf_host2eth : fifo_host2eth
 port map(
 din     => p_in_eth_htxbuf_di,
 wr_en   => p_in_eth_htxbuf_wr,
 --wr_clk  => p_in_hclk,
 
-dout    => i_eth_rxbuf_fltr_dout,--p_out_eth(0).txbuf_do,
-rd_en   => i_eth_rxbuf_fltr_den ,--p_in_eth(0).txbuf_rd ,
+dout    => tst_eth_rxbuf_dout,--p_out_eth(0).txbuf_do,
+rd_en   => tst_eth_rxbuf_den ,--p_in_eth(0).txbuf_rd ,
 --rd_clk  => p_in_eth_clk,
 
 empty   => i_eth_txbuf_empty,
@@ -518,9 +526,11 @@ end process;
 --p_in_rst        => b_rst_eth_bufs
 --);
 
-m_eth2host_buf : eth2host_fifo
+i_eth_rxbuf_fltr_den  <= tst_eth_rxbuf_den and (not h_reg_ctrl(C_SWT_REG_CTRL_DBG_HOST2FG_BIT));
+
+m_buf_eth2host : fifo_eth2host
 port map(
-din     => i_eth_rxbuf_fltr_dout,
+din     => tst_eth_rxbuf_dout, --i_eth_rxbuf_fltr_dout,
 wr_en   => i_eth_rxbuf_fltr_den,
 --wr_clk  => p_in_eth_clk,
 
@@ -582,16 +592,17 @@ process(p_in_eth_clk)
 begin
 if rising_edge(p_in_eth_clk) then
   if p_in_rst = '1' then
-    i_eth_rxbuf_fltr_den <= '0';
+    tst_eth_rxbuf_den <= '0';
     sr_eth_rxbuf_fltr_den <= (others => '0');
     i_eth_rxbuf_fltr_eof <= '0';
   else
-    i_eth_rxbuf_fltr_den <= not (i_txbuf_empty);
-    sr_eth_rxbuf_fltr_den <= i_eth_rxbuf_fltr_den & sr_eth_rxbuf_fltr_den(0 to 0);
+    tst_eth_rxbuf_den <= not (tst_txbuf_empty);
+    sr_eth_rxbuf_fltr_den <= tst_eth_rxbuf_den & sr_eth_rxbuf_fltr_den(0 to 0);
     i_eth_rxbuf_fltr_eof <= (not sr_eth_rxbuf_fltr_den(0)) and sr_eth_rxbuf_fltr_den(1);
   end if;
 end if;
 end process;
+
 
 ----XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ----EthG->VIDEO_CTRL
@@ -641,27 +652,28 @@ end process;
 ----                              (i_vbufi_fltr_dout_swap'length - (32 * (i + 1)) ))
 ----                          <= i_vbufi_fltr_dout((32 * (i + 1)) - 1 downto (32 * i));
 ----end generate;-- gen_swap_d;
---
---m_eth2fg_buf : eth2fg_fifo
---port map(
---din         => tst_eth_txbuf_do,--i_vbufi_fltr_dout_swap,
---wr_en       => tst_eth_txbuf_rd,--i_vbufi_fltr_den,
---wr_clk      => p_in_vbufi_rdclk,--p_in_eth_clk,
---
---dout        => p_out_vbufi_do,
---rd_en       => p_in_vbufi_rd,
---rd_clk      => p_in_vbufi_rdclk,
---
---empty       => p_out_vbufi_empty,
---full        => p_out_vbufi_full,
---prog_full   => i_vbufi_pfull,
---
---rst         => b_rst_fg_bufs
---);
---
---p_out_vbufi_pfull <= i_vbufi_pfull;
---
---tst_eth_txbuf_rd <= not i_eth_txbuf_empty;
+
+i_vbufi_fltr_den  <= tst_eth_rxbuf_den and (h_reg_ctrl(C_SWT_REG_CTRL_DBG_HOST2FG_BIT)) ;
+
+m_buf_eth2fg : fifo_eth2fg
+port map(
+din       => tst_eth_rxbuf_dout,--i_vbufi_fltr_dout,
+wr_en     => i_vbufi_fltr_den ,
+wr_clk    => p_in_eth_clk,
+
+dout      => p_out_vbufi_do,
+rd_en     => p_in_vbufi_rd,
+rd_clk    => p_in_vbufi_rdclk,
+
+empty     => p_out_vbufi_empty,
+full      => p_out_vbufi_full,
+prog_full => i_vbufi_pfull,
+
+rst       => b_rst_fg_bufs
+);
+
+p_out_vbufi_pfull <= i_vbufi_pfull;
+
 
 --##################################
 --DBG

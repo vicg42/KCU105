@@ -225,7 +225,7 @@ if rising_edge(p_in_clk) then
 
             i_pkt_hd_rd <= '1';
             --Load len pkt header (DWORD)
-            i_pkth_cnt <= TO_UNSIGNED((C_FG_PKT_HD_SIZE / 4) - 1, i_pkth_cnt'length);
+            i_pkth_cnt <= TO_UNSIGNED((C_FG_PKT_HD_SIZE_BYTE / 4) - 1, i_pkth_cnt'length);
 
             i_pkt_type_err <= (others => '0');
             i_fsm_cs <= S_PKTH_RD;
@@ -270,7 +270,7 @@ if rising_edge(p_in_clk) then
 
             --Calculate pixcount
             i_pixcount_byte <= i_pkt_size_byte
-                                - TO_UNSIGNED(C_FG_PKT_HD_SIZE, i_pixcount_byte'length);
+                                - TO_UNSIGNED(C_FG_PKT_HD_SIZE_BYTE, i_pixcount_byte'length);
 
             i_fsm_cs <= S_MEM_START;
 
@@ -279,7 +279,7 @@ if rising_edge(p_in_clk) then
           --Read Header:
           ---------------------------
             --Header DWORD-0:
-            if i_pkth_cnt = TO_UNSIGNED((C_FG_PKT_HD_SIZE / 4) - 1, i_pkth_cnt'length) then
+            if i_pkth_cnt = TO_UNSIGNED((C_FG_PKT_HD_SIZE_BYTE / 4) - 1, i_pkth_cnt'length) then
 
               --Count byte of PKT + Count byte length field
               i_pkt_size_byte <= UNSIGNED(p_in_vbufi_do(15 downto 0)) + 2;
@@ -310,7 +310,7 @@ if rising_edge(p_in_clk) then
               end if;
 
             --Header DWORD - 1:
-            elsif i_pkth_cnt = TO_UNSIGNED((C_FG_PKT_HD_SIZE / 4) - 2, i_pkth_cnt'length) then
+            elsif i_pkth_cnt = TO_UNSIGNED((C_FG_PKT_HD_SIZE_BYTE / 4) - 2, i_pkth_cnt'length) then
 
               for i in 0 to C_FG_VCH_COUNT - 1 loop
                 if i_ch_num = i then
@@ -330,7 +330,7 @@ if rising_edge(p_in_clk) then
               i_fr_pixcount <= UNSIGNED(p_in_vbufi_do(31 downto 16));
 
             --Header DWORD-2:
-            elsif i_pkth_cnt = TO_UNSIGNED((C_FG_PKT_HD_SIZE / 4) - 3, i_pkth_cnt'length) then
+            elsif i_pkth_cnt = TO_UNSIGNED((C_FG_PKT_HD_SIZE_BYTE / 4) - 3, i_pkth_cnt'length) then
 
               --Save frame resolution: rowcount
               i_fr_rowcount <= UNSIGNED(p_in_vbufi_do(15 downto 0));
@@ -339,7 +339,7 @@ if rising_edge(p_in_clk) then
               i_fr_rownum <= UNSIGNED(p_in_vbufi_do(31 downto 16));
 
             --Header DWORD-3:
-            elsif i_pkth_cnt = TO_UNSIGNED((C_FG_PKT_HD_SIZE / 4) - 4, i_pkth_cnt'length) then
+            elsif i_pkth_cnt = TO_UNSIGNED((C_FG_PKT_HD_SIZE_BYTE / 4) - 4, i_pkth_cnt'length) then
 
               --timestump save(lsb)
               i_fr_rowmrk_l(15 downto 0) <= p_in_vbufi_do(31 downto 16);

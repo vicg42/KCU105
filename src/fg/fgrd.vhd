@@ -160,8 +160,8 @@ if rising_edge(p_in_clk) then
     i_fr_rowcnt <= (others => '0');
 
 --    i_prm.mem_trnlen <= std_logic_vector(TO_UNSIGNED(16#4040#, i_prm.mem_trnlen'length));
-    i_prm.frwr.pixcount <= (others => '0');
-    i_prm.frwr.rowcount <= (others => '0');
+--    i_prm.frwr.pixcount <= (others => '0');
+--    i_prm.frwr.rowcount <= (others => '0');
 
     i_prm.frrd.skp.pixcount <= (others => '0');
     i_prm.frrd.skp.rowcount <= (others => '0');

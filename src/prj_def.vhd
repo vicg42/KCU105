@@ -247,7 +247,8 @@ constant C_SWT_REG_FRR_ETH_FG                 : integer := 16#10#;
 --Register C_SWT_REG_CTRL / Bit Map:
 constant C_SWT_REG_CTRL_RST_ETH_BUFS_BIT      : integer := 0;
 constant C_SWT_REG_CTRL_RST_FG_BUFS_BIT       : integer := 1;
-constant C_SWT_REG_CTRL_LAST_BIT              : integer := C_SWT_REG_CTRL_RST_FG_BUFS_BIT;
+constant C_SWT_REG_CTRL_DBG_HOST2FG_BIT       : integer := 2; --HOST(over ETH BUF) -> FG
+constant C_SWT_REG_CTRL_LAST_BIT              : integer := C_SWT_REG_CTRL_DBG_HOST2FG_BIT;
 
 
 --Max count of rule routing:
@@ -289,6 +290,7 @@ constant C_FG_REG_CTRL_LAST_BIT            : integer := C_FG_REG_CTRL_SET_IDLE_B
 
 --
 constant C_FG_REG_CTRL_WR : std_logic := '1';
+constant C_FG_PKT_HD_SIZE_BYTE : integer := 20;
 
 --Index of parametr video channel:
 constant C_FG_PRM_MEM_ADR_WR               : integer := 0;
@@ -319,8 +321,24 @@ constant C_FG_MEM_VCH_M_BIT                : integer := log2(C_PCFG_FG_MEM_VBUF_
 + selval(1, log2(C_FG_VCH_COUNT), ((log2(C_FG_VCH_COUNT) = 0) or (log2(C_FG_VCH_COUNT) = 1))) - 1;
 
 --Register C_FG_REG_TST0 / Bit Map:
-constant C_FG_REG_TST0_L_BIT               : integer := 0;
-constant C_FG_REG_TST0_M_BIT               : integer := 3;
-constant C_FG_REG_TST0_LAST_BIT            : integer := C_FG_REG_TST0_M_BIT;
+--constant C_FG_REG_TST0_L_BIT               : integer := 0;
+--constant C_FG_REG_TST0_M_BIT               : integer := 3;
+--constant C_FG_REG_TST0_LAST_BIT            : integer := C_FG_REG_TST0_M_BIT;
+
+constant C_FG_REG_TST0_DBG_TBUFRD_BIT      : integer:=0;--Отладка модуля слежения - отображение содержимого RAM/TRACK/TBUF
+constant C_FG_REG_TST0_DBG_EBUFRD_BIT      : integer:=1;--Отладка модуля слежения - отображение содержимого RAM/TRACK/EBUF
+constant C_FG_REG_TST0_DBG_SOBEL_BIT       : integer:=2;--1/0 - Отладка модуля собела Выдача Grad/Video
+constant C_FG_REG_TST0_DBG_ROTRIGHT_BIT    : integer:=3;--Поворот на 90 вправо
+constant C_FG_REG_TST0_DBG_ROTLEFT_BIT     : integer:=4;--Поворот на 90 влево
+constant C_FG_REG_TST0_DBG_DIS_DEMCOLOR_BIT: integer:=5;--1/0 - Запретить работу модуля vcoldemosaic_main.vhd
+constant C_FG_REG_TST0_DBG_DCOUNT_BIT      : integer:=6;--1 - Вместо данных строки вставляется счетчик
+constant C_FG_REG_TST0_DBG_PICTURE_BIT     : integer:=7;--Запрещаю запись видео в ОЗУ + запрещаю инкрементацию счетчика vbuf,
+                                                           --при бит(7)=1 - vbuf=0
+constant C_FG_REG_TST0_SKIPFR_CNT_CLR_BIT  : integer:=8;--При 1 - происходит сброс счетчиков пропущеных кадров tst_vfrskip,
+                                                           --При 0 - нет
+constant C_FG_REG_TST0_DBG_TIMESTUMP_BIT   : integer:=9;
+constant C_FG_REG_TST0_DBG_RDHOLD_BIT      : integer:=10;--Эмуляция захвата видеобуфера модулем чтения
+constant C_FG_REG_TST0_DBG_TRCHOLD_BIT     : integer:=11;--Эмуляция захвата видеобуфера модулем слежения
+constant C_FG_REG_TST0_LAST_BIT            : integer:=C_FG_REG_TST0_DBG_TRCHOLD_BIT;
 
 end package prj_def;
