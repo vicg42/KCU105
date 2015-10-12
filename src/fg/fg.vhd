@@ -114,16 +114,16 @@ end component;
 
 component fgwr
 generic(
-G_PIXBIT : integer := 8;
 G_DBGCS : string := "OFF";
-G_VCH_NUM : integer := 0;
-G_VCH_COUNT : integer := 0;
-G_VSYN_ACTIVE : std_logic := '1';
+
+G_VCH_COUNT : integer := 1;
+
 G_MEM_VCH_M_BIT   : integer := 25;
 G_MEM_VCH_L_BIT   : integer := 24;
 G_MEM_VFR_M_BIT   : integer := 23;
 G_MEM_VFR_L_BIT   : integer := 23;
 G_MEM_VLINE_M_BIT : integer := 22;
+G_MEM_VLINE_L_BIT : integer := 0;
 
 G_MEM_AWIDTH : integer := 32;
 G_MEM_DWIDTH : integer := 32
@@ -132,10 +132,10 @@ port(
 -------------------------------
 --CFG
 -------------------------------
-p_in_usrprm_ld : in    std_logic;
-p_in_usrprm    : in    TFGWR_Prms;
+--p_in_usrprm_ld : in    std_logic;
+--p_in_usrprm    : in    TFGWR_Prms;
 p_in_memtrn    : in    std_logic_vector(7 downto 0);
-p_in_work_en   : in    std_logic;
+--p_in_work_en   : in    std_logic;
 
 p_in_frbuf     : in    TFG_FrBufs;
 p_out_frrdy    : out   std_logic_vector(G_VCH_COUNT - 1 downto 0);
@@ -244,27 +244,27 @@ signal i_reg_data              : std_logic_vector(31 downto 0);
 signal i_reg_tst0              : std_logic_vector(C_FG_REG_TST0_LAST_BIT downto 0);
 signal i_reg_mem_trnlen        : std_logic_vector(15 downto 0);
 
-signal sr_set_prm              : unsigned(3 downto 0);
-signal i_set_prm_width         : std_logic;
+signal sr_set_prm              : unsigned(0 to 3);
+signal i_set_prm_exp           : std_logic;
 signal h_set_prm               : std_logic;
 signal i_set_prm               : std_logic;
 
 type TSRsetidle is array(0 to C_FG_VCH_COUNT - 1) of  unsigned(3 downto 0);
 signal sr_set_idle             : TSRsetidle;
-signal i_set_idle_width        : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
+signal i_set_idle_exp          : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
 signal h_set_idle              : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
 signal i_set_idle              : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
 
 signal i_prm                   : TFG_Prm;
-signal i_prm_fgwr              : TFGWR_Prms;
 signal i_prm_fgrd              : TFGRD_Prms;
+--signal i_prm_fgwr              : TFGWR_Prms;
 
 Type TFG_FrMrks_Bufs is array (0 to C_FG_VBUF_COUNT - 1) of std_logic_vector(31 downto 0);
 Type TFG_FrMrks_Bufs_VCH is array (0 to C_FG_VCH_COUNT - 1) of TFG_FrMrks_Bufs;
 
-type TFG_CntWidth is array (0 to C_FG_VCH_COUNT - 1) of unsigned(15 downto 0);
+type TFG_CntWidth is array (0 to C_FG_VCH_COUNT - 1) of unsigned(0 to 3);
 signal sr_irq                  : TFG_CntWidth;
-signal i_irq_width             : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
+signal i_irq_exp               : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
 signal i_irq                   : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
 signal i_vbuf_hold             : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
 
@@ -285,12 +285,12 @@ signal i_fgrd_den              : std_logic;
 signal i_vbufo_full            : std_logic;
 signal i_vbufo_rst             : std_logic;
 
-signal sr_hrdstart             : unsigned(15 downto 0);
-signal i_hrdstart_width        : std_logic;
+signal sr_hrdstart             : unsigned(0 to 3);
+signal i_hrdstart_exp          : std_logic;
 signal i_hrdstart              : std_logic;
 signal i_hchsel                : std_logic_vector(p_in_hrdchsel'range);
-signal sr_hrddone              : unsigned(15 downto 0);
-signal i_hrddone_width         : std_logic;
+signal sr_hrddone              : unsigned(0 to 3);
+signal i_hrddone_exp           : std_logic;
 signal i_hrddone               : std_logic;
 
 signal tst_fgrd_out            : std_logic_vector(31 downto 0);
@@ -550,26 +550,26 @@ begin
 if rising_edge(p_in_vbufo_rdclk) then
   if p_in_rst = '1' then
     sr_hrdstart <= (others => '0');
-    i_hrdstart_width <= '0';
+    i_hrdstart_exp <= '0';
     sr_hrddone <= (others => '0');
-    i_hrddone_width <= '0';
+    i_hrddone_exp <= '0';
 
   else
 
       ---
       if p_in_hrdstart = '1' then
-        i_hrdstart_width <= '1';
+        i_hrdstart_exp <= '1';
       elsif sr_hrdstart(sr_hrdstart'high) = '1' then
-        i_hrdstart_width <= '0';
+        i_hrdstart_exp <= '0';
       end if;
 
       sr_hrdstart <= p_in_hrdstart & sr_hrdstart(0 to sr_hrdstart'high - 1);
 
       ----
       if p_in_hrddone = '1' then
-        i_hrddone_width <= '1';
+        i_hrddone_exp <= '1';
       elsif sr_hrddone(sr_hrddone'high) = '1' then
-        i_hrddone_width <= '0';
+        i_hrddone_exp <= '0';
       end if;
 
       sr_hrddone <= p_in_hrddone & sr_hrddone(0 to sr_hrddone'high - 1);
@@ -581,8 +581,8 @@ end process;
 process(p_in_clk)
 begin
   if rising_edge(p_in_clk) then
-    i_hrdstart <= i_hrdstart_width;
-    i_hrddone <= i_hrddone_width;
+    i_hrdstart <= i_hrdstart_exp;
+    i_hrddone <= i_hrddone_exp;
     i_hchsel <= p_in_hrdchsel;
   end if;
 end process;
@@ -593,19 +593,19 @@ begin
 if rising_edge(p_in_cfg_clk) then
   if p_in_rst = '1' then
     sr_set_prm <= (others => '0');
-    i_set_prm_width <= '0';
+    i_set_prm_exp <= '0';
     for i in 0 to C_FG_VCH_COUNT - 1 loop
     sr_set_idle(i) <= (others => '0');
-    i_set_idle_width(i) <= '0';
+    i_set_idle_exp(i) <= '0';
     end loop;
 
   else
 
       ---
       if h_set_prm = '1' then
-        i_set_prm_width <= '1';
+        i_set_prm_exp <= '1';
       elsif sr_set_prm(sr_set_prm'high) = '1' then
-        i_set_prm_width <= '0';
+        i_set_prm_exp <= '0';
       end if;
 
       sr_set_prm <= h_set_prm & sr_set_prm(0 to sr_set_prm'high - 1);
@@ -613,9 +613,9 @@ if rising_edge(p_in_cfg_clk) then
       ----
       for i in 0 to C_FG_VCH_COUNT - 1 loop
       if h_set_idle(i) = '1' then
-        i_set_idle_width(i) <= '1';
+        i_set_idle_exp(i) <= '1';
       elsif sr_set_idle(i)(sr_set_idle(i)'high) = '1' then
-        i_set_idle_width(i) <= '0';
+        i_set_idle_exp(i) <= '0';
       end if;
 
       sr_set_idle(i) <= h_set_idle(i) & sr_set_idle(i)(0 to sr_set_idle'high - 1);
@@ -628,8 +628,8 @@ end process;
 process(p_in_clk)
 begin
   if rising_edge(p_in_clk) then
-    i_set_prm <= i_set_prm_width;
-    i_set_idle <= i_set_idle_width;
+    i_set_prm <= i_set_prm_exp;
+    i_set_idle <= i_set_idle_exp;
   end if;
 end process;
 
@@ -646,8 +646,8 @@ i_prm_fgrd(ch).frrd <= i_prm.ch(ch).fr;
 i_prm_fgrd(ch).mirror <= i_prm.ch(ch).mirror;
 i_prm_fgrd(ch).steprd <= i_prm.ch(ch).steprd;
 
---WR parametrs
-i_prm_fgwr(ch).fr <= p_in_vbufi(ch).frprm;
+----WR parametrs
+--i_prm_fgwr(ch).fr <= i_prm.ch(ch).fr.act;
 
 
 --IRQ
@@ -656,14 +656,14 @@ begin
 if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
     sr_irq(ch) <= (others => '0');
-    i_irq_width(ch) <= '0';
+    i_irq_exp(ch) <= '0';
 
   else
 
       if i_irq(ch) = '1' then
-        i_irq_width(ch) <= '1';
+        i_irq_exp(ch) <= '1';
       elsif sr_irq(ch)(sr_irq(ch)'high) = '1' then
-        i_irq_width(ch) <= '0';
+        i_irq_exp(ch) <= '0';
       end if;
 
       sr_irq(ch) <= i_irq(ch) & sr_irq(ch)(0 to sr_irq(ch)'high - 1);
@@ -794,16 +794,14 @@ end generate gen_vch;
 -------------------------------
 m_fgwr : fgwr
 generic map(
-G_PIXBIT => C_PCFG_FG_PIXBIT,
-G_DBGCS  => G_DBGCS,
-G_VCH_NUM => 0,
+G_DBGCS => G_DBGCS,
 G_VCH_COUNT => C_FG_VCH_COUNT,
-G_VSYN_ACTIVE => G_VSYN_ACTIVE,
 G_MEM_VCH_M_BIT   => C_FG_MEM_VCH_M_BIT,
 G_MEM_VCH_L_BIT   => C_FG_MEM_VCH_L_BIT,
 G_MEM_VFR_M_BIT   => C_FG_MEM_VFR_M_BIT,
 G_MEM_VFR_L_BIT   => C_FG_MEM_VFR_L_BIT,
 G_MEM_VLINE_M_BIT => C_FG_MEM_VLINE_M_BIT,
+G_MEM_VLINE_L_BIT => 0,
 
 G_MEM_AWIDTH => G_MEM_AWIDTH,
 G_MEM_DWIDTH => G_MEMWR_DWIDTH
@@ -812,10 +810,10 @@ port map(
 -------------------------------
 --CFG
 -------------------------------
-p_in_usrprm_ld => i_set_prm,
-p_in_usrprm    => i_prm_fgwr,
+--p_in_usrprm_ld => i_set_prm,
+--p_in_usrprm    => i_prm_fgwr,
 p_in_memtrn    => i_prm.mem_wd_trn_len(7 downto 0),
-p_in_work_en   => p_in_tst(1),
+--p_in_work_en   => p_in_tst(1),
 
 p_in_frbuf     => i_vbuf_wr,
 p_out_frrdy    => i_fgwr_frrdy,
@@ -824,7 +822,12 @@ p_out_frmrk    => i_fgwr_mrk,
 ----------------------------
 --DataIN
 ----------------------------
-p_in_vbufi     => p_in_vbufi(0),
+--p_in_vbufi     => p_in_vbufi(0),
+p_in_vbufi_do    => p_in_vbufi_do   ,
+p_out_vbufi_rd   => p_out_vbufi_rd  ,
+p_in_vbufi_empty => p_in_vbufi_empty,
+p_in_vbufi_full  => p_in_vbufi_full ,
+p_in_vbufi_pfull => p_in_vbufi_pfull,
 
 ---------------------------------
 --Port MEM_CTRL
@@ -938,7 +941,7 @@ rst       => i_vbufo_rst
 
 i_vbufo_rst <= p_in_rst or p_in_tst(0);
 
-p_out_hirq <= i_irq_width;
+p_out_hirq <= i_irq_exp;
 p_out_hdrdy <= i_vbuf_hold;
 
 --Marker of read video frame:

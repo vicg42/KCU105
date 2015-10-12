@@ -185,7 +185,11 @@ p_out_vbufo_empty : out   std_logic;
 -------------------------------
 --VBUFI -> MEM(VBUF)
 -------------------------------
-p_in_vbufi        : in    TFGWR_VBUFIs;
+p_in_vbufi_do     : in    std_logic_vector(G_MEMWR_DWIDTH - 1 downto 0);
+p_out_vbufi_rd    : out   std_logic;
+p_in_vbufi_empty  : in    std_logic;
+p_in_vbufi_full   : in    std_logic;
+p_in_vbufi_pfull  : in    std_logic;
 
 ---------------------------------
 --MEM

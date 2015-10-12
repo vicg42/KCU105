@@ -98,9 +98,12 @@ constant C_HREG_DEV_STATUS_ETH_LINK_BIT       : integer := 6;
 constant C_HREG_DEV_STATUS_ETH_RXRDY_BIT      : integer := 7;
 constant C_HREG_DEV_STATUS_ETH_TXRDY_BIT      : integer := 8;
 constant C_HREG_DEV_STATUS_FG_VCH0_RDY_BIT    : integer := 9;
+constant C_HREG_DEV_STATUS_FG_VCH1_RDY_BIT    : integer := 10;
+constant C_HREG_DEV_STATUS_FG_VCH2_RDY_BIT    : integer := 11;
+constant C_HREG_DEV_STATUS_FG_VCH3_RDY_BIT    : integer := 12;
 
 constant C_HREG_DEV_STATUS_FST_BIT            : integer := 1;
-constant C_HREG_DEV_STATUS_LAST_BIT           : integer := C_HREG_DEV_STATUS_ETH_TXRDY_BIT;
+constant C_HREG_DEV_STATUS_LAST_BIT           : integer := C_HREG_DEV_STATUS_FG_VCH0_RDY_BIT;
 
 
 --Register C_HREG_IRQ / Bit Map:
@@ -119,8 +122,11 @@ constant C_HREG_IRQ_STATUS_M_RBIT             : integer := 31;
 constant C_HIRQ_PCIE_DMA                      : integer := 0;--DONE
 constant C_HIRQ_CFG                           : integer := 1;--RxD_RDY
 constant C_HIRQ_ETH                           : integer := 2;--RxD_RDY
---constant C_HIRQ_FG_VCH0                       : integer := 3;
-constant C_HIRQ_COUNT                         : integer := C_HIRQ_ETH + 1;
+constant C_HIRQ_FG_VCH0                       : integer := 3;
+constant C_HIRQ_FG_VCH1                       : integer := 4;
+constant C_HIRQ_FG_VCH2                       : integer := 5;
+constant C_HIRQ_FG_VCH3                       : integer := 6;
+constant C_HIRQ_COUNT                         : integer := C_HIRQ_FG_VCH0 + 1;
 constant C_HIRQ_FST_BIT                       : integer := selval(0, 1, (C_HIRQ_COUNT = 1));
 --constant C_HIRQ_COUNT_MAX                     : integer := pwr(2, (C_HREG_IRQ_NUM_M_WBIT - C_HREG_IRQ_NUM_L_WBIT + 1));
 
@@ -240,8 +246,8 @@ constant C_TMR_COUNT                          : integer := C_TMR_ETH + 1;--max=3
 --module switch_data.vhd
 ----------------------------------------------------------------
 constant C_SWT_REG_CTRL                       : integer := 16#07#;
-constant C_SWT_REG_FRR_ETH_HOST               : integer := 16#08#;
-constant C_SWT_REG_FRR_ETH_FG                 : integer := 16#10#;
+constant C_SWT_REG_FRR_ETH2HOST               : integer := 16#08#;
+constant C_SWT_REG_FRR_ETH2FG                 : integer := 16#10#;
 
 
 --Register C_SWT_REG_CTRL / Bit Map:
@@ -251,7 +257,7 @@ constant C_SWT_REG_CTRL_DBG_HOST2FG_BIT       : integer := 2; --HOST(over ETH BU
 constant C_SWT_REG_CTRL_LAST_BIT              : integer := C_SWT_REG_CTRL_DBG_HOST2FG_BIT;
 
 
---Max count of rule routing:
+--Max count of rule FRR (frame routing):
 constant C_SWT_FRR_COUNT_MAX                  : integer := 8;
 
 --
@@ -262,7 +268,7 @@ Type TEthFRRGet is array (0 to C_SWT_FRR_COUNT_MAX - 1) of integer;
 ----------------------------------------------------------------------------------------
 --C_SWT_ETH_xxx_FRR_COUNT - value:                 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
 ----------------------------------------------------------------------------------------
-constant C_SWT_GET_FMASK_REG_COUNT : TEthFRRGet := ( 1,  1,  2,  2,  3,  3,  4,  4 );
+constant C_SWT_GET_FRR_REG_COUNT   : TEthFRRGet := ( 1,  1,  2,  2,  3,  3,  4,  4 );
 Type TEthFRR is array (0 to C_SWT_FRR_COUNT_MAX - 1) of std_logic_vector(7 downto 0);
 --mask of filter (7...0),
 -- 3..0 - packet type

@@ -20,7 +20,10 @@ use work.prj_def.all;
 
 entity fgwr is
 generic(
-G_DBGCS   : string := "OFF";
+G_DBGCS : string := "OFF";
+
+G_FG_VCH_COUNT : integer := 1;
+
 G_MEM_VCH_M_BIT   : integer := 25;
 G_MEM_VCH_L_BIT   : integer := 24;
 G_MEM_VFR_M_BIT   : integer := 23;
@@ -41,7 +44,7 @@ p_in_memtrn    : in    std_logic_vector(7 downto 0);
 --p_in_work_en   : in    std_logic;
 
 p_in_frbuf     : in    TFG_FrBufs;
-p_out_frrdy    : out   std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
+p_out_frrdy    : out   std_logic_vector(G_FG_VCH_COUNT - 1 downto 0);
 p_out_frmrk    : out   std_logic_vector(31 downto 0);
 
 -------------------------------
@@ -93,7 +96,7 @@ signal i_pkth_cnt         : unsigned(3 downto 0);
 signal i_pkt_hd_rd        : std_logic;
 signal i_pkt_vd_rd        : std_logic;
 
-signal i_fr_rdy           : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
+signal i_fr_rdy           : std_logic_vector(G_FG_VCH_COUNT - 1 downto 0);
 signal i_fr_bufnum        : unsigned(G_MEM_VFR_M_BIT - G_MEM_VFR_L_BIT downto 0);
 signal i_fr_pixnum        : unsigned(15 downto 0);
 signal i_fr_rownum        : unsigned(15 downto 0);
@@ -101,7 +104,7 @@ signal i_fr_pixcount      : unsigned(15 downto 0);
 signal i_fr_rowcount      : unsigned(15 downto 0);
 signal i_fr_rowmrk        : std_logic_vector(31 downto 0);
 signal i_fr_rowmrk_l      : std_logic_vector(15 downto 0);
-Type TVfrNum is array (0 to C_FG_VCH_COUNT - 1) of std_logic_vector(3 downto 0);
+Type TVfrNum is array (0 to G_FG_VCH_COUNT - 1) of std_logic_vector(3 downto 0);
 signal i_fr_num           : TVfrNum;
 signal i_ch_num           : unsigned(3 downto 0);
 
@@ -163,7 +166,7 @@ i_pkt_skp_rd_out <= (i_pkt_skp_rd  and not p_in_vbufi_empty);
 --FSM
 ------------------------------------------------
 process(p_in_clk)
-Type TTimestump_test is array (0 to C_FG_VCH_COUNT - 1) of unsigned(31 downto 0);
+Type TTimestump_test is array (0 to G_FG_VCH_COUNT - 1) of unsigned(31 downto 0);
 variable timestump_cnt : TTimestump_test;
 begin
 if rising_edge(p_in_clk) then
@@ -176,7 +179,7 @@ if rising_edge(p_in_clk) then
     i_pkt_vd_rd <= '0';
 
     i_ch_num <= (others => '0');
-    for i in 0 to C_FG_VCH_COUNT - 1 loop
+    for i in 0 to G_FG_VCH_COUNT - 1 loop
       i_fr_num(i) <= (others => '0');
       timestump_cnt(i) := (others => '0');
     end loop;
@@ -255,7 +258,7 @@ if rising_edge(p_in_clk) then
             i_pkt_hd_rd <= '0';
 
             --Set param current video channel:
-            for i in 0 to C_FG_VCH_COUNT - 1 loop
+            for i in 0 to G_FG_VCH_COUNT - 1 loop
               if i_ch_num = i then
                 --Adr RAM:
                 i_fr_bufnum <= p_in_frbuf(i);
@@ -286,7 +289,7 @@ if rising_edge(p_in_clk) then
 
               if p_in_vbufi_do(19 downto 16) = "0001"
                 and p_in_vbufi_do(27 downto 24) = "0011"
-                  and UNSIGNED(p_in_vbufi_do(23 downto 20)) < TO_UNSIGNED(C_FG_VCH_COUNT, 4) then
+                  and UNSIGNED(p_in_vbufi_do(23 downto 20)) < TO_UNSIGNED(G_FG_VCH_COUNT, 4) then
               --PktType - VideoData + Chack number source
 
                 --Save number current vch:
@@ -299,7 +302,7 @@ if rising_edge(p_in_clk) then
                 if p_in_vbufi_do(19 downto 16) /= "0001" then
                   i_pkt_type_err(0) <= '1';--pkt_type
                 end if;
-                if UNSIGNED(p_in_vbufi_do(23 downto 20)) > TO_UNSIGNED(C_FG_VCH_COUNT - 1, 4) then
+                if UNSIGNED(p_in_vbufi_do(23 downto 20)) > TO_UNSIGNED(G_FG_VCH_COUNT - 1, 4) then
                   i_pkt_type_err(1) <= '1';--vch
                 end if;
                 if p_in_vbufi_do(27 downto 24) /= "0011" then
@@ -312,7 +315,7 @@ if rising_edge(p_in_clk) then
             --Header DWORD - 1:
             elsif i_pkth_cnt = TO_UNSIGNED((C_FG_PKT_HD_SIZE_BYTE / 4) - 2, i_pkth_cnt'length) then
 
-              for i in 0 to C_FG_VCH_COUNT - 1 loop
+              for i in 0 to G_FG_VCH_COUNT - 1 loop
                 if i_ch_num = i then
 --                  if i_fr_num(i) /= p_in_vbufi_do(3 downto 0) then
 --                    --Detect new frame!!!!!!!!!
@@ -386,7 +389,7 @@ if rising_edge(p_in_clk) then
           if i_fr_rownum = (i_fr_rowcount - 1) then
           --Frame complete
             if i_fr_pixcount = (i_pixcount_byte + i_fr_pixnum) then
-              for i in 0 to C_FG_VCH_COUNT - 1 loop
+              for i in 0 to G_FG_VCH_COUNT - 1 loop
                 if i_ch_num = i then
                   i_fr_rdy(i) <= '1';
                   timestump_cnt(i) := timestump_cnt(i) + 1;

@@ -140,7 +140,7 @@ signal i_mem_ctrl_status   : TMEMCTRL_status;
 signal i_mem_ctrl_sysout   : TMEMCTRL_sysout;
 
 signal i_fgwr_chen         : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
-signal i_fr_rd_start       : std_logic;
+signal i_fg_rd_start       : std_logic;
 signal i_fg_vbufi          : TFGWR_VBUFIs;
 signal i_fg_tst_in         : std_logic_vector(31 downto 0);
 signal i_fg_tst_out        : std_logic_vector(31 downto 0);
@@ -478,6 +478,7 @@ p_in_hrddone      => i_host_gctrl(C_HREG_CTRL_FG_RDDONE_BIT),
 p_out_hirq        => i_host_dev_irq((C_HIRQ_FG_VCH0 + C_FG_VCH_COUNT) - 1 downto C_HIRQ_FG_VCH0),
 p_out_hdrdy       => i_host_dev_status((C_HREG_DEV_STATUS_FG_VCH0_RDY_BIT
                                         + C_FG_VCH_COUNT) - 1 downto C_HREG_DEV_STATUS_FG_VCH0_RDY_BIT),
+
 p_out_hfrmrk      => i_host_dev_opt_in(C_HDEV_OPTIN_FG_FRMRK_M_BIT downto C_HDEV_OPTIN_FG_FRMRK_L_BIT),
 
 --HOST <- MEM(VBUF)
