@@ -162,7 +162,6 @@ if rising_edge(p_in_clk) then
         when S_RXCQ_IDLE =>
 
             reg_cs := '0';
-            i_reg_wr <= '0';
 
             err_out := (others => '0');
 
@@ -212,6 +211,8 @@ if rising_edge(p_in_clk) then
                               --Compl
                               if (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
 
+                                  i_req_compl <= '0';
+
                                   if p_in_axi_cq_tkeep(4) = '1' then
                                     i_reg_wr <= '1';
                                   else
@@ -219,8 +220,6 @@ if rising_edge(p_in_clk) then
                                   end if;
 
                               elsif (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_IO_WR_D) then
-
-                                  i_axi_cq_tready <= '0';
 
                                   i_req_compl <= '1';
 
@@ -230,24 +229,16 @@ if rising_edge(p_in_clk) then
                                     err_out(1) := '1';
                                   end if;
 
-                                  i_fsm_rxcq <= S_RXCQ_WAIT;
-
                               elsif ( (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_IO_RD_ND)
                                    or (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_MEM_RD_ND)
                                    or (p_in_axi_cq_tdata(((32 * 2) + 14) downto ((32 * 2) + 11)) = C_PCIE3_PKT_TYPE_MEM_LK_RD_ND) ) then
 
-                                  i_axi_cq_tready <= '0';
-
                                   i_req_compl <= '1';
                                   i_reg_rd <= '1';
-
-                                  i_fsm_rxcq <= S_RXCQ_WAIT;
 
                               else
                                 i_req_compl    <= '0';
                                 i_req_compl_ur <= '1';--Unsupported Request
-
-                                i_fsm_rxcq <= S_RXCQ_WAIT;
 
                               end if;
 
@@ -255,9 +246,9 @@ if rising_edge(p_in_clk) then
                             i_req_compl    <= '0';
                             i_req_compl_ur <= '1';--Unsupported Request
 
-                            i_fsm_rxcq <= S_RXCQ_WAIT;
-
                           end if;
+
+                          i_fsm_rxcq <= S_RXCQ_WAIT;
 
                         -------------------------------------------------------------------------
                         --
@@ -281,7 +272,11 @@ if rising_edge(p_in_clk) then
             i_reg_wr <= '0';
             i_reg_rd <= '0';
 
-            if (p_in_compl_done = '1') then
+            if (i_req_des(2)(14 downto 11) = C_PCIE3_PKT_TYPE_MEM_WR_D) then
+              i_axi_cq_tready <= '1';
+              i_fsm_rxcq <= S_RXCQ_IDLE;
+
+            elsif (p_in_compl_done = '1') then
               i_req_compl <= '0';
               i_req_compl_ur <= '0';
               i_fsm_rxcq <= S_RXCQ_WAIT2;
