@@ -78,8 +78,8 @@ module board;
   `ifdef LINKWIDTH
   localparam   [3:0] LINK_WIDTH = 4'h`LINKWIDTH;
   `else
-//  localparam   [3:0] LINK_WIDTH = 4'h8; //for PCIEx8 (GEN3)
-  localparam   [3:0] LINK_WIDTH = 4'h4; //for PCIEx4 (GEN3)
+  localparam   [3:0] LINK_WIDTH = 4'h8; //for PCIEx8 (GEN3)
+//  localparam   [3:0] LINK_WIDTH = 4'h4; //for PCIEx4 (GEN3)
 //  localparam   [3:0] LINK_WIDTH = 4'h2; //for PCIEx2 (GEN3)
 //  localparam   [3:0] LINK_WIDTH = 4'h1; //for PCIEx1 (GEN3)
   `endif
@@ -130,17 +130,17 @@ module board;
 
 
     // PCI-Express Interface
-////for PCIEx8 (GEN3)
-//    .pci_exp_txn(rp_pci_exp_txn),
-//    .pci_exp_txp(rp_pci_exp_txp),
-//    .pci_exp_rxn(ep_pci_exp_txn),
-//    .pci_exp_rxp(ep_pci_exp_txp)
+//for PCIEx8 (GEN3)
+    .pci_exp_txn(rp_pci_exp_txn),
+    .pci_exp_txp(rp_pci_exp_txp),
+    .pci_exp_rxn(ep_pci_exp_txn),
+    .pci_exp_rxp(ep_pci_exp_txp)
 
-//for PCIEx4 (GEN3)
-    .pci_exp_txn({rp_txn,rp_pci_exp_txn}),
-    .pci_exp_txp({rp_txp,rp_pci_exp_txp}),
-    .pci_exp_rxn({4'b0,ep_pci_exp_txn}),
-    .pci_exp_rxp({4'b0,ep_pci_exp_txp})
+////for PCIEx4 (GEN3)
+//    .pci_exp_txn({rp_txn,rp_pci_exp_txn}),
+//    .pci_exp_txp({rp_txp,rp_pci_exp_txp}),
+//    .pci_exp_rxn({4'b0,ep_pci_exp_txn}),
+//    .pci_exp_rxp({4'b0,ep_pci_exp_txp})
 
 ////for PCIEx2 (GEN3)
 //    .pci_exp_txn({rp_txn,rp_pci_exp_txn}),

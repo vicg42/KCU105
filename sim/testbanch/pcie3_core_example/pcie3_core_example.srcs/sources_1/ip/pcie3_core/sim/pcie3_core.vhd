@@ -55,33 +55,33 @@ USE ieee.numeric_std.ALL;
 
 ENTITY pcie3_core IS
   PORT (
-    pci_exp_txn : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-    pci_exp_txp : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-    pci_exp_rxn : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    pci_exp_rxp : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+    pci_exp_txn : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+    pci_exp_txp : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+    pci_exp_rxn : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+    pci_exp_rxp : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
     user_clk : OUT STD_LOGIC;
     user_reset : OUT STD_LOGIC;
     user_lnk_up : OUT STD_LOGIC;
-    s_axis_rq_tdata : IN STD_LOGIC_VECTOR(127 DOWNTO 0);
-    s_axis_rq_tkeep : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+    s_axis_rq_tdata : IN STD_LOGIC_VECTOR(255 DOWNTO 0);
+    s_axis_rq_tkeep : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
     s_axis_rq_tlast : IN STD_LOGIC;
     s_axis_rq_tready : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
     s_axis_rq_tuser : IN STD_LOGIC_VECTOR(59 DOWNTO 0);
     s_axis_rq_tvalid : IN STD_LOGIC;
-    m_axis_rc_tdata : OUT STD_LOGIC_VECTOR(127 DOWNTO 0);
-    m_axis_rc_tkeep : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
+    m_axis_rc_tdata : OUT STD_LOGIC_VECTOR(255 DOWNTO 0);
+    m_axis_rc_tkeep : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
     m_axis_rc_tlast : OUT STD_LOGIC;
     m_axis_rc_tready : IN STD_LOGIC;
     m_axis_rc_tuser : OUT STD_LOGIC_VECTOR(74 DOWNTO 0);
     m_axis_rc_tvalid : OUT STD_LOGIC;
-    m_axis_cq_tdata : OUT STD_LOGIC_VECTOR(127 DOWNTO 0);
-    m_axis_cq_tkeep : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
+    m_axis_cq_tdata : OUT STD_LOGIC_VECTOR(255 DOWNTO 0);
+    m_axis_cq_tkeep : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
     m_axis_cq_tlast : OUT STD_LOGIC;
     m_axis_cq_tready : IN STD_LOGIC;
     m_axis_cq_tuser : OUT STD_LOGIC_VECTOR(84 DOWNTO 0);
     m_axis_cq_tvalid : OUT STD_LOGIC;
-    s_axis_cc_tdata : IN STD_LOGIC_VECTOR(127 DOWNTO 0);
-    s_axis_cc_tkeep : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+    s_axis_cc_tdata : IN STD_LOGIC_VECTOR(255 DOWNTO 0);
+    s_axis_cc_tkeep : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
     s_axis_cc_tlast : IN STD_LOGIC;
     s_axis_cc_tready : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
     s_axis_cc_tuser : IN STD_LOGIC_VECTOR(32 DOWNTO 0);
@@ -200,9 +200,9 @@ ENTITY pcie3_core IS
     pcie_perstn1_in : IN STD_LOGIC;
     pcie_perstn0_out : OUT STD_LOGIC;
     pcie_perstn1_out : OUT STD_LOGIC;
-    int_qpll1lock_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    int_qpll1outrefclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    int_qpll1outclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0)
+    int_qpll1lock_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+    int_qpll1outrefclk_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+    int_qpll1outclk_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0)
   );
 END pcie3_core;
 
@@ -550,33 +550,33 @@ ARCHITECTURE pcie3_core_arch OF pcie3_core IS
       DEV_PORT_TYPE : INTEGER
     );
     PORT (
-      pci_exp_txn : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      pci_exp_txp : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      pci_exp_rxn : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-      pci_exp_rxp : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+      pci_exp_txn : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+      pci_exp_txp : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+      pci_exp_rxn : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+      pci_exp_rxp : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
       user_clk : OUT STD_LOGIC;
       user_reset : OUT STD_LOGIC;
       user_lnk_up : OUT STD_LOGIC;
-      s_axis_rq_tdata : IN STD_LOGIC_VECTOR(127 DOWNTO 0);
-      s_axis_rq_tkeep : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+      s_axis_rq_tdata : IN STD_LOGIC_VECTOR(255 DOWNTO 0);
+      s_axis_rq_tkeep : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
       s_axis_rq_tlast : IN STD_LOGIC;
       s_axis_rq_tready : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
       s_axis_rq_tuser : IN STD_LOGIC_VECTOR(59 DOWNTO 0);
       s_axis_rq_tvalid : IN STD_LOGIC;
-      m_axis_rc_tdata : OUT STD_LOGIC_VECTOR(127 DOWNTO 0);
-      m_axis_rc_tkeep : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
+      m_axis_rc_tdata : OUT STD_LOGIC_VECTOR(255 DOWNTO 0);
+      m_axis_rc_tkeep : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
       m_axis_rc_tlast : OUT STD_LOGIC;
       m_axis_rc_tready : IN STD_LOGIC;
       m_axis_rc_tuser : OUT STD_LOGIC_VECTOR(74 DOWNTO 0);
       m_axis_rc_tvalid : OUT STD_LOGIC;
-      m_axis_cq_tdata : OUT STD_LOGIC_VECTOR(127 DOWNTO 0);
-      m_axis_cq_tkeep : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
+      m_axis_cq_tdata : OUT STD_LOGIC_VECTOR(255 DOWNTO 0);
+      m_axis_cq_tkeep : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
       m_axis_cq_tlast : OUT STD_LOGIC;
       m_axis_cq_tready : IN STD_LOGIC;
       m_axis_cq_tuser : OUT STD_LOGIC_VECTOR(84 DOWNTO 0);
       m_axis_cq_tvalid : OUT STD_LOGIC;
-      s_axis_cc_tdata : IN STD_LOGIC_VECTOR(127 DOWNTO 0);
-      s_axis_cc_tkeep : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+      s_axis_cc_tdata : IN STD_LOGIC_VECTOR(255 DOWNTO 0);
+      s_axis_cc_tkeep : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
       s_axis_cc_tlast : IN STD_LOGIC;
       s_axis_cc_tready : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
       s_axis_cc_tuser : IN STD_LOGIC_VECTOR(32 DOWNTO 0);
@@ -749,16 +749,16 @@ ARCHITECTURE pcie3_core_arch OF pcie3_core IS
       pcie_perstn1_in : IN STD_LOGIC;
       pcie_perstn0_out : OUT STD_LOGIC;
       pcie_perstn1_out : OUT STD_LOGIC;
-      ext_qpll1refclk : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-      ext_qpll1rate : OUT STD_LOGIC_VECTOR(2 DOWNTO 0);
-      ext_qpll1pd : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-      ext_qpll1reset : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-      ext_qpll1lock_out : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-      ext_qpll1outclk_out : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-      ext_qpll1outrefclk_out : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-      int_qpll1lock_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-      int_qpll1outrefclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-      int_qpll1outclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+      ext_qpll1refclk : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+      ext_qpll1rate : OUT STD_LOGIC_VECTOR(5 DOWNTO 0);
+      ext_qpll1pd : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+      ext_qpll1reset : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+      ext_qpll1lock_out : IN STD_LOGIC_VECTOR(1 DOWNTO 0);
+      ext_qpll1outclk_out : IN STD_LOGIC_VECTOR(1 DOWNTO 0);
+      ext_qpll1outrefclk_out : IN STD_LOGIC_VECTOR(1 DOWNTO 0);
+      int_qpll1lock_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+      int_qpll1outrefclk_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+      int_qpll1outclk_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
       common_commands_in : IN STD_LOGIC_VECTOR(25 DOWNTO 0);
       pipe_rx_0_sigs : IN STD_LOGIC_VECTOR(83 DOWNTO 0);
       pipe_rx_1_sigs : IN STD_LOGIC_VECTOR(83 DOWNTO 0);
@@ -777,55 +777,55 @@ ARCHITECTURE pcie3_core_arch OF pcie3_core IS
       pipe_tx_5_sigs : OUT STD_LOGIC_VECTOR(69 DOWNTO 0);
       pipe_tx_6_sigs : OUT STD_LOGIC_VECTOR(69 DOWNTO 0);
       pipe_tx_7_sigs : OUT STD_LOGIC_VECTOR(69 DOWNTO 0);
-      gt_pcieuserratedone : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_loopback : IN STD_LOGIC_VECTOR(11 DOWNTO 0);
-      gt_txprbsforceerr : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_txinhibit : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_txprbssel : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
-      gt_rxprbssel : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
-      gt_rxprbscntreset : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_txelecidle : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_txresetdone : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_rxresetdone : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_rxpmaresetdone : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_txphaligndone : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_txphinitdone : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_txdlysresetdone : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_rxphaligndone : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_rxdlysresetdone : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_rxsyncdone : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_eyescandataerror : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_rxprbserr : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_dmonitorout : OUT STD_LOGIC_VECTOR(67 DOWNTO 0);
-      gt_rxcommadet : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_phystatus : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_rxvalid : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_rxcdrlock : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_pcierateidle : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_pcieuserratestart : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_gtpowergood : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_cplllock : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_rxoutclk : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_rxrecclkout : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      gt_qpll1lock : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-      gt_rxstatus : OUT STD_LOGIC_VECTOR(11 DOWNTO 0);
-      gt_rxbufstatus : OUT STD_LOGIC_VECTOR(11 DOWNTO 0);
+      gt_pcieuserratedone : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_loopback : IN STD_LOGIC_VECTOR(23 DOWNTO 0);
+      gt_txprbsforceerr : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_txinhibit : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_txprbssel : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+      gt_rxprbssel : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+      gt_rxprbscntreset : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_txelecidle : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_txresetdone : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_rxresetdone : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_rxpmaresetdone : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_txphaligndone : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_txphinitdone : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_txdlysresetdone : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_rxphaligndone : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_rxdlysresetdone : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_rxsyncdone : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_eyescandataerror : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_rxprbserr : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_dmonitorout : OUT STD_LOGIC_VECTOR(135 DOWNTO 0);
+      gt_rxcommadet : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_phystatus : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_rxvalid : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_rxcdrlock : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_pcierateidle : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_pcieuserratestart : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_gtpowergood : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_cplllock : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_rxoutclk : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_rxrecclkout : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+      gt_qpll1lock : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+      gt_rxstatus : OUT STD_LOGIC_VECTOR(23 DOWNTO 0);
+      gt_rxbufstatus : OUT STD_LOGIC_VECTOR(23 DOWNTO 0);
       gt_bufgtdiv : OUT STD_LOGIC_VECTOR(8 DOWNTO 0);
-      phy_txeq_ctrl : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
-      phy_txeq_preset : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
+      phy_txeq_ctrl : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
+      phy_txeq_preset : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
       phy_rst_fsm : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-      phy_txeq_fsm : OUT STD_LOGIC_VECTOR(11 DOWNTO 0);
-      phy_rxeq_fsm : OUT STD_LOGIC_VECTOR(11 DOWNTO 0);
+      phy_txeq_fsm : OUT STD_LOGIC_VECTOR(23 DOWNTO 0);
+      phy_rxeq_fsm : OUT STD_LOGIC_VECTOR(23 DOWNTO 0);
       phy_rst_idle : OUT STD_LOGIC;
       phy_rrst_n : OUT STD_LOGIC;
       phy_prst_n : OUT STD_LOGIC;
       ext_ch_gt_drpclk : OUT STD_LOGIC;
-      ext_ch_gt_drpaddr : IN STD_LOGIC_VECTOR(35 DOWNTO 0);
-      ext_ch_gt_drpen : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-      ext_ch_gt_drpdi : IN STD_LOGIC_VECTOR(63 DOWNTO 0);
-      ext_ch_gt_drpwe : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-      ext_ch_gt_drpdo : OUT STD_LOGIC_VECTOR(63 DOWNTO 0);
-      ext_ch_gt_drprdy : OUT STD_LOGIC_VECTOR(3 DOWNTO 0)
+      ext_ch_gt_drpaddr : IN STD_LOGIC_VECTOR(71 DOWNTO 0);
+      ext_ch_gt_drpen : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+      ext_ch_gt_drpdi : IN STD_LOGIC_VECTOR(127 DOWNTO 0);
+      ext_ch_gt_drpwe : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+      ext_ch_gt_drpdo : OUT STD_LOGIC_VECTOR(127 DOWNTO 0);
+      ext_ch_gt_drprdy : OUT STD_LOGIC_VECTOR(7 DOWNTO 0)
     );
   END COMPONENT pcie3_core_pcie3_uscale_core_top;
   ATTRIBUTE X_INTERFACE_INFO : STRING;
@@ -977,15 +977,15 @@ BEGIN
   U0 : pcie3_core_pcie3_uscale_core_top
     GENERIC MAP (
       PL_LINK_CAP_MAX_LINK_SPEED => 4,
-      PL_LINK_CAP_MAX_LINK_WIDTH => 4,
+      PL_LINK_CAP_MAX_LINK_WIDTH => 8,
       USER_CLK_FREQ => 3,
-      CORE_CLK_FREQ => 1,
+      CORE_CLK_FREQ => 2,
       PLL_TYPE => 2,
       PF0_LINK_CAP_ASPM_SUPPORT => 0,
-      C_DATA_WIDTH => 128,
+      C_DATA_WIDTH => 256,
       REF_CLK_FREQ => 0,
       PCIE_LINK_SPEED => 3,
-      KEEP_WIDTH => 4,
+      KEEP_WIDTH => 8,
       ARI_CAP_ENABLE => "FALSE",
       PF0_ARI_CAP_NEXT_FUNC => X"00",
       AXISTEN_IF_CC_ALIGNMENT_MODE => "FALSE",
@@ -1491,9 +1491,9 @@ BEGIN
       pcie_perstn1_in => pcie_perstn1_in,
       pcie_perstn0_out => pcie_perstn0_out,
       pcie_perstn1_out => pcie_perstn1_out,
-      ext_qpll1lock_out => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 1)),
-      ext_qpll1outclk_out => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 1)),
-      ext_qpll1outrefclk_out => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 1)),
+      ext_qpll1lock_out => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 2)),
+      ext_qpll1outclk_out => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 2)),
+      ext_qpll1outrefclk_out => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 2)),
       int_qpll1lock_out => int_qpll1lock_out,
       int_qpll1outrefclk_out => int_qpll1outrefclk_out,
       int_qpll1outclk_out => int_qpll1outclk_out,
@@ -1506,16 +1506,16 @@ BEGIN
       pipe_rx_5_sigs => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 84)),
       pipe_rx_6_sigs => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 84)),
       pipe_rx_7_sigs => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 84)),
-      gt_pcieuserratedone => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 4)),
-      gt_loopback => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 12)),
-      gt_txprbsforceerr => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 4)),
-      gt_txinhibit => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 4)),
-      gt_txprbssel => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 16)),
-      gt_rxprbssel => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 16)),
-      gt_rxprbscntreset => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 4)),
-      ext_ch_gt_drpaddr => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 36)),
-      ext_ch_gt_drpen => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 4)),
-      ext_ch_gt_drpdi => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 64)),
-      ext_ch_gt_drpwe => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 4))
+      gt_pcieuserratedone => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 8)),
+      gt_loopback => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 24)),
+      gt_txprbsforceerr => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 8)),
+      gt_txinhibit => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 8)),
+      gt_txprbssel => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 32)),
+      gt_rxprbssel => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 32)),
+      gt_rxprbscntreset => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 8)),
+      ext_ch_gt_drpaddr => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 72)),
+      ext_ch_gt_drpen => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 8)),
+      ext_ch_gt_drpdi => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 128)),
+      ext_ch_gt_drpwe => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 8))
     );
 END pcie3_core_arch;

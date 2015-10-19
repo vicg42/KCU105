@@ -64,7 +64,7 @@
 `define PCI_EXP_EP_DSN_2                         32'h00000001
 
 module  pcie_app_uscale #(
-  parameter C_DATA_WIDTH = 128,            // RX/TX interface data width
+  parameter C_DATA_WIDTH = 256,            // RX/TX interface data width
 
   // Do not override parameters below this line
   parameter KEEP_WIDTH                                 = C_DATA_WIDTH / 32,
