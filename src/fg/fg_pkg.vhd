@@ -5,7 +5,18 @@
 -- Module Name : fg_pkg
 --
 -- Description :
---
+--  VideoPacket:
+--              -----------------------------------------------------
+--             | 31..28 |27..24|23..20|19...16|15..12|11..8|7..4|3..0|
+--             |-----------------------------------------------------|
+--             | Reserv | FrNum| VCH  |PktType|   Length(Byte)       |
+--             |-----------------------------------------------------|
+--             |        Frame LineCount       |   Frame PixCount     |
+--             |-----------------------------------------------------|
+--             |        Frame LineNum         |   Frame PixNum       |
+--             |-----------------------------------------------------|
+--             |                     Time Stump                      |
+--              -----------------------------------------------------
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -37,7 +48,7 @@ Type TFG_FrXYPrms is array (0 to C_FG_VCH_COUNT - 1) of TFG_FrXYPrm;
 type TFG_VCHPrm is record
 fr     : TFG_FrXYPrm;
 mirror : TFG_FrMirror;
-step_rd: std_logic_vector(15 downto 0); --Step read frame (Count Line)
+steprd : unsigned(15 downto 0); --Step read frame (Count Line)
 end record;
 type TFG_VCHPrms is array (0 to C_FG_VCH_COUNT - 1) of TFG_VCHPrm;
 
@@ -53,10 +64,10 @@ end record;
 Type TFGWR_Prms is array (0 to C_FG_VCH_COUNT - 1) of TFGWR_Prm;
 
 type TFGRD_Prm is record
-frwr   : TFG_FrXY;
+--frwr   : TFG_FrXY;
 frrd   : TFG_FrXYPrm;
 mirror : TFG_FrMirror;
-steprd : std_logic_vector(15 downto 0); --Step read frame (Count Line)
+steprd : unsigned(15 downto 0); --Step read frame (Count Line)
 end record;
 Type TFGRD_Prms is array (0 to C_FG_VCH_COUNT - 1) of TFGRD_Prm;
 

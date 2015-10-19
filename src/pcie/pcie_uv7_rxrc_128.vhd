@@ -249,7 +249,9 @@ if rising_edge(p_in_clk) then
                         if (p_in_axi_rc_tlast = '1') then
 
                             i_axi_rc_tready <= '0';
-                            i_fsm_rxrc <= S_RXRC_CHKE;
+
+                            i_cpld_tlp_de <= '1';
+                            i_fsm_rxrc <= S_RXRC_DE;
 
                         else
 

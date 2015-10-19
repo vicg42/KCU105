@@ -75,21 +75,21 @@ begin --architecture behavioral
 
 process(p_in_clk)
 begin
-  if rising_edge(p_in_clk) then
-    sr_upp_eof <= p_in_upp_eof;
-    sr_upp_sof <= p_in_upp_sof;
-    sr_upp_wr  <= p_in_upp_wr;
+if rising_edge(p_in_clk) then
+  sr_upp_eof <= p_in_upp_eof;
+  sr_upp_sof <= p_in_upp_sof;
+  sr_upp_wr  <= p_in_upp_wr;
 
-    if p_in_upp_wr='1' then
-      sr_upp_data <= p_in_upp_data;
-    end if;
-
-    i_dwnp_sof  <= sr_upp_sof and i_pkt_en;
-    i_dwnp_eof  <= sr_upp_eof and i_pkt_en;
-    i_dwnp_wr   <= sr_upp_wr  and i_pkt_en;
-    i_dwnp_data <= sr_upp_data;
-
+  if p_in_upp_wr = '1' then
+    sr_upp_data <= p_in_upp_data;
   end if;
+
+  i_dwnp_sof  <= sr_upp_sof and i_pkt_en;
+  i_dwnp_eof  <= sr_upp_eof and i_pkt_en;
+  i_dwnp_wr   <= sr_upp_wr  and i_pkt_en;
+  i_dwnp_data <= sr_upp_data;
+
+end if;
 end process;
 
 p_out_dwnp_sof  <= i_dwnp_sof ;
@@ -105,7 +105,7 @@ process(p_in_clk)
 variable pkt_valid : std_logic;
 begin
 if rising_edge(p_in_clk) then
-  if p_in_rst='1' then
+  if p_in_rst = '1' then
     i_pkt_en <= '0';
       pkt_valid := '0';
 

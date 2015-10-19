@@ -159,15 +159,12 @@ p_in_cfg_clk      : in   std_logic;
 
 p_in_cfg_adr      : in   std_logic_vector(3 downto 0);
 p_in_cfg_adr_ld   : in   std_logic;
-p_in_cfg_adr_fifo : in   std_logic;
 
 p_in_cfg_txdata   : in   std_logic_vector(15 downto 0);
-p_in_cfg_wd       : in   std_logic;
+p_in_cfg_wr       : in   std_logic;
 
 p_out_cfg_rxdata  : out  std_logic_vector(15 downto 0);
 p_in_cfg_rd       : in   std_logic;
-
-p_in_cfg_done     : in   std_logic;
 
 -------------------------------
 --HOST
@@ -188,7 +185,11 @@ p_out_vbufo_empty : out   std_logic;
 -------------------------------
 --VBUFI -> MEM(VBUF)
 -------------------------------
-p_in_vbufi        : in    TFGWR_VBUFIs;
+p_in_vbufi_do     : in    std_logic_vector(G_MEMWR_DWIDTH - 1 downto 0);
+p_out_vbufi_rd    : out   std_logic;
+p_in_vbufi_empty  : in    std_logic;
+p_in_vbufi_full   : in    std_logic;
+p_in_vbufi_pfull  : in    std_logic;
 
 ---------------------------------
 --MEM
@@ -226,57 +227,55 @@ port(
 -------------------------------
 --CFG
 -------------------------------
-p_in_cfg_clk           : in   std_logic;
+p_in_cfg_clk     : in   std_logic;
 
-p_in_cfg_adr           : in   std_logic_vector(7 downto 0);
-p_in_cfg_adr_ld        : in   std_logic;
-p_in_cfg_adr_fifo      : in   std_logic;
+p_in_cfg_adr     : in   std_logic_vector(5 downto 0);
+p_in_cfg_adr_ld  : in   std_logic;
 
-p_in_cfg_txdata        : in   std_logic_vector(15 downto 0);
-p_in_cfg_wd            : in   std_logic;
+p_in_cfg_txdata  : in   std_logic_vector(15 downto 0);
+p_in_cfg_wr      : in   std_logic;
 
-p_out_cfg_rxdata       : out  std_logic_vector(15 downto 0);
-p_in_cfg_rd            : in   std_logic;
+p_out_cfg_rxdata : out  std_logic_vector(15 downto 0);
+p_in_cfg_rd      : in   std_logic;
 
-p_in_cfg_done          : in   std_logic;
+-------------------------------
+--HOST
+-------------------------------
+--host -> dev
+p_in_eth_htxd_rdy      : in   std_logic;
+p_in_eth_htxbuf_di     : in   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+p_in_eth_htxbuf_wr     : in   std_logic;
+p_out_eth_htxbuf_full  : out  std_logic;
+p_out_eth_htxbuf_empty : out  std_logic;
 
----------------------------------
-----HOST
----------------------------------
-----host -> dev
---p_in_eth_htxbuf_di     : in   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
---p_in_eth_htxbuf_wr     : in   std_logic;
---p_out_eth_htxbuf_full  : out  std_logic;
---p_out_eth_htxbuf_empty : out  std_logic;
---
-------host <- dev
-----p_out_eth_hrxbuf_do    : out  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
-----p_in_eth_hrxbuf_rd     : in   std_logic;
-----p_out_eth_hrxbuf_full  : out  std_logic;
-----p_out_eth_hrxbuf_empty : out  std_logic;
-----
-----p_out_eth_hirq         : out  std_logic;
---
---p_in_hclk              : in   std_logic;
---
------------------------------------
-------ETH
------------------------------------
-----p_in_eth_tmr_irq       : in   std_logic;
-----p_in_eth_tmr_en        : in   std_logic;
-----p_in_eth_clk           : in   std_logic;
+--host <- dev
+p_out_eth_hrxbuf_do    : out  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+p_in_eth_hrxbuf_rd     : in   std_logic;
+p_out_eth_hrxbuf_full  : out  std_logic;
+p_out_eth_hrxbuf_empty : out  std_logic;
+
+p_out_eth_hirq         : out  std_logic;
+
+p_in_hclk              : in   std_logic;
+
+-------------------------------
+--ETH
+-------------------------------
+p_in_eth_tmr_irq       : in   std_logic;
+p_in_eth_tmr_en        : in   std_logic;
+p_in_eth_clk           : in   std_logic;
 ----p_in_eth               : in   TEthOUTs;
 ----p_out_eth              : out  TEthINs;
---
----------------------------------
-----FG_BUFI
----------------------------------
---p_in_vbufi_rdclk       : in   std_logic;
---p_out_vbufi_do         : out  std_logic_vector(G_VBUFI_OWIDTH - 1 downto 0);
---p_in_vbufi_rd          : in   std_logic;
---p_out_vbufi_empty      : out  std_logic;
---p_out_vbufi_full       : out  std_logic;
---p_out_vbufi_pfull      : out  std_logic;
+
+-------------------------------
+--FG_BUFI
+-------------------------------
+p_in_vbufi_rdclk       : in   std_logic;
+p_out_vbufi_do         : out  std_logic_vector(G_VBUFI_OWIDTH - 1 downto 0);
+p_in_vbufi_rd          : in   std_logic;
+p_out_vbufi_empty      : out  std_logic;
+p_out_vbufi_full       : out  std_logic;
+p_out_vbufi_pfull      : out  std_logic;
 
 -------------------------------
 --DBG
@@ -290,5 +289,35 @@ p_out_tst              : out  std_logic_vector(31 downto 0);
 p_in_rst     : in    std_logic
 );
 end component switch_data;
+
+component timers is
+port(
+-------------------------------
+--CFG
+-------------------------------
+p_in_cfg_clk     : in   std_logic;
+
+p_in_cfg_adr     : in   std_logic_vector(1 downto 0);
+p_in_cfg_adr_ld  : in   std_logic;
+
+p_in_cfg_txdata  : in   std_logic_vector(15 downto 0);
+p_in_cfg_wr      : in   std_logic;
+
+p_out_cfg_rxdata : out  std_logic_vector(15 downto 0);
+p_in_cfg_rd      : in   std_logic;
+
+-------------------------------
+--
+-------------------------------
+p_in_tmr_clk     : in   std_logic;
+p_out_tmr_irq    : out  std_logic_vector(C_TMR_COUNT - 1 downto 0);
+p_out_tmr_en     : out  std_logic_vector(C_TMR_COUNT - 1 downto 0);
+
+-------------------------------
+--System
+-------------------------------
+p_in_rst         : in   std_logic
+);
+end component timers;
 
 end package kcu105_main_unit_pkg;

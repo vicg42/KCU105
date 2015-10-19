@@ -13,27 +13,41 @@ use ieee.std_logic_1164.all;
 
 package cfgdev_pkg is
 
-constant C_CFGPKTH_DCOUNT       : integer := 3;--packet header
+constant C_CFGPKTH_CTRL_IDX   : integer := 0;
+constant C_CFGPKTH_RADR_IDX   : integer := 1;
+constant C_CFGPKTH_DLEN_IDX   : integer := 2;
 
---HEADER(0)/ Bit map:
+constant C_CFGPKTH_DCOUNT     : integer := C_CFGPKTH_DLEN_IDX + 1;--packet header
+
+--###########################
+--C_CFGPKTH_CTRL_IDX / Bit map:
+--###########################
 --constant C_CFGPKT_RESERV_BIT    : integer:=0 .. 5;
-constant C_CFGPKT_FIFO_BIT      : integer := 6; --FIFO/Register - 0/1
-constant C_CFGPKT_WR_BIT        : integer := 7; --direction - write/read
-constant C_CFGPKT_DADR_L_BIT    : integer := 8; --Device adress
+constant C_CFGPKT_FIFO_BIT      : integer := 6;
+constant C_CFGPKT_DIR_BIT       : integer := 7;
+constant C_CFGPKT_DADR_L_BIT    : integer := 8;
 constant C_CFGPKT_DADR_M_BIT    : integer := 15;
 
---HEADER(1)/ Bit map:
+--C_CFGPKT_FIFO_BIT / bit map:
+constant C_CFGPKT_FIFO_ON       : std_logic := '1';
+constant C_CFGPKT_FIFO_OFF      : std_logic := '0';
+
+--C_CFGPKT_DIR_BIT/ bit map:
+constant C_CFGPKT_WR            : std_logic := '0'; --host -> dev
+constant C_CFGPKT_RD            : std_logic := '1'; --host <- dev
+
+--###########################
+--C_CFGPKTH_RADR_IDX / Bit map:
+--###########################
 constant C_CFGPKT_RADR_L_BIT    : integer := 0; --Adress
 constant C_CFGPKT_RADR_M_BIT    : integer := 15;
 
---HEADER(2)/ Bit map:
+--###########################
+--C_CFGPKTH_DLEN_IDX / Bit map:
+--###########################
 constant C_CFGPKT_DLEN_L_BIT    : integer := 0; --Size data write/read
 constant C_CFGPKT_DLEN_M_BIT    : integer := 15;
 
-
---C_CFGPKT_WR_BIT/ Bit Map:
-constant C_CFGPKT_WR            : std_logic := '0';
-constant C_CFGPKT_RD            : std_logic := '1';
 
 
 component cfgdev_host is

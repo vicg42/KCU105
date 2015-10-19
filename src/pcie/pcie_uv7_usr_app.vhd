@@ -774,7 +774,7 @@ p_out_dev_rd <= p_in_rxbuf_rd;
 p_out_dev_din <= p_in_txbuf_di;
 
 --user device ctrl
-p_out_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT) <= (i_dmatrn_mrd_done and sr_dma_work) or i_dev_drdy;
+p_out_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT) <= i_mrd_done or i_dev_drdy;
 
 p_out_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT) <= sr_dma_start
                                       when UNSIGNED(i_hdev_adr) /= TO_UNSIGNED(C_HDEV_MEM
