@@ -85,10 +85,7 @@ type fsm_state is (
 S_IDLE,
 S_PKTH_RD,
 S_MEM_START,
-S_MEM_WR,
-S_PKT_SKP,
-S_PKT_SKP1,
-S_PKT_SKP2
+S_MEM_WR
 );
 signal i_fsm_cs: fsm_state;
 
@@ -168,6 +165,8 @@ i_pkt_skp_rd_out <= (i_pkt_skp_rd  and not p_in_vbufi_empty);
 process(p_in_clk)
 Type TTimestump_test is array (0 to G_FG_VCH_COUNT - 1) of unsigned(31 downto 0);
 variable timestump_cnt : TTimestump_test;
+variable fr_pixcount : unsigned(i_fr_pixcount'range);
+variable fr_rownum : unsigned(i_fr_rownum'range);
 begin
 if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
@@ -183,6 +182,9 @@ if rising_edge(p_in_clk) then
       i_fr_num(i) <= (others => '0');
       timestump_cnt(i) := (others => '0');
     end loop;
+
+    fr_pixcount := (others => '0');
+    fr_rownum   := (others => '0');
 
     i_fr_bufnum <= (others => '0');
     i_fr_pixnum <= (others => '0');
@@ -217,28 +219,22 @@ if rising_edge(p_in_clk) then
       --------------------------------------
       when S_IDLE =>
 
-        i_pkt_skp_dcnt <= (others => '0');
         i_fr_rdy <= (others => '0');
 
         --wait data
         if p_in_vbufi_empty = '0' then
 
           if UNSIGNED(p_in_vbufi_do(15 downto 0)) /= TO_UNSIGNED(0, 16) then
-          --PktLen /= 0
 
-            i_pkt_hd_rd <= '1';
-            --Load len pkt header (DWORD)
-            i_pkth_cnt <= TO_UNSIGNED((C_FG_PKT_HD_SIZE_BYTE / 4) - 1, i_pkth_cnt'length);
+            i_pkt_size_byte <= UNSIGNED(p_in_vbufi_do(15 downto 0)) + 2;
+
+            i_pkt_hd_rd <= '0';
 
             i_pkt_type_err <= (others => '0');
             i_fsm_cs <= S_PKTH_RD;
 
-          else
-            i_pkt_skp_rd <= '1';
-            i_pkt_type_err(3) <= '1';
-            i_fsm_cs <= S_PKT_SKP2;
-
           end if;
+
         end if;
 
       --------------------------------------
@@ -246,116 +242,45 @@ if rising_edge(p_in_clk) then
       --------------------------------------
       when S_PKTH_RD =>
 
-        if i_pkt_hd_rd_out = '1' then
+        i_pkt_hd_rd <= '1';
 
-          i_pkt_skp_dcnt <= i_pkt_skp_dcnt + 1;
+        --Calculate pixcount
+        i_pixcount_byte <= i_pkt_size_byte
+                            - TO_UNSIGNED(C_FG_PKT_HD_SIZE_BYTE, i_pixcount_byte'length);
 
-          if i_pkth_cnt = (i_pkth_cnt'range => '0') then
-          --------------------------------------
-          ------- Read Heade complete ----------
-          --------------------------------------
+        if p_in_vbufi_do(19 downto 16) = "0001"
+            and UNSIGNED(p_in_vbufi_do(23 downto 20)) < TO_UNSIGNED(G_FG_VCH_COUNT, 4) then
+        --PktType - VideoData + Chack number source
 
-            i_pkt_hd_rd <= '0';
+          --Save number current vch:
+          i_ch_num <= UNSIGNED(p_in_vbufi_do(23 downto 20));
 
-            --Set param current video channel:
-            for i in 0 to G_FG_VCH_COUNT - 1 loop
-              if i_ch_num = i then
-                --Adr RAM:
-                i_fr_bufnum <= p_in_frbuf(i);
-              end if;
-            end loop;
+          for i in 0 to G_FG_VCH_COUNT - 1 loop
+            if i_ch_num = i then
+              --Save number current frame:
+              i_fr_num(i) <= p_in_vbufi_do(27 downto 24);
+              i_fr_bufnum <= p_in_frbuf(i);
+             end if;
+          end loop;
 
-            i_mem_adr_base <= i_fr_pixcount * i_fr_rownum;
+          --Frame resolution:
+          fr_pixcount := UNSIGNED(p_in_vbufi_do((32 * 1) + 15 downto (32 * 1) +  0));
+          i_fr_rowcount <= UNSIGNED(p_in_vbufi_do((32 * 1) + 31 downto (32 * 1) + 16));
+          i_fr_pixcount <= fr_pixcount;
 
-            --timestump save :
-            i_fr_rowmrk(31 downto 16)<= p_in_vbufi_do(15 downto 0);--(MSB)
-            i_fr_rowmrk(15 downto 0) <= i_fr_rowmrk_l;             --(LSB)
+          --current number of row and pixel
+          i_fr_pixnum <= UNSIGNED(p_in_vbufi_do((32 * 2) + 15 downto (32 * 2) +  0));
+          fr_rownum := UNSIGNED(p_in_vbufi_do((32 * 2) + 31 downto (32 * 2) + 16));
+          i_fr_rownum <= fr_rownum;
 
-            --Calculate pixcount
-            i_pixcount_byte <= i_pkt_size_byte
-                                - TO_UNSIGNED(C_FG_PKT_HD_SIZE_BYTE, i_pixcount_byte'length);
-
-            i_fsm_cs <= S_MEM_START;
-
-          else
-          ---------------------------
-          --Read Header:
-          ---------------------------
-            --Header DWORD-0:
-            if i_pkth_cnt = TO_UNSIGNED((C_FG_PKT_HD_SIZE_BYTE / 4) - 1, i_pkth_cnt'length) then
-
-              --Count byte of PKT + Count byte length field
-              i_pkt_size_byte <= UNSIGNED(p_in_vbufi_do(15 downto 0)) + 2;
-
-              if p_in_vbufi_do(19 downto 16) = "0001"
-                and p_in_vbufi_do(27 downto 24) = "0011"
-                  and UNSIGNED(p_in_vbufi_do(23 downto 20)) < TO_UNSIGNED(G_FG_VCH_COUNT, 4) then
-              --PktType - VideoData + Chack number source
-
-                --Save number current vch:
-                i_ch_num <= UNSIGNED(p_in_vbufi_do(23 downto 20));
-              else
-                --Bad pkt
-                i_pkt_hd_rd <= '0';
-                i_pkt_skp_rd <= '1';
-
-                if p_in_vbufi_do(19 downto 16) /= "0001" then
-                  i_pkt_type_err(0) <= '1';--pkt_type
-                end if;
-                if UNSIGNED(p_in_vbufi_do(23 downto 20)) > TO_UNSIGNED(G_FG_VCH_COUNT - 1, 4) then
-                  i_pkt_type_err(1) <= '1';--vch
-                end if;
-                if p_in_vbufi_do(27 downto 24) /= "0011" then
-                  i_pkt_type_err(2) <= '1';--src video
-                end if;
-
-                i_fsm_cs <= S_PKT_SKP;
-              end if;
-
-            --Header DWORD - 1:
-            elsif i_pkth_cnt = TO_UNSIGNED((C_FG_PKT_HD_SIZE_BYTE / 4) - 2, i_pkth_cnt'length) then
-
-              for i in 0 to G_FG_VCH_COUNT - 1 loop
-                if i_ch_num = i then
---                  if i_fr_num(i) /= p_in_vbufi_do(3 downto 0) then
---                    --Detect new frame!!!!!!!!!
---                    --Reload channal prm
---                    i_mem_wrbase <= p_in_cfg_prm_vch(i).mem_adr;
---                  end if;
-
-                  --Save number current frame:
-                  i_fr_num(i) <= p_in_vbufi_do(3 downto 0);
-
-                 end if;
-              end loop;
-
-              --Save frame resolution: pixcount
-              i_fr_pixcount <= UNSIGNED(p_in_vbufi_do(31 downto 16));
-
-            --Header DWORD-2:
-            elsif i_pkth_cnt = TO_UNSIGNED((C_FG_PKT_HD_SIZE_BYTE / 4) - 3, i_pkth_cnt'length) then
-
-              --Save frame resolution: rowcount
-              i_fr_rowcount <= UNSIGNED(p_in_vbufi_do(15 downto 0));
-
-              --Save number current row:
-              i_fr_rownum <= UNSIGNED(p_in_vbufi_do(31 downto 16));
-
-            --Header DWORD-3:
-            elsif i_pkth_cnt = TO_UNSIGNED((C_FG_PKT_HD_SIZE_BYTE / 4) - 4, i_pkth_cnt'length) then
-
-              --timestump save(lsb)
-              i_fr_rowmrk_l(15 downto 0) <= p_in_vbufi_do(31 downto 16);
-              --Number of first pixel into row
-              i_fr_pixnum(15 downto 0) <= UNSIGNED(p_in_vbufi_do(15 downto 0));
-
-            end if;
-
-            i_pkth_cnt <= i_pkth_cnt - 1;
-
-          end if;
+          --timestump:
+          i_fr_rowmrk <= p_in_vbufi_do((32 * 3) + 31 downto (32 * 3) + 0);
 
         end if;
+
+        i_mem_adr_base <= fr_pixcount * fr_rownum;
+
+        i_fsm_cs <= S_MEM_START;
 
 
       --------------------------------------
@@ -363,6 +288,7 @@ if rising_edge(p_in_clk) then
       --------------------------------------
       when S_MEM_START =>
 
+        i_pkt_hd_rd <= '0';
         i_pkt_vd_rd <= '1';
 
         i_mem_adr <= i_mem_adr_base + RESIZE(i_fr_pixnum, i_mem_adr'length);
@@ -401,39 +327,6 @@ if rising_edge(p_in_clk) then
 
           i_fsm_cs <= S_IDLE;
         end if;
-
-
-      --------------------------------------
-      --
-      --------------------------------------
-      when S_PKT_SKP =>
-        --Calculation how mutch need skip data for come to next pkt
-        --(if detect error on recieve)
-        i_pkt_skp_data <= RESIZE(i_pkt_size_byte(i_pkt_size_byte'high downto log2(G_MEM_DWIDTH/8))
-                                                                              , i_pkt_skp_data'length)
-                         + (TO_UNSIGNED(0, i_mem_rqlen'length - 2)
-                            & OR_reduce(i_pkt_size_byte(log2(G_MEM_DWIDTH/8) - 1 downto 0)));
-
-        i_fsm_cs <= S_PKT_SKP1;
-
-      when S_PKT_SKP1 =>
-
-        if i_pkt_skp_rd_out = '1' then
-          if i_pkt_skp_dcnt = (i_pkt_skp_data - 1) then
-            i_pkt_skp_rd <= '0';
-            i_fsm_cs <= S_IDLE;
-          else
-            i_pkt_skp_dcnt <= i_pkt_skp_dcnt + 1;
-          end if;
-        end if;
-
-      --------------------------------------
-      --
-      --------------------------------------
-      when S_PKT_SKP2 =>
-
-        i_pkt_skp_rd <= '0';
-        i_fsm_cs <= S_IDLE;
 
     end case;
 
@@ -529,12 +422,10 @@ begin
   end if;
 end process;
 
-tst_fsmstate <= TO_UNSIGNED(16#01#, tst_fsmstate'length) when i_fsm_cs = S_PKTH_RD else
-                TO_UNSIGNED(16#02#, tst_fsmstate'length) when i_fsm_cs = S_MEM_START       else
-                TO_UNSIGNED(16#03#, tst_fsmstate'length) when i_fsm_cs = S_MEM_WR          else
-                TO_UNSIGNED(16#04#, tst_fsmstate'length) when i_fsm_cs = S_PKT_SKP        else
-                TO_UNSIGNED(16#05#, tst_fsmstate'length) when i_fsm_cs = S_PKT_SKP2       else
-                TO_UNSIGNED(16#00#, tst_fsmstate'length); --i_fsm_cs = S_IDLE              else
+tst_fsmstate <= TO_UNSIGNED(16#01#, tst_fsmstate'length) when i_fsm_cs = S_PKTH_RD   else
+                TO_UNSIGNED(16#02#, tst_fsmstate'length) when i_fsm_cs = S_MEM_START else
+                TO_UNSIGNED(16#03#, tst_fsmstate'length) when i_fsm_cs = S_MEM_WR    else
+                TO_UNSIGNED(16#00#, tst_fsmstate'length); --i_fsm_cs = S_IDLE        else
 end generate gen_dbgcs_on;
 
 end architecture behavioral;
