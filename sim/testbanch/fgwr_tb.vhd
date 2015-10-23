@@ -25,6 +25,8 @@ G_MEM_AWIDTH : integer := 31;
 G_MEM_DWIDTH : integer := 128
 );
 port(
+p_in_ram_rd : in  std_logic := '0';
+p_out_ram_do : out  std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 p_out_mem : out TMemIN
 );
 end entity fgwr_tb;
@@ -38,6 +40,8 @@ constant CI_FR_PIXCOUNT : integer := 128;
 constant CI_FR_ROWCOUNT : integer := 8;
 constant CI_FR_PIXNUM   : integer := 0;
 constant CI_FR_ROWNUM   : integer := 0;
+
+constant CI_RAM_DEPTH   : integer := 1024;
 
 component fifo_eth2fg
 port (
@@ -141,9 +145,13 @@ signal i_vbufi_empty      : std_logic;
 signal i_vbufi_pfull      : std_logic;
 signal i_vbufi_wrclk      : std_logic;
 
-signal i_out_mem          : TMemIN;
-signal i_in_mem           : TMemOUT;
+signal i_out_memwr        : TMemIN;
+signal i_in_memwr         : TMemOUT;
 
+type TRAM is array (0 to CI_RAM_DEPTH - 1) of std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+signal i_ram              : TRAM;
+signal i_ram_adr          : unsigned(31 downto 0);
+signal i_ram_do           : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
 
 begin --architecture behavior of fgwr_tb is
@@ -227,8 +235,8 @@ p_in_vbufi_pfull  => i_vbufi_pfull,
 -------------------------------
 --MEM_CTRL Port
 -------------------------------
-p_out_mem => p_out_mem,--: out   TMemIN;
-p_in_mem  => i_in_mem ,--: in    TMemOUT;
+p_out_mem => i_out_memwr,--: out   TMemIN;
+p_in_mem  => i_in_memwr ,--: in    TMemOUT;
 
 -------------------------------
 --DBG
@@ -243,13 +251,13 @@ p_in_clk => p_in_clk,
 p_in_rst => p_in_rst
 );
 
-i_in_mem.axiw.aready <= '1';
-i_in_mem.axiw.wready <= '1';
-i_in_mem.axiw.rvalid <= '1';
+i_in_memwr.axiw.aready <= '1';
+i_in_memwr.axiw.wready <= '1';
+i_in_memwr.axiw.rvalid <= '1';
 
-i_in_mem.axir.aready <= '1';
-i_in_mem.axir.dvalid <= '1';
-i_in_mem.axir.data <= (others => '0');
+i_in_memwr.axir.aready <= '1';
+i_in_memwr.axir.dvalid <= '1';
+i_in_memwr.axir.data <= (others => '0');
 
 
 i_mem_trn_len <= TO_UNSIGNED(16#40#, i_mem_trn_len'length);
@@ -335,5 +343,28 @@ prog_full => i_vbufi_pfull,
 rst => p_in_rst
 );
 
+
+
+p_out_mem <= i_out_memwr;
+
+--VIDEO_RAM
+process(p_in_clk)
+begin
+if rising_edge(p_in_clk) then
+  if (i_out_memwr.axiw.avalid = '1') then
+    i_ram_adr <= RESIZE(UNSIGNED(i_out_memwr.axiw.adr(i_out_memwr.axiw.adr'high downto log2(G_MEM_DWIDTH / 8))), i_ram_adr'length);
+
+  elsif (i_out_memwr.axiw.dvalid = '1') then
+    i_ram_adr <= i_ram_adr + 1;
+    i_ram(TO_INTEGER(i_ram_adr)) <= i_out_memwr.axiw.data(i_ram(0)'range);
+
+  elsif p_in_ram_rd = '1' then
+  p_out_ram_do <= i_ram(TO_INTEGER(i_ram_adr));
+
+  end if;
+end if;
+end process;
+
+p_out_ram_do <= i_ram_do;
 
 end architecture behavior;
