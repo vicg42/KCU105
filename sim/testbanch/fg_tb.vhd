@@ -39,7 +39,7 @@ p_in_cfg_rd       : in   std_logic;
 
 p_out_vbufo_do  : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
-p_in_hrdstart : in    std_logic;                      --Host: Start read data
+--p_in_hrdstart : in    std_logic;                      --Host: Start read data
 p_in_hrddone  : in    std_logic;                      --Host: ACK read done
 p_out_hdrdy : out   std_logic_vector(G_FG_VCH_COUNT - 1 downto 0);--Frame ready
 p_out_hirq : out   std_logic_vector(G_FG_VCH_COUNT - 1 downto 0);--IRQ
@@ -280,6 +280,10 @@ signal i_cfg_rd_dev        : std_logic_vector(C_CFGDEV_COUNT - 1 downto 0);
 signal i_cfg_tst_out       : std_logic_vector(31 downto 0);
 
 
+signal i_hrdstart          : std_logic;
+signal i_hrddone           : std_logic;
+
+
 begin --architecture behavior of fg_tb is
 
 
@@ -408,8 +412,8 @@ p_in_cfg_rd       => i_cfg_rd_dev(C_CFGDEV_FG),
 --HOST
 -------------------------------
 p_in_hrdchsel => "000",
-p_in_hrdstart => p_in_hrdstart,
-p_in_hrddone  => p_in_hrddone ,
+p_in_hrdstart => i_hrdstart,--p_in_hrdstart,
+p_in_hrddone  => i_hrddone ,--p_in_hrddone ,
 p_out_hirq    => p_out_hirq,
 p_out_hdrdy   => p_out_hdrdy,
 p_out_hfrmrk  => open,
@@ -477,120 +481,17 @@ begin
 i_vbufi_wr <= '0';
 i_vbufi_di <= (others => '0');
 
-wait for 2 us;
-
-
-vch : for ch in 0 to G_FG_VCH_COUNT - 1 loop
-
-rownum : for rownum in 0 to CI_FR_ROWCOUNT - 1 loop
-
-wait until rising_edge(i_vbufi_wrclk);
-i_header(0) <= TO_UNSIGNED((CI_FR_PIXCOUNT + C_FG_PKT_HD_SIZE_BYTE - 2), 16);--Length
-i_header(1) <= TO_UNSIGNED(0,  8) & TO_UNSIGNED(ch,  4) & TO_UNSIGNED(1,  4);--FrNum & VCH_NUM & PktType
-i_header(2) <= TO_UNSIGNED(CI_FR_PIXCOUNT, 16);--Fr.PixCount
-i_header(3) <= TO_UNSIGNED(CI_FR_ROWCOUNT, 16);--Fr.RowCount
-i_header(4) <= TO_UNSIGNED(CI_FR_PIXNUM, 16);--Fr.PixNum
-i_header(5) <= TO_UNSIGNED(rownum, 16);--Fr.RowNum
-i_header(6) <= TO_UNSIGNED(0, 16);--TimeStump_LSB
-i_header(7) <= TO_UNSIGNED(0, 16);--TimeStump_MSB
-
---Write PktHeader
-wait until rising_edge(i_vbufi_wrclk);
-i_vbufi_wr <= '1';
-for i in 0 to (i_vbufi_di'length / i_header(0)'length) - 1 loop
-i_vbufi_di((i_header(0)'length * (i + 1)) - 1 downto (i_header(0)'length * i)) <= i_header(i);
-end loop;
-
-
---Write Data
-wait until rising_edge(i_vbufi_wrclk);
-i_vbufi_wr <= '1';
-i_vbufi_di <= TO_UNSIGNED(1, i_vbufi_di'length);
-
-for i in 1 to ((CI_FR_PIXCOUNT + C_FG_PKT_HD_SIZE_BYTE) / (G_MEM_DWIDTH / 8)) - 2 loop
-  wait until rising_edge(i_vbufi_wrclk);
-  i_vbufi_di <= i_vbufi_di + 1;
-end loop;
-
-wait until rising_edge(i_vbufi_wrclk);
-i_vbufi_wr <= '0';
-i_vbufi_di <= i_vbufi_di + 1;
-
-end loop rownum;
-end loop vch;
-
-wait;
-end process;
-
-gen_di_sim : for i in 0 to i_vbufi_di_tsim'length - 1 generate begin
-i_vbufi_di_tsim(i) <= i_vbufi_di((i_vbufi_di_tsim(i)'length * (i + 1)) - 1 downto (i_vbufi_di_tsim(i)'length *i));
-i_vbufi_di_t((i_vbufi_di_tsim(i)'length * (i + 1)) - 1 downto (i_vbufi_di_tsim(i)'length *i)) <= i_vbufi_di_tsim(i);
-end generate gen_di_sim;
-
-
-m_vbufi : fifo_eth2fg
-port map(
-din       => std_logic_vector(i_vbufi_di_t),
-wr_en     => i_vbufi_wr,
-wr_clk    => i_vbufi_wrclk,
-
-dout      => i_vbufi_do,
-rd_en     => i_vbufi_rd,
-rd_clk    => p_in_clk,
-
-empty     => i_vbufi_empty,
-full      => open,
-prog_full => i_vbufi_pfull,
---
---wr_rst_busy : out std_logic;
---rd_rst_busy : out std_logic;
---
---clk       : in  std_logic;
---srst      : in  std_logic
-rst => p_in_rst
-);
-
-
---p_out_mem <= i_out_memwr;
-
---VIDEO_RAM
-process(p_in_clk)
-begin
-if rising_edge(p_in_clk) then
-  if (i_out_memwr.axiw.avalid = '1') then
-    i_ram_adr <= RESIZE(UNSIGNED(i_out_memwr.axiw.adr(i_out_memwr.axiw.adr'high
-                                                              downto log2(G_MEM_DWIDTH / 8))), i_ram_adr'length);
-
-  elsif (i_out_memwr.axiw.dvalid = '1') then
-    i_ram_adr <= i_ram_adr + 1;
-    i_ram(TO_INTEGER(i_ram_adr)) <= i_out_memwr.axiw.data(i_ram(0)'range);
-
-  elsif p_in_ram_rd = '1' then
-  i_ram_adr <= i_ram_adr + 1;
-  i_ram_do <= UNSIGNED(i_ram(TO_INTEGER(i_ram_adr)));
-
-  end if;
-end if;
-end process;
-
-i_in_memrd.axir.data <= std_logic_vector(RESIZE(i_ram_do, i_in_memrd.axir.data'length));
-
-
-
-
---##########################################
---Send CFG Packet
---##########################################
-process
-begin
-
 i_host_wr <= '0';
 i_host_txd <= (others => '0');
 for i in 0 to (i_cfg_pkt'length - 1) loop
 i_cfg_pkt(i) <= (others => '0');
 end loop;
 
+i_hrdstart <= '0';
+i_hrddone <= '0';
+
 wait for 2 us;
+
 
 
 --@@@@@@@@@@@@ Config SWT @@@@@@@@@@@@
@@ -675,6 +576,108 @@ i_host_wr <= '0';
 wait for 0.01 us;
 
 
+--@@@@@@@@@@@@ Send Video @@@@@@@@@@@@
+vch : for ch in 0 to G_FG_VCH_COUNT - 1 loop
+
+rownum : for rownum in 0 to CI_FR_ROWCOUNT - 1 loop
+
+wait until rising_edge(i_vbufi_wrclk);
+i_header(0) <= TO_UNSIGNED((CI_FR_PIXCOUNT + C_FG_PKT_HD_SIZE_BYTE - 2), 16);--Length
+i_header(1) <= TO_UNSIGNED(0,  8) & TO_UNSIGNED(ch,  4) & TO_UNSIGNED(1,  4);--FrNum & VCH_NUM & PktType
+i_header(2) <= TO_UNSIGNED(CI_FR_PIXCOUNT, 16);--Fr.PixCount
+i_header(3) <= TO_UNSIGNED(CI_FR_ROWCOUNT, 16);--Fr.RowCount
+i_header(4) <= TO_UNSIGNED(CI_FR_PIXNUM, 16);--Fr.PixNum
+i_header(5) <= TO_UNSIGNED(rownum, 16);--Fr.RowNum
+i_header(6) <= TO_UNSIGNED(0, 16);--TimeStump_LSB
+i_header(7) <= TO_UNSIGNED(0, 16);--TimeStump_MSB
+
+--Write PktHeader
+wait until rising_edge(i_vbufi_wrclk);
+i_vbufi_wr <= '1';
+for i in 0 to (i_vbufi_di'length / i_header(0)'length) - 1 loop
+i_vbufi_di((i_header(0)'length * (i + 1)) - 1 downto (i_header(0)'length * i)) <= i_header(i);
+end loop;
+
+
+--Write Data
+wait until rising_edge(i_vbufi_wrclk);
+i_vbufi_wr <= '1';
+i_vbufi_di <= TO_UNSIGNED(1, i_vbufi_di'length);
+
+for i in 1 to ((CI_FR_PIXCOUNT + C_FG_PKT_HD_SIZE_BYTE) / (G_MEM_DWIDTH / 8)) - 2 loop
+  wait until rising_edge(i_vbufi_wrclk);
+  i_vbufi_di <= i_vbufi_di + 1;
+end loop;
+
+wait until rising_edge(i_vbufi_wrclk);
+i_vbufi_wr <= '0';
+i_vbufi_di <= i_vbufi_di + 1;
+
+end loop rownum;
+end loop vch;
+
+
+--@@@@@@@@@@@@ Start Read Video @@@@@@@@@@@@
+wait until rising_edge(g_host_clk);
+i_hrdstart <= '1';
+wait until rising_edge(g_host_clk);
+i_hrdstart <= '0';
+
 wait;
 end process;
+
+gen_di_sim : for i in 0 to i_vbufi_di_tsim'length - 1 generate begin
+i_vbufi_di_tsim(i) <= i_vbufi_di((i_vbufi_di_tsim(i)'length * (i + 1)) - 1 downto (i_vbufi_di_tsim(i)'length *i));
+i_vbufi_di_t((i_vbufi_di_tsim(i)'length * (i + 1)) - 1 downto (i_vbufi_di_tsim(i)'length *i)) <= i_vbufi_di_tsim(i);
+end generate gen_di_sim;
+
+
+m_vbufi : fifo_eth2fg
+port map(
+din       => std_logic_vector(i_vbufi_di_t),
+wr_en     => i_vbufi_wr,
+wr_clk    => i_vbufi_wrclk,
+
+dout      => i_vbufi_do,
+rd_en     => i_vbufi_rd,
+rd_clk    => p_in_clk,
+
+empty     => i_vbufi_empty,
+full      => open,
+prog_full => i_vbufi_pfull,
+--
+--wr_rst_busy : out std_logic;
+--rd_rst_busy : out std_logic;
+--
+--clk       : in  std_logic;
+--srst      : in  std_logic
+rst => p_in_rst
+);
+
+
+--p_out_mem <= i_out_memwr;
+
+--VIDEO_RAM
+process(p_in_clk)
+begin
+if rising_edge(p_in_clk) then
+  if (i_out_memwr.axiw.avalid = '1') then
+    i_ram_adr <= RESIZE(UNSIGNED(i_out_memwr.axiw.adr(i_out_memwr.axiw.adr'high
+                                                              downto log2(G_MEM_DWIDTH / 8))), i_ram_adr'length);
+
+  elsif (i_out_memwr.axiw.dvalid = '1') then
+    i_ram_adr <= i_ram_adr + 1;
+    i_ram(TO_INTEGER(i_ram_adr)) <= i_out_memwr.axiw.data(i_ram(0)'range);
+
+  elsif p_in_ram_rd = '1' then
+  i_ram_adr <= i_ram_adr + 1;
+  i_ram_do <= UNSIGNED(i_ram(TO_INTEGER(i_ram_adr)));
+
+  end if;
+end if;
+end process;
+
+i_in_memrd.axir.data <= std_logic_vector(RESIZE(i_ram_do, i_in_memrd.axir.data'length));
+
+
 end architecture behavior;
