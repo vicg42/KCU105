@@ -205,7 +205,6 @@ signal i_mem_adr                   : unsigned(31 - log2(C_HDEV_DWIDTH / 8) downt
 constant CI_TESTDATA_WIDTH : integer := 32;
 signal tst_mem_dcnt,tst_mem_dcnt_swap : unsigned(C_HDEV_DWIDTH - 1 downto 0);
 
-signal tst_cnt : unsigned(7 downto 0) := (others => '0');
 signal tst_dmatrn_init : std_logic;
 
 
@@ -440,7 +439,7 @@ if rising_edge(p_in_clk) then
           txd(C_HREG_FUNC_MEM_BIT) := '1';
           txd(C_HREG_FUNC_TMR_BIT) := '1';
           txd(C_HREG_FUNC_FG_BIT) := '1'; --Frame Grabber
-          txd(C_HREG_FUNC_CFG_BIT) := '1';
+          txd(C_HREG_FUNC_ETH_BIT) := '1';
 
         elsif (i_reg_adr = TO_UNSIGNED(C_HREG_FUNCPRM, 5)) then
 
@@ -686,7 +685,7 @@ clkb  => p_in_clk
 ---------------------------------------------------------
 --IRQ
 ---------------------------------------------------------
-p_out_irq_clr <= i_irq_clr;-- or tst_cnt(7);
+p_out_irq_clr <= i_irq_clr;
 p_out_irq_set <= OR_reduce(i_irq_req);
 
 i_irq_dev(C_HIRQ_PCIE_DMA) <= i_dma_irq;
@@ -842,17 +841,13 @@ p_out_tst(122)            <= i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 p_out_tst(123)            <= p_in_txbuf_wr;
 p_out_tst(124)            <= p_in_rxbuf_rd;
 p_out_tst(125)            <= p_in_txbuf_wr or p_in_rxbuf_rd;
-p_out_tst(126)            <= p_in_rxbuf_last;
-p_out_tst(127)            <= p_in_txbuf_last;
+p_out_tst(126)            <= i_dma_work;
+p_out_tst(127)            <= i_dmatrn_work;
 
 
 process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
-  if (i_irq_status(C_HIRQ_PCIE_DMA) = '1') then
-      tst_cnt <= tst_cnt + 1;
-  end if;
-
   tst_dmatrn_init <= i_dmatrn_init;
 end if;
 end process;

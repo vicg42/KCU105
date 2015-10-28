@@ -96,37 +96,37 @@ S_MEM_START,
 S_MEM_RD,
 S_HOST_ACK
 );
-signal i_fsm_state_cs              : TFsm_state;
+signal i_fsm_fgrd          : TFsm_state;
 
-signal i_data_null                 : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+signal i_data_null         : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
-signal i_prm                       : TFGRD_Prm;
+signal i_prm               : TFGRD_Prm;
 
-signal i_mem_adr_out               : unsigned(31 downto 0) := (others => '0');
-signal i_mem_adr_t                 : unsigned(31 downto 0) := (others => '0');
-signal i_mem_adr                   : unsigned(31 downto 0) := (others => '0');
-signal i_mem_rqlen                 : unsigned(15 downto 0) := (others => '0');
-signal i_mem_trnlen                : unsigned(p_in_memtrn'range);
-signal i_mem_trnlen_out            : unsigned(15 downto 0);
-signal i_mem_start                 : std_logic;
-signal i_mem_dir                   : std_logic;
-signal i_mem_done                  : std_logic;
-signal i_frbuf                     : unsigned(G_MEM_VFR_M_BIT - G_MEM_VFR_L_BIT downto 0);
-signal i_chnum                     : unsigned(p_in_hrd_chsel'range);
-signal i_fr_rowcnt                 : unsigned(15 downto 0) := (others => '0');
-signal i_fr_rowcnt_t               : unsigned(15 downto 0) := (others => '0');
-signal i_sof                       : std_logic;
-signal i_eof                       : std_logic;
+signal i_mem_adr_out       : unsigned(31 downto 0) := (others => '0');
+signal i_mem_adr_t         : unsigned(31 downto 0) := (others => '0');
+signal i_mem_adr           : unsigned(31 downto 0) := (others => '0');
+signal i_mem_rqlen         : unsigned(15 downto 0) := (others => '0');
+signal i_mem_trnlen        : unsigned(p_in_memtrn'range);
+signal i_mem_trnlen_out    : unsigned(15 downto 0);
+signal i_mem_start         : std_logic;
+signal i_mem_dir           : std_logic;
+signal i_mem_done          : std_logic;
+signal i_frbuf             : unsigned(G_MEM_VFR_M_BIT - G_MEM_VFR_L_BIT downto 0);
+signal i_chnum             : unsigned(p_in_hrd_chsel'range);
+signal i_fr_rowcnt         : unsigned(15 downto 0) := (others => '0');
+signal i_fr_rowcnt_t       : unsigned(15 downto 0) := (others => '0');
+signal i_sof               : std_logic;
+signal i_eof               : std_logic;
 
-signal i_host_ack                  : std_logic;
+signal i_host_ack          : std_logic;
 
-signal i_steprd_count              : unsigned(15 downto 0);
-signal i_steprd_cnt                : unsigned(15 downto 0);
-signal i_fr_new                    : std_logic_vector(G_VCH_COUNT - 1 downto 0);
-signal i_fr_new_c                  : std_logic;
+signal i_steprd_count      : unsigned(15 downto 0);
+signal i_steprd_cnt        : unsigned(15 downto 0);
+signal i_fr_new            : std_logic_vector(G_VCH_COUNT - 1 downto 0);
+signal i_fr_new_c          : std_logic;
 Type TFGRD_linecnt is array (0 to G_VCH_COUNT - 1) of unsigned(i_fr_rowcnt'range);
-signal i_fr_rowcnt_save           : TFGRD_linecnt;
-signal i_fr_rowcnt_save_c         : unsigned(i_fr_rowcnt'range);
+signal i_fr_rowcnt_save    : TFGRD_linecnt;
+signal i_fr_rowcnt_save_c  : unsigned(i_fr_rowcnt'range);
 
 signal tst_mem_wr_out              : std_logic_vector(31 downto 0);
 signal tst_fsmstate,tst_fsm_cs_dly : unsigned(3 downto 0) := (others => '0');
@@ -151,7 +151,7 @@ begin
 if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
 
-    i_fsm_state_cs <= S_IDLE;
+    i_fsm_fgrd <= S_IDLE;
     i_mem_adr <= (others => '0');
     i_mem_rqlen <= (others => '0');
 
@@ -180,7 +180,7 @@ if rising_edge(p_in_clk) then
 
   else
 
-    case i_fsm_state_cs is
+    case i_fsm_fgrd is
 
       --------------------------------------
       --
@@ -202,7 +202,7 @@ if rising_edge(p_in_clk) then
             end if;
           end loop;
 
-          i_fsm_state_cs <= S_MEM_START;
+          i_fsm_fgrd <= S_MEM_START;
 
         end if;
 
@@ -222,7 +222,7 @@ if rising_edge(p_in_clk) then
         i_mem_trnlen <= UNSIGNED(p_in_memtrn);
         i_mem_dir <= C_MEMWR_READ;
         i_mem_start <= '1';
-        i_fsm_state_cs <= S_MEM_RD; i_eof <= '0';
+        i_fsm_fgrd <= S_MEM_RD; i_eof <= '0';
 
       ------------------------------------------------
       --
@@ -234,11 +234,11 @@ if rising_edge(p_in_clk) then
         if i_mem_done = '1' then
           if i_fr_rowcnt = (i_prm.frrd.act.rowcount - 1) then
 
-            i_fsm_state_cs <= S_HOST_ACK;
+            i_fsm_fgrd <= S_HOST_ACK;
 
           else
               i_fr_rowcnt <= i_fr_rowcnt + 1; i_eof <= '1';
-              i_fsm_state_cs <= S_MEM_START;
+              i_fsm_fgrd <= S_MEM_START;
           end if;
         end if;
 
@@ -249,7 +249,7 @@ if rising_edge(p_in_clk) then
 
         if p_in_hrd_done = '1' then
           i_host_ack <= '1';
-          i_fsm_state_cs <= S_IDLE;
+          i_fsm_fgrd <= S_IDLE;
         end if;
 
     end case;
@@ -271,11 +271,9 @@ i_mem_trnlen_out <= RESIZE(i_mem_trnlen, i_mem_trnlen_out'length);
 
 m_mem_wr : mem_wr
 generic map(
---G_USR_OPT        => G_USR_OPT,
-G_MEM_BANK_M_BIT => 31,
-G_MEM_BANK_L_BIT => 30,
-G_MEM_AWIDTH     => G_MEM_AWIDTH,
-G_MEM_DWIDTH     => G_MEM_DWIDTH
+--G_USR_OPT => G_USR_OPT,
+G_MEM_AWIDTH => G_MEM_AWIDTH,
+G_MEM_DWIDTH => G_MEM_DWIDTH
 )
 port map
 (
@@ -333,9 +331,9 @@ begin
     tst_fsm_cs_dly <= tst_fsmstate;
   end if;
 end process;
-tst_fsmstate <= TO_UNSIGNED(16#01#,tst_fsmstate'length) when i_fsm_state_cs = S_MEM_START       else
-                TO_UNSIGNED(16#02#,tst_fsmstate'length) when i_fsm_state_cs = S_MEM_RD          else
-                TO_UNSIGNED(16#00#,tst_fsmstate'length); --i_fsm_state_cs = S_IDLE              else
+tst_fsmstate <= TO_UNSIGNED(16#01#,tst_fsmstate'length) when i_fsm_fgrd = S_MEM_START       else
+                TO_UNSIGNED(16#02#,tst_fsmstate'length) when i_fsm_fgrd = S_MEM_RD          else
+                TO_UNSIGNED(16#00#,tst_fsmstate'length); --i_fsm_fgrd = S_IDLE              else
 
 
 end architecture behavioral;

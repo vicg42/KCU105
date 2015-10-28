@@ -257,6 +257,8 @@ signal tst_uapp_out            : std_logic_vector(127 downto 0);
 signal tst_rx_out              : std_logic_vector(63 downto 0);
 signal tst_tx_out              : std_logic_vector((280 * 2) - 1 downto (280 * 0));
 signal i_dbg_probe             : std_logic_vector(269 downto 0);
+signal tst_timeout_cnt         : unsigned(15 downto 0);
+signal tst_timeout             : std_logic;
 
 attribute keep : string;
 attribute keep of i_trn_clk : signal is "true";
@@ -711,6 +713,31 @@ p_out_dbg.dev_num   <= tst_uapp_out(120 downto 117);-- i_reg.dev_ctrl(C_HREG_DEV
 p_out_dbg.dma_start <= tst_uapp_out(121);-- i_dma_start;
 p_out_dbg.dma_dir   <= tst_uapp_out(62) ;-- i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
 p_out_dbg.dma_irq_clr <= i_uapp_irq_clr;
+--p_out_dbg.dma_work    <= tst_uapp_out(126);
+--p_out_dbg.dma_worktrn <= tst_uapp_out(127);
+--p_out_dbg.dma_timeout  <= tst_timeout;
+--
+--
+--process(i_trn_clk)
+--begin
+--if rising_edge(i_trn_clk) then
+--  if (i_rst_n = '0') then
+--    tst_timeout_cnt <= (others => '0');
+--    tst_timeout <= '0';
+--  else
+--    if tst_uapp_out(126) = '1' then
+--      tst_timeout_cnt <= tst_timeout_cnt + 1;
+--
+--      if tst_timeout_cnt = TO_UNSIGNED(2048, tst_timeout_cnt'length) then
+--        tst_timeout <= '1';
+--      end if;
+--    else
+--      tst_timeout_cnt <= (others => '0');
+--      tst_timeout <= '0';
+--    end if;
+--  end if;
+--end if;
+--end process;
 
 gen_dbg_d2h_buf_d : for i in 0 to 1 generate begin
 p_out_dbg.d2h_buf_d(i) <= i_d2h_buf_d((32 * (i + 1)) - 1 downto (32 * i));
@@ -724,6 +751,7 @@ end generate gen_dbg_h2d_buf_d;
 p_out_dbg.h2d_buf_wr   <= i_h2d_buf_wr  ;
 --p_out_dbg.h2d_buf_full <= i_h2d_buf_full;
 
+p_out_dbg.irq_stat  <= tst_uapp_out(108 downto 101); --i_irq_status
 p_out_dbg.irq_int  <= i_pcie_irq;
 p_out_dbg.irq_pend <= i_pcie_irq_assert;
 --p_out_dbg.irq_sent <= p_in_cfg_interrupt_sent;

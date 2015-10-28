@@ -155,6 +155,9 @@ dev_num   : std_logic_vector(3 downto 0);
 dma_start : std_logic;
 dma_dir   : std_logic;
 dma_irq_clr : std_logic;
+--dma_work    : std_logic;
+--dma_worktrn : std_logic;
+--dma_timeout  : std_logic;
 
 --PCIE -> DEV
 h2d_buf_d     : TDBG_darray;
@@ -165,6 +168,7 @@ d2h_buf_d     : TDBG_darray;
 d2h_buf_rd    : std_logic;
 --d2h_buf_empty : std_logic;
 
+irq_stat : std_logic_vector(6 downto 0);
 irq_int  : std_logic;
 irq_pend : std_logic;
 --irq_sent : std_logic;

@@ -12,6 +12,7 @@ use ieee.numeric_std.all;
 
 library work;
 use work.vicg_common_pkg.all;
+use work.reduce_pack.all;
 use work.prj_def.all;
 --use work.eth_pkg.all;
 
@@ -197,6 +198,7 @@ end component;
 
 signal i_reg_adr                     : unsigned(p_in_cfg_adr'range);
 
+signal h_reg_dbg                     : std_logic_vector(C_SWT_REG_DBG_LAST_BIT downto 0);
 signal h_reg_ctrl                    : std_logic_vector(C_SWT_REG_CTRL_LAST_BIT downto 0);
 signal h_reg_eth2h_frr               : TEthFRR;
 signal h_reg_eth2fg_frr              : TEthFRR;
@@ -242,6 +244,8 @@ signal i_vbufi_rdclk                 : std_logic;
 
 signal tst_eth_txbuf_do              : std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
 signal tst_eth_txbuf_rd              : std_logic;
+signal tst_vbufi_empty               : std_logic;
+signal tst_vbufi_empty_o             : std_logic;
 
 
 begin --architecture behavioral of switch_data
@@ -274,6 +278,7 @@ begin
 if rising_edge(p_in_cfg_clk) then
   if p_in_rst = '1' then
     h_reg_ctrl <= (others => '0');
+    h_reg_dbg <= (others => '0');
 
     for i in 0 to C_SWT_GET_FRR_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT) - 1 loop
       h_reg_eth2h_frr(2 * i) <= (others => '0');
@@ -289,6 +294,9 @@ if rising_edge(p_in_cfg_clk) then
     if p_in_cfg_wr = '1' then
         if i_reg_adr = TO_UNSIGNED(C_SWT_REG_CTRL, i_reg_adr'length) then
           h_reg_ctrl <= p_in_cfg_txdata(h_reg_ctrl'high downto 0);
+
+        elsif i_reg_adr = TO_UNSIGNED(C_SWT_REG_DBG, i_reg_adr'length) then
+          h_reg_dbg <= p_in_cfg_txdata(h_reg_dbg'high downto 0);
 
         elsif i_reg_adr(i_reg_adr'high downto log2(C_SWT_FRR_COUNT_MAX)) =
             TO_UNSIGNED(C_SWT_REG_FRR_ETH2HOST/C_SWT_FRR_COUNT_MAX
@@ -328,6 +336,9 @@ if rising_edge(p_in_cfg_clk) then
     if p_in_cfg_rd = '1' then
         if i_reg_adr = TO_UNSIGNED(C_SWT_REG_CTRL, i_reg_adr'length) then
           p_out_cfg_rxdata <= std_logic_vector(RESIZE(UNSIGNED(h_reg_ctrl), p_out_cfg_rxdata'length));
+
+        elsif i_reg_adr = TO_UNSIGNED(C_SWT_REG_DBG, i_reg_adr'length) then
+          p_out_cfg_rxdata <= std_logic_vector(RESIZE(UNSIGNED(h_reg_dbg), p_out_cfg_rxdata'length));
 
         elsif i_reg_adr(i_reg_adr'high downto log2(C_SWT_FRR_COUNT_MAX)) =
           TO_UNSIGNED(C_SWT_REG_FRR_ETH2HOST/C_SWT_FRR_COUNT_MAX
@@ -526,7 +537,7 @@ end process;
 --p_in_rst        => b_rst_eth_bufs
 --);
 
-i_eth_rxbuf_fltr_den  <= tst_eth_rxbuf_den and (not h_reg_ctrl(C_SWT_REG_CTRL_DBG_HOST2FG_BIT));
+i_eth_rxbuf_fltr_den  <= tst_eth_rxbuf_den and h_reg_dbg(C_SWT_REG_DBG_ETHLOOP_BIT);
 
 m_buf_eth2host : fifo_eth2host
 port map(
@@ -588,16 +599,16 @@ end process;
 p_out_eth_hirq <= i_eth_rx_irq_out;
 
 --for test loopback
+tst_eth_rxbuf_den <= not (tst_txbuf_empty);
+
 process(p_in_eth_clk)
 begin
 if rising_edge(p_in_eth_clk) then
   if p_in_rst = '1' then
-    tst_eth_rxbuf_den <= '0';
     sr_eth_rxbuf_fltr_den <= (others => '0');
     i_eth_rxbuf_fltr_eof <= '0';
   else
-    tst_eth_rxbuf_den <= not (tst_txbuf_empty);
-    sr_eth_rxbuf_fltr_den <= tst_eth_rxbuf_den & sr_eth_rxbuf_fltr_den(0 to 0);
+    sr_eth_rxbuf_fltr_den <= i_eth_rxbuf_fltr_den & sr_eth_rxbuf_fltr_den(0 to 0);
     i_eth_rxbuf_fltr_eof <= (not sr_eth_rxbuf_fltr_den(0)) and sr_eth_rxbuf_fltr_den(1);
   end if;
 end if;
@@ -653,7 +664,7 @@ end process;
 ----                          <= i_vbufi_fltr_dout((32 * (i + 1)) - 1 downto (32 * i));
 ----end generate;-- gen_swap_d;
 
-i_vbufi_fltr_den  <= tst_eth_rxbuf_den and (h_reg_ctrl(C_SWT_REG_CTRL_DBG_HOST2FG_BIT)) ;
+i_vbufi_fltr_den  <= tst_eth_rxbuf_den and (OR_reduce(h_reg_eth2fg_frr(0)) or h_reg_dbg(C_SWT_REG_DBG_HOST2FG_BIT));
 
 m_buf_eth2fg : fifo_eth2fg
 port map(
@@ -665,7 +676,7 @@ dout      => p_out_vbufi_do,
 rd_en     => p_in_vbufi_rd,
 rd_clk    => p_in_vbufi_rdclk,
 
-empty     => p_out_vbufi_empty,
+empty     => tst_vbufi_empty,--p_out_vbufi_empty,
 full      => p_out_vbufi_full,
 prog_full => i_vbufi_pfull,
 
@@ -678,14 +689,28 @@ rst  => b_rst_fg_bufs
 );
 
 p_out_vbufi_pfull <= i_vbufi_pfull;
+p_out_vbufi_empty <= tst_vbufi_empty;
+
 
 
 --##################################
 --DBG
 --##################################
 p_out_tst(0) <= b_rst_fg_bufs;
-p_out_tst(1) <= '0';
-p_out_tst(31 downto 2) <= (others => '0');
+p_out_tst(1) <= i_eth_txbuf_empty;
+p_out_tst(2) <= tst_txbuf_empty;
+p_out_tst(3) <= tst_vbufi_empty_o;
+p_out_tst(4) <= OR_reduce(h_reg_eth2fg_frr(0));
+p_out_tst(5) <= h_reg_dbg(C_SWT_REG_DBG_HOST2FG_BIT);
+p_out_tst(6) <= tst_eth_rxbuf_den;
+p_out_tst(7) <= i_vbufi_fltr_den;
+p_out_tst(31 downto 8) <= (others => '0');
 
+process(p_in_eth_clk)
+begin
+if rising_edge(p_in_eth_clk) then
+tst_vbufi_empty_o <= tst_vbufi_empty;
+end if;
+end process;
 
 end architecture behavioral;

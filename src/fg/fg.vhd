@@ -83,6 +83,7 @@ p_in_memrd        : in    TMemOUT;
 -------------------------------
 p_in_tst          : in    std_logic_vector(31 downto 0);
 p_out_tst         : out   std_logic_vector(31 downto 0);
+p_out_tst2        : out   std_logic_vector(127 downto 0);
 
 -------------------------------
 --System
@@ -161,6 +162,7 @@ p_in_mem       : in    TMemOUT;
 -------------------------------
 p_in_tst       : in    std_logic_vector(31 downto 0);
 p_out_tst      : out   std_logic_vector(31 downto 0);
+p_out_tst2     : out   std_logic_vector(127 downto 0);
 
 -------------------------------
 --System
@@ -168,7 +170,7 @@ p_out_tst      : out   std_logic_vector(31 downto 0);
 p_in_clk       : in    std_logic;
 p_in_rst       : in    std_logic
 );
-end component;
+end component fgwr;
 
 component fgrd
 generic(
@@ -236,20 +238,21 @@ p_in_rst           : in    std_logic
 );
 end component;
 
+constant CI_EXP_VALUE : integer := 7;
 
 signal i_reg_adr               : unsigned(p_in_cfg_adr'range);
 
 signal i_reg_ctrl              : std_logic_vector(C_FG_REG_CTRL_LAST_BIT downto 0);
 signal i_reg_data              : std_logic_vector(31 downto 0);
-signal i_reg_tst0              : std_logic_vector(C_FG_REG_TST0_LAST_BIT downto 0);
+signal i_reg_dbg               : std_logic_vector(C_FG_REG_DBG_LAST_BIT downto 0);
 signal i_reg_mem_trnlen        : std_logic_vector(15 downto 0);
 
-signal sr_set_prm              : unsigned(0 to 3);
+signal sr_set_prm              : unsigned(0 to CI_EXP_VALUE);
 signal i_set_prm_exp           : std_logic;
 signal h_set_prm               : std_logic;
 signal i_set_prm               : std_logic;
 
-type TSRsetidle is array(0 to C_FG_VCH_COUNT - 1) of  unsigned(3 downto 0);
+type TSRsetidle is array(0 to C_FG_VCH_COUNT - 1) of  unsigned(0 to CI_EXP_VALUE);
 signal sr_set_idle             : TSRsetidle;
 signal i_set_idle_exp          : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
 signal h_set_idle              : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
@@ -262,8 +265,8 @@ signal i_prm_fgrd              : TFGRD_Prms;
 Type TFG_FrMrks_Bufs is array (0 to C_FG_VBUF_COUNT - 1) of std_logic_vector(31 downto 0);
 Type TFG_FrMrks_Bufs_VCH is array (0 to C_FG_VCH_COUNT - 1) of TFG_FrMrks_Bufs;
 
-type TFG_CntWidth is array (0 to C_FG_VCH_COUNT - 1) of unsigned(0 to 3);
-signal sr_irq                  : TFG_CntWidth;
+type TFG_SrIRQ is array (0 to C_FG_VCH_COUNT - 1) of unsigned(0 to CI_EXP_VALUE);
+signal sr_irq                  : TFG_SrIRQ;
 signal i_irq_exp               : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
 signal i_irq                   : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
 signal i_vbuf_hold             : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
@@ -285,11 +288,11 @@ signal i_fgrd_den              : std_logic;
 signal i_vbufo_full            : std_logic;
 signal i_vbufo_rst             : std_logic;
 
-signal sr_hrdstart             : unsigned(0 to 3);
+signal sr_hrdstart             : unsigned(0 to CI_EXP_VALUE);
 signal i_hrdstart_exp          : std_logic;
 signal i_hrdstart              : std_logic;
 signal i_hchsel                : std_logic_vector(p_in_hrdchsel'range);
-signal sr_hrddone              : unsigned(0 to 3);
+signal sr_hrddone              : unsigned(0 to CI_EXP_VALUE);
 signal i_hrddone_exp           : std_logic;
 signal i_hrddone               : std_logic;
 
@@ -343,7 +346,7 @@ begin
 if rising_edge(p_in_cfg_clk) then
   if p_in_rst = '1' then
     i_reg_ctrl <= (others => '0');
-    i_reg_tst0 <= (others => '0');
+    i_reg_dbg <= (others => '0');
     i_reg_data <= (others => '0');
 
     set_prm := '0';
@@ -421,8 +424,8 @@ if rising_edge(p_in_cfg_clk) then
 
           end if;
 
-      elsif i_reg_adr = TO_UNSIGNED(C_FG_REG_TST0, i_reg_adr'length) then
-        i_reg_tst0 <= p_in_cfg_txdata(i_reg_tst0'high downto 0);
+      elsif i_reg_adr = TO_UNSIGNED(C_FG_REG_DBG, i_reg_adr'length) then
+        i_reg_dbg <= p_in_cfg_txdata(i_reg_dbg'high downto 0);
 
       elsif i_reg_adr = TO_UNSIGNED(C_FG_REG_DATA_L, i_reg_adr'length) then
         i_reg_data(15 downto 0) <= p_in_cfg_txdata;
@@ -464,13 +467,10 @@ if rising_edge(p_in_cfg_clk) then
       if i_reg_adr = TO_UNSIGNED(C_FG_REG_CTRL, i_reg_adr'length) then
         p_out_cfg_rxdata <= std_logic_vector(RESIZE(UNSIGNED(i_reg_ctrl), p_out_cfg_rxdata'length));
 
-      elsif i_reg_adr = TO_UNSIGNED(C_FG_REG_TST0, i_reg_adr'length) then
-        p_out_cfg_rxdata <= std_logic_vector(RESIZE(UNSIGNED(i_reg_tst0), p_out_cfg_rxdata'length));
+      elsif i_reg_adr = TO_UNSIGNED(C_FG_REG_DBG, i_reg_adr'length) then
+        p_out_cfg_rxdata <= std_logic_vector(RESIZE(UNSIGNED(i_reg_dbg), p_out_cfg_rxdata'length));
 
       elsif i_reg_adr = TO_UNSIGNED(C_FG_REG_DATA_L, i_reg_adr'length) then
-
---          vch_num := UNSIGNED(i_reg_ctrl(C_FG_REG_CTRL_VCH_M_BIT downto C_FG_REG_CTRL_VCH_L_BIT));
---          prm := UNSIGNED(i_reg_ctrl(C_FG_REG_CTRL_PRM_M_BIT downto C_FG_REG_CTRL_PRM_L_BIT));
 
           for ch in 0 to C_FG_VCH_COUNT - 1 loop
             if ch = vch_num then
@@ -500,9 +500,6 @@ if rising_edge(p_in_cfg_clk) then
           end loop;
 
       elsif i_reg_adr = TO_UNSIGNED(C_FG_REG_DATA_M, i_reg_adr'length) then
-
---          vch_num := UNSIGNED(i_reg_ctrl(C_FG_REG_CTRL_VCH_M_BIT downto C_FG_REG_CTRL_VCH_L_BIT));
---          prm := UNSIGNED(i_reg_ctrl(C_FG_REG_CTRL_PRM_M_BIT downto C_FG_REG_CTRL_PRM_L_BIT));
 
           for ch in 0 to C_FG_VCH_COUNT - 1 loop
             if ch = vch_num then
@@ -538,9 +535,9 @@ end if;
 end process;
 
 
-tst_ctrl(31 downto 0) <= std_logic_vector(RESIZE(UNSIGNED(i_reg_tst0), 32));
---tst_dbg_pictire<=tst_ctrl(C_FG_REG_TST0_DBG_PICTURE_BIT);
---tst_dbg_rd_hold<=tst_ctrl(C_FG_REG_TST0_DBG_RDHOLD_BIT);
+tst_ctrl(31 downto 0) <= std_logic_vector(RESIZE(UNSIGNED(i_reg_dbg), 32));
+--tst_dbg_pictire<=tst_ctrl(C_FG_REG_DBG_PICTURE_BIT);
+--tst_dbg_rd_hold<=tst_ctrl(C_FG_REG_DBG_RDHOLD_BIT);
 
 
 
@@ -618,7 +615,7 @@ if rising_edge(p_in_cfg_clk) then
         i_set_idle_exp(i) <= '0';
       end if;
 
-      sr_set_idle(i) <= h_set_idle(i) & sr_set_idle(i)(0 to sr_set_idle'high - 1);
+      sr_set_idle(i) <= h_set_idle(i) & sr_set_idle(i)(0 to sr_set_idle(i)'high - 1);
       end loop;
 
   end if;
@@ -840,6 +837,7 @@ p_in_mem       => p_in_memwr,
 -------------------------------
 p_in_tst       => p_in_tst, --tst_ctrl(31 downto 0),--
 p_out_tst      => i_fgwr_tst_out,
+p_out_tst2     => p_out_tst2,
 
 -------------------------------
 --System
@@ -983,8 +981,14 @@ gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
 --gen : for i in 0 to C_FG_VCH_COUNT - 1 generate
 --i_fgwr_tst_outtmp(i) <= OR_reduce(i_fgwr_tst_out(i));
 --end generate gen;
-p_out_tst(0) <= OR_reduce(i_fgwr_tst_out) or i_fgrd_eof or OR_reduce(tst_fgrd_out);
-p_out_tst(31 downto 1) <= (others => '0');
+p_out_tst(7 downto 0) <= i_fgwr_tst_out(7 downto 0);
+p_out_tst(8) <= i_irq_exp(0);
+p_out_tst(9) <= i_vbuf_hold(0);
+p_out_tst(20 downto 10) <= i_fgwr_tst_out(20 downto 10);
+p_out_tst(21) <= i_fgwr_tst_out(21);
+p_out_tst(22) <= i_fgwr_tst_out(22);
+p_out_tst(23) <= i_fgwr_tst_out(23);
+p_out_tst(31 downto 24) <= (others => '0');
 --p_out_tst(4 downto 1) <= tst_fgwr_out(3 downto 0);
 --p_out_tst(8 downto 5) <= tst_fgrd_out(3 downto 0);
 --p_out_tst(9)          <= tst_fgwr_out(4);

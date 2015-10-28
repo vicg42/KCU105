@@ -83,7 +83,7 @@ S_MEM_TRN,
 S_MEM_TRN_END,
 S_EXIT
 );
-signal fsm_state_cs        : TFsm_state;
+signal i_fsm_memwr         : TFsm_state;
 
 signal i_mem_adr           : unsigned(G_MEM_BANK_L_BIT - 1 downto 0);
 signal i_mem_dir           : std_logic;
@@ -130,15 +130,15 @@ begin
   end if;
 end process;
 
-tst_fsm_cs <= TO_UNSIGNED(16#01#, tst_fsm_cs'length) when fsm_state_cs = S_MEM_REMAIN_SIZE_CALC else
-              TO_UNSIGNED(16#02#, tst_fsm_cs'length) when fsm_state_cs = S_MEM_TRN_LEN_CALC     else
-              TO_UNSIGNED(16#03#, tst_fsm_cs'length) when fsm_state_cs = S_MEM_SET_RQ           else
-              TO_UNSIGNED(16#04#, tst_fsm_cs'length) when fsm_state_cs = S_MEM_WAIT_RQ_EN       else
-              TO_UNSIGNED(16#05#, tst_fsm_cs'length) when fsm_state_cs = S_MEM_TRN_START        else
-              TO_UNSIGNED(16#06#, tst_fsm_cs'length) when fsm_state_cs = S_MEM_TRN              else
-              TO_UNSIGNED(16#07#, tst_fsm_cs'length) when fsm_state_cs = S_MEM_TRN_END          else
-              TO_UNSIGNED(16#08#, tst_fsm_cs'length) when fsm_state_cs = S_EXIT                 else
-              TO_UNSIGNED(16#00#, tst_fsm_cs'length);--when fsm_state_cs = S_IDLE                 else
+tst_fsm_cs <= TO_UNSIGNED(16#01#, tst_fsm_cs'length) when i_fsm_memwr = S_MEM_REMAIN_SIZE_CALC else
+              TO_UNSIGNED(16#02#, tst_fsm_cs'length) when i_fsm_memwr = S_MEM_TRN_LEN_CALC     else
+              TO_UNSIGNED(16#03#, tst_fsm_cs'length) when i_fsm_memwr = S_MEM_SET_RQ           else
+              TO_UNSIGNED(16#04#, tst_fsm_cs'length) when i_fsm_memwr = S_MEM_WAIT_RQ_EN       else
+              TO_UNSIGNED(16#05#, tst_fsm_cs'length) when i_fsm_memwr = S_MEM_TRN_START        else
+              TO_UNSIGNED(16#06#, tst_fsm_cs'length) when i_fsm_memwr = S_MEM_TRN              else
+              TO_UNSIGNED(16#07#, tst_fsm_cs'length) when i_fsm_memwr = S_MEM_TRN_END          else
+              TO_UNSIGNED(16#08#, tst_fsm_cs'length) when i_fsm_memwr = S_EXIT                 else
+              TO_UNSIGNED(16#00#, tst_fsm_cs'length);--when i_fsm_memwr = S_IDLE                 else
 
 end generate gen_dbg_on;
 
@@ -205,7 +205,7 @@ begin
 
     --Last data into current transaction
     if i_mem_dir = C_MEMWR_WRITE then
-      if (i_mem_wr = '1' or fsm_state_cs = S_MEM_WAIT_RQ_EN)
+      if (i_mem_wr = '1' or i_fsm_memwr = S_MEM_WAIT_RQ_EN)
           and i_mem_trn_len = TO_UNSIGNED(1, i_mem_trn_len'length) then
 
         i_mem_term <= '1';
@@ -243,7 +243,7 @@ begin
 if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
 
-    fsm_state_cs <= S_IDLE;
+    i_fsm_memwr <= S_IDLE;
       update_addr := (others => '0');
 
     i_mem_adr <= (others => '0');
@@ -264,7 +264,7 @@ if rising_edge(p_in_clk) then
 
   else
 
-    case fsm_state_cs is
+    case i_fsm_memwr is
 
       when S_IDLE =>
 
@@ -278,7 +278,7 @@ if rising_edge(p_in_clk) then
           i_cfg_mem_dlen_rq <= UNSIGNED(p_in_cfg_mem_dlen_rq);
           i_cfg_mem_trn_len <= UNSIGNED(p_in_cfg_mem_trn_len);
 
-          fsm_state_cs <= S_MEM_REMAIN_SIZE_CALC;
+          i_fsm_memwr <= S_MEM_REMAIN_SIZE_CALC;
         end if;
 
       --------------------------------------
@@ -288,7 +288,7 @@ if rising_edge(p_in_clk) then
 
         i_mem_dlen_remain <= RESIZE(i_cfg_mem_dlen_rq, i_mem_dlen_remain'length)
                               - RESIZE(i_mem_dlen_used, i_mem_dlen_remain'length);
-        fsm_state_cs <= S_MEM_TRN_LEN_CALC;
+        i_fsm_memwr <= S_MEM_TRN_LEN_CALC;
 
       --------------------------------------
       --Size of current transaction
@@ -307,7 +307,7 @@ if rising_edge(p_in_clk) then
         if ((i_mem_dir = C_MEMWR_READ) and p_in_usr_rxbuf_full = '0')
           or ((i_mem_dir = C_MEMWR_WRITE) and p_in_usr_txbuf_empty = '0') then
 
-        fsm_state_cs <= S_MEM_SET_RQ;
+        i_fsm_memwr <= S_MEM_SET_RQ;
         end if;
 
       --------------------------------------
@@ -321,7 +321,7 @@ if rising_edge(p_in_clk) then
           i_axir_avalid <= '1';
         end if;
 
-        fsm_state_cs <= S_MEM_WAIT_RQ_EN;
+        i_fsm_memwr <= S_MEM_WAIT_RQ_EN;
 
       --------------------------------------
       --Wait acknowledge - adress valid
@@ -331,12 +331,12 @@ if rising_edge(p_in_clk) then
         if i_mem_dir = C_MEMWR_WRITE then
           if p_in_mem.axiw.aready = '1' then
             i_axiw_avalid <= '0';
-            fsm_state_cs <= S_MEM_TRN_START;
+            i_fsm_memwr <= S_MEM_TRN_START;
           end if;
         else
           if p_in_mem.axir.aready = '1' then
             i_axir_avalid <= '0';
-            fsm_state_cs <= S_MEM_TRN_START;
+            i_fsm_memwr <= S_MEM_TRN_START;
           end if;
         end if;
 
@@ -349,12 +349,12 @@ if rising_edge(p_in_clk) then
           if p_in_mem.axiw.wready = '1' then
             i_mem_trn_len <= i_mem_trn_len - 1;
             i_mem_trn_work <= '1';
-            fsm_state_cs <= S_MEM_TRN;
+            i_fsm_memwr <= S_MEM_TRN;
           end if;
         else
             i_mem_trn_len <= i_mem_trn_len - 1;
             i_mem_trn_work <= '1';
-            fsm_state_cs <= S_MEM_TRN;
+            i_fsm_memwr <= S_MEM_TRN;
         end if;
 
       ------------------------------------------------
@@ -371,7 +371,7 @@ if rising_edge(p_in_clk) then
             if i_mem_dir = C_MEMWR_WRITE then
               i_axiw_rready <= '1';
             end if;
-            fsm_state_cs <= S_MEM_TRN_END;
+            i_fsm_memwr <= S_MEM_TRN_END;
           else
             i_mem_trn_len <= i_mem_trn_len - 1;
           end if;
@@ -389,13 +389,13 @@ if rising_edge(p_in_clk) then
           i_axiw_rready <= '0';
 
           if i_cfg_mem_dlen_rq = i_mem_dlen_used then
-            fsm_state_cs <= S_EXIT;
+            i_fsm_memwr <= S_EXIT;
           else
             --Calaculation next adress RAM
             i_mem_adr <= i_mem_adr + RESIZE(update_addr, i_mem_adr'length);
 
             --Got next transaction
-            fsm_state_cs <= S_MEM_REMAIN_SIZE_CALC;
+            i_fsm_memwr <= S_MEM_REMAIN_SIZE_CALC;
           end if;
         end if;
 
@@ -406,7 +406,7 @@ if rising_edge(p_in_clk) then
 
         i_mem_dlen_used <= (others => '0');
         i_mem_done <= '1';
-        fsm_state_cs <= S_IDLE;
+        i_fsm_memwr <= S_IDLE;
 
     end case;
   end if;

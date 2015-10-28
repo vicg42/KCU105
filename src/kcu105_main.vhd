@@ -144,6 +144,7 @@ signal i_fg_rd_start       : std_logic;
 signal i_fg_vbufi          : TFGWR_VBUFIs;
 signal i_fg_tst_in         : std_logic_vector(31 downto 0);
 signal i_fg_tst_out        : std_logic_vector(31 downto 0);
+signal i_fg_tst2_out       : std_logic_vector(127 downto 0);
 
 constant CI_VBUFI_OWIDTH : integer := C_AXIS_DWIDTH(2);
 signal i_fg_bufi_do        : std_logic_vector(CI_VBUFI_OWIDTH - 1 downto 0);
@@ -154,24 +155,19 @@ signal i_fg_bufi_pfull     : std_logic;
 
 signal i_test_led          : std_logic_vector(0 downto 0);
 signal sr_host_rst_n       : std_logic_vector(0 to 2) := (others => '1');
-signal i_det_pcie_rst      : std_logic := '0';
-
-signal i_reg_adr  : unsigned(3 downto 0);
-signal i_reg_ctrl : std_logic_vector(15 downto 0);
-signal i_reg_tst0 : std_logic_vector(15 downto 0);
-signal i_reg_mem  : std_logic_vector(15 downto 0);
+signal i_swt_tst_out       : std_logic_vector(31 downto 0);
 
 component dbgcs_ila_hostclk is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(192 downto 0)
+probe0 : in std_logic_vector(27 downto 0)
 );
 end component dbgcs_ila_hostclk;
 
 component dbgcs_ila_usr_highclk is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(76 downto 0)
+probe0 : in std_logic_vector(118 downto 0)
 );
 end component dbgcs_ila_usr_highclk;
 
@@ -207,29 +203,65 @@ type TDBG2_darray is array (0 to 0) of std_logic_vector(31 downto 0);
 ----axir_aready : std_logic;
 --end record;
 
---type TCFG_dbg is record
+type TCFG_dbg is record
 --dadr    : std_logic_vector(3 downto 0);
 --radr    : std_logic_vector(5 downto 0);
---radr_ld : std_logic;
---wr      : std_logic;
---rd      : std_logic;
+radr_ld : std_logic;
+wr      : std_logic;
+rd      : std_logic;
 --txd     : std_logic_vector(15 downto 0);
 --rxd     : std_logic_vector(15 downto 0);
 --rxbuf_empty : std_logic;
 --txbuf_empty : std_logic;
 --irq : std_logic;
---end record;
---
---type TMAIN_dbg is record
---pcie : TPCIE_dbg;
-----h2m  : TH2M_dbg;
---cfg : TCFG_dbg;
---end record;
---
---signal i_dbg    : TMAIN_dbg;
---
---attribute mark_debug : string;
---attribute mark_debug of i_dbg  : signal is "true";
+end record;
+
+type TSWT_dbg is record
+eth_txbuf_hrdy : std_logic;
+eth_txbuf_wr : std_logic;
+eth_txbuf_empty : std_logic;
+eth_txbuf_empty_tst : std_logic;
+eth_tmr_irq : std_logic;
+eth_tmr_en : std_logic;
+vbufi_empty : std_logic;
+eth_rxbuf_den : std_logic;
+vbufi_fltr_den : std_logic;
+end record;
+
+type TFGWR_dbg is record
+fsm : std_logic_vector(3 downto 0);
+vbufi_d0         : std_logic_vector(31 downto 0);
+vbufi_d1         : std_logic_vector(31 downto 0);
+vbufi_d2         : std_logic_vector(31 downto 0);
+vbufi_rd         : std_logic;
+vbufi_empty      : std_logic;
+vbufi_full_lacth : std_logic;
+frrdy         : std_logic;
+fr_rownum : std_logic_vector(10 downto 0);
+mem_start : std_logic;
+mem_done : std_logic;
+chk : std_logic;
+end record;
+
+type TFG_dbg is record
+fgwr : TFGWR_dbg;
+hirq : std_logic;
+hdrdy : std_logic;
+end record;
+
+
+type TMAIN_dbg is record
+pcie : TPCIE_dbg;
+--h2m  : TH2M_dbg;
+cfg : TCFG_dbg;
+swt : TSWT_dbg;
+fg : TFG_dbg;
+end record;
+
+signal i_dbg    : TMAIN_dbg;
+
+attribute mark_debug : string;
+attribute mark_debug of i_dbg  : signal is "true";
 
 
 begin --architecture struct
@@ -432,7 +464,7 @@ p_out_vbufi_pfull => i_fg_bufi_pfull,
 --DBG
 -------------------------------
 p_in_tst  => (others => '0'),
-p_out_tst => open,
+p_out_tst => i_swt_tst_out,
 
 -------------------------------
 --System
@@ -449,7 +481,7 @@ i_fg_rd_start <= i_host_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)
 
 m_fg : fg
 generic map(
-G_DBGCS => "OFF",
+G_DBGCS => "ON",
 G_MEM_AWIDTH => C_AXI_AWIDTH,
 G_MEMWR_DWIDTH => CI_VBUFI_OWIDTH,
 G_MEMRD_DWIDTH => C_HDEV_DWIDTH
@@ -511,6 +543,7 @@ p_in_memrd        => i_memout_ch(0),--(1),--DEV <- MEM
 -------------------------------
 p_in_tst          => (others => '0'),--i_fg_tst_in,
 p_out_tst         => i_fg_tst_out,
+p_out_tst2        => i_fg_tst2_out,
 
 -------------------------------
 --System
@@ -766,8 +799,8 @@ pin_out_led(6 downto 3) <= pin_in_btn(3 downto 0);
 pin_out_led(7) <= '0';--i_det_pcie_rst;
 
 
-pin_out_led_hpc(0) <= i_test_led(0);
-pin_out_led_hpc(1) <= i_test_led(0);
+pin_out_led_hpc(0) <= i_swt_tst_out(4);-- <= OR_reduce(h_reg_eth2fg_frr(0))
+pin_out_led_hpc(1) <= i_swt_tst_out(5);-- <= h_reg_ctrl(C_SWT_REG_CTRL_DBG_HOST2FG_BIT);
 pin_out_led_hpc(2) <= i_test_led(0);
 pin_out_led_hpc(3) <= i_test_led(0);
 
@@ -783,13 +816,40 @@ pin_out_led_lpc(3) <= i_test_led(0);
 --gen_dbgcs_on : if strcmp(C_PCFG_MAIN_DBGCS, "ON") generate
 --begin
 --
---i_dbg.pcie <= i_host_dbg;
---
+i_dbg.pcie <= i_host_dbg;
+
+i_dbg.fg.fgwr.fsm <= i_fg_tst_out(3  downto 0);
+i_dbg.fg.fgwr.vbufi_rd <= i_fg_tst_out(4);
+i_dbg.fg.fgwr.vbufi_empty <= i_fg_bufi_empty;
+i_dbg.fg.fgwr.chk <= i_fg_tst_out(23);
+i_dbg.fg.fgwr.vbufi_full_lacth <= i_fg_tst_out(5);
+i_dbg.fg.fgwr.fr_rownum <= i_fg_tst_out(20 downto 10);
+i_dbg.fg.fgwr.mem_start <= i_fg_tst_out(21);
+i_dbg.fg.fgwr.mem_done <= i_fg_tst_out(22);
+
+i_dbg.fg.fgwr.frrdy <= i_fg_tst_out(6);-- <= i_fr_rdy(0);
+i_dbg.fg.fgwr.vbufi_d0 <= i_fg_tst2_out((32 * 1) downto (32 * 0));
+i_dbg.fg.fgwr.vbufi_d1 <= i_fg_tst2_out((32 * 2) downto (32 * 1));
+i_dbg.fg.fgwr.vbufi_d2 <= i_fg_tst2_out((32 * 3) downto (32 * 2));
+i_dbg.fg.hirq <= i_fg_tst_out(8);-- <= i_irq_exp(0);
+i_dbg.fg.hdrdy <= i_fg_tst_out(9);-- <= i_vbuf_hold(0);
+
+
+i_dbg.swt.eth_txbuf_wr <= i_host_wr(C_HDEV_ETH);
+i_dbg.swt.eth_txbuf_empty <= i_swt_tst_out(1);-- <= i_eth_txbuf_empty;
+i_dbg.swt.eth_txbuf_empty_tst <= i_swt_tst_out(2);-- <= tst_txbuf_empty;
+i_dbg.swt.eth_txbuf_hrdy <= i_host_txd_rdy(C_HDEV_ETH);
+i_dbg.swt.eth_tmr_irq <= i_tmr_irq(C_TMR_ETH);
+i_dbg.swt.eth_tmr_en  <= i_tmr_en(C_TMR_ETH) ;
+i_dbg.swt.vbufi_empty <= i_swt_tst_out(3);-- <= tst_vbufi_empty;
+i_dbg.swt.eth_rxbuf_den <= i_swt_tst_out(6);-- <= tst_eth_rxbuf_den;
+i_dbg.swt.vbufi_fltr_den <= i_swt_tst_out(7);-- <= i_vbufi_fltr_den;
+
 --i_dbg.cfg.dadr    <= i_cfg_dadr(3 downto 0);
 --i_dbg.cfg.radr    <= i_cfg_radr(5 downto 0);
---i_dbg.cfg.radr_ld <= i_cfg_radr_ld;
---i_dbg.cfg.wr      <= i_cfg_wr     ;
---i_dbg.cfg.rd      <= i_cfg_rd     ;
+i_dbg.cfg.radr_ld <= i_cfg_radr_ld;
+i_dbg.cfg.wr      <= i_cfg_wr     ;
+i_dbg.cfg.rd      <= i_cfg_rd     ;
 --i_dbg.cfg.txd     <= i_cfg_txd    ;
 --i_dbg.cfg.rxd     <= i_cfg_rxd_dev(C_CFGDEV_SWT);--i_cfg_rxd    ;
 --i_dbg.cfg.rxbuf_empty <= i_host_rxbuf_empty(C_HDEV_CFG);
@@ -1014,33 +1074,48 @@ pin_out_led_lpc(3) <= i_test_led(0);
 ------probe0(112 downto 81) => i_dbg.pcie.d2h_buf_do(2),
 ------probe0(144 downto 113) => i_dbg.pcie.d2h_buf_do(3)
 ----);
---
---m_dbg_hostclk : dbgcs_ila_hostclk
---port map (
---clk => g_host_clk,
---
---probe0(3 downto 0) => i_dbg.pcie.dev_num  ,
---probe0(4) => i_dbg.pcie.dma_start,
---probe0(5) => i_dbg.pcie.dma_dir,
---probe0(6) => i_dbg.pcie.dma_irq_clr,
---probe0(7) => i_dbg.pcie.irq_int,
---probe0(8) => i_dbg.pcie.irq_pend,
---
---probe0(9) => i_dbg.pcie.axi_rc_tready,
---probe0(10) => i_dbg.pcie.axi_rc_tvalid,
---probe0(11) => i_dbg.pcie.axi_rc_tlast ,
---
---probe0(12) => i_dbg.pcie.axi_rq_tready,
---probe0(13) => i_dbg.pcie.axi_rq_tvalid,
---probe0(14) => i_dbg.pcie.axi_rq_tlast ,
---
+
+m_dbg_hostclk : dbgcs_ila_hostclk
+port map (
+clk => g_host_clk,
+
+probe0(3 downto 0) => i_dbg.pcie.dev_num  ,
+probe0(4) => i_dbg.pcie.dma_start,
+probe0(5) => i_dbg.pcie.dma_dir,
+probe0(6) => i_dbg.pcie.dma_irq_clr,
+probe0(7) => i_dbg.pcie.irq_int,
+probe0(8) => i_dbg.pcie.irq_pend,
+
+probe0(9) => i_dbg.pcie.axi_rc_tready,
+probe0(10) => i_dbg.pcie.axi_rc_tvalid,
+probe0(11) => i_dbg.pcie.axi_rc_tlast ,
+
+probe0(12) => i_dbg.pcie.axi_rq_tready,
+probe0(13) => i_dbg.pcie.axi_rq_tvalid,
+probe0(14) => i_dbg.pcie.axi_rq_tlast ,
+
+probe0(15) => i_dbg.cfg.radr_ld,
+probe0(16) => i_dbg.cfg.wr,
+probe0(17) => i_dbg.cfg.rd,
+
+probe0(18) => i_dbg.swt.eth_txbuf_wr,
+probe0(19) => i_dbg.swt.eth_txbuf_empty,
+probe0(20) => i_dbg.swt.eth_txbuf_hrdy,
+probe0(21) => i_dbg.swt.eth_txbuf_empty_tst,
+probe0(22) => i_dbg.swt.eth_tmr_irq,
+probe0(23) => i_dbg.swt.eth_tmr_en,
+probe0(24) => i_dbg.swt.vbufi_empty,
+probe0(25) => i_dbg.swt.eth_rxbuf_den,
+probe0(26) => i_dbg.swt.vbufi_fltr_den,
+probe0(27) => i_dbg.fg.hdrdy -- <= i_fg_tst_out(9);-- <= i_vbuf_hold(0);
+
 --probe0(15) => i_dbg.pcie.h2d_buf_wr,
 --probe0(16) => i_dbg.pcie.d2h_buf_rd,
 --probe0(48  downto 17) => i_dbg.pcie.h2d_buf_d(0),
 --probe0(80  downto 49) => i_dbg.pcie.h2d_buf_d(1),
 --probe0(112 downto 81) => i_dbg.pcie.d2h_buf_d(0),
 --probe0(144 downto 113) => i_dbg.pcie.d2h_buf_d(1),
---
+
 --probe0(148  downto 145) => i_dbg.cfg.dadr,
 --probe0(154  downto 149) => i_dbg.cfg.radr,
 --probe0(155) => i_dbg.cfg.radr_ld,
@@ -1051,9 +1126,16 @@ pin_out_led_lpc(3) <= i_test_led(0);
 --probe0(160) => i_dbg.cfg.irq,
 --probe0(176 downto 161) => i_dbg.cfg.txd,
 --probe0(192 downto 177) => i_dbg.cfg.rxd
+
+
+--probe0(193) => i_dbg.pcie.dma_work   ,
+--probe0(194) => i_dbg.pcie.dma_worktrn,
+--probe0(195) => i_dbg.pcie.dma_timeout,
 --
---);
---
+--probe0(202 downto 196) => i_dbg.pcie.irq_stat
+
+);
+
 ----########### DBG AXI ###############
 ----m_dbg_highclk : dbgcs_ila_hostclk
 ----port map (
@@ -1124,6 +1206,27 @@ pin_out_led_lpc(3) <= i_test_led(0);
 ------probe0(93) => i_dbg.h2m.axir_dvalid
 ----);
 --
+
+m_dbg_highclk : dbgcs_ila_usr_highclk
+port map (
+clk => g_usr_highclk,
+
+probe0(3 downto 0) => i_dbg.fg.fgwr.fsm,
+probe0(4) => i_dbg.fg.fgwr.vbufi_rd,
+probe0(5) => i_dbg.fg.fgwr.vbufi_empty,
+probe0(6) => i_dbg.fg.fgwr.chk,--vbufi_full_lacth,
+probe0(7) => i_dbg.fg.fgwr.frrdy,
+
+probe0(8) => i_dbg.fg.hirq,
+probe0(9) => i_dbg.fg.hdrdy,
+
+probe0(41 downto 10) => i_dbg.fg.fgwr.vbufi_d0,
+probe0(42) => i_dbg.fg.fgwr.mem_start,
+probe0(43) => i_dbg.fg.fgwr.mem_done,
+probe0(54 downto 44) => i_dbg.fg.fgwr.fr_rownum,
+probe0(86 downto 55) => i_dbg.fg.fgwr.vbufi_d1,
+probe0(118 downto 87) => i_dbg.fg.fgwr.vbufi_d2
+);
 --
 --end generate gen_dbgcs_on;
 
