@@ -15,14 +15,14 @@ use work.vicg_common_pkg.all;
 
 package prj_cfg is
 
-constant C_PCFG_FIRMWARE_VERSION       : integer := 16#001A#;
+constant C_PCFG_FIRMWARE_VERSION       : integer := 16#002C#;
 
 constant C_PCFG_BOARD                  : string := "KCU105";
 constant C_PCFG_MAIN_DBGCS             : string := "ON";
 
 --PCI-Express
-constant C_PCGF_PCIE_LINK_WIDTH        : integer := 8; --if change count link than need regenerat core PCI-Express
-constant C_PCGF_PCIE_DWIDTH            : integer := 256;
+constant C_PCGF_PCIE_LINK_WIDTH        : integer := 4; --if change count link than need regenerat core PCI-Express
+constant C_PCGF_PCIE_DWIDTH            : integer := 128;
 
 --FG(frame grabber)
 constant C_PCFG_FG_PIXBIT              : integer := 16; --Count bit/pix
