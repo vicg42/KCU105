@@ -54,6 +54,7 @@ constant CI_MEMCLK_PERIOD : TIME := 2.5 ns; --400MHz
 constant Cg_host_clk_PERIOD : TIME := 3.3 ns;
 
 constant CI_FR_PIXCOUNT : integer := 128;
+constant CI_FR_PIX_CHUNK: integer := CI_FR_PIXCOUNT / 1;
 constant CI_FR_ROWCOUNT : integer := 8;
 constant CI_FR_PIXNUM   : integer := 0;
 constant CI_FR_ROWNUM   : integer := 0;
@@ -282,7 +283,7 @@ signal i_cfg_tst_out       : std_logic_vector(31 downto 0);
 
 signal i_hrdstart          : std_logic;
 signal i_hrddone           : std_logic;
-
+signal i_hdrdy             : std_logic_vector(G_FG_VCH_COUNT - 1 downto 0);--Frame ready
 
 begin --architecture behavior of fg_tb is
 
@@ -415,7 +416,7 @@ p_in_hrdchsel => "000",
 p_in_hrdstart => i_hrdstart,--p_in_hrdstart,
 p_in_hrddone  => i_hrddone ,--p_in_hrddone ,
 p_out_hirq    => p_out_hirq,
-p_out_hdrdy   => p_out_hdrdy,
+p_out_hdrdy   => i_hdrdy,--p_out_hdrdy,
 p_out_hfrmrk  => open,
 
 --HOST <- MEM(VBUF)
@@ -581,47 +582,48 @@ wait for 0.01 us;
 
 --@@@@@@@@@@@@ Send Video @@@@@@@@@@@@
 vch : for ch in 0 to G_FG_VCH_COUNT - 1 loop
+  rownum : for rownum in 0 to CI_FR_ROWCOUNT - 1 loop
+    pixchnk : for pixchunk in 0 to (CI_FR_PIXCOUNT / CI_FR_PIX_CHUNK) - 1 loop
 
-rownum : for rownum in 0 to CI_FR_ROWCOUNT - 1 loop
+      wait until rising_edge(i_vbufi_wrclk);
+      i_header(0) <= TO_UNSIGNED((CI_FR_PIX_CHUNK + C_FG_PKT_HD_SIZE_BYTE - 2), 16);--Length
+      i_header(1) <= "0000" & TO_UNSIGNED(0,  4) & TO_UNSIGNED(ch,  4) & TO_UNSIGNED(16#01#,  4);--FrNum & VCH_NUM & PktType
+      i_header(2) <= TO_UNSIGNED(CI_FR_PIXCOUNT, 16);--Fr.PixCount
+      i_header(3) <= TO_UNSIGNED(CI_FR_ROWCOUNT, 16);--Fr.RowCount
+      i_header(4) <= TO_UNSIGNED((pixchunk * CI_FR_PIX_CHUNK), 16);--Fr.PixNum
+      i_header(5) <= TO_UNSIGNED(rownum, 16);--Fr.RowNum
+      i_header(6) <= TO_UNSIGNED(0, 16);--TimeStump_LSB
+      i_header(7) <= TO_UNSIGNED(0, 16);--TimeStump_MSB
 
-wait until rising_edge(i_vbufi_wrclk);
-i_header(0) <= TO_UNSIGNED((CI_FR_PIXCOUNT + C_FG_PKT_HD_SIZE_BYTE - 2), 16);--Length
-i_header(1) <= "0000" & TO_UNSIGNED(0,  4) & TO_UNSIGNED(ch,  4) & TO_UNSIGNED(16#01#,  4);--FrNum & VCH_NUM & PktType
-i_header(2) <= TO_UNSIGNED(CI_FR_PIXCOUNT, 16);--Fr.PixCount
-i_header(3) <= TO_UNSIGNED(CI_FR_ROWCOUNT, 16);--Fr.RowCount
-i_header(4) <= TO_UNSIGNED(CI_FR_PIXNUM, 16);--Fr.PixNum
-i_header(5) <= TO_UNSIGNED(rownum, 16);--Fr.RowNum
-i_header(6) <= TO_UNSIGNED(0, 16);--TimeStump_LSB
-i_header(7) <= TO_UNSIGNED(0, 16);--TimeStump_MSB
-
---Write PktHeader
-wait until rising_edge(i_vbufi_wrclk);
-i_vbufi_wr <= '1';
-for i in 0 to (i_vbufi_di'length / i_header(0)'length) - 1 loop
-i_vbufi_di((i_header(0)'length * (i + 1)) - 1 downto (i_header(0)'length * i)) <= i_header(i);
-end loop;
+      --Write PktHeader
+      wait until rising_edge(i_vbufi_wrclk);
+      i_vbufi_wr <= '1';
+      for i in 0 to (i_vbufi_di'length / i_header(0)'length) - 1 loop
+      i_vbufi_di((i_header(0)'length * (i + 1)) - 1 downto (i_header(0)'length * i)) <= i_header(i);
+      end loop;
 
 
---Write Data
-wait until rising_edge(i_vbufi_wrclk);
-i_vbufi_wr <= '1';
-i_vbufi_di <= TO_UNSIGNED(1, i_vbufi_di'length);
+      --Write Data
+      wait until rising_edge(i_vbufi_wrclk);
+      i_vbufi_wr <= '1';
+      i_vbufi_di <= TO_UNSIGNED(1, i_vbufi_di'length);
 
-for i in 1 to ((CI_FR_PIXCOUNT + C_FG_PKT_HD_SIZE_BYTE) / (G_MEM_DWIDTH / 8)) - 2 loop
-  wait until rising_edge(i_vbufi_wrclk);
-  i_vbufi_di <= i_vbufi_di + 1;
-end loop;
+      for i in 1 to ((CI_FR_PIX_CHUNK + C_FG_PKT_HD_SIZE_BYTE) / (G_MEM_DWIDTH / 8)) - 2 loop
+        wait until rising_edge(i_vbufi_wrclk);
+        i_vbufi_di <= i_vbufi_di + 1;
+      end loop;
 
-wait until rising_edge(i_vbufi_wrclk);
-i_vbufi_wr <= '0';
-i_vbufi_di <= i_vbufi_di + 1;
+      wait until rising_edge(i_vbufi_wrclk);
+      i_vbufi_wr <= '0';
+      i_vbufi_di <= i_vbufi_di + 1;
 
-end loop rownum;
+    end loop pixchnk;
+  end loop rownum;
 end loop vch;
 
 
 --@@@@@@@@@@@@ Start Read Video @@@@@@@@@@@@
-wait until rising_edge(g_host_clk);
+wait until rising_edge(g_host_clk) and i_hdrdy(0) = '1';
 i_hrdstart <= '1';
 wait until rising_edge(g_host_clk);
 i_hrdstart <= '0';

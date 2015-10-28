@@ -3,7 +3,7 @@ quietly WaveActivateNextPane {} 0
 add wave -noupdate /fg_tb/i_header
 add wave -noupdate /fg_tb/i_vbufi_wrclk
 add wave -noupdate /fg_tb/i_vbufi_wr
-add wave -noupdate -expand /fg_tb/i_vbufi_di_tsim
+add wave -noupdate /fg_tb/i_vbufi_di_tsim
 add wave -noupdate /fg_tb/i_vbufi_empty
 add wave -noupdate /fg_tb/p_in_rst
 add wave -noupdate /fg_tb/p_in_clk
@@ -15,16 +15,18 @@ add wave -noupdate /fg_tb/m_fg/p_in_cfg_txdata
 add wave -noupdate /fg_tb/m_fg/p_in_cfg_wr
 add wave -noupdate /fg_tb/m_fg/i_prm
 add wave -noupdate -color {Slate Blue} -itemcolor Gold /fg_tb/m_fg/m_fgwr/i_fsm_fgwr
-add wave -noupdate /fg_tb/m_fg/m_fgwr/i_ch_num
+add wave -noupdate /fg_tb/m_fg/m_fgwr/i_vch_num
 add wave -noupdate /fg_tb/m_fg/m_fgwr/i_fr_pixnum
 add wave -noupdate /fg_tb/m_fg/m_fgwr/i_fr_rownum
 add wave -noupdate /fg_tb/m_fg/m_fgwr/i_fr_pixcount
 add wave -noupdate /fg_tb/m_fg/m_fgwr/i_fr_rowcount
+add wave -noupdate /fg_tb/m_fg/m_fgwr/i_mem_adr_out
 add wave -noupdate /fg_tb/m_fg/m_fgwr/p_out_frrdy
+add wave -noupdate /fg_tb/m_fg/p_out_hdrdy
 add wave -noupdate /fg_tb/m_fg/m_fgrd/p_in_hrd_start
 add wave -noupdate -color {Slate Blue} -itemcolor Gold /fg_tb/m_fg/m_fgrd/i_fsm_fgrd
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {2017031 ps} 0}
+WaveRestoreCursors {{Cursor 1} {3041651 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 140
 configure wave -valuecolwidth 100
@@ -40,4 +42,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {1384034 ps} {4106722 ps}
+WaveRestoreZoom {0 ps} {4200 ns}
