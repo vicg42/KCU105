@@ -13,18 +13,20 @@ add wave -noupdate /fg_tb/m_fg/p_in_cfg_adr
 add wave -noupdate /fg_tb/m_fg/p_in_cfg_adr_ld
 add wave -noupdate /fg_tb/m_fg/p_in_cfg_txdata
 add wave -noupdate /fg_tb/m_fg/p_in_cfg_wr
-add wave -noupdate -subitemconfig {/fg_tb/m_fg/i_prm.ch -expand /fg_tb/m_fg/i_prm.ch(0) -expand} /fg_tb/m_fg/i_prm
-add wave -noupdate /fg_tb/m_fg/m_fgwr/p_out_frrdy
+add wave -noupdate /fg_tb/m_fg/i_prm
+add wave -noupdate -color {Slate Blue} -itemcolor Gold /fg_tb/m_fg/m_fgwr/i_fsm_fgwr
+add wave -noupdate /fg_tb/m_fg/m_fgwr/i_ch_num
+add wave -noupdate /fg_tb/m_fg/m_fgwr/i_fr_pixnum
 add wave -noupdate /fg_tb/m_fg/m_fgwr/i_fr_rownum
 add wave -noupdate /fg_tb/m_fg/m_fgwr/i_fr_pixcount
 add wave -noupdate /fg_tb/m_fg/m_fgwr/i_fr_rowcount
-add wave -noupdate /fg_tb/m_fg/m_fgwr/i_fsm_cs
+add wave -noupdate /fg_tb/m_fg/m_fgwr/p_out_frrdy
 add wave -noupdate /fg_tb/m_fg/m_fgrd/p_in_hrd_start
-add wave -noupdate /fg_tb/m_fg/m_fgrd/i_fsm_state_cs
+add wave -noupdate -color {Slate Blue} -itemcolor Gold /fg_tb/m_fg/m_fgrd/i_fsm_fgrd
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {2017031 ps} 0}
 quietly wave cursor active 1
-configure wave -namecolwidth 215
+configure wave -namecolwidth 140
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
 configure wave -signalnamewidth 1
@@ -38,4 +40,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {1519238 ps} {3690782 ps}
+WaveRestoreZoom {1384034 ps} {4106722 ps}

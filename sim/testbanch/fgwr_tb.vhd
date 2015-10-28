@@ -70,7 +70,7 @@ component fgwr
 generic(
 G_DBGCS : string := "OFF";
 
-G_FG_VCH_COUNT : integer := 1;
+G_VCH_COUNT : integer := 1;
 
 G_MEM_VCH_M_BIT   : integer := 25;
 G_MEM_VCH_L_BIT   : integer := 24;
@@ -92,7 +92,7 @@ p_in_memtrn    : in    std_logic_vector(7 downto 0);
 --p_in_work_en   : in    std_logic;
 
 p_in_frbuf     : in    TFG_FrBufs;
-p_out_frrdy    : out   std_logic_vector(G_FG_VCH_COUNT - 1 downto 0);
+p_out_frrdy    : out   std_logic_vector(G_VCH_COUNT - 1 downto 0);
 p_out_frmrk    : out   std_logic_vector(31 downto 0);
 
 -------------------------------
@@ -198,7 +198,7 @@ m_fgwr : fgwr
 generic map(
 G_DBGCS => "ON",
 
-G_FG_VCH_COUNT => G_FG_VCH_COUNT,
+G_VCH_COUNT => G_FG_VCH_COUNT,
 
 G_MEM_VCH_M_BIT   => C_FG_MEM_VCH_M_BIT,
 G_MEM_VCH_L_BIT   => C_FG_MEM_VCH_L_BIT,
@@ -267,6 +267,9 @@ i_mem_trn_len <= TO_UNSIGNED(16#40#, i_mem_trn_len'length);
 process
 begin
 
+for i in 0 to (i_header'length - 1) loop
+i_header(i) <= (others => '0');
+end loop;
 i_vbufi_wr <= '0';
 i_vbufi_di <= (others => '0');
 
@@ -279,7 +282,7 @@ rownum : for rownum in 0 to CI_FR_ROWCOUNT - 1 loop
 
 wait until rising_edge(i_vbufi_wrclk);
 i_header(0) <= TO_UNSIGNED((CI_FR_PIXCOUNT + C_FG_PKT_HD_SIZE_BYTE - 2), 16);--Length
-i_header(1) <= TO_UNSIGNED(0,  8) & TO_UNSIGNED(ch,  4) & TO_UNSIGNED(1,  4);--FrNum & VCH_NUM & PktType
+i_header(1) <= "0000" & TO_UNSIGNED(0,  4) & TO_UNSIGNED(ch,  4) & TO_UNSIGNED(16#01#,  4);--FrNum & VCH_NUM & PktType
 i_header(2) <= TO_UNSIGNED(CI_FR_PIXCOUNT, 16);--Fr.PixCount
 i_header(3) <= TO_UNSIGNED(CI_FR_ROWCOUNT, 16);--Fr.RowCount
 i_header(4) <= TO_UNSIGNED(CI_FR_PIXNUM, 16);--Fr.PixNum

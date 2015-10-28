@@ -59,7 +59,7 @@ constant CI_FR_PIXNUM   : integer := 0;
 constant CI_FR_ROWNUM   : integer := 0;
 
 
-constant CI_RAM_DEPTH : integer := 1024;
+constant CI_RAM_DEPTH : integer := 2048;
 
 
 
@@ -246,7 +246,7 @@ signal i_in_memwr         : TMemOUT;
 
 type TRAM is array (0 to CI_RAM_DEPTH - 1) of std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 signal i_ram              : TRAM;
-signal i_ram_adr          : unsigned(31 downto 0);
+signal i_ram_adr          : unsigned(31 downto 0) := (others => '0');
 signal i_ram_do           : unsigned(G_MEM_DWIDTH - 1 downto 0);
 
 signal i_out_memrd        : TMemIN;
@@ -478,6 +478,9 @@ p_out_vbufo_do <= i_vbufo_do;
 process
 begin
 
+for i in 0 to (i_header'length - 1) loop
+i_header(i) <= (others => '0');
+end loop;
 i_vbufi_wr <= '0';
 i_vbufi_di <= (others => '0');
 
@@ -583,7 +586,7 @@ rownum : for rownum in 0 to CI_FR_ROWCOUNT - 1 loop
 
 wait until rising_edge(i_vbufi_wrclk);
 i_header(0) <= TO_UNSIGNED((CI_FR_PIXCOUNT + C_FG_PKT_HD_SIZE_BYTE - 2), 16);--Length
-i_header(1) <= TO_UNSIGNED(0,  8) & TO_UNSIGNED(ch,  4) & TO_UNSIGNED(1,  4);--FrNum & VCH_NUM & PktType
+i_header(1) <= "0000" & TO_UNSIGNED(0,  4) & TO_UNSIGNED(ch,  4) & TO_UNSIGNED(16#01#,  4);--FrNum & VCH_NUM & PktType
 i_header(2) <= TO_UNSIGNED(CI_FR_PIXCOUNT, 16);--Fr.PixCount
 i_header(3) <= TO_UNSIGNED(CI_FR_ROWCOUNT, 16);--Fr.RowCount
 i_header(4) <= TO_UNSIGNED(CI_FR_PIXNUM, 16);--Fr.PixNum

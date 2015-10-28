@@ -28,7 +28,7 @@ constant C_PCGF_PCIE_DWIDTH            : integer := 128;
 constant C_PCFG_FG_PIXBIT              : integer := 16; --Count bit/pix
 constant C_PCFG_FG_MEM_VBUF_SIZE       : integer := C_1MB * 32; --Size One Frame Buffer(VBUF)
 constant C_PCFG_FG_VBUF_COUNT          : integer := 4; --Count Frame Buffers
-constant C_PCFG_FG_VCH_COUNT           : integer := 2; --Count Video channels
+constant C_PCFG_FG_VCH_COUNT           : integer := 1; --Count Video channels
 constant C_PCFG_VSYN_ACTIVE            : std_logic := '1'; --select active level of strobe video synhronization (HS,VS)
 
 --Memory Controller
