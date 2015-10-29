@@ -53,6 +53,7 @@ constant CI_VBUFI_WRCLK_PERIOD : TIME := 6.6 ns; --150MHz
 constant CI_MEMCLK_PERIOD : TIME := 2.5 ns; --400MHz
 constant Cg_host_clk_PERIOD : TIME := 3.3 ns;
 
+constant CI_FR_COUNT    : integer := 2;
 constant CI_FR_PIXCOUNT : integer := 128;
 constant CI_FR_PIX_CHUNK: integer := CI_FR_PIXCOUNT / 1;
 constant CI_FR_ROWCOUNT : integer := 8;
@@ -582,43 +583,55 @@ wait for 0.01 us;
 
 --@@@@@@@@@@@@ Send Video @@@@@@@@@@@@
 vch : for ch in 0 to G_FG_VCH_COUNT - 1 loop
-  rownum : for rownum in 0 to CI_FR_ROWCOUNT - 1 loop
-    pixchnk : for pixchunk in 0 to (CI_FR_PIXCOUNT / CI_FR_PIX_CHUNK) - 1 loop
+  frcnt : for frnum in 0 to CI_FR_COUNT - 1 loop
+    rownum : for rownum in 0 to CI_FR_ROWCOUNT - 1 loop
+      pixchnk : for pixchunk in 0 to (CI_FR_PIXCOUNT / CI_FR_PIX_CHUNK) - 1 loop
 
-      wait until rising_edge(i_vbufi_wrclk);
-      i_header(0) <= TO_UNSIGNED((CI_FR_PIX_CHUNK + C_FG_PKT_HD_SIZE_BYTE - 2), 16);--Length
-      i_header(1) <= "0000" & TO_UNSIGNED(0,  4) & TO_UNSIGNED(ch,  4) & TO_UNSIGNED(16#01#,  4);--FrNum & VCH_NUM & PktType
-      i_header(2) <= TO_UNSIGNED(CI_FR_PIXCOUNT, 16);--Fr.PixCount
-      i_header(3) <= TO_UNSIGNED(CI_FR_ROWCOUNT, 16);--Fr.RowCount
-      i_header(4) <= TO_UNSIGNED((pixchunk * CI_FR_PIX_CHUNK), 16);--Fr.PixNum
-      i_header(5) <= TO_UNSIGNED(rownum, 16);--Fr.RowNum
-      i_header(6) <= TO_UNSIGNED(0, 16);--TimeStump_LSB
-      i_header(7) <= TO_UNSIGNED(0, 16);--TimeStump_MSB
-
-      --Write PktHeader
-      wait until rising_edge(i_vbufi_wrclk);
-      i_vbufi_wr <= '1';
-      for i in 0 to (i_vbufi_di'length / i_header(0)'length) - 1 loop
-      i_vbufi_di((i_header(0)'length * (i + 1)) - 1 downto (i_header(0)'length * i)) <= i_header(i);
-      end loop;
-
-
-      --Write Data
-      wait until rising_edge(i_vbufi_wrclk);
-      i_vbufi_wr <= '1';
-      i_vbufi_di <= TO_UNSIGNED(1, i_vbufi_di'length);
-
-      for i in 1 to ((CI_FR_PIX_CHUNK + C_FG_PKT_HD_SIZE_BYTE) / (G_MEM_DWIDTH / 8)) - 2 loop
         wait until rising_edge(i_vbufi_wrclk);
+        i_header(0) <= TO_UNSIGNED((CI_FR_PIX_CHUNK + C_FG_PKT_HD_SIZE_BYTE - 2), 16);--Length
+
+        if (frnum = 0 and rownum = 1)
+          or (frnum = 0 and rownum = 5)
+            or (frnum = 1 and rownum = 2) then
+        --insert bad packet
+        i_header(1) <= "0000" & TO_UNSIGNED(frnum,  4) & TO_UNSIGNED(ch,  4) & TO_UNSIGNED(16#03#,  4);--FrNum & VCH_NUM & PktType
+        else
+        --good packet
+        i_header(1) <= "0000" & TO_UNSIGNED(frnum,  4) & TO_UNSIGNED(ch,  4) & TO_UNSIGNED(16#01#,  4);--FrNum & VCH_NUM & PktType
+        end if;
+
+        i_header(2) <= TO_UNSIGNED(CI_FR_PIXCOUNT, 16);--Fr.PixCount
+        i_header(3) <= TO_UNSIGNED(CI_FR_ROWCOUNT, 16);--Fr.RowCount
+        i_header(4) <= TO_UNSIGNED((pixchunk * CI_FR_PIX_CHUNK), 16);--Fr.PixNum
+        i_header(5) <= TO_UNSIGNED(rownum, 16);--Fr.RowNum
+        i_header(6) <= TO_UNSIGNED(0, 16);--TimeStump_LSB
+        i_header(7) <= TO_UNSIGNED(0, 16);--TimeStump_MSB
+
+        --Write PktHeader
+        wait until rising_edge(i_vbufi_wrclk);
+        i_vbufi_wr <= '1';
+        for i in 0 to (i_vbufi_di'length / i_header(0)'length) - 1 loop
+        i_vbufi_di((i_header(0)'length * (i + 1)) - 1 downto (i_header(0)'length * i)) <= i_header(i);
+        end loop;
+
+
+        --Write Data
+        wait until rising_edge(i_vbufi_wrclk);
+        i_vbufi_wr <= '1';
+        i_vbufi_di <= TO_UNSIGNED(1, i_vbufi_di'length);
+
+        for i in 1 to ((CI_FR_PIX_CHUNK + C_FG_PKT_HD_SIZE_BYTE) / (G_MEM_DWIDTH / 8)) - 2 loop
+          wait until rising_edge(i_vbufi_wrclk);
+          i_vbufi_di <= i_vbufi_di + 1;
+        end loop;
+
+        wait until rising_edge(i_vbufi_wrclk);
+        i_vbufi_wr <= '0';
         i_vbufi_di <= i_vbufi_di + 1;
-      end loop;
 
-      wait until rising_edge(i_vbufi_wrclk);
-      i_vbufi_wr <= '0';
-      i_vbufi_di <= i_vbufi_di + 1;
-
-    end loop pixchnk;
-  end loop rownum;
+      end loop pixchnk;
+    end loop rownum;
+  end loop frcnt;
 end loop vch;
 
 
@@ -667,7 +680,7 @@ process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
   if (i_out_memwr.axiw.avalid = '1') then
-    i_ram_adr <= RESIZE(UNSIGNED(i_out_memwr.axiw.adr(i_out_memwr.axiw.adr'high
+    i_ram_adr <= RESIZE(UNSIGNED(i_out_memwr.axiw.adr(C_FG_MEM_VLINE_M_BIT
                                                               downto log2(G_MEM_DWIDTH / 8))), i_ram_adr'length);
 
   elsif (i_out_memwr.axiw.dvalid = '1') then
