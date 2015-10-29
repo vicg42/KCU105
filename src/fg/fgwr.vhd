@@ -38,8 +38,6 @@ port(
 -------------------------------
 --CFG
 -------------------------------
---p_in_usrprm_ld : in    std_logic;
---p_in_usrprm    : in    TFGWR_Prms;
 p_in_memtrn    : in    std_logic_vector(7 downto 0);
 --p_in_work_en   : in    std_logic;
 
@@ -67,7 +65,6 @@ p_in_mem       : in    TMemOUT;
 -------------------------------
 p_in_tst       : in    std_logic_vector(31 downto 0);
 p_out_tst      : out   std_logic_vector(31 downto 0);
-p_out_tst2     : out   std_logic_vector(127 downto 0);
 
 -------------------------------
 --System
@@ -88,13 +85,15 @@ type TFsm_state is (
 S_IDLE,
 S_PKTH_RD,
 S_MEM_START,
-S_MEM_WR
+S_MEM_WR,
+S_PKTSKIP
 );
 signal i_fsm_fgwr         : TFsm_state;
 
-signal i_pkth_cnt         : unsigned(3 downto 0);
-signal i_pkt_hd_rd        : std_logic;
-signal i_pkt_vd_rd        : std_logic;
+--signal i_pkth_cnt         : unsigned(3 downto 0);
+signal i_pkt_size_byte    : unsigned(15 downto 0);
+
+signal i_vbufi_rden       : std_logic;
 signal i_vbufi_rd         : std_logic;
 
 signal i_fr_rdy           : std_logic_vector(G_VCH_COUNT - 1 downto 0);
@@ -117,29 +116,18 @@ signal i_mem_rqlen        : unsigned(15 downto 0);
 signal i_mem_start        : std_logic;
 signal i_mem_dir          : std_logic;
 signal i_mem_done         : std_logic;
-
-signal i_memwr_rd_out     : std_logic;
-signal i_pkt_hd_rd_out    : std_logic;
-
-signal i_pkt_skp_rd_out   : std_logic;
-signal i_pkt_type_err     : std_logic_vector(3 downto 0);
-signal i_pkt_size_byte    : unsigned(15 downto 0);
-signal i_pkt_skp_data     : unsigned(15 downto 0);
-signal i_pkt_skp_dcnt     : unsigned(15 downto 0);
-signal i_pkt_skp_rd       : std_logic;
+signal i_memwr_rden       : std_logic;
+signal i_memwr_rd         : std_logic;
 
 signal i_pixcount_byte    : unsigned(15 downto 0);
 
-signal tst_fgwr_fsm_cs    : unsigned(3 downto 0);
-signal tst_fgwr_fsm_cs_out: std_logic_vector(3 downto 0);
-signal tst_err_det        : std_logic;
-signal tst_vbufi_full     : std_logic;
-signal tst_vbufi_empty    : std_logic;
-signal tst_timestump_cnt  : unsigned(31 downto 0);
+signal i_err              : std_logic;
+signal i_skp_dcnt         : unsigned(i_mem_rqlen'range);
+signal i_skp_en           : std_logic;
 
-signal tst_vbufi_do       : std_logic_vector(p_in_vbufi_do'range);
-signal tst_vbufi_rd       : std_logic;
-signal tst_chk              : std_logic;
+signal tst_fgwr_fsm       : unsigned(3 downto 0);
+signal tst_vbufi_full     : std_logic;
+signal tst_timestump_cnt  : unsigned(31 downto 0);
 
 
 begin --architecture behavioral
@@ -157,11 +145,8 @@ p_out_frmrk <= i_fr_rowmrk when p_in_tst(C_FG_REG_DBG_TIMESTUMP_BIT) = '0'
 --Read VPKT
 ------------------------------------------------
 p_out_vbufi_rd <= i_vbufi_rd;
-i_vbufi_rd <= i_pkt_hd_rd_out or (i_pkt_vd_rd and i_memwr_rd_out);-- or i_pkt_skp_rd_out;
-
-i_pkt_hd_rd_out <= (i_pkt_hd_rd  and not p_in_vbufi_empty);
-
---i_pkt_skp_rd_out <= (i_pkt_skp_rd  and not p_in_vbufi_empty);
+i_vbufi_rd <= ((i_vbufi_rden or i_skp_en) and (not p_in_vbufi_empty))
+            or (i_memwr_rden and i_memwr_rd);
 
 
 ------------------------------------------------
@@ -178,9 +163,14 @@ if rising_edge(p_in_clk) then
 
     i_fsm_fgwr <= S_IDLE;
 
-    i_pkth_cnt <= (others => '0');
-    i_pkt_hd_rd <= '0';
-    i_pkt_vd_rd <= '0';
+--    i_pkth_cnt <= (others => '0');
+    i_vbufi_rden <= '0';
+    i_memwr_rden <= '0';
+    i_pkt_size_byte <= (others => '0');
+
+    i_err <= '0';
+    i_skp_en <= '0';
+    i_skp_dcnt <= (others => '0');
 
     i_vch_num <= (others => '0');
     for i in 0 to G_VCH_COUNT - 1 loop
@@ -206,13 +196,8 @@ if rising_edge(p_in_clk) then
     i_mem_dir <= '0';
     i_mem_start <= '0';
 
-    i_pkt_skp_rd <= '0';
-    i_pkt_size_byte <= (others => '0');
-    i_pkt_skp_dcnt <= (others => '0'); i_pkt_type_err <= (others => '0');
-
-    i_pkt_skp_data <= (others => '0');
     i_pixcount_byte <= (others => '0');
-    tst_timestump_cnt <= (others => '0'); tst_chk <= '0';
+    tst_timestump_cnt <= (others => '0');
 
   else
 
@@ -223,18 +208,18 @@ if rising_edge(p_in_clk) then
       --------------------------------------
       when S_IDLE =>
 
-        i_fr_rdy <= (others => '0'); tst_chk <= '1';
+        i_fr_rdy <= (others => '0');
+        i_skp_dcnt <= (others => '0');
 
         --wait data
-        if p_in_vbufi_empty = '0' then
+        if (p_in_vbufi_empty = '0') then
 
-          if UNSIGNED(p_in_vbufi_do(15 downto 0)) /= TO_UNSIGNED(0, 16) then
+          if (UNSIGNED(p_in_vbufi_do(15 downto 0)) /= TO_UNSIGNED(0, 16)) then
 
             i_pkt_size_byte <= UNSIGNED(p_in_vbufi_do(15 downto 0)) + 2;
 
-            i_pkt_hd_rd <= '0';
+            i_vbufi_rden <= '0';
 
-            i_pkt_type_err <= (others => '0');
             i_fsm_fgwr <= S_PKTH_RD;
 
           end if;
@@ -246,28 +231,27 @@ if rising_edge(p_in_clk) then
       --------------------------------------
       when S_PKTH_RD =>
 
-        i_pkt_hd_rd <= '1';
+        i_vbufi_rden <= '1';
 
         --Calculate pixcount
         i_pixcount_byte <= i_pkt_size_byte
                             - TO_UNSIGNED(C_FG_PKT_HD_SIZE_BYTE, i_pixcount_byte'length);
 
-        if UNSIGNED(p_in_vbufi_do(19 downto 16)) = TO_UNSIGNED(CI_PKT_TYPE, 4)
-            and UNSIGNED(p_in_vbufi_do(23 downto 20)) < TO_UNSIGNED(G_VCH_COUNT, 4) then
-        --PktType - VideoData + Chack number source
-          tst_chk <= '1';
-          --Save number current vch:
-          i_vch_num <= UNSIGNED(p_in_vbufi_do(23 downto 20));
+        if UNSIGNED(p_in_vbufi_do((32 * 0) + 19 downto (32 * 0) + 16)) = TO_UNSIGNED(CI_PKT_TYPE, 4)
+            and UNSIGNED(p_in_vbufi_do((32 * 0) + 23 downto (32 * 0) + 20)) < TO_UNSIGNED(G_VCH_COUNT, 4) then
+
+          --video channel number:
+          i_vch_num <= UNSIGNED(p_in_vbufi_do((32 * 0) + 23 downto (32 * 0) + 20));
 
           for i in 0 to G_VCH_COUNT - 1 loop
-            if i_vch_num = i then
-              --Save number current frame:
-              i_fr_num(i) <= p_in_vbufi_do(27 downto 24);
+            if (i_vch_num = i) then
+              --frame number :
+              i_fr_num(i) <= p_in_vbufi_do((32 * 0) + 27 downto (32 * 0) + 24);
               i_fr_bufnum <= p_in_frbuf(i);
              end if;
           end loop;
 
-          --Frame resolution:
+          --frame resolution:
           fr_pixcount := UNSIGNED(p_in_vbufi_do((32 * 1) + 15 downto (32 * 1) +  0));
           i_fr_rowcount <= UNSIGNED(p_in_vbufi_do((32 * 1) + 31 downto (32 * 1) + 16));
           i_fr_pixcount <= fr_pixcount;
@@ -279,6 +263,12 @@ if rising_edge(p_in_clk) then
 
           --timestump:
           i_fr_rowmrk <= p_in_vbufi_do((32 * 3) + 31 downto (32 * 3) + 0);
+
+          i_err <= '0';
+
+        else
+
+          i_err <= '1';
 
         end if;
 
@@ -292,8 +282,7 @@ if rising_edge(p_in_clk) then
       --------------------------------------
       when S_MEM_START =>
 
-        i_pkt_hd_rd <= '0';
-        i_pkt_vd_rd <= '1';
+        i_vbufi_rden <= '0';
 
         i_mem_adr <= i_mem_adr_base + RESIZE(i_fr_pixnum, i_mem_adr'length);
 
@@ -304,23 +293,35 @@ if rising_edge(p_in_clk) then
 
         i_mem_trnlen <= UNSIGNED(p_in_memtrn);
         i_mem_dir <= C_MEMWR_WRITE;
-        i_mem_start <= '1';
-        i_fsm_fgwr <= S_MEM_WR;
+
+        if (i_err = '0') then
+
+          i_memwr_rden <= '1';
+          i_mem_start <= '1';
+
+          i_fsm_fgwr <= S_MEM_WR;
+
+        else
+
+          i_skp_en <= '1';
+          i_fsm_fgwr <= S_PKTSKIP;
+
+        end if;
 
 
       when S_MEM_WR =>
 
         i_mem_start <= '0';
 
-        if i_mem_done = '1' then
+        if (i_mem_done = '1') then
 
-          i_pkt_vd_rd <= '0';
+          i_memwr_rden <= '0';
 
-          if i_fr_rownum = (i_fr_rowcount - 1) then
+          if (i_fr_rownum = (i_fr_rowcount - 1)) then
           --Frame complete
-            if i_fr_pixcount = (i_pixcount_byte + i_fr_pixnum) then
+            if (i_fr_pixcount = (i_pixcount_byte + i_fr_pixnum)) then
               for i in 0 to G_VCH_COUNT - 1 loop
-                if i_vch_num = i then
+                if (i_vch_num = i) then
                   i_fr_rdy(i) <= '1';
                   timestump_cnt(i) := timestump_cnt(i) + 1;
                   tst_timestump_cnt <= timestump_cnt(i);
@@ -330,6 +331,22 @@ if rising_edge(p_in_clk) then
           end if;
 
           i_fsm_fgwr <= S_IDLE;
+        end if;
+
+      --------------------------------------
+      --SKIP
+      --------------------------------------
+      when S_PKTSKIP =>
+
+        if (p_in_vbufi_empty = '0') then
+
+          i_skp_dcnt <= i_skp_dcnt + 1;
+
+          if (i_skp_dcnt = (i_mem_rqlen - 1)) then
+            i_skp_en <= '0';
+            i_fsm_fgwr <= S_IDLE;
+          end if;
+
         end if;
 
     end case;
@@ -367,7 +384,7 @@ p_out_cfg_mem_done   => i_mem_done,
 --USER Port
 -------------------------------
 p_in_usr_txbuf_dout  => p_in_vbufi_do,
-p_out_usr_txbuf_rd   => i_memwr_rd_out,
+p_out_usr_txbuf_rd   => i_memwr_rd,
 p_in_usr_txbuf_empty => p_in_vbufi_empty,
 
 p_out_usr_rxbuf_din  => open,
@@ -395,12 +412,13 @@ p_in_rst             => p_in_rst
 --DBG
 ------------------------------------
 gen_dbgcs_off : if strcmp(G_DBGCS,"OFF") generate
-p_out_tst(26 downto 0) <= (others => '0');
-p_out_tst(31 downto 26) <= "00" & i_pkt_type_err(2 downto 0) & '0';
+p_out_tst(22 downto 0) <= (others => '0');
+p_out_tst(23) <= i_err;
+p_out_tst(31 downto 24) <= (others => '0');
 end generate gen_dbgcs_off;
 
 gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
-p_out_tst(3  downto 0) <= std_logic_vector(tst_fgwr_fsm_cs);
+p_out_tst(3  downto 0) <= std_logic_vector(tst_fgwr_fsm);
 p_out_tst(4) <= i_vbufi_rd;
 p_out_tst(5) <= tst_vbufi_full;
 p_out_tst(6) <= i_fr_rdy(0);
@@ -408,33 +426,26 @@ p_out_tst(9 downto 7) <= (others => '0');
 p_out_tst(20 downto 10) <= std_logic_vector(i_fr_rownum(10 downto 0));
 p_out_tst(21) <= i_mem_start;
 p_out_tst(22) <= i_mem_done;
-
+p_out_tst(23) <= i_err;
 p_out_tst(31 downto 24) <= (others => '0');
-
-p_out_tst2 <= p_in_vbufi_do(127 downto 0);
-
 
 process(p_in_clk)
 begin
   if rising_edge(p_in_clk) then
---    tst_fgwr_fsm_cs_out <= std_logic_vector(tst_fgwr_fsm_cs);
---    tst_vbufi_empty <= p_in_vbufi_empty;
 
     if p_in_vbufi_full = '1' then
       tst_vbufi_full <= '1';
     elsif i_fsm_fgwr = S_IDLE then
       tst_vbufi_full <= '0';
     end if;
---    tst_vbufi_do <= p_in_vbufi_do;
---    tst_vbufi_rd <= i_memwr_rd_out;
 
   end if;
 end process;
 
-tst_fgwr_fsm_cs <= TO_UNSIGNED(16#01#, tst_fgwr_fsm_cs'length) when i_fsm_fgwr = S_PKTH_RD   else
-                   TO_UNSIGNED(16#02#, tst_fgwr_fsm_cs'length) when i_fsm_fgwr = S_MEM_START else
-                   TO_UNSIGNED(16#03#, tst_fgwr_fsm_cs'length) when i_fsm_fgwr = S_MEM_WR    else
-                   TO_UNSIGNED(16#00#, tst_fgwr_fsm_cs'length); --i_fsm_fgwr = S_IDLE        else
+tst_fgwr_fsm <= TO_UNSIGNED(16#01#, tst_fgwr_fsm'length) when i_fsm_fgwr = S_PKTH_RD   else
+                   TO_UNSIGNED(16#02#, tst_fgwr_fsm'length) when i_fsm_fgwr = S_MEM_START else
+                   TO_UNSIGNED(16#03#, tst_fgwr_fsm'length) when i_fsm_fgwr = S_MEM_WR    else
+                   TO_UNSIGNED(16#00#, tst_fgwr_fsm'length); --i_fsm_fgwr = S_IDLE        else
 end generate gen_dbgcs_on;
 
 end architecture behavioral;
