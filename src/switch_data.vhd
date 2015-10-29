@@ -664,7 +664,7 @@ end process;
 ----                          <= i_vbufi_fltr_dout((32 * (i + 1)) - 1 downto (32 * i));
 ----end generate;-- gen_swap_d;
 
-i_vbufi_fltr_den  <= tst_eth_rxbuf_den and (OR_reduce(h_reg_eth2fg_frr(0)) or h_reg_dbg(C_SWT_REG_DBG_HOST2FG_BIT));
+i_vbufi_fltr_den  <= tst_eth_rxbuf_den and OR_reduce(h_reg_eth2fg_frr(0));
 
 m_buf_eth2fg : fifo_eth2fg
 port map(

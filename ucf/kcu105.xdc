@@ -14,6 +14,8 @@ create_clock -period 8.000 -name {pin_in_refclk[M125_p]} -waveform {0.000 4.000}
 #set_property IOSTANDARD LVCMOS18 [get_ports {pin_in_refclk[M90]}]
 #create_clock -period 11.111 -name {pin_in_refclk[M90]} -waveform {0.000 5.556} [get_ports {pin_in_refclk[M90]}]
 
+set_property PACKAGE_PIN     F12  [get_ports {pin_out_refclk_sel}];
+set_property IOSTANDARD   LVCMOS18 [get_ports {pin_out_refclk_sel}];
 
 #------ Pin Location ------
 set_property PACKAGE_PIN     AD10  [get_ports {pin_in_btn[0]}]; #SW_N

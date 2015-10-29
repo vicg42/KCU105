@@ -83,7 +83,6 @@ p_in_memrd        : in    TMemOUT;
 -------------------------------
 p_in_tst          : in    std_logic_vector(31 downto 0);
 p_out_tst         : out   std_logic_vector(31 downto 0);
-p_out_tst2        : out   std_logic_vector(127 downto 0);
 
 -------------------------------
 --System
@@ -133,8 +132,6 @@ port(
 -------------------------------
 --CFG
 -------------------------------
---p_in_usrprm_ld : in    std_logic;
---p_in_usrprm    : in    TFGWR_Prms;
 p_in_memtrn    : in    std_logic_vector(7 downto 0);
 --p_in_work_en   : in    std_logic;
 
@@ -162,7 +159,6 @@ p_in_mem       : in    TMemOUT;
 -------------------------------
 p_in_tst       : in    std_logic_vector(31 downto 0);
 p_out_tst      : out   std_logic_vector(31 downto 0);
-p_out_tst2     : out   std_logic_vector(127 downto 0);
 
 -------------------------------
 --System
@@ -307,7 +303,7 @@ type TFG_TstOut is array (0 to C_FG_VCH_COUNT - 1)
   of std_logic_vector(31 downto 0);
 signal i_fgwr_tst_out          : std_logic_vector(31 downto 0);--: TFG_TstOut;
 signal i_fgwr_tst_outtmp       : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
-
+signal tst_pkt_err             : std_logic := '0';
 --signal tst_dbg_pictire         : std_logic;
 --signal tst_dbg_rd_hold         : std_logic;
 
@@ -807,8 +803,6 @@ port map(
 -------------------------------
 --CFG
 -------------------------------
---p_in_usrprm_ld => i_set_prm,
---p_in_usrprm    => i_prm_fgwr,
 p_in_memtrn    => i_prm.mem_wd_trn_len(7 downto 0),
 --p_in_work_en   => p_in_tst(1),
 
@@ -837,7 +831,6 @@ p_in_mem       => p_in_memwr,
 -------------------------------
 p_in_tst       => p_in_tst, --tst_ctrl(31 downto 0),--
 p_out_tst      => i_fgwr_tst_out,
-p_out_tst2     => p_out_tst2,
 
 -------------------------------
 --System
@@ -967,14 +960,9 @@ end process;
 --DBG
 ------------------------------------
 gen_dbgcs_off : if strcmp(G_DBGCS,"OFF") generate
-p_out_tst <= (others => '0');
---p_out_tst(0) <= '0';
---p_out_tst(4 downto 1) <= i_fgwr_tst_out(0)(4 downto 1);
---p_out_tst(8 downto 5) <= tst_fgrd_out(3 downto 0);
---p_out_tst(15 downto 9) <= (others => '0');
---p_out_tst(19 downto 16) <= (others => '0');
---p_out_tst(25 downto 20) <= (others => '0');
---p_out_tst(31 downto 26) <= i_fgwr_tst_out(0)(31 downto 26);
+p_out_tst(22 downto 0) <= (others => '0');
+p_out_tst(23) <= tst_pkt_err;
+p_out_tst(31 downto 24) <= (others => '0');
 end generate gen_dbgcs_off;
 
 gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
@@ -987,7 +975,7 @@ p_out_tst(9) <= i_vbuf_hold(0);
 p_out_tst(20 downto 10) <= i_fgwr_tst_out(20 downto 10);
 p_out_tst(21) <= i_fgwr_tst_out(21);
 p_out_tst(22) <= i_fgwr_tst_out(22);
-p_out_tst(23) <= i_fgwr_tst_out(23);
+p_out_tst(23) <= tst_pkt_err;
 p_out_tst(31 downto 24) <= (others => '0');
 --p_out_tst(4 downto 1) <= tst_fgwr_out(3 downto 0);
 --p_out_tst(8 downto 5) <= tst_fgrd_out(3 downto 0);
@@ -997,6 +985,20 @@ p_out_tst(31 downto 24) <= (others => '0');
 --p_out_tst(31 downto 26) <= tst_fgwr_out(31 downto 26);
 end generate gen_dbgcs_on;
 
+process(p_in_clk)
+begin
+if rising_edge(p_in_clk) then
+  if (p_in_rst = '1') then
+    tst_pkt_err <= '0';
+  else
+    if (i_fgwr_tst_out(23) = '1') then --i_err
+      tst_pkt_err <= '1';
+    elsif (i_hrdstart = '1') then
+      tst_pkt_err <= '0';
+    end if;
+  end if;
+end if;
+end process;
 
 end architecture behavioral;
 

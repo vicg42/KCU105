@@ -89,18 +89,17 @@ constant C_HDEV_COUNT_MAX                     : integer := pwr(2, (C_HREG_DEV_CT
 
 --Register C_HOST_REG_STATUS_DEV / Bit Map:
 constant C_HREG_DEV_STATUS_DMA_BUSY_BIT       : integer := 0; --PCIE_DMA
-constant C_HREG_DEV_STATUS_CFG_RDY_BIT        : integer := 1;
+constant C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT    : integer := 1;
 constant C_HREG_DEV_STATUS_CFG_RXRDY_BIT      : integer := 2;
 constant C_HREG_DEV_STATUS_CFG_TXRDY_BIT      : integer := 3;
-constant C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT    : integer := 4;
-constant C_HREG_DEV_STATUS_ETH_RDY_BIT        : integer := 5;
-constant C_HREG_DEV_STATUS_ETH_LINK_BIT       : integer := 6;
-constant C_HREG_DEV_STATUS_ETH_RXRDY_BIT      : integer := 7;
-constant C_HREG_DEV_STATUS_ETH_TXRDY_BIT      : integer := 8;
-constant C_HREG_DEV_STATUS_FG_VCH0_RDY_BIT    : integer := 9;
-constant C_HREG_DEV_STATUS_FG_VCH1_RDY_BIT    : integer := 10;
-constant C_HREG_DEV_STATUS_FG_VCH2_RDY_BIT    : integer := 11;
-constant C_HREG_DEV_STATUS_FG_VCH3_RDY_BIT    : integer := 12;
+constant C_HREG_DEV_STATUS_ETH_RDY_BIT        : integer := 4;
+constant C_HREG_DEV_STATUS_ETH_LINK_BIT       : integer := 5;
+constant C_HREG_DEV_STATUS_ETH_RXRDY_BIT      : integer := 6;
+constant C_HREG_DEV_STATUS_ETH_TXRDY_BIT      : integer := 7;
+constant C_HREG_DEV_STATUS_FG_VCH0_RDY_BIT    : integer := 8;
+constant C_HREG_DEV_STATUS_FG_VCH1_RDY_BIT    : integer := 9;
+constant C_HREG_DEV_STATUS_FG_VCH2_RDY_BIT    : integer := 10;
+constant C_HREG_DEV_STATUS_FG_VCH3_RDY_BIT    : integer := 11;
 
 constant C_HREG_DEV_STATUS_FST_BIT            : integer := 1;
 constant C_HREG_DEV_STATUS_LAST_BIT           : integer := C_HREG_DEV_STATUS_FG_VCH0_RDY_BIT;

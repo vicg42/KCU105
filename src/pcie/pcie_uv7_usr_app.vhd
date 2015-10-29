@@ -420,8 +420,7 @@ if rising_edge(p_in_clk) then
 
         elsif (i_reg_adr = TO_UNSIGNED(C_HREG_DEV_STATUS, 5)) then
             txd(C_HREG_DEV_STATUS_DMA_BUSY_BIT) := i_dma_work;
-            txd(C_HREG_DEV_STATUS_LAST_BIT downto C_HREG_DEV_STATUS_CFG_RDY_BIT)
-                  := p_in_dev_status(C_HREG_DEV_STATUS_LAST_BIT downto C_HREG_DEV_STATUS_CFG_RDY_BIT);
+            txd(C_HREG_DEV_STATUS_LAST_BIT downto (C_HREG_DEV_STATUS_DMA_BUSY_BIT + 1)) := p_in_dev_status;
 
         elsif (i_reg_adr = TO_UNSIGNED(C_HREG_FG_FRMRK, 5)) then
           txd := p_in_dev_opt(C_HDEV_OPTIN_FG_FRMRK_M_BIT downto C_HDEV_OPTIN_FG_FRMRK_L_BIT);
