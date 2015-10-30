@@ -46,6 +46,8 @@ end entity timers;
 
 architecture behavioral of timers is
 
+constant CI_EXP_VALUE : integer := 7;
+
 signal i_reg_adr        : unsigned(p_in_cfg_adr'range);
 
 signal h_reg_tmr_num    : unsigned((C_TMR_REG_CTRL_NUM_M_BIT - C_TMR_REG_CTRL_NUM_L_BIT) downto 0);
@@ -54,11 +56,12 @@ signal sr_tmr_en        : std_logic_vector(C_TMR_COUNT - 1 downto 0);
 
 type TValCmp  is array (0 to C_TMR_COUNT - 1) of unsigned (31 downto 0);
 signal h_reg_count      : TValCmp;
+signal i_reg_count      : TValCmp;
 signal i_tmr_cnt        : TValCmp;
 signal i_tmr_irq        : std_logic_vector(C_TMR_COUNT - 1 downto 0);
-signal i_tmr_irq_width  : std_logic_vector(C_TMR_COUNT - 1 downto 0);
+signal i_tmr_irq_exp    : std_logic_vector(C_TMR_COUNT - 1 downto 0);
 
-type TSrIrqTmr  is array (0 to C_TMR_COUNT - 1) of unsigned(3 downto 0);
+type TSrIrqTmr  is array (0 to C_TMR_COUNT - 1) of unsigned(0 to CI_EXP_VALUE);
 signal sr_tmr_irq       : TSrIrqTmr;
 
 --signal i_tmr_irq_out    : std_logic_vector(C_TMR_COUNT - 1 downto 0);
@@ -186,9 +189,10 @@ if rising_edge(p_in_tmr_clk) then
   else
 
     sr_tmr_en(i) <= h_tmr_en(i);
+    i_reg_count(i) <= h_reg_count(i);
 
     if sr_tmr_en(i) = '1' then
-      if i_tmr_cnt(i) = h_reg_count(i) then
+      if i_tmr_cnt(i) = i_reg_count(i) then
         i_tmr_cnt(i) <= (others => '0');
       else
         i_tmr_cnt(i) <= i_tmr_cnt(i) + 1;
@@ -197,8 +201,8 @@ if rising_edge(p_in_tmr_clk) then
       i_tmr_cnt(i) <= (others => '0');
     end if;
 
-    if (i_tmr_cnt(i) = h_reg_count(i))
-        and (h_reg_count(i) /= (h_reg_count(i)'range => '0')) then
+    if (i_tmr_cnt(i) = i_reg_count(i))
+        and (i_reg_count(i) /= (i_reg_count(i)'range => '0')) then
 
       i_tmr_irq(i) <= '1';
 
@@ -218,14 +222,14 @@ process(p_in_tmr_clk)
 begin
 if rising_edge(p_in_tmr_clk) then
   if p_in_rst = '1' then
-    i_tmr_irq_width(i) <= '0';
+    i_tmr_irq_exp(i) <= '0';
     sr_tmr_irq(i) <= (others => '0');
   else
 
     if i_tmr_irq(i) = '1' then
-      i_tmr_irq_width(i) <= '1';
+      i_tmr_irq_exp(i) <= '1';
     elsif sr_tmr_irq(i)(sr_tmr_irq(i)'high) = '1' then
-      i_tmr_irq_width(i) <= '0';
+      i_tmr_irq_exp(i) <= '0';
     end if;
 
     sr_tmr_irq(i) <= i_tmr_irq(i) & sr_tmr_irq(i)(0 to sr_tmr_irq'high - 1);
@@ -238,13 +242,13 @@ end process;
 --process(p_in_cfg_clk)
 --begin
 --if rising_edge(p_in_cfg_clk) then
---  i_tmr_irq_out(i) <= i_tmr_irq_width(i);
+--  i_tmr_irq_out(i) <= i_tmr_irq_exp(i);
 --end if;
 --end process;
 
 end generate gen_tmr;
 
-p_out_tmr_irq <= i_tmr_irq_width;--i_tmr_irq_out;
+p_out_tmr_irq <= i_tmr_irq_exp;--i_tmr_irq_out;
 p_out_tmr_en <= h_tmr_en;
 
 

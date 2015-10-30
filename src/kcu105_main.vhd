@@ -636,6 +636,9 @@ i_host_dev_opt_in(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) <= i_host_rxbuf_empty(C_HDEV_ET
                                                     i_host_rxbuf_empty(C_HDEV_FG)  when i_host_devadr = TO_UNSIGNED(C_HDEV_FG , i_host_devadr'length) else
                                                     '0';
 
+i_host_dev_opt_in(C_HDEV_OPTIN_ETH_HEADER_M_BIT
+                    downto C_HDEV_OPTIN_ETH_HEADER_L_BIT) <= i_host_rxd(C_HDEV_ETH)(31 downto 0);
+
 i_host_dev_opt_in(C_HDEV_OPTIN_MEM_DONE_BIT) <= '0';--i_host_mem_status.done;
 
 

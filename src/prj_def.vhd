@@ -48,6 +48,7 @@ constant C_HREG_FG_FRMRK                      : integer := 16#0A#;--frame marker
 constant C_HREG_PCIE                          : integer := 16#0D#;--PCIE info
 constant C_HREG_FUNC                          : integer := 16#0E#;--FPGA module using
 constant C_HREG_FUNCPRM                       : integer := 16#0F#;--FPGA module info
+constant C_HREG_ETH_HEADER                    : integer := 16#10#;
 constant C_HREG_TST0                          : integer := 16#1C#;--DBG registers
 constant C_HREG_TST1                          : integer := 16#1D#;--(Wr) PWM control
 constant C_HREG_TST2                          : integer := 16#1E#;--(Rd) Temperature
@@ -185,9 +186,11 @@ constant C_HDEV_OPTIN_RXFIFO_EMPTY_BIT        : integer := 1;
 constant C_HDEV_OPTIN_MEM_DONE_BIT            : integer := 2;
 constant C_HDEV_OPTIN_FG_FRMRK_L_BIT          : integer := 3;
 constant C_HDEV_OPTIN_FG_FRMRK_M_BIT          : integer := 34;
+constant C_HDEV_OPTIN_ETH_HEADER_L_BIT        : integer := 35;
+constant C_HDEV_OPTIN_ETH_HEADER_M_BIT        : integer := 66;
 
 constant C_HDEV_OPTIN_FST_BIT                 : integer := 0;
-constant C_HDEV_OPTIN_LAST_BIT                : integer := C_HDEV_OPTIN_FG_FRMRK_M_BIT;
+constant C_HDEV_OPTIN_LAST_BIT                : integer := C_HDEV_OPTIN_ETH_HEADER_M_BIT;
 
 
 --Port of module pcie_main.vhd /p_out_dev_option/ Bit Map:

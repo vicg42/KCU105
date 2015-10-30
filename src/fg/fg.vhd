@@ -266,6 +266,7 @@ signal sr_irq                  : TFG_SrIRQ;
 signal i_irq_exp               : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
 signal i_irq                   : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
 signal i_vbuf_hold             : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
+signal i_hdrdy_out             : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
 
 signal i_vbuf_wr               : TFG_FrBufs;
 signal i_vbuf_rd               : TFG_FrBufs;
@@ -275,6 +276,7 @@ signal i_fgwr_mrk              : std_logic_vector(31 downto 0);
 
 signal i_frmrk_save            : TFG_FrMrks_Bufs_VCH;
 signal i_frmrk_out             : std_logic_vector(31 downto 0);
+signal i_frmrk                 : std_logic_vector(31 downto 0);
 
 signal i_fgrd_rddone           : std_logic;
 signal i_fgrd_vch              : std_logic_vector(p_in_hrdchsel'range);
@@ -933,10 +935,16 @@ rst       => i_vbufo_rst
 i_vbufo_rst <= p_in_rst or p_in_tst(0);
 
 p_out_hirq <= i_irq_exp;
-p_out_hdrdy <= i_vbuf_hold;
-
---Marker of read video frame:
+p_out_hdrdy <= i_hdrdy_out;
 p_out_hfrmrk <= i_frmrk_out;
+
+process(p_in_vbufo_rdclk)
+begin
+if rising_edge(p_in_vbufo_rdclk) then
+i_hdrdy_out <= i_vbuf_hold;
+i_frmrk_out <= i_frmrk;
+end if;
+end process;
 
 process(p_in_clk)
 begin
@@ -946,7 +954,7 @@ if rising_edge(p_in_clk) then
       if UNSIGNED(i_fgrd_vch) = ch then
         for buf in 0 to C_FG_VBUF_COUNT - 1 loop
           if i_vbuf_rd(ch) = buf then
-            i_frmrk_out <= i_frmrk_save(ch)(buf);
+            i_frmrk <= i_frmrk_save(ch)(buf);
           end if;
         end loop;
       end if;

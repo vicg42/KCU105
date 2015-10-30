@@ -425,6 +425,9 @@ if rising_edge(p_in_clk) then
         elsif (i_reg_adr = TO_UNSIGNED(C_HREG_FG_FRMRK, 5)) then
           txd := p_in_dev_opt(C_HDEV_OPTIN_FG_FRMRK_M_BIT downto C_HDEV_OPTIN_FG_FRMRK_L_BIT);
 
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_ETH_HEADER, 5)) then
+          txd := p_in_dev_opt(C_HDEV_OPTIN_ETH_HEADER_M_BIT downto C_HDEV_OPTIN_ETH_HEADER_L_BIT);
+
         elsif (i_reg_adr = TO_UNSIGNED(C_HREG_TST0, 5)) then
           txd := std_logic_vector(RESIZE(UNSIGNED(i_reg.tst0), txd'length));
 
