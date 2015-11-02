@@ -13,6 +13,7 @@ use ieee.numeric_std.all;
 
 library work;
 use work.vicg_common_pkg.all;
+use work.reduce_pack.all;
 use work.eth_pkg.all;
 
 entity eth_mac_rx is
@@ -33,8 +34,8 @@ p_in_cfg : in TEthCfg;
 p_out_rxbuf_di   : out   std_logic_vector(G_USRBUF_DWIDTH - 1 downto 0);
 p_out_rxbuf_wr   : out   std_logic;
 p_in_rxbuf_full  : in    std_logic;
-p_out_rxd_sof    : out   std_logic;
-p_out_rxd_eof    : out   std_logic;
+p_out_rxbuf_sof  : out   std_logic;
+p_out_rxbuf_eof  : out   std_logic;
 
 --------------------------------------
 --ETH core (Rx)
@@ -69,10 +70,22 @@ S_RX_END
 );
 signal i_fsm_eth_rx      : TEth_fsm_rx;
 
-type TEth_rxd is array (0 to (G_AXI_DWIDTH / 8) - 1) of std_logic_vector(7 downto 0);
-signal sr_ethrx_d        : TEth_rxd;
-signal i_ethrx_d         : TEth_rxd;
-signal i_rxbuf_di        : TEth_rxd;
+type TEth_rxd8 is array (0 to (G_AXI_DWIDTH / 8) - 1) of std_logic_vector(7 downto 0);
+signal sr_ethrx_d        : TEth_rxd8;
+signal i_ethrx_d         : TEth_rxd8;
+signal i_rx_d            : TEth_rxd8;
+signal i_rx_dv           : std_logic_vector(G_AXI_DWIDTH - 1 downto 0);
+
+type TUSR_rxdchunk is array (0 to (G_USRBUF_DWIDTH / G_AXI_DWIDTH) - 1) of std_logic_vector(G_AXI_DWIDTH - 1 downto 0);
+signal i_rx_wr           : std_logic;
+signal i_rx_sof          : std_logic;
+signal i_rx_eof          : std_logic;
+signal i_rxbuf_di        : TUSR_rxdchunk;
+signal i_chunk_cnt       : unsigned(selval(1, log2(i_rxbuf_di'length), (i_rxbuf_di'length = 1)) - 1 downto 0);
+signal i_rxbuf_wr        : std_logic;
+signal i_rxbuf_sof       : std_logic;
+signal i_rxbuf_eof       : std_logic;
+signal i_rxbuf_sof_en    : std_logic;
 
 signal i_ethrx_mac_dst   : TEthMacAdr;
 signal i_ethrx_mac_valid : std_logic_vector(i_ethrx_mac_dst'length - 1 downto 0);
@@ -87,35 +100,12 @@ signal i_axi_tready      : std_logic;
 begin --architecture behavioral of eth_mac_rx is
 
 
-
 p_out_axi_tready <= i_axi_tready and (not p_in_rxbuf_full);
 
-i_rxbuf_di(0) <= sr_ethrx_d(4);
-i_rxbuf_di(1) <= sr_ethrx_d(5);
-i_rxbuf_di(2) <= sr_ethrx_d(6);
-i_rxbuf_di(3) <= sr_ethrx_d(7);
-i_rxbuf_di(4) <= i_ethrx_d(0);
-i_rxbuf_di(5) <= i_ethrx_d(1);
-i_rxbuf_di(6) <= i_ethrx_d(2);
-i_rxbuf_di(7) <= i_ethrx_d(3);
-
-gen_rxbuf : for i in 0 to i_rxbuf_di'length - 1 generate begin
-p_out_rxbuf_di((32 * (i + 1)) - 1 downto (32 * i)) <= i_rxbuf_di(i);
-end generate gen_rxbuf;
-
-p_out_rxbuf_wr <= i_ethrx_wren and (not p_in_rxbuf_full) and (p_in_axi_tvalid or i_ethrx_de);
-p_out_rxbuf_sof <= i_ethrx_sof and (not p_in_rxbuf_full) and (p_in_axi_tvalid or i_ethrx_de);
-p_out_rxd_eof <= '0';
-
-gen : for i in 0 to (G_AXI_DWIDTH / 8) - 1 generate begin
-i_ethrx_d(i) <= p_in_axis_tdata((8 * (i + 1)) - 1 downto (8 * i));
+gen : for i in 0 to (G_AXI_DWIDTH / i_ethrx_d(0)'length) - 1 generate begin
+i_ethrx_d(i) <= p_in_axi_tdata((i_ethrx_d(i)'length * (i + 1)) - 1 downto (i_ethrx_d(i)'length * i));
 end generate;
 
-
-gen_mac_check : for i in 0 to p_in_cfg.mac.src'length - 1 generate
-i_ethrx_mac_valid(i) <= '1' when i_ethrx_mac_dst(i) = p_in_cfg.mac.src(i) else '0';
---i_ethrx_mac_valid(i) <= '1' when i_ethrx_mac_dst(i) = p_in_cfg.mac.dst(i) else '0';--for TEST
-end generate gen_mac_check;
 
 ---------------------------------------------
 --
@@ -128,7 +118,7 @@ if rising_edge(p_in_clk) then
     i_fsm_eth_rx <= S_RX_IDLE;
 
     for i in 0 to i_ethrx_mac_dst'length - 1 loop
-    i_ethrx_mac_dst(i) <= (others=>'0');
+    i_ethrx_mac_valid(i) <= '0';
     end loop;
 
     for i in 0 to i_ethrx_d'length - 1 loop
@@ -155,7 +145,9 @@ if rising_edge(p_in_clk) then
           if (p_in_axi_tvalid = '1') then
 
             for i in 0 to i_ethrx_mac_dst'length - 1 loop
-            i_ethrx_mac_dst(i) <= i_ethrx_d(i);
+              if (p_in_cfg.mac.src(i) = UNSIGNED(i_ethrx_d(i))) then
+                i_ethrx_mac_valid(i) <= '1';
+              end if;
             end loop;
 
             i_fsm_eth_rx <= S_RX_CHK;
@@ -169,6 +161,7 @@ if rising_edge(p_in_clk) then
 
           if (p_in_axi_tvalid = '1') then
 
+            --Swap length fiald
             sr_ethrx_d(5) <= i_ethrx_d(4);
             sr_ethrx_d(4) <= i_ethrx_d(5);
 
@@ -185,10 +178,18 @@ if rising_edge(p_in_clk) then
                 if (p_in_axi_tlast = '1') then
 
                   i_ethrx_sof <= '1';
-                  i_ethrx_de <= '1';
 
-                  i_axi_tready <= '0';
-                  i_fsm_eth_rx <= S_RX_END;
+                  if (p_in_axi_tkeep(7 downto 4) /= "0000") then
+
+                    i_axi_tready <= '0';
+                    i_ethrx_de <= '1';
+                    i_fsm_eth_rx <= S_RX_END;
+
+                  else
+
+                    i_fsm_eth_rx <= S_RX_IDLE;
+
+                  end if;
 
                 else
 
@@ -210,8 +211,6 @@ if rising_edge(p_in_clk) then
 
             end if;
 
-            i_fsm_eth_rx <= S_RX_CHK;
-
           end if;
 
         --------------------------------------
@@ -227,14 +226,11 @@ if rising_edge(p_in_clk) then
               sr_ethrx_d(i) <= i_ethrx_d(i);
               end loop;
 
-              i_usr_rxd((8 * 8) - 1 downto 8 * 5) <= p_in_ethrx_d((8 * 4) - 1 downto 8 * 0);
-              i_usr_rxd((8 * 4) - 1 downto 8 * 0) <= sr_ethrx_d;
-
               i_ethrx_wren <= '1';
 
               if (p_in_axi_tlast = '1') then
 
-                  if( p_in_axi_tkeep(7 downto 4) /= "0000") then
+                  if (p_in_axi_tkeep(7 downto 4) /= "0000") then
 
                     i_axi_tready <= '0';
                     i_ethrx_de <= '1';
@@ -265,6 +261,87 @@ if rising_edge(p_in_clk) then
   end if;
 end if;
 end process;
+
+
+i_rx_d(0) <= sr_ethrx_d(4);
+i_rx_d(1) <= sr_ethrx_d(5);
+i_rx_d(2) <= sr_ethrx_d(6);
+i_rx_d(3) <= sr_ethrx_d(7);
+i_rx_d(4) <= i_ethrx_d(0);
+i_rx_d(5) <= i_ethrx_d(1);
+i_rx_d(6) <= i_ethrx_d(2);
+i_rx_d(7) <= i_ethrx_d(3);
+
+gen_rx_dv : for i in 0 to i_rx_d'length - 1 generate begin
+i_rx_dv((i_rx_d(i)'length * (i + 1)) - 1 downto (i_rx_d(i)'length * i)) <= i_rx_d(i);
+end generate gen_rx_dv;
+
+i_rx_wr <= i_ethrx_wren and (not p_in_rxbuf_full) and (p_in_axi_tvalid or i_ethrx_de);
+i_rx_sof <= i_ethrx_sof and (not p_in_rxbuf_full) and (p_in_axi_tvalid or i_ethrx_de);
+i_rx_eof <= (p_in_axi_tvalid and (not p_in_rxbuf_full)) when p_in_axi_tlast = '1' and OR_reduce(p_in_axi_tkeep(7 downto 4)) = '0' else i_ethrx_de;
+
+
+process(p_in_clk)
+begin
+if rising_edge(p_in_clk) then
+  if (p_in_rst = '1') then
+
+    for i in 0 to i_rxbuf_di'length - 1 loop
+      i_rxbuf_di(i) <= (others => '0');
+    end loop;
+    i_rxbuf_wr <= '0';
+    i_rxbuf_sof_en <= '0';
+    i_rxbuf_sof <= '0';
+    i_rxbuf_eof <= '0';
+
+    i_chunk_cnt <= (others => '0');
+
+  else
+    if (i_rx_wr = '1') then
+
+      if (i_rx_eof = '1') then
+        i_chunk_cnt <= (others => '0');
+      else
+        i_chunk_cnt <= i_chunk_cnt + 1;
+      end if;
+
+      for i in 0 to i_rxbuf_di'length - 1 loop
+        if (i_chunk_cnt = i) then
+          i_rxbuf_di(i) <= i_rx_dv;
+        end if;
+      end loop;
+
+    end if;
+
+    i_rxbuf_wr <= AND_reduce(i_chunk_cnt) or i_rx_eof;
+
+    i_rxbuf_eof <= i_rx_eof;
+
+    if (i_rx_wr = '1' and i_rx_sof = '1' and i_rx_eof = '1') then
+      i_rxbuf_sof <= '1';
+
+    elsif (i_rx_wr = '1' and i_rx_sof = '1' and i_rx_eof = '0') then
+      i_rxbuf_sof_en <= '1';
+
+    elsif (i_rx_wr = '1' and i_rxbuf_sof_en = '1' and (AND_reduce(i_chunk_cnt) = '1' or i_rx_eof = '1')) then
+      i_rxbuf_sof_en <= '0';
+      i_rxbuf_sof <= '1';
+
+    else
+      i_rxbuf_sof <= '0';
+
+    end if;
+
+  end if;
+end if;
+end process;
+
+gen_rxbuf_di : for i in 0 to i_rxbuf_di'length - 1 generate begin
+p_out_rxbuf_di((i_rxbuf_di(i)'length * (i + 1)) - 1 downto (i_rxbuf_di(i)'length * i)) <= (i_rxbuf_di(i));
+end generate gen_rxbuf_di;
+p_out_rxbuf_wr  <= i_rxbuf_wr ;
+p_out_rxbuf_sof <= i_rxbuf_sof;
+p_out_rxbuf_eof <= i_rxbuf_eof;
 
 
 ------------------------------------
