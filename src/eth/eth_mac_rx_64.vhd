@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------
 -- Engineer    : Golovachenko Victor (vicg42@gmail.com)
 --
--- Create Date : 08.08.2013 18:22:48
+-- Create Date : 02.11.2015 14:45:38
 -- Module Name : eth_rx
 --
--- Extrax from
+-- Extract from MAC Frame: Dst + Src Adress
 --
 -------------------------------------------------------------------------
 library ieee;
@@ -40,11 +40,11 @@ p_out_rxbuf_eof  : out   std_logic;
 --------------------------------------
 --ETH core (Rx)
 --------------------------------------
+p_out_axi_tready : out   std_logic;
 p_in_axi_tdata   : in    std_logic_vector(G_AXI_DWIDTH - 1 downto 0);
 p_in_axi_tkeep   : in    std_logic_vector((G_AXI_DWIDTH / 8) - 1 downto 0);
 p_in_axi_tvalid  : in    std_logic;
 p_in_axi_tlast   : in    std_logic;
-p_out_axi_tready : out   std_logic;
 
 --------------------------------------------------
 --DBG
