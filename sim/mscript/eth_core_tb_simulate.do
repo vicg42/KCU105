@@ -11,12 +11,11 @@ vsim -voptargs="+acc" -t 1ps -L unisims_ver -L unimacro_ver \
 -lib xil_defaultlib xil_defaultlib.eth_core_demo_tb xil_defaultlib.glbl
 
 
-do {eth_core_demo_tb_wave.do}
-
+do {eth_core_tb_wave.do}
 view wave
 view structure
 view signals
 
-do {eth_core_demo_tb.udo}
+#do {eth_core_demo_tb.udo}
 
 run 1000ns

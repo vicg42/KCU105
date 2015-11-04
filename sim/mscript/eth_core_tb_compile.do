@@ -23,80 +23,80 @@ vmap gtwizard_ultrascale_v1_5 msim/gtwizard_ultrascale_v1_5
 vmap ten_gig_eth_pcs_pma_v6_0 msim/ten_gig_eth_pcs_pma_v6_0
 
 vlog -64 -incr -work xil_defaultlib  \
-"./../../../eth_core_example.srcs/sources_1/imports/example_design/support/gtwizard_ultrascale_v1_5_gthe3_common.v" \
-"./../../../eth_core_example.srcs/sources_1/imports/example_design/support/eth_core_ff_synchronizer_rst2.v" \
-"./../../../eth_core_example.srcs/sources_1/imports/example_design/support/eth_core_gt_common_wrapper.v" \
-"./../../../eth_core_example.srcs/sources_1/imports/example_design/fifo/eth_core_fifo_ram.v" \
-"./../../../eth_core_example.srcs/sources_1/imports/example_design/eth_core_sync_reset.v" \
-"./../../../eth_core_example.srcs/sources_1/imports/example_design/eth_core_sync_block.v" \
-"./../../../eth_core_example.srcs/sources_1/imports/example_design/support/eth_core_shared_clock_and_reset.v" \
-"./../../../eth_core_example.srcs/sources_1/imports/example_design/support/eth_core_gt_common.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/support/gtwizard_ultrascale_v1_5_gthe3_common.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/support/eth_core_ff_synchronizer_rst2.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/support/eth_core_gt_common_wrapper.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/fifo/eth_core_fifo_ram.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/eth_core_sync_reset.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/eth_core_sync_block.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/support/eth_core_shared_clock_and_reset.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/support/eth_core_gt_common.v" \
 
 vlog -64 -incr -work ten_gig_eth_mac_v15_0  \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_0/ten_gig_eth_mac_v15_0/hdl/ten_gig_eth_mac_v15_0_rfs.v" \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_0/ten_gig_eth_mac_v15_0/hdl/bd_1_ten_gig_eth_mac_0_core.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_0/ten_gig_eth_mac_v15_0/hdl/ten_gig_eth_mac_v15_0_rfs.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_0/ten_gig_eth_mac_v15_0/hdl/bd_1_ten_gig_eth_mac_0_core.v" \
 
 vcom -64 -93 -work ten_gig_eth_mac_v15_0  \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_0/synth/bd_1_ten_gig_eth_mac_0_block.vhd" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_0/synth/bd_1_ten_gig_eth_mac_0_block.vhd" \
 
 vcom -64 -93 -work xil_defaultlib  \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_0/synth/bd_1_ten_gig_eth_mac_0.vhd" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_0/synth/bd_1_ten_gig_eth_mac_0.vhd" \
 
 vlog -64 -incr -work gtwizard_ultrascale_v1_5  \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_bit_synchronizer.v" \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gthe3_cpll_cal.v" \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gthe3_cpll_cal_freq_counter.v" \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_buffbypass_rx.v" \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_buffbypass_tx.v" \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_reset.v" \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_userclk_rx.v" \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_userclk_tx.v" \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_userdata_rx.v" \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_userdata_tx.v" \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_reset_synchronizer.v" \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/sim/gtwizard_ultrascale_v1_5_gthe3_channel.v" \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/sim/bd_1_ten_gig_eth_pcs_pma_0_gt_gthe3_channel_wrapper.v" \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/sim/bd_1_ten_gig_eth_pcs_pma_0_gt_gtwizard_gthe3.v" \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/sim/bd_1_ten_gig_eth_pcs_pma_0_gt_gtwizard_top.v" \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/sim/bd_1_ten_gig_eth_pcs_pma_0_gt.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_bit_synchronizer.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gthe3_cpll_cal.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gthe3_cpll_cal_freq_counter.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_buffbypass_rx.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_buffbypass_tx.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_reset.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_userclk_rx.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_userclk_tx.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_userdata_rx.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_userdata_tx.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_reset_synchronizer.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/sim/gtwizard_ultrascale_v1_5_gthe3_channel.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/sim/bd_1_ten_gig_eth_pcs_pma_0_gt_gthe3_channel_wrapper.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/sim/bd_1_ten_gig_eth_pcs_pma_0_gt_gtwizard_gthe3.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/sim/bd_1_ten_gig_eth_pcs_pma_0_gt_gtwizard_top.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/sim/bd_1_ten_gig_eth_pcs_pma_0_gt.v" \
 
 vlog -64 -incr -work ten_gig_eth_pcs_pma_v6_0  \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ten_gig_eth_pcs_pma_v6_0/hdl/ten_gig_eth_pcs_pma_v6_0_rfs.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ten_gig_eth_pcs_pma_v6_0/hdl/ten_gig_eth_pcs_pma_v6_0_rfs.v" \
 
 vcom -64 -93 -work ten_gig_eth_pcs_pma_v6_0  \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/synth/bd_1_ten_gig_eth_pcs_pma_0_ff_synchronizer_rst.vhd" \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/synth/bd_1_ten_gig_eth_pcs_pma_0_ff_synchronizer.vhd" \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/synth/bd_1_ten_gig_eth_pcs_pma_0_local_clock_and_reset.vhd" \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/synth/bd_1_ten_gig_eth_pcs_pma_0_sim_speedup_controller.vhd" \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/synth/bd_1_ten_gig_eth_pcs_pma_0_cable_pull_logic.vhd" \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/synth/bd_1_ten_gig_eth_pcs_pma_0_block.vhd" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/synth/bd_1_ten_gig_eth_pcs_pma_0_ff_synchronizer_rst.vhd" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/synth/bd_1_ten_gig_eth_pcs_pma_0_ff_synchronizer.vhd" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/synth/bd_1_ten_gig_eth_pcs_pma_0_local_clock_and_reset.vhd" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/synth/bd_1_ten_gig_eth_pcs_pma_0_sim_speedup_controller.vhd" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/synth/bd_1_ten_gig_eth_pcs_pma_0_cable_pull_logic.vhd" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/synth/bd_1_ten_gig_eth_pcs_pma_0_block.vhd" \
 
 vcom -64 -93 -work xil_defaultlib  \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/synth/bd_1_ten_gig_eth_pcs_pma_0.vhd" \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_2/work/xlconstant.vhd" \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_2/sim/bd_1_dcm_locked_driver_0.vhd" \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_3/sim/bd_1_pma_pmd_type_driver_0.vhd" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/synth/bd_1_ten_gig_eth_pcs_pma_0.vhd" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_2/work/xlconstant.vhd" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_2/sim/bd_1_dcm_locked_driver_0.vhd" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_3/sim/bd_1_pma_pmd_type_driver_0.vhd" \
 
 vcom -64 -93 -work xil_defaultlib  \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/bd_1/hdl/bd_1.vhd" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/hdl/bd_1.vhd" \
 
 vcom -64 -93 -work xil_defaultlib  \
-"./../../../eth_core_example.srcs/sources_1/ip/eth_core/sim/eth_core.vhd" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/sim/eth_core.vhd" \
 
 vlog -64 -incr -work xil_defaultlib  \
-"./../../../eth_core_example.srcs/sources_1/imports/example_design/fifo/eth_core_axi_fifo.v" \
-"./../../../eth_core_example.srcs/sources_1/imports/example_design/support/eth_core_shared_clocking_wrapper.v" \
-"./../../../eth_core_example.srcs/sources_1/imports/example_design/fifo/eth_core_xgmac_fifo.v" \
-"./../../../eth_core_example.srcs/sources_1/imports/example_design/eth_core_address_swap.v" \
-"./../../../eth_core_example.srcs/sources_1/imports/example_design/eth_core_axi_mux.v" \
-"./../../../eth_core_example.srcs/sources_1/imports/example_design/eth_core_axi_pat_check.v" \
-"./../../../eth_core_example.srcs/sources_1/imports/example_design/eth_core_axi_pat_gen.v" \
-"./../../../eth_core_example.srcs/sources_1/imports/example_design/support/eth_core_support.v" \
-"./../../../eth_core_example.srcs/sources_1/imports/example_design/eth_core_fifo_block.v" \
-"./../../../eth_core_example.srcs/sources_1/imports/example_design/eth_core_gen_check_wrapper.v" \
-"./../../../eth_core_example.srcs/sources_1/imports/example_design/eth_core_clocking.v" \
-"./../../../eth_core_example.srcs/sources_1/imports/example_design/eth_core_example_design.v" \
-"./../../../eth_core_example.srcs/sim_1/imports/simulation/eth_core_demo_tb.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/fifo/eth_core_axi_fifo.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/support/eth_core_shared_clocking_wrapper.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/fifo/eth_core_xgmac_fifo.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/eth_core_address_swap.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/eth_core_axi_mux.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/eth_core_axi_pat_check.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/eth_core_axi_pat_gen.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/support/eth_core_support.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/eth_core_fifo_block.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/eth_core_gen_check_wrapper.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/eth_core_clocking.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/eth_core_example_design.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sim_1/imports/simulation/eth_core_demo_tb.v" \
 
 # compile glbl module
 vlog -work xil_defaultlib "glbl.v"
