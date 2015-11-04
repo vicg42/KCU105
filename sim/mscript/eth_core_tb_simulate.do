@@ -8,7 +8,7 @@
 ######################################################################
 vsim -voptargs="+acc" -t 1ps -L unisims_ver -L unimacro_ver \
 -L secureip -L ten_gig_eth_mac_v15_0 -L gtwizard_ultrascale_v1_5 -L ten_gig_eth_pcs_pma_v6_0 -L xil_defaultlib \
--lib xil_defaultlib xil_defaultlib.eth_core_demo_tb xil_defaultlib.glbl
+-lib xil_defaultlib xil_defaultlib.eth_core_tb xil_defaultlib.glbl
 
 
 do {eth_core_tb_wave.do}
