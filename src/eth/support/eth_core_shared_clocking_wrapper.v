@@ -59,23 +59,26 @@
 
 `timescale 1ps / 1ps
 
-module eth_core_shared_clocking_wrapper  (
+module eth_core_shared_clocking_wrapper   #(
+  parameter   G_GT_CHANNEL_COUNT = 1
+  )
+(
    input          reset,
    input          refclk_p,
    input          refclk_n,
-   input          qpll0reset,
+   input [G_GT_CHANNEL_COUNT - 1: 0]   qpll0reset,
    input          dclk,
-   input          txoutclk,
+   input [G_GT_CHANNEL_COUNT - 1: 0]   txoutclk,
    output         txoutclk_out,
    output         coreclk,
-   input  reset_tx_bufg_gt,
+   input [G_GT_CHANNEL_COUNT - 1: 0]   reset_tx_bufg_gt,
    output wire areset_coreclk,
-   output wire areset_txusrclk2,
-   output         gttxreset,
-   output         gtrxreset,
-   output         txuserrdy,
-   output         txusrclk,
-   output         txusrclk2,
+   output wire [G_GT_CHANNEL_COUNT - 1: 0]   areset_txusrclk2,
+   output gttxreset,
+   output gtrxreset,
+   output [G_GT_CHANNEL_COUNT - 1: 0]   txuserrdy,
+   output [G_GT_CHANNEL_COUNT - 1: 0]   txusrclk,
+   output [G_GT_CHANNEL_COUNT - 1: 0]   txusrclk2,
    output         reset_counter_done,
    output         qpll0lock_out,
    output         qpll0outclk,
@@ -96,7 +99,7 @@ module eth_core_shared_clocking_wrapper  (
   wire   qpll0lock;
   wire   refclk;
   wire   counter_done;
-  wire   qpllreset;
+  wire   [G_GT_CHANNEL_COUNT - 1: 0]   qpllreset;
 
   assign qpll0lock_out          = qpll0lock;
   assign reset_counter_done     = counter_done;
@@ -110,7 +113,7 @@ module eth_core_shared_clocking_wrapper  (
   gt_common_block_i
     (
      .refclk                (refclk),
-     .qpllreset             (qpllreset),
+     .qpllreset             ((|qpllreset)),
      .qpll0lock             (qpll0lock),
      .qpll0outclk           (qpll0outclk),
      .qpll0outrefclk        (qpll0outrefclk),

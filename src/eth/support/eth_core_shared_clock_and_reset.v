@@ -58,34 +58,36 @@
 `timescale 1ns / 1ps
 
 (* DowngradeIPIdentifiedWarnings="yes" *)
-module  eth_core_shared_clock_and_reset
+module  eth_core_shared_clock_and_reset   #(
+  parameter   G_GT_CHANNEL_COUNT = 1
+  )
     (
      input  areset,
      input  refclk_p,
      input  refclk_n,
-     input  qpll0reset,
+     input  [G_GT_CHANNEL_COUNT - 1: 0]   qpll0reset,
      output refclk,
-     input  txoutclk,
+     input  [G_GT_CHANNEL_COUNT - 1: 0]   txoutclk,
      output coreclk,
      input  qplllock,
-     input  reset_tx_bufg_gt,
+     input  [G_GT_CHANNEL_COUNT - 1: 0]   reset_tx_bufg_gt,
      output wire areset_coreclk,
-     output wire areset_txusrclk2,
+     output wire [G_GT_CHANNEL_COUNT - 1: 0]   areset_txusrclk2,
      output gttxreset,
      output gtrxreset,
-     output reg txuserrdy,
-     output txusrclk,
-     output txusrclk2,
-     output qpllreset,
+     output reg [G_GT_CHANNEL_COUNT - 1: 0]   txuserrdy,
+     output [G_GT_CHANNEL_COUNT - 1: 0]   txusrclk,
+     output [G_GT_CHANNEL_COUNT - 1: 0]   txusrclk2,
+     output [G_GT_CHANNEL_COUNT - 1: 0]   qpllreset,
      output reset_counter_done
     );
 
   wire coreclk_buf;
-  wire qplllock_txusrclk2;
+  wire [G_GT_CHANNEL_COUNT - 1: 0]   qplllock_txusrclk2;
   reg [8:0] reset_counter = 9'h000;
   assign reset_counter_done = reset_counter[8];
   reg [3:0] reset_pulse = 4'b1110;
-  wire gttxreset_txusrclk2;
+  wire [G_GT_CHANNEL_COUNT - 1: 0]   gttxreset_txusrclk2;
 
   wire refclkcopy;
 
@@ -109,28 +111,36 @@ module  eth_core_shared_clock_and_reset
       .O       (coreclk)
   );
 
+genvar i0;
+generate
+for (i0 = 0; i0 < (G_GT_CHANNEL_COUNT - 1); i0 = i0 + 1)
+begin
+
   BUFG_GT txoutclk_bufg_gt_i
   (
-      .I       (txoutclk),
+      .I       (txoutclk[i0]),
       .CE      (1'b1),
       .CEMASK  (1'b1),
-      .CLR     (reset_tx_bufg_gt),
+      .CLR     (reset_tx_bufg_gt[i0]),
       .CLRMASK (1'b0),
       .DIV     (3'b000),
-      .O       (txusrclk)
+      .O       (txusrclk[i0])
   );
 
 
   BUFG_GT txusrclk2_bufg_gt_i
   (
-      .I       (txoutclk),
+      .I       (txoutclk[i0]),
       .CE      (1'b1),
       .CEMASK  (1'b1),
-      .CLR     (reset_tx_bufg_gt),
+      .CLR     (reset_tx_bufg_gt[i0]),
       .CLRMASK (1'b0),
       .DIV     (3'b001),
-      .O       (txusrclk2)
+      .O       (txusrclk2[i0])
   );
+
+end
+endgenerate
 
   // Asynch reset synchronizers...
 
@@ -158,18 +168,25 @@ module  eth_core_shared_clock_and_reset
      .data_out(areset_txusrclk2)
     );
 
+genvar i1;
+generate
+for (i1 = 0; i1 < (G_GT_CHANNEL_COUNT - 1); i1 = i1 + 1)
+begin
+
   eth_core_ff_synchronizer_rst2
     #(
       .C_NUM_SYNC_REGS(5),
       .C_RVAL  (1'b0))
   qplllock_txusrclk2_sync_i
     (
-     .clk      (txusrclk2),
+     .clk      (txusrclk2[i1]),
      .rst      (!qplllock),
      .data_in  (1'b1),
-     .data_out (qplllock_txusrclk2)
+     .data_out (qplllock_txusrclk2[i1])
     );
 
+end
+endgenerate
 
   // Hold off the GT resets until 500ns after configuration.
   // 128 ticks at 6.4ns period will be >> 500 ns.
@@ -195,26 +212,33 @@ module  eth_core_shared_clock_and_reset
   assign   gttxreset  =     reset_pulse[0];
   assign   gtrxreset  =     reset_pulse[0];
 
+genvar i2;
+generate
+for (i2 = 0; i2 < (G_GT_CHANNEL_COUNT - 1); i2 = i2 + 1)
+begin
+
   eth_core_ff_synchronizer_rst2
     #(
       .C_NUM_SYNC_REGS(5),
       .C_RVAL  (1'b1))
   gttxreset_txusrclk2_sync_i
     (
-     .clk      (txusrclk2),
+     .clk      (txusrclk2[i2]),
      .rst      (gttxreset),
      .data_in  (1'b0),
-     .data_out (gttxreset_txusrclk2)
+     .data_out (gttxreset_txusrclk2[i2])
     );
 
-  always @(posedge txusrclk2 or posedge gttxreset_txusrclk2)
+  always @(posedge txusrclk2[i2] or posedge gttxreset_txusrclk2[i2])
   begin
-     if(gttxreset_txusrclk2)
-       txuserrdy <= 1'b0;
+     if(gttxreset_txusrclk2[i2])
+       txuserrdy[i2] <= 1'b0;
      else
-       txuserrdy <= qplllock_txusrclk2;
+       txuserrdy[i2] <= qplllock_txusrclk2[i2];
   end
 
+end
+endgenerate
 
 endmodule
 
