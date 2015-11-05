@@ -317,10 +317,18 @@ C_RVAL => '1'         -- (1'b1)
 )
 port map (
 clk      => i_coreclk,
-rst      => (areset),
+rst      => p_in_reset,--(areset),
 data_in  => (1'b0),
 data_out => (areset_coreclk)
 );
+
+  always @(posedge coreclk)
+  begin
+    if (areset_coreclk == 1'b1)
+      reset_pulse   <=   4'b1110;
+    else if(reset_counter[8])
+      reset_pulse   <=   {1'b0, reset_pulse[3:1]};
+  end
 
 
 ----------------------------
