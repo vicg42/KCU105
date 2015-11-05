@@ -10,6 +10,9 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity eth_core_support is
+generic(
+G_GT_CHANNEL_COUNT : integer := 1
+);
 port(
 --Port declarations
 p_in_refclk_p                     : in   std_logic;
@@ -207,10 +210,10 @@ signal i_txuserrdy          : std_logic;
 signal i_areset_coreclk     : std_logic;
 --signal i_areset_txusrclk2   : std_logic;
 
-signal i_reset_tx_bufg_gt   : std_logic_vector(0 downto 0);
-signal i_txoutclk           : std_logic_vector(0 downto 0);
-signal i_txusrclk           : std_logic_vector(0 downto 0)
-signal i_txusrclk2          : std_logic_vector(0 downto 0)
+signal i_reset_tx_bufg_gt   : std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
+signal i_txoutclk           : std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
+signal i_txusrclk           : std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0)
+signal i_txusrclk2          : std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0)
 
 
 begin --architecture behavioral of eth_core_support is
@@ -218,35 +221,38 @@ begin --architecture behavioral of eth_core_support is
 
 
 m_eth_core_shared : eth_core_shared_clocking_wrapper
+generic map (
+G_GT_CHANNEL_COUNT => G_GT_CHANNEL_COUNT
+)
 port map(
-reset                 => p_in_reset,
-refclk_p              => p_in_refclk_p,
-refclk_n              => p_in_refclk_n,
-qpll0reset            => i_qpll0reset,--: in  std_logic;
-dclk                  => p_in_dclk,
-txoutclk              : in  std_logic;
-txoutclk_out          : out std_logic;
-coreclk               => i_coreclk,--: out std_logic;
-reset_tx_bufg_gt      => i_reset_tx_bufg_gt,--: in  std_logic;
-areset_coreclk   => i_areset_coreclk,--: out std_logic;
-areset_txusrclk2 => open,--i_areset_txusrclk2,--: out std_logic;
-gttxreset             => i_gttxreset,--: out std_logic;
-gtrxreset             => i_gtrxreset,--: out std_logic;
-txuserrdy             => i_txuserrdy,--: out std_logic;
-txusrclk              : out std_logic;
-txusrclk2             : out std_logic;
-reset_counter_done    => i_reset_counter_done,--: out std_logic;
-qpll0lock_out         => i_qpll0lock,--: out std_logic;
-qpll0outclk           => i_qpll0outclk,--: out std_logic;
-qpll0outrefclk        => i_qpll0outrefclk,--: out std_logic;
+reset              => p_in_reset,
+refclk_p           => p_in_refclk_p,
+refclk_n           => p_in_refclk_n,
+qpll0reset         => i_qpll0reset,--: in  std_logic;
+dclk               => p_in_dclk,
+txoutclk           : in  std_logic;
+txoutclk_out       => open,--: out std_logic;
+coreclk            => i_coreclk,--: out std_logic;
+reset_tx_bufg_gt   => i_reset_tx_bufg_gt,--: in  std_logic;
+areset_coreclk     => i_areset_coreclk,--: out std_logic;
+areset_txusrclk2   => open,--i_areset_txusrclk2,--: out std_logic;
+gttxreset          => i_gttxreset,--: out std_logic;
+gtrxreset          => i_gtrxreset,--: out std_logic;
+txuserrdy          => i_txuserrdy,--: out std_logic;
+txusrclk           : out std_logic;
+txusrclk2          : out std_logic;
+reset_counter_done => i_reset_counter_done,--: out std_logic;
+qpll0lock_out      => i_qpll0lock,     --: out std_logic;
+qpll0outclk        => i_qpll0outclk,   --: out std_logic;
+qpll0outrefclk     => i_qpll0outrefclk,--: out std_logic;
 --DRP signals
-gt_common_drpaddr     => "000000000",--: in  std_logic_vector(8 downto 0);
-gt_common_drpclk      => '0',
-gt_common_drpdi       => "0000000000000000",--: in  std_logic_vector(15 downto 0);
-gt_common_drpdo       => open,
-gt_common_drpen       => '0',
-gt_common_drprdy      => open,
-gt_common_drpwe       => '0'
+gt_common_drpaddr  => "000000000",--: in  std_logic_vector(8 downto 0);
+gt_common_drpclk   => '0',
+gt_common_drpdi    => "0000000000000000",--: in  std_logic_vector(15 downto 0);
+gt_common_drpdo    => open,
+gt_common_drpen    => '0',
+gt_common_drprdy   => open,
+gt_common_drpwe    => '0'
 );
 
 p_out_coreclk <= i_coreclk;
@@ -263,98 +269,6 @@ p_out_qpll0reset <= i_qpll0reset;
 p_out_txuserrdy <= i_txuserrdy;
 
 
-
------------------------------------------------------------------------------
--- Instantiate the 10GBASER/KR GT Common block
------------------------------------------------------------------------------
-gt_common_block_i : eth_core_gt_common
-generic map (
-WRAPPER_SIM_GTRESET_SPEEDUP => "TRUE"
-)
-port map (
-refclk            => i_gt3_refclk    ,--input  refclk,
-qpllreset         => i_qpll0reset    ,--input  qpllreset,
-qpll0lock         => i_qpll0lock     ,--output qpll0lock,
-qpll0outclk       => i_qpll0outclk   ,--output qpll0outclk,
-qpll0outrefclk    => i_qpll0outrefclk,--output qpll0outrefclk,
--- DRP signals
-gt_common_drpaddr => "000000000",
-gt_common_drpclk  => '0',
-gt_common_drpdi   => "0000000000000000",
-gt_common_drpdo   => open,
-gt_common_drpen   => '0',
-gt_common_drprdy  => open,
-gt_common_drpwe   => '0'
-);
-
-m_ibufds_gt3 : IBUFDS_GTE3
-port map (
-O     => i_gt3_refclk,
-ODIV2 => i_gt3_refclkcopy,
-CEB   => '0',
-I     => p_in_refclk_p,
-IB    => p_in_refclk_n
-);
-
-m_refclk_bufg_gt : BUFG_GT
-port map (
-I       => i_gt3_refclkcopy,
-CE      => '1',--(1'b1),
-CEMASK  => '1',--(1'b1),
-CLR     => '0',--(1'b0),
-CLRMASK => '1',--(1'b1),
-DIV     => "000",--(3'b000),
-O       => i_coreclk
-);
-
-
--- Asynch reset synchronizers...
-
-m_areset_coreclk_sync : eth_core_ff_synchronizer_rst2
-generic map (
-C_NUM_SYNC_REGS => 5, --(5),
-C_RVAL => '1'         -- (1'b1)
-)
-port map (
-clk      => i_coreclk,
-rst      => p_in_reset,--(areset),
-data_in  => (1'b0),
-data_out => (areset_coreclk)
-);
-
-  always @(posedge coreclk)
-  begin
-    if (areset_coreclk == 1'b1)
-      reset_pulse   <=   4'b1110;
-    else if(reset_counter[8])
-      reset_pulse   <=   {1'b0, reset_pulse[3:1]};
-  end
-
-
-----------------------------
---CH_COUNT
-----------------------------
-m_txoutclk_bufg_gt : BUFG_GT
-port map (
-I       => i_txoutclk(0),
-CE      => '1',--(1'b1),
-CEMASK  => '1',--(1'b1),
-CLR     => i_reset_tx_bufg_gt(0),
-CLRMASK => '0',--(1'b0),
-DIV     => "000",--(3'b000),
-O       => i_txusrclk(0)
-);
-
-m_txusrclk2_bufg_gt : BUFG_GT
-port map (
-I       => i_txoutclk(0),
-CE      => '1',--(1'b1),
-CEMASK  => '1',--(1'b1),
-CLR     => i_reset_tx_bufg_gt(0),
-CLRMASK => '0',--(1'b0),
-DIV     => "001",--(3'b001),
-O       => i_txusrclk2(0)
-);
 
 
 p_out_resetdone_out <= i_tx_resetdone and i_rx_resetdone;
