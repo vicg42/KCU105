@@ -28,7 +28,7 @@ port(
 p_in_cfg : in    TEthCfg;
 
 --------------------------------------
---USR TXBUF -> ETH
+--ETH <- USR TXBUF
 --------------------------------------
 p_in_txbuf_do    : in  std_logic_vector(G_USRBUF_DWIDTH - 1 downto 0);
 p_out_txbuf_rd   : out std_logic;
@@ -192,7 +192,7 @@ if rising_edge(p_in_clk) then
 
               if (i_rd_chunk_cnt = (i_rd_chunk_count - 1)) then
 
-                if (i_rd_chunk_rem(2 downto 0) <= TO_UNSIGNED(2, 8)) then
+                if (i_rd_chunk_rem(2 downto 0) <= TO_UNSIGNED(2, 3)) then
 
                   i_axi_tlast <= '1';
 
@@ -231,7 +231,7 @@ if rising_edge(p_in_clk) then
 
             if (i_rd_chunk_cnt = (i_rd_chunk_count - 1)) then
 
-                if i_rd_chunk_rem(2 downto 0) <= TO_UNSIGNED(4, 8) then
+                if i_rd_chunk_rem(2 downto 0) <= TO_UNSIGNED(4, 3) then
 
                   i_axi_tlast <= '1';
 
