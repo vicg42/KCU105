@@ -131,7 +131,9 @@ module eth_core_shared_clocking_wrapper   #(
   // Instantiate the 10GBASER/KR shared clock/reset block
   //---------------------------------------------------------------------------
 
-  eth_core_shared_clock_and_reset ethernet_shared_clock_reset_block_i
+  eth_core_shared_clock_and_reset   #(
+  .G_GT_CHANNEL_COUNT(G_GT_CHANNEL_COUNT)
+  ) ethernet_shared_clock_reset_block_i
     (
      .areset                (reset),
      .coreclk               (coreclk),

@@ -113,8 +113,8 @@ module  eth_core_shared_clock_and_reset   #(
 
 genvar i0;
 generate
-for (i0 = 0; i0 < (G_GT_CHANNEL_COUNT - 1); i0 = i0 + 1)
-begin
+for (i0 = 0; i0 < G_GT_CHANNEL_COUNT; i0 = i0 + 1)
+begin : txusrclk2_ch
 
   BUFG_GT txoutclk_bufg_gt_i
   (
@@ -170,8 +170,8 @@ endgenerate
 
 genvar i1;
 generate
-for (i1 = 0; i1 < (G_GT_CHANNEL_COUNT - 1); i1 = i1 + 1)
-begin
+for (i1 = 0; i1 < G_GT_CHANNEL_COUNT; i1 = i1 + 1)
+begin : qplllock_txusrclk2_ch
 
   eth_core_ff_synchronizer_rst2
     #(
@@ -214,8 +214,8 @@ endgenerate
 
 genvar i2;
 generate
-for (i2 = 0; i2 < (G_GT_CHANNEL_COUNT - 1); i2 = i2 + 1)
-begin
+for (i2 = 0; i2 < G_GT_CHANNEL_COUNT; i2 = i2 + 1)
+begin : txuserrdy_ch
 
   eth_core_ff_synchronizer_rst2
     #(
