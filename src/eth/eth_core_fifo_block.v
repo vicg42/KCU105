@@ -68,8 +68,8 @@ parameter                              FIFO_SIZE = 1024
    input                               refclk_n,
    input                               dclk,
    input                               reset,
-   output      [G_GT_CHANNEL_COUNT - 1 : 0]         resetdone_out,
-   output      [G_GT_CHANNEL_COUNT - 1 : 0]         qplllock_out,
+   output                              resetdone_out,
+   output                              qplllock_out,
    output      [G_GT_CHANNEL_COUNT - 1 : 0]         coreclk_out,
    output      [G_GT_CHANNEL_COUNT - 1 : 0]         rxrecclk_out,
 
@@ -119,10 +119,10 @@ parameter                              FIFO_SIZE = 1024
 
    // Signal declarations
 
-   wire [G_GT_CHANNEL_COUNT - 1 : 0]         rx_axis_mac_aresetn_i  = ~reset | rx_axis_mac_aresetn;
-   wire [G_GT_CHANNEL_COUNT - 1 : 0]         rx_axis_fifo_aresetn_i = ~reset | rx_axis_fifo_aresetn;
-   wire [G_GT_CHANNEL_COUNT - 1 : 0]         tx_axis_mac_aresetn_i  = ~reset | tx_axis_mac_aresetn;
-   wire [G_GT_CHANNEL_COUNT - 1 : 0]         tx_axis_fifo_aresetn_i = ~reset | tx_axis_fifo_aresetn;
+   wire [G_GT_CHANNEL_COUNT - 1 : 0]         rx_axis_mac_aresetn_i;
+   wire [G_GT_CHANNEL_COUNT - 1 : 0]         rx_axis_fifo_aresetn_i;
+   wire [G_GT_CHANNEL_COUNT - 1 : 0]         tx_axis_mac_aresetn_i;
+   wire [G_GT_CHANNEL_COUNT - 1 : 0]         tx_axis_fifo_aresetn_i;
 
    wire         [(64 * G_GT_CHANNEL_COUNT) - 1 : 0]  tx_axis_mac_tdata;
    wire         [(8 * G_GT_CHANNEL_COUNT) - 1 : 0]   tx_axis_mac_tkeep;
@@ -148,7 +148,9 @@ parameter                              FIFO_SIZE = 1024
    //----------------------------------------------------------------------------
    // Instantiate the Ethernet Core Support level
    //----------------------------------------------------------------------------
-   eth_core_support support_layer_i(
+   eth_core_support #(
+      .G_GT_CHANNEL_COUNT (G_GT_CHANNEL_COUNT)
+   )  support_layer_i(
       .coreclk_out                     (),
       .qpll0reset_out                  (),
       .refclk_p                        (refclk_p),
@@ -205,16 +207,16 @@ parameter                              FIFO_SIZE = 1024
       .transceiver_debug_gt_txprbsforceerr   (zero_i[G_GT_CHANNEL_COUNT - 1 : 0]), //(1'b0),
       .transceiver_debug_gt_txpolarity       (zero_i[G_GT_CHANNEL_COUNT - 1 : 0]), //(1'b0),
       .transceiver_debug_gt_rxpolarity       (zero_i[G_GT_CHANNEL_COUNT - 1 : 0]), //(1'b0),
-      .transceiver_debug_gt_rxrate           (zero_i[(4 * G_GT_CHANNEL_COUNT) - 1 : 0]), //(3'b0),
+      .transceiver_debug_gt_rxrate           (zero_i[(3 * G_GT_CHANNEL_COUNT) - 1 : 0]), //(3'b0),
       .transceiver_debug_gt_txpmareset       (zero_i[G_GT_CHANNEL_COUNT - 1 : 0]), //(1'b0),
       .transceiver_debug_gt_rxpmareset       (zero_i[G_GT_CHANNEL_COUNT - 1 : 0]), //(1'b0),
       .transceiver_debug_gt_rxdfelpmreset    (zero_i[G_GT_CHANNEL_COUNT - 1 : 0]), //(1'b0),
       .transceiver_debug_gt_rxpmaresetdone   (),
       .transceiver_debug_gt_txresetdone      (),
       .transceiver_debug_gt_rxresetdone      (),
-      .transceiver_debug_gt_txprecursor      (zero_i[(6 * G_GT_CHANNEL_COUNT) - 1 : 0]), //(5'b0),
-      .transceiver_debug_gt_txpostcursor     (zero_i[(6 * G_GT_CHANNEL_COUNT) - 1 : 0]), //(5'b0),
-      .transceiver_debug_gt_txdiffctrl       (zero_i[(5 * G_GT_CHANNEL_COUNT) - 1 : 0]), //(4'b0),
+      .transceiver_debug_gt_txprecursor      (zero_i[(5 * G_GT_CHANNEL_COUNT) - 1 : 0]), //(5'b0),
+      .transceiver_debug_gt_txpostcursor     (zero_i[(5 * G_GT_CHANNEL_COUNT) - 1 : 0]), //(5'b0),
+      .transceiver_debug_gt_txdiffctrl       (zero_i[(4 * G_GT_CHANNEL_COUNT) - 1 : 0]), //(4'b0),
       .transceiver_debug_gt_rxlpmen          (zero_i[G_GT_CHANNEL_COUNT - 1 : 0]), //(1'b0),
       .transceiver_debug_gt_eyescandataerror (),
       .transceiver_debug_gt_txbufstatus      (),
@@ -231,8 +233,14 @@ parameter                              FIFO_SIZE = 1024
 
 genvar i;
 generate
-for (i = 0; i < (G_GT_CHANNEL_COUNT - 1); i = i + 1)
-begin
+for (i = 0; i < G_GT_CHANNEL_COUNT; i = i + 1)
+begin : ch
+
+   assign rx_axis_mac_aresetn_i[i]  = ~reset | rx_axis_mac_aresetn[i];
+   assign rx_axis_fifo_aresetn_i[i] = ~reset | rx_axis_fifo_aresetn[i];
+   assign tx_axis_mac_aresetn_i[i]  = ~reset | tx_axis_mac_aresetn[i];
+   assign tx_axis_fifo_aresetn_i[i] = ~reset | tx_axis_fifo_aresetn[i];
+
    //----------------------------------------------------------------------------
    // Instantiate the example design FIFO
    //----------------------------------------------------------------------------

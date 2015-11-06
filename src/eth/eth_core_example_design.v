@@ -60,7 +60,9 @@
 `timescale 1ps / 1ps
 
 (* DowngradeIPIdentifiedWarnings = "yes" *)
-module eth_core_example_design
+module eth_core_example_design #(
+parameter   G_GT_CHANNEL_COUNT = 1
+)
   (
    // Clock inputs
    input             clk_in_p,       // Freerunning clock source
@@ -120,33 +122,33 @@ module eth_core_example_design
    wire              tx_statistics_vector;
    wire              rx_statistics_vector;
    wire     [25:0]   tx_statistics_vector_int;
-   wire              tx_statistics_valid_int;
+   wire     [0:0]    tx_statistics_valid_int;
    reg               tx_statistics_valid;
    reg      [27:0]   tx_statistics_shift = 0;
    wire     [29:0]   rx_statistics_vector_int;
-   wire              rx_statistics_valid_int;
+   wire     [0:0]    rx_statistics_valid_int;
    reg               rx_statistics_valid;
    reg      [31:0]   rx_statistics_shift = 0;
 
    wire     [63:0]   tx_axis_tdata;
    wire     [7:0]    tx_axis_tkeep;
-   wire              tx_axis_tvalid;
-   wire              tx_axis_tlast;
-   wire              tx_axis_tready;
+   wire     [0:0]    tx_axis_tvalid;
+   wire     [0:0]    tx_axis_tlast;
+   wire     [0:0]    tx_axis_tready;
    wire     [63:0]   rx_axis_tdata;
    wire     [7:0]    rx_axis_tkeep;
-   wire              rx_axis_tvalid;
-   wire              rx_axis_tlast;
-   wire              rx_axis_tready;
+   wire     [0:0]    rx_axis_tvalid;
+   wire     [0:0]    rx_axis_tlast;
+   wire     [0:0]    rx_axis_tready;
    wire              tx_reset;
    wire              rx_reset;
 
-   wire              tx_axis_aresetn;
-   wire              rx_axis_aresetn;
+   wire     [G_GT_CHANNEL_COUNT - 1 : 0]    tx_axis_aresetn;
+   wire     [G_GT_CHANNEL_COUNT - 1 : 0]    rx_axis_aresetn;
 
    wire              pat_gen_start;
 
-   wire              resetdone_out;
+   wire      resetdone_out;
    wire      [7:0]   pcspma_status;
 
    wire              pcs_loopback_sync;
@@ -196,8 +198,8 @@ module eth_core_example_design
    assign core_ready = block_lock && no_remote_and_local_faults;
 
    // Combine reset sources
-   assign tx_axis_aresetn  = ~reset;
-   assign rx_axis_aresetn  = ~reset;
+   assign tx_axis_aresetn[0]  = ~reset;
+   assign rx_axis_aresetn[0]  = ~reset;
 
    assign pat_gen_start = enable_pat_gen && no_remote_and_local_faults && (pcs_loopback_sync || (block_lock && !pcs_loopback_sync));
 
@@ -207,18 +209,34 @@ module eth_core_example_design
    assign tx_reset  = reset;
    assign rx_reset  = reset;
 
+   wire [G_GT_CHANNEL_COUNT - 1 : 0]       coreclk_i;
+   wire [G_GT_CHANNEL_COUNT - 1 : 0]       rxrecclk_i;
+   wire [G_GT_CHANNEL_COUNT - 1 : 0]       qplllock_i;
+   wire [G_GT_CHANNEL_COUNT - 1 : 0]       txp_i;
+   wire [G_GT_CHANNEL_COUNT - 1 : 0]       txn_i;
+   wire [G_GT_CHANNEL_COUNT - 1 : 0]       rxp_i;
+   wire [G_GT_CHANNEL_COUNT - 1 : 0]       rxn_i;
+
+assign coreclk = coreclk_i[0];
+assign rxrecclk = rxrecclk_i[0];
+assign qplllock_out = qplllock_i[0];
+assign txp = txp_i[0];
+assign txn = txn_i[0];
+assign rxp_i[0] = rxp;
+assign rxn_i[0] = rxn;
 
 
     //--------------------------------------------------------------------------
     // Instantiate a module containing the Ethernet core and an example FIFO
     //--------------------------------------------------------------------------
     eth_core_fifo_block #(
+      .G_GT_CHANNEL_COUNT (G_GT_CHANNEL_COUNT),
       .FIFO_SIZE                       (FIFO_SIZE)
     ) fifo_block_i (
       .refclk_p                        (refclk_p),
       .refclk_n                        (refclk_n),
-      .coreclk_out                     (coreclk),
-      .rxrecclk_out                    (rxrecclk),
+      .coreclk_out                     (coreclk_i),
+      .rxrecclk_out                    (rxrecclk_i),
       .dclk                            (s_axi_aclk),
 
       .reset                           (reset),
@@ -254,17 +272,17 @@ module eth_core_example_design
       .pcs_pma_configuration_vector    (pcs_pma_configuration_vector),
       .pcs_pma_status_vector           (pcs_pma_status_vector),
 
-      .txp                             (txp),
-      .txn                             (txn),
-      .rxp                             (rxp),
-      .rxn                             (rxn),
+      .txp                             (txp_i),
+      .txn                             (txn_i),
+      .rxp                             (rxp_i),
+      .rxn                             (rxn_i),
 
       .signal_detect                   (1'b1),
       .tx_fault                        (1'b0),
       .sim_speedup_control             (sim_speedup_control),
       .pcspma_status                   (pcspma_status),
       .resetdone_out                   (resetdone_out),
-      .qplllock_out                    (qplllock_out)
+      .qplllock_out                    (qplllock_i)
       );
 
 
@@ -305,7 +323,7 @@ module eth_core_example_design
 
       .aclk                            (coreclk),
 
-      .aresetn                         (tx_axis_aresetn),
+      .aresetn                         (tx_axis_aresetn[0]),
       .enable_pat_gen                  (pat_gen_start),
       .reset_error                     (reset_error_sync),
       .insert_error                    (insert_error_sync),
@@ -317,14 +335,14 @@ module eth_core_example_design
 
       .tx_axis_tdata                   (tx_axis_tdata),
       .tx_axis_tkeep                   (tx_axis_tkeep),
-      .tx_axis_tvalid                  (tx_axis_tvalid),
-      .tx_axis_tlast                   (tx_axis_tlast),
-      .tx_axis_tready                  (tx_axis_tready),
+      .tx_axis_tvalid                  (tx_axis_tvalid[0]),
+      .tx_axis_tlast                   (tx_axis_tlast[0]),
+      .tx_axis_tready                  (tx_axis_tready[0]),
       .rx_axis_tdata                   (rx_axis_tdata),
       .rx_axis_tkeep                   (rx_axis_tkeep),
-      .rx_axis_tvalid                  (rx_axis_tvalid),
-      .rx_axis_tlast                   (rx_axis_tlast),
-      .rx_axis_tready                  (rx_axis_tready)
+      .rx_axis_tvalid                  (rx_axis_tvalid[0]),
+      .rx_axis_tlast                   (rx_axis_tlast[0]),
+      .rx_axis_tready                  (rx_axis_tready[0])
    );
 
 
@@ -334,8 +352,8 @@ module eth_core_example_design
    //--------------------------------------------------------------------------
    always @(posedge coreclk)
    begin
-     tx_statistics_valid               <= tx_statistics_valid_int;
-     if (tx_statistics_valid_int & !tx_statistics_valid) begin
+     tx_statistics_valid               <= tx_statistics_valid_int[0];
+     if (tx_statistics_valid_int[0] & !tx_statistics_valid) begin
         tx_statistics_shift            <= {2'b01,tx_statistics_vector_int};
      end
      else begin
@@ -347,8 +365,8 @@ module eth_core_example_design
 
    always @(posedge rxrecclk)
    begin
-     rx_statistics_valid               <= rx_statistics_valid_int;
-     if (rx_statistics_valid_int & !rx_statistics_valid) begin
+     rx_statistics_valid               <= rx_statistics_valid_int[0];
+     if (rx_statistics_valid_int[0] & !rx_statistics_valid) begin
         rx_statistics_shift            <= {2'b01, rx_statistics_vector_int};
      end
      else begin

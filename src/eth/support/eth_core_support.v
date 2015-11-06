@@ -69,17 +69,17 @@ module eth_core_support    #(
    input                               dclk,
    output                              coreclk_out,
    input                               reset,
-   output [G_GT_CHANNEL_COUNT - 1: 0]   qpll0outclk_out,
-   output [G_GT_CHANNEL_COUNT - 1: 0]   qpll0outrefclk_out,
-   output [G_GT_CHANNEL_COUNT - 1: 0]   qpll0lock_out,
-   output [G_GT_CHANNEL_COUNT - 1: 0]   qpll0reset_out,
-   output [G_GT_CHANNEL_COUNT - 1: 0]   resetdone_out,
-   output [G_GT_CHANNEL_COUNT - 1: 0]   txusrclk_out,
-   output [G_GT_CHANNEL_COUNT - 1: 0]   txusrclk2_out,
+   output                              qpll0outclk_out,
+   output                              qpll0outrefclk_out,
+   output                              qpll0lock_out,
+   output [G_GT_CHANNEL_COUNT - 1: 0]  qpll0reset_out,
+   output                              resetdone_out,
+   output [G_GT_CHANNEL_COUNT - 1: 0]  txusrclk_out,
+   output [G_GT_CHANNEL_COUNT - 1: 0]  txusrclk2_out,
    output                              gttxreset_out,
    output                              gtrxreset_out,
-   output [G_GT_CHANNEL_COUNT - 1: 0]   txuserrdy_out,
-   output [G_GT_CHANNEL_COUNT - 1: 0]   reset_counter_done_out,
+   output [G_GT_CHANNEL_COUNT - 1: 0]  txuserrdy_out,
+   output                              reset_counter_done_out,
 
    input       [(80 * G_GT_CHANNEL_COUNT) - 1 : 0]    mac_tx_configuration_vector,
    input       [(80 * G_GT_CHANNEL_COUNT) - 1 : 0]    mac_rx_configuration_vector,
@@ -160,7 +160,7 @@ module eth_core_support    #(
   wire qpll0outclk;
   wire qpll0outrefclk;
   wire qpll0lock;
-  wire qpll0reset;
+  wire [G_GT_CHANNEL_COUNT - 1 : 0]   qpll0reset;
   wire [G_GT_CHANNEL_COUNT - 1 : 0]   reset_tx_bufg_gt;
   wire [G_GT_CHANNEL_COUNT - 1 : 0]   tx_resetdone_int;
   wire [G_GT_CHANNEL_COUNT - 1 : 0]   rx_resetdone_int;
@@ -173,10 +173,11 @@ module eth_core_support    #(
   wire [G_GT_CHANNEL_COUNT - 1 : 0]   txusrclk;
   wire [G_GT_CHANNEL_COUNT - 1 : 0]   txusrclk2;
   wire txoutclk_in;
+  wire [G_GT_CHANNEL_COUNT - 1 : 0]   resetdone_i;
 
   assign coreclk_out            = coreclk;
 
-  assign resetdone_out          = (|tx_resetdone_int) && (|rx_resetdone_int);
+  assign resetdone_out          = (|resetdone_i);
 
   assign qpll0outclk_out        = qpll0outclk;
   assign qpll0outrefclk_out     = qpll0outrefclk;
@@ -230,8 +231,10 @@ module eth_core_support    #(
 
 genvar i;
 generate
-for (i = 0; i < (G_GT_CHANNEL_COUNT - 1); i = i + 1)
-begin
+for (i = 0; i < G_GT_CHANNEL_COUNT; i = i + 1)
+begin : ch
+  assign resetdone_i[i] = tx_resetdone_int[i] && rx_resetdone_int[i];
+
   //---------------------------------------------------------------------------
   // Instantiate the AXI 10G Ethernet core
   //---------------------------------------------------------------------------
@@ -253,7 +256,7 @@ begin
       .qpll0lock                       (qpll0lock),
       .qpll0outclk                     (qpll0outclk),
       .qpll0outrefclk                  (qpll0outrefclk),
-      .qpll0reset                      (qpll0reset),
+      .qpll0reset                      (qpll0reset[i]),
       .reset_tx_bufg_gt                (reset_tx_bufg_gt[i]),
       .tx_ifg_delay                    (tx_ifg_delay),
       .tx_statistics_vector            (tx_statistics_vector[(26 * (i + 1)) - 1 : (26 * i)]),
@@ -317,7 +320,7 @@ begin
       .signal_detect                   (signal_detect[i]),
       .tx_fault                        (tx_fault[i]),
       .tx_disable                      (tx_disable[i]),
-      .pcspma_status                   (pcspma_status)
+      .pcspma_status                   (pcspma_status[(8 * (i + 1)) - 1 : (8 * i)])
    );
 
 end
