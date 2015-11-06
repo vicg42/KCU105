@@ -17,10 +17,10 @@ generic(
 G_GT_CHANNEL_COUNT : integer := 1
 );
 port(
-   -- Port declarations
-p_in_refclk_p                 : in  std_logic;
-p_in_refclk_n                 : in  std_logic;
-p_in_dclk                     : in  std_logic;
+-- Port declarations
+p_in_refclk_p              : in  std_logic;
+p_in_refclk_n              : in  std_logic;
+p_in_dclk                  : in  std_logic;
 p_out_coreclk              : out std_logic;
 p_in_reset                 : in  std_logic;
 p_out_qpll0outclk          : out std_logic;
