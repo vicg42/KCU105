@@ -244,10 +244,10 @@ begin --architecture behavioral of eth_core_fifo_block is
 gen_fifo : for i in 0 to G_GT_CHANNEL_COUNT - 1 generate
 begin
 
-i_rx_axis_mac_aresetn(i)  <= not reset;-- or rx_axis_mac_aresetn;
-i_rx_axis_fifo_aresetn(i) <= not reset;-- or rx_axis_fifo_aresetn;
-i_tx_axis_mac_aresetn(i)  <= not reset;-- or tx_axis_mac_aresetn;
-i_tx_axis_fifo_aresetn(i) <= not reset;-- or tx_axis_fifo_aresetn;
+i_rx_axis_mac_aresetn(i)  <= not reset or rx_axis_aresetn(i);
+i_rx_axis_fifo_aresetn(i) <= not reset or rx_axis_fifo_aresetn(i);
+i_tx_axis_mac_aresetn(i)  <= not reset or tx_axis_aresetn(i);
+i_tx_axis_fifo_aresetn(i) <= not reset or tx_axis_fifo_aresetn(i);
 
 m_gmac_fifo : eth_core_xgmac_fifo
 generic map(
@@ -338,7 +338,7 @@ p_out_rx_statistics_vector => rx_statistics_vector,--  : out std_logic_vector((3
 p_out_tx_statistics_valid  => tx_statistics_valid ,--  : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
 p_out_rx_statistics_valid  => rx_statistics_valid ,--  : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
 
-p_in_tx_axis_aresetn    : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
+p_in_tx_axis_aresetn    => tx_axis_mac_aresetn,--: in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
 p_in_s_axis_tx_tdata    => i_tx_axis_mac_tdata,--: in  std_logic_vector((64 * G_GT_CHANNEL_COUNT) - 1  downto 0);
 p_in_s_axis_tx_tkeep    => i_tx_axis_mac_tkeep,--: in  std_logic_vector((8 * G_GT_CHANNEL_COUNT) - 1 downto 0);
 p_in_s_axis_tx_tvalid   => i_tx_axis_mac_tvalid,--: in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
@@ -346,7 +346,7 @@ p_in_s_axis_tx_tlast    => i_tx_axis_mac_tlast,--: in  std_logic_vector(G_GT_CHA
 p_in_s_axis_tx_tuser    => (others => '0'),--: in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
 p_out_s_axis_tx_tready  => i_tx_axis_mac_tready,--: out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
 
-p_in_rx_axis_aresetn    : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
+p_in_rx_axis_aresetn    => rx_axis_mac_aresetn,--: in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
 p_out_m_axis_rx_tdata   => i_rx_axis_mac_tdata,--: out std_logic_vector((64 * G_GT_CHANNEL_COUNT) - 1  downto 0);
 p_out_m_axis_rx_tkeep   => i_rx_axis_mac_tkeep,--: out std_logic_vector((8 * G_GT_CHANNEL_COUNT) - 1 downto 0);
 p_out_m_axis_rx_tvalid  => i_rx_axis_mac_tvalid,--: out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
