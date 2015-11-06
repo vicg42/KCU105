@@ -24,6 +24,11 @@ G_USRBUF_DWIDTH : integer := 64;
 G_AXI_DWIDTH : integer := 64
 );
 port(
+p_out_axi_tdata  : out std_logic_vector(G_AXI_DWIDTH - 1 downto 0);
+p_out_axi_tkeep  : out std_logic_vector((G_AXI_DWIDTH / 8) - 1 downto 0);
+p_out_axi_tvalid : out std_logic;
+p_out_axi_tlast  : out std_logic;
+
 p_out_rxbuf_di   : out   std_logic_vector(G_USRBUF_DWIDTH - 1 downto 0);
 p_out_rxbuf_wr   : out   std_logic;
 p_out_rxd_sof    : out   std_logic;
@@ -118,6 +123,50 @@ p_in_rst  : in    std_logic
 );
 end component eth_mac_rx;
 
+component eth_mac_tx is
+generic(
+G_USRBUF_DWIDTH : integer := 64;
+G_AXI_DWIDTH : integer := 64;
+G_DBG : string := "OFF"
+);
+port(
+--------------------------------------
+--CFG
+--------------------------------------
+p_in_cfg : in TEthCfg;
+
+--------------------------------------
+--USR TXBUF -> ETH
+--------------------------------------
+p_in_txbuf_do    : in   std_logic_vector(G_USRBUF_DWIDTH - 1 downto 0);
+p_out_txbuf_rd   : out  std_logic;
+p_in_txbuf_empty : in   std_logic;
+--p_in_txd_rdy     : in  std_logic;
+
+--------------------------------------
+
+--------------------------------------
+p_in_axi_tready   : in   std_logic;
+p_out_axi_tdata   : out  std_logic_vector(G_AXI_DWIDTH - 1 downto 0);
+p_out_axi_tkeep   : out  std_logic_vector((G_AXI_DWIDTH / 8) - 1 downto 0);
+p_out_axi_tvalid  : out  std_logic;
+p_out_axi_tlast   : out  std_logic;
+
+--------------------------------------------------
+--DBG
+--------------------------------------------------
+p_in_tst  : in   std_logic_vector(31 downto 0);
+p_out_tst : out  std_logic_vector(31 downto 0);
+
+--------------------------------------
+--SYSTEM
+--------------------------------------
+p_in_clk : in   std_logic;
+p_in_rst : in   std_logic
+);
+end component eth_mac_tx;
+
+
 signal p_in_rst              : std_logic;
 signal p_in_clk              : std_logic;
 
@@ -146,6 +195,9 @@ signal i_frmac_length : unsigned(15 downto 0);
 
 signal i_cfg   : TEthCfg;
 signal i_simcfg   : TEthCfg;
+
+signal i_txbuf_dout : unsigned(G_USRBUF_DWIDTH - 1 downto 0);
+
 
 
 begin --architecture behavior of eth_mac_rx_tb is
@@ -398,5 +450,49 @@ wait;
 end process;
 
 
+
+m_eth_tx : eth_mac_tx
+generic map(
+G_USRBUF_DWIDTH => G_USRBUF_DWIDTH,
+G_AXI_DWIDTH => G_AXI_DWIDTH,
+G_DBG => "OFF"
+)
+port map(
+--------------------------------------
+--CFG
+--------------------------------------
+p_in_cfg => i_cfg,
+
+--------------------------------------
+--USR TXBUF -> ETH
+--------------------------------------
+p_in_txbuf_do => std_logic_vector(i_txbuf_dout),
+p_out_txbuf_rd => open,
+p_in_txbuf_empty => '0',
+--p_in_txd_rdy      : in    std_logic;
+
+--------------------------------------
+--ETH core (Tx)
+--------------------------------------
+p_in_axi_tready  => '1',
+p_out_axi_tdata  => p_out_axi_tdata ,
+p_out_axi_tkeep  => p_out_axi_tkeep ,
+p_out_axi_tvalid => p_out_axi_tvalid,
+p_out_axi_tlast  => p_out_axi_tlast ,
+
+--------------------------------------------------
+--DBG
+--------------------------------------------------
+p_in_tst  => (others => '0'),
+p_out_tst => open,
+
+--------------------------------------
+--SYSTEM
+--------------------------------------
+p_in_clk => p_in_clk,
+p_in_rst => p_in_rst
+);
+
+i_txbuf_dout <= TO_UNSIGNED(16#A0001#, i_txbuf_dout'length);
 
 end architecture behavior;
