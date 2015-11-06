@@ -23,18 +23,18 @@ vmap gtwizard_ultrascale_v1_5 msim/gtwizard_ultrascale_v1_5
 vmap ten_gig_eth_pcs_pma_v6_0 msim/ten_gig_eth_pcs_pma_v6_0
 
 vlog -64 -incr -work xil_defaultlib  \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/support/gtwizard_ultrascale_v1_5_gthe3_common.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/support/eth_core_ff_synchronizer_rst2.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/support/eth_core_gt_common_wrapper.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/support/eth_core_shared_clock_and_reset.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/support/eth_core_gt_common.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/support/eth_core_shared_clocking_wrapper.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/support/eth_core_support.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/fifo/eth_core_fifo_ram.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/fifo/eth_core_axi_fifo.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/fifo/eth_core_xgmac_fifo.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/eth_core_sync_reset.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/eth_core_sync_block.v" \
+"../../src/eth/support/gtwizard_ultrascale_v1_5_gthe3_common.v" \
+"../../src/eth/support/eth_core_ff_synchronizer_rst2.v" \
+"../../src/eth/support/eth_core_gt_common_wrapper.v" \
+"../../src/eth/support/eth_core_shared_clock_and_reset.v" \
+"../../src/eth/support/eth_core_gt_common.v" \
+"../../src/eth/support/eth_core_shared_clocking_wrapper.v" \
+"../../src/eth/support/eth_core_support.v" \
+"../../src/eth/fifo/eth_core_fifo_ram.v" \
+"../../src/eth/fifo/eth_core_axi_fifo.v" \
+"../../src/eth/fifo/eth_core_xgmac_fifo.v" \
+"../../src/eth/eth_core_sync_reset.v" \
+"../../src/eth/eth_core_sync_block.v" \
 
 vlog -64 -incr -work ten_gig_eth_mac_v15_0  \
 "../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_0/ten_gig_eth_mac_v15_0/hdl/ten_gig_eth_mac_v15_0_rfs.v" \
@@ -94,8 +94,8 @@ vlog -64 -incr -work xil_defaultlib  \
 "../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/eth_core_axi_pat_gen.v" \
 "../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/eth_core_gen_check_wrapper.v" \
 "../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/eth_core_clocking.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/eth_core_fifo_block.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/eth_core_example_design.v" \
+"../../src/eth/eth_core_fifo_block.v" \
+"../../src/eth/eth_core_example_design.v" \
 "../testbanch/eth_core_tb.v" \
 
 # compile glbl module

@@ -28,6 +28,7 @@ vcom -64 -93 -work xil_defaultlib "../../src/mem_ctrl/mem_wr_axi.vhd"
 
 vcom -64 -93 -work xil_defaultlib "../../src/eth/eth_pkg.vhd"
 vcom -64 -93 -work xil_defaultlib "../../src/eth/eth_mac_rx_64.vhd"
+vcom -64 -93 -work xil_defaultlib "../../src/eth/eth_mac_tx_64.vhd"
 
 vlog -64 -work xil_defaultlib "../../src/eth/eth_core_sync_reset.v"
 vlog -64 -work xil_defaultlib "../../src/eth/eth_core_sync_block.v"
