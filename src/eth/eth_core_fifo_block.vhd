@@ -20,7 +20,7 @@ refclk_p                     : in  std_logic;
 refclk_n                     : in  std_logic;
 dclk                         : in  std_logic;
 reset                        : in  std_logic;
-resetdone_out                : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
+resetdone_out                : out std_logic;
 qplllock_out                 : out std_logic;
 coreclk_out                  : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
 rxrecclk_out                 : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
@@ -63,7 +63,7 @@ rxn                          : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downt
 signal_detect                : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
 sim_speedup_control          : in  std_logic;
 tx_fault                     : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
-pcspma_status               : out std_logic_vector((8 * G_GT_CHANNEL_COUNT) - 1 downto 0);
+pcspma_status               : out std_logic_vector((8 * G_GT_CHANNEL_COUNT) - 1 downto 0)
 );
 end entity eth_core_fifo_block;
 
@@ -244,9 +244,9 @@ begin --architecture behavioral of eth_core_fifo_block is
 gen_fifo : for i in 0 to G_GT_CHANNEL_COUNT - 1 generate
 begin
 
-i_rx_axis_mac_aresetn(i)  <= not reset or rx_axis_aresetn(i);
+i_rx_axis_mac_aresetn(i)  <= not reset or rx_axis_mac_aresetn(i);
 i_rx_axis_fifo_aresetn(i) <= not reset or rx_axis_fifo_aresetn(i);
-i_tx_axis_mac_aresetn(i)  <= not reset or tx_axis_aresetn(i);
+i_tx_axis_mac_aresetn(i)  <= not reset or tx_axis_mac_aresetn(i);
 i_tx_axis_fifo_aresetn(i) <= not reset or tx_axis_fifo_aresetn(i);
 
 m_gmac_fifo : eth_core_xgmac_fifo
@@ -254,7 +254,7 @@ generic map(
 TX_FIFO_SIZE => G_FIFO_SIZE,
 RX_FIFO_SIZE => G_FIFO_SIZE
 )
-port (
+port map(
 ----------------------------------------------------------------
 -- client interface                                           --
 ----------------------------------------------------------------
@@ -297,7 +297,7 @@ rx_axis_mac_tkeep   => i_rx_axis_mac_tkeep((8 * (i + 1)) - 1 downto (8 * i)),
 rx_axis_mac_tvalid  => i_rx_axis_mac_tvalid(i),
 rx_axis_mac_tlast   => i_rx_axis_mac_tlast(i) ,
 rx_axis_mac_tuser   => i_rx_axis_mac_tuser(i) ,
-rx_fifo_full        => open,
+rx_fifo_full        => open
 );
 end generate gen_fifo;
 
@@ -306,7 +306,7 @@ m_eth_core_support : eth_core_support
 generic map (
 G_GT_CHANNEL_COUNT => G_GT_CHANNEL_COUNT
 )
-port(
+port map(
 -- Port declarations
 p_in_refclk_p              => refclk_p,--: in  std_logic;
 p_in_refclk_n              => refclk_n,--: in  std_logic;
@@ -354,8 +354,8 @@ p_out_m_axis_rx_tuser   => i_rx_axis_mac_tuser,--: out std_logic_vector(G_GT_CHA
 p_out_m_axis_rx_tlast   => i_rx_axis_mac_tlast,--: out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
 
 --Pause axis
-p_in_s_axis_pause_tdata  => s_axis_pause_tdata ,--  : in  std_logic_vector(15 downto 0);
-p_in_s_axis_pause_tvalid => s_axis_pause_tvalid,--  : in  std_logic;
+p_in_s_axis_pause_tdata  => pause_val ,--  : in  std_logic_vector(15 downto 0);
+p_in_s_axis_pause_tvalid => pause_req,--  : in  std_logic;
 
 p_out_txp  => txp,--: out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
 p_out_txn  => txn,--: out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
