@@ -12,7 +12,7 @@ use ieee.numeric_std.all;
 entity eth_core_fifo_block is
 generic(
 G_GT_CHANNEL_COUNT : integer := 1;
-G_FIFO_SIZE : integer := 1024
+FIFO_SIZE : integer := 1024
 );
 port(
 -- Port declarations
@@ -251,8 +251,8 @@ i_tx_axis_fifo_aresetn(i) <= not reset or tx_axis_fifo_aresetn(i);
 
 m_gmac_fifo : eth_core_xgmac_fifo
 generic map(
-TX_FIFO_SIZE => G_FIFO_SIZE,
-RX_FIFO_SIZE => G_FIFO_SIZE
+TX_FIFO_SIZE => FIFO_SIZE,
+RX_FIFO_SIZE => FIFO_SIZE
 )
 port map(
 ----------------------------------------------------------------
