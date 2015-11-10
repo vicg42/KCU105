@@ -592,29 +592,17 @@ parameter TB_MODE = "DEMO_TB";
    eth_core_example_design dut
     (
       .reset                  (reset),
-      .reset_error            (reset_error),
 
       .refclk_p               (refclk),         // Transcevier reference clock source
       .refclk_n               (!refclk),
       .coreclk_out            (coreclk_out),
 
-      .clk_in_p               (sysclk),         // Freerunning clock source
-      .clk_in_n               (!sysclk),
-
-      .enable_custom_preamble (1'b0),
-
-      .pcs_loopback           (1'b0),
-      .insert_error           (1'b0),
-
-      .enable_pat_gen         (enable_pat_gen),
-      .enable_pat_check       (enable_pat_check),
+      .clk_in                 (sysclk),         // Freerunning clock source
 
       .frame_error            (frame_error),
-      .gen_active_flash       (),
       .sim_speedup_control    (sim_speedup_control_pulse),
-      .check_active_flash     (),
       .qplllock_out           (),
-      .serialized_stats       (),
+
       .core_ready             (core_ready),
       .txp                    (txp),
       .txn                    (txn),
@@ -631,9 +619,13 @@ parameter TB_MODE = "DEMO_TB";
      sysclk <= 0;
      forever
      begin
-        #1666;            // 300 MHz MMCM in CLK
+//        #1666;            // 300 MHz MMCM in CLK
+//        sysclk <= 1;
+//        #1667;
+//        sysclk <= 0;
+        #4000;            // 125 MHz MMCM in CLK
         sysclk <= 1;
-        #1667;
+        #4000;
         sysclk <= 0;
      end
   end

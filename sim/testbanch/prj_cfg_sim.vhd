@@ -37,5 +37,7 @@ constant C_PCFG_MEMARB_CH_COUNT        : integer := 2 + C_PCFG_FG_VCH_COUNT; --C
                                                                              -- + CH1(FrameGrabber Read)
                                                                              -- + CH2(FrameGrabber Writer) + ...
 
+constant C_PCFG_ETH_GTCH_COUNT         : integer := 1;
+
 end package prj_cfg;
 

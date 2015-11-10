@@ -353,4 +353,16 @@ constant C_FG_REG_DBG_RDHOLD_BIT      : integer:=10;--Ёмул€ци€ захвата видеобуфе
 constant C_FG_REG_DBG_TRCHOLD_BIT     : integer:=11;--Ёмул€ци€ захвата видеобуфера модулем слежени€
 constant C_FG_REG_DBG_LAST_BIT            : integer:=C_FG_REG_DBG_TRCHOLD_BIT;
 
+
+----------------------------------------------------------------
+--module  eth_main.vhd
+----------------------------------------------------------------
+constant C_ETH_REG_CTRL                       : integer:=16#000#;
+constant C_ETH_REG_MAC_PATRN0                 : integer:=16#001#;--DST MAC
+constant C_ETH_REG_MAC_PATRN1                 : integer:=16#002#;
+constant C_ETH_REG_MAC_PATRN2                 : integer:=16#003#;
+constant C_ETH_REG_MAC_PATRN3                 : integer:=16#004#;--SRC MAC
+constant C_ETH_REG_MAC_PATRN4                 : integer:=16#005#;
+constant C_ETH_REG_MAC_PATRN5                 : integer:=16#006#;
+
 end package prj_def;

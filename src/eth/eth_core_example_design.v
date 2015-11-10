@@ -65,27 +65,20 @@ parameter   G_GTCH_COUNT = 1
 )
   (
    // Clock inputs
-   input             clk_in_p,       // Freerunning clock source
-   input             clk_in_n,
+   input             clk_in,       // Freerunning clock source
+
    input             refclk_p,       // Transceiver reference clock source
    input             refclk_n,
    output            coreclk_out,
 
    // Example design control inputs
-   input             pcs_loopback,
    input             reset,
-   input             reset_error,
-   input             insert_error,
-   input             enable_pat_gen,
-   input             enable_pat_check,
-   output            serialized_stats,
+
    input             sim_speedup_control,
-   input             enable_custom_preamble,
 
    // Example design status outputs
    output            frame_error,
-   output            gen_active_flash,
-   output            check_active_flash,
+
    output            core_ready,
    output            qplllock_out,
 
@@ -103,32 +96,15 @@ parameter   G_GTCH_COUNT = 1
 
 
    // Signal declarations
-   wire              enable_vlan;
-   wire              reset_error_sync;
-
    wire              coreclk;
    wire              block_lock;
-   wire              rxrecclk;
-   wire              s_axi_aclk;
 
-   wire              tx_dcm_locked;
    wire              no_remote_and_local_faults;
    wire    [79 : 0]  mac_tx_configuration_vector;
    wire    [79 : 0]  mac_rx_configuration_vector;
    wire   [1 : 0]    mac_status_vector;
    wire   [535 : 0]  pcs_pma_configuration_vector;
    wire   [447 : 0]  pcs_pma_status_vector;
-
-   wire              tx_statistics_vector;
-   wire              rx_statistics_vector;
-   wire     [25:0]   tx_statistics_vector_int;
-   wire     [0:0]    tx_statistics_valid_int;
-   reg               tx_statistics_valid;
-   reg      [27:0]   tx_statistics_shift = 0;
-   wire     [29:0]   rx_statistics_vector_int;
-   wire     [0:0]    rx_statistics_valid_int;
-   reg               rx_statistics_valid;
-   reg      [31:0]   rx_statistics_shift = 0;
 
    wire     [63:0]   tx_axis_tdata;
    wire     [7:0]    tx_axis_tkeep;
@@ -140,13 +116,10 @@ parameter   G_GTCH_COUNT = 1
    wire     [0:0]    rx_axis_tvalid;
    wire     [0:0]    rx_axis_tlast;
    wire     [0:0]    rx_axis_tready;
-   wire              tx_reset;
-   wire              rx_reset;
 
    wire     [G_GTCH_COUNT - 1 : 0]    tx_axis_aresetn;
    wire     [G_GTCH_COUNT - 1 : 0]    rx_axis_aresetn;
 
-   wire      resetdone_out;
    wire      [7:0]   pcspma_status;
 
 
@@ -166,14 +139,8 @@ parameter   G_GTCH_COUNT = 1
    assign tx_axis_aresetn[0]  = ~reset;
    assign rx_axis_aresetn[0]  = ~reset;
 
-   // The serialized statistics vector output is intended to only prevent logic stripping
-   assign serialized_stats = tx_statistics_vector || rx_statistics_vector;
-
-   assign tx_reset  = reset;
-   assign rx_reset  = reset;
 
    wire [G_GTCH_COUNT - 1 : 0]       coreclk_i;
-   wire [G_GTCH_COUNT - 1 : 0]       rxrecclk_i;
    wire [G_GTCH_COUNT - 1 : 0]       qplllock_i;
    wire [G_GTCH_COUNT - 1 : 0]       txp_i;
    wire [G_GTCH_COUNT - 1 : 0]       txn_i;
@@ -181,7 +148,6 @@ parameter   G_GTCH_COUNT = 1
    wire [G_GTCH_COUNT - 1 : 0]       rxn_i;
 
 assign coreclk = coreclk_i[0];
-assign rxrecclk = rxrecclk_i[0];
 assign qplllock_out = qplllock_i[0];
 assign txp = txp_i[0];
 assign txn = txn_i[0];
@@ -208,17 +174,17 @@ assign rxn_i[0] = rxn;
       .refclk_p                        (refclk_p),
       .refclk_n                        (refclk_n),
       .coreclk_out                     (coreclk_i),
-      .rxrecclk_out                    (rxrecclk_i),
-      .dclk                            (s_axi_aclk),
+      .rxrecclk_out                    (),
+      .dclk                            (clk_in),
 
       .reset                           (reset),
 
       .tx_ifg_delay                    (8'd0),
 
-      .tx_statistics_vector            (tx_statistics_vector_int),
-      .tx_statistics_valid             (tx_statistics_valid_int),
-      .rx_statistics_vector            (rx_statistics_vector_int),
-      .rx_statistics_valid             (rx_statistics_valid_int),
+      .tx_statistics_vector            (),
+      .tx_statistics_valid             (),
+      .rx_statistics_vector            (),
+      .rx_statistics_valid             (),
 
       .pause_val                       (16'b0),
       .pause_req                       (1'b0),
@@ -254,30 +220,11 @@ assign rxn_i[0] = rxn;
       .tx_fault                        (1'b0),
       .sim_speedup_control             (sim_speedup_control),
       .pcspma_status                   (pcspma_status),
-      .resetdone_out                   (resetdone_out),
+      .resetdone_out                   (),
       .qplllock_out                    (qplllock_i)
       );
 
-
-    //--------------------------------------------------------------------------
-    // Instantiate the AXI-LITE/DRPCLK Clock source module
-    //--------------------------------------------------------------------------
-
-    eth_core_clocking axi_lite_clocking_i (
-      .clk_in_p                        (clk_in_p),
-      .clk_in_n                        (clk_in_n),
-      .s_axi_aclk                      (s_axi_aclk),
-      .tx_mmcm_reset                   (tx_reset),
-      .tx_mmcm_locked                  (tx_dcm_locked)
-    );
-
-
-
 assign frame_error = 0;
-assign gen_active_flash = 0;
-assign check_active_flash = 0;
 
-assign tx_statistics_vector = 0;
-assign rx_statistics_vector = 0;
 
 endmodule
