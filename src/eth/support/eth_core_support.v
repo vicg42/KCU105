@@ -60,7 +60,7 @@
 `timescale 1ps / 1ps
 
 module eth_core_support    #(
-  parameter   G_GT_CHANNEL_COUNT = 1
+  parameter   G_GTCH_COUNT = 1
   )
   (
    // Port declarations
@@ -72,83 +72,83 @@ module eth_core_support    #(
    output                              qpll0outclk_out,
    output                              qpll0outrefclk_out,
    output                              qpll0lock_out,
-   output [G_GT_CHANNEL_COUNT - 1: 0]  qpll0reset_out,
+   output [G_GTCH_COUNT - 1: 0]  qpll0reset_out,
    output                              resetdone_out,
-   output [G_GT_CHANNEL_COUNT - 1: 0]  txusrclk_out,
-   output [G_GT_CHANNEL_COUNT - 1: 0]  txusrclk2_out,
+   output [G_GTCH_COUNT - 1: 0]  txusrclk_out,
+   output [G_GTCH_COUNT - 1: 0]  txusrclk2_out,
    output                              gttxreset_out,
    output                              gtrxreset_out,
-   output [G_GT_CHANNEL_COUNT - 1: 0]  txuserrdy_out,
+   output [G_GTCH_COUNT - 1: 0]  txuserrdy_out,
    output                              reset_counter_done_out,
 
-   input       [(80 * G_GT_CHANNEL_COUNT) - 1 : 0]    mac_tx_configuration_vector,
-   input       [(80 * G_GT_CHANNEL_COUNT) - 1 : 0]    mac_rx_configuration_vector,
-   output      [(2 * G_GT_CHANNEL_COUNT) - 1 : 0]     mac_status_vector,
-   input       [(536 * G_GT_CHANNEL_COUNT) - 1 : 0]   pcs_pma_configuration_vector,
-   output      [(448 * G_GT_CHANNEL_COUNT) - 1 : 0]   pcs_pma_status_vector,
+   input       [(80 * G_GTCH_COUNT) - 1 : 0]    mac_tx_configuration_vector,
+   input       [(80 * G_GTCH_COUNT) - 1 : 0]    mac_rx_configuration_vector,
+   output      [(2 * G_GTCH_COUNT) - 1 : 0]     mac_status_vector,
+   input       [(536 * G_GTCH_COUNT) - 1 : 0]   pcs_pma_configuration_vector,
+   output      [(448 * G_GTCH_COUNT) - 1 : 0]   pcs_pma_status_vector,
 
    input       [7:0]                   tx_ifg_delay,
 
-   output      [(26 * G_GT_CHANNEL_COUNT) - 1 : 0]  tx_statistics_vector,
-   output      [(30 * G_GT_CHANNEL_COUNT) - 1 : 0]   rx_statistics_vector,
-   output      [G_GT_CHANNEL_COUNT - 1 : 0]         tx_statistics_valid,
-   output      [G_GT_CHANNEL_COUNT - 1 : 0]         rx_statistics_valid,
+   output      [(26 * G_GTCH_COUNT) - 1 : 0]  tx_statistics_vector,
+   output      [(30 * G_GTCH_COUNT) - 1 : 0]   rx_statistics_vector,
+   output      [G_GTCH_COUNT - 1 : 0]         tx_statistics_valid,
+   output      [G_GTCH_COUNT - 1 : 0]         rx_statistics_valid,
 
-   input       [G_GT_CHANNEL_COUNT - 1 : 0]         tx_axis_aresetn,
-   input       [(64 * G_GT_CHANNEL_COUNT) - 1 : 0]  s_axis_tx_tdata,
-   input       [(8 * G_GT_CHANNEL_COUNT) - 1 : 0]   s_axis_tx_tkeep,
-   input       [G_GT_CHANNEL_COUNT - 1 : 0]         s_axis_tx_tvalid,
-   input       [G_GT_CHANNEL_COUNT - 1 : 0]         s_axis_tx_tlast,
-   input       [G_GT_CHANNEL_COUNT - 1 : 0]         s_axis_tx_tuser,
-   output      [G_GT_CHANNEL_COUNT - 1 : 0]         s_axis_tx_tready,
+   input       [G_GTCH_COUNT - 1 : 0]         tx_axis_aresetn,
+   input       [(64 * G_GTCH_COUNT) - 1 : 0]  s_axis_tx_tdata,
+   input       [(8 * G_GTCH_COUNT) - 1 : 0]   s_axis_tx_tkeep,
+   input       [G_GTCH_COUNT - 1 : 0]         s_axis_tx_tvalid,
+   input       [G_GTCH_COUNT - 1 : 0]         s_axis_tx_tlast,
+   input       [G_GTCH_COUNT - 1 : 0]         s_axis_tx_tuser,
+   output      [G_GTCH_COUNT - 1 : 0]         s_axis_tx_tready,
 
-   input       [G_GT_CHANNEL_COUNT - 1 : 0]         rx_axis_aresetn,
-   output      [(64 * G_GT_CHANNEL_COUNT) - 1 : 0]  m_axis_rx_tdata,
-   output      [(8 * G_GT_CHANNEL_COUNT) - 1 : 0]   m_axis_rx_tkeep,
-   output      [G_GT_CHANNEL_COUNT - 1 : 0]         m_axis_rx_tvalid,
-   output      [G_GT_CHANNEL_COUNT - 1 : 0]         m_axis_rx_tuser,
-   output      [G_GT_CHANNEL_COUNT - 1 : 0]         m_axis_rx_tlast,
+   input       [G_GTCH_COUNT - 1 : 0]         rx_axis_aresetn,
+   output      [(64 * G_GTCH_COUNT) - 1 : 0]  m_axis_rx_tdata,
+   output      [(8 * G_GTCH_COUNT) - 1 : 0]   m_axis_rx_tkeep,
+   output      [G_GTCH_COUNT - 1 : 0]         m_axis_rx_tvalid,
+   output      [G_GTCH_COUNT - 1 : 0]         m_axis_rx_tuser,
+   output      [G_GTCH_COUNT - 1 : 0]         m_axis_rx_tlast,
 
-   input       [G_GT_CHANNEL_COUNT - 1 : 0]         transceiver_debug_gt_eyescanreset,
-   input       [G_GT_CHANNEL_COUNT - 1 : 0]         transceiver_debug_gt_eyescantrigger,
-   input       [G_GT_CHANNEL_COUNT - 1 : 0]         transceiver_debug_gt_rxcdrhold,
-   input       [G_GT_CHANNEL_COUNT - 1 : 0]         transceiver_debug_gt_txprbsforceerr,
-   input       [G_GT_CHANNEL_COUNT - 1 : 0]         transceiver_debug_gt_txpolarity,
-   input       [G_GT_CHANNEL_COUNT - 1 : 0]         transceiver_debug_gt_rxpolarity,
-   input   [(3 * G_GT_CHANNEL_COUNT) - 1 : 0]       transceiver_debug_gt_rxrate,
-   input       [G_GT_CHANNEL_COUNT - 1 : 0]         transceiver_debug_gt_txpmareset,
-   input       [G_GT_CHANNEL_COUNT - 1 : 0]         transceiver_debug_gt_rxpmareset,
-   input       [G_GT_CHANNEL_COUNT - 1 : 0]         transceiver_debug_gt_rxdfelpmreset,
-   input   [(5 * G_GT_CHANNEL_COUNT) - 1 : 0]       transceiver_debug_gt_txprecursor,
-   input   [(5 * G_GT_CHANNEL_COUNT) - 1 : 0]       transceiver_debug_gt_txpostcursor,
-   input   [(4 * G_GT_CHANNEL_COUNT) - 1 : 0]       transceiver_debug_gt_txdiffctrl,
-   input       [G_GT_CHANNEL_COUNT - 1 : 0]         transceiver_debug_gt_rxlpmen,
-   output      [G_GT_CHANNEL_COUNT - 1 : 0]         transceiver_debug_gt_eyescandataerror,
-   output  [(2 * G_GT_CHANNEL_COUNT) - 1 : 0]       transceiver_debug_gt_txbufstatus,
-   output      [G_GT_CHANNEL_COUNT - 1 : 0]         transceiver_debug_gt_txresetdone,
-   output      [G_GT_CHANNEL_COUNT - 1 : 0]         transceiver_debug_gt_rxpmaresetdone,
-   output      [G_GT_CHANNEL_COUNT - 1 : 0]         transceiver_debug_gt_rxresetdone,
-   output  [(3 * G_GT_CHANNEL_COUNT) - 1 : 0]       transceiver_debug_gt_rxbufstatus,
-   output      [G_GT_CHANNEL_COUNT - 1 : 0]         transceiver_debug_gt_rxprbserr,
-   output  [(17 * G_GT_CHANNEL_COUNT) - 1: 0]       transceiver_debug_gt_dmonitorout,
-   input   [(16 * G_GT_CHANNEL_COUNT) - 1: 0]       transceiver_debug_gt_pcsrsvdin,
+   input       [G_GTCH_COUNT - 1 : 0]         transceiver_debug_gt_eyescanreset,
+   input       [G_GTCH_COUNT - 1 : 0]         transceiver_debug_gt_eyescantrigger,
+   input       [G_GTCH_COUNT - 1 : 0]         transceiver_debug_gt_rxcdrhold,
+   input       [G_GTCH_COUNT - 1 : 0]         transceiver_debug_gt_txprbsforceerr,
+   input       [G_GTCH_COUNT - 1 : 0]         transceiver_debug_gt_txpolarity,
+   input       [G_GTCH_COUNT - 1 : 0]         transceiver_debug_gt_rxpolarity,
+   input   [(3 * G_GTCH_COUNT) - 1 : 0]       transceiver_debug_gt_rxrate,
+   input       [G_GTCH_COUNT - 1 : 0]         transceiver_debug_gt_txpmareset,
+   input       [G_GTCH_COUNT - 1 : 0]         transceiver_debug_gt_rxpmareset,
+   input       [G_GTCH_COUNT - 1 : 0]         transceiver_debug_gt_rxdfelpmreset,
+   input   [(5 * G_GTCH_COUNT) - 1 : 0]       transceiver_debug_gt_txprecursor,
+   input   [(5 * G_GTCH_COUNT) - 1 : 0]       transceiver_debug_gt_txpostcursor,
+   input   [(4 * G_GTCH_COUNT) - 1 : 0]       transceiver_debug_gt_txdiffctrl,
+   input       [G_GTCH_COUNT - 1 : 0]         transceiver_debug_gt_rxlpmen,
+   output      [G_GTCH_COUNT - 1 : 0]         transceiver_debug_gt_eyescandataerror,
+   output  [(2 * G_GTCH_COUNT) - 1 : 0]       transceiver_debug_gt_txbufstatus,
+   output      [G_GTCH_COUNT - 1 : 0]         transceiver_debug_gt_txresetdone,
+   output      [G_GTCH_COUNT - 1 : 0]         transceiver_debug_gt_rxpmaresetdone,
+   output      [G_GTCH_COUNT - 1 : 0]         transceiver_debug_gt_rxresetdone,
+   output  [(3 * G_GTCH_COUNT) - 1 : 0]       transceiver_debug_gt_rxbufstatus,
+   output      [G_GTCH_COUNT - 1 : 0]         transceiver_debug_gt_rxprbserr,
+   output  [(17 * G_GTCH_COUNT) - 1: 0]       transceiver_debug_gt_dmonitorout,
+   input   [(16 * G_GTCH_COUNT) - 1: 0]       transceiver_debug_gt_pcsrsvdin,
 
 
    //Pause axis
    input      [15:0]                   s_axis_pause_tdata,
    input                               s_axis_pause_tvalid,
 
-   output [G_GT_CHANNEL_COUNT - 1 : 0]   txp,
-   output [G_GT_CHANNEL_COUNT - 1 : 0]   txn,
-   input  [G_GT_CHANNEL_COUNT - 1 : 0]   rxp,
-   input  [G_GT_CHANNEL_COUNT - 1 : 0]   rxn,
+   output [G_GTCH_COUNT - 1 : 0]   txp,
+   output [G_GTCH_COUNT - 1 : 0]   txn,
+   input  [G_GTCH_COUNT - 1 : 0]   rxp,
+   input  [G_GTCH_COUNT - 1 : 0]   rxn,
 
-   output      [G_GT_CHANNEL_COUNT - 1 : 0]         tx_disable,
-   output wire [G_GT_CHANNEL_COUNT - 1 : 0]         rxrecclk_out,
-   input       [G_GT_CHANNEL_COUNT - 1 : 0]         signal_detect,
+   output      [G_GTCH_COUNT - 1 : 0]         tx_disable,
+   output wire [G_GTCH_COUNT - 1 : 0]         rxrecclk_out,
+   input       [G_GTCH_COUNT - 1 : 0]         signal_detect,
    input                               sim_speedup_control,
-   input       [G_GT_CHANNEL_COUNT - 1 : 0]         tx_fault,
-   output      [(8 * G_GT_CHANNEL_COUNT) - 1 : 0]   pcspma_status
+   input       [G_GTCH_COUNT - 1 : 0]         tx_fault,
+   output      [(8 * G_GTCH_COUNT) - 1 : 0]   pcspma_status
    );
 
 /*-------------------------------------------------------------------------*/
@@ -156,24 +156,24 @@ module eth_core_support    #(
   // Signal declarations
 
   wire coreclk;
-  wire [G_GT_CHANNEL_COUNT - 1 : 0]   txoutclk;
+  wire [G_GTCH_COUNT - 1 : 0]   txoutclk;
   wire qpll0outclk;
   wire qpll0outrefclk;
   wire qpll0lock;
-  wire [G_GT_CHANNEL_COUNT - 1 : 0]   qpll0reset;
-  wire [G_GT_CHANNEL_COUNT - 1 : 0]   reset_tx_bufg_gt;
-  wire [G_GT_CHANNEL_COUNT - 1 : 0]   tx_resetdone_int;
-  wire [G_GT_CHANNEL_COUNT - 1 : 0]   rx_resetdone_int;
-  wire [G_GT_CHANNEL_COUNT - 1 : 0]   areset_txusrclk2;
+  wire [G_GTCH_COUNT - 1 : 0]   qpll0reset;
+  wire [G_GTCH_COUNT - 1 : 0]   reset_tx_bufg_gt;
+  wire [G_GTCH_COUNT - 1 : 0]   tx_resetdone_int;
+  wire [G_GTCH_COUNT - 1 : 0]   rx_resetdone_int;
+  wire [G_GTCH_COUNT - 1 : 0]   areset_txusrclk2;
   wire areset_coreclk;
   wire gttxreset;
   wire gtrxreset;
-  wire [G_GT_CHANNEL_COUNT - 1 : 0]   txuserrdy;
+  wire [G_GTCH_COUNT - 1 : 0]   txuserrdy;
   wire reset_counter_done;
-  wire [G_GT_CHANNEL_COUNT - 1 : 0]   txusrclk;
-  wire [G_GT_CHANNEL_COUNT - 1 : 0]   txusrclk2;
+  wire [G_GTCH_COUNT - 1 : 0]   txusrclk;
+  wire [G_GTCH_COUNT - 1 : 0]   txusrclk2;
   wire txoutclk_in;
-  wire [G_GT_CHANNEL_COUNT - 1 : 0]   resetdone_i;
+  wire [G_GTCH_COUNT - 1 : 0]   resetdone_i;
 
   assign coreclk_out            = coreclk;
 
@@ -195,7 +195,7 @@ module eth_core_support    #(
   //---------------------------------------------------------------------------
 
   eth_core_shared_clocking_wrapper  #(
-      .G_GT_CHANNEL_COUNT (G_GT_CHANNEL_COUNT)
+      .G_GTCH_COUNT (G_GTCH_COUNT)
       )
   shared_clocking_wrapper_i
     (
@@ -231,7 +231,7 @@ module eth_core_support    #(
 
 genvar i;
 generate
-for (i = 0; i < G_GT_CHANNEL_COUNT; i = i + 1)
+for (i = 0; i < G_GTCH_COUNT; i = i + 1)
 begin : ch
   assign resetdone_i[i] = tx_resetdone_int[i] && rx_resetdone_int[i];
 

@@ -61,7 +61,7 @@
 
 (* DowngradeIPIdentifiedWarnings = "yes" *)
 module eth_core_example_design #(
-parameter   G_GT_CHANNEL_COUNT = 1
+parameter   G_GTCH_COUNT = 1
 )
   (
    // Clock inputs
@@ -143,8 +143,8 @@ parameter   G_GT_CHANNEL_COUNT = 1
    wire              tx_reset;
    wire              rx_reset;
 
-   wire     [G_GT_CHANNEL_COUNT - 1 : 0]    tx_axis_aresetn;
-   wire     [G_GT_CHANNEL_COUNT - 1 : 0]    rx_axis_aresetn;
+   wire     [G_GTCH_COUNT - 1 : 0]    tx_axis_aresetn;
+   wire     [G_GTCH_COUNT - 1 : 0]    rx_axis_aresetn;
 
    wire              pat_gen_start;
 
@@ -209,13 +209,13 @@ parameter   G_GT_CHANNEL_COUNT = 1
    assign tx_reset  = reset;
    assign rx_reset  = reset;
 
-   wire [G_GT_CHANNEL_COUNT - 1 : 0]       coreclk_i;
-   wire [G_GT_CHANNEL_COUNT - 1 : 0]       rxrecclk_i;
-   wire [G_GT_CHANNEL_COUNT - 1 : 0]       qplllock_i;
-   wire [G_GT_CHANNEL_COUNT - 1 : 0]       txp_i;
-   wire [G_GT_CHANNEL_COUNT - 1 : 0]       txn_i;
-   wire [G_GT_CHANNEL_COUNT - 1 : 0]       rxp_i;
-   wire [G_GT_CHANNEL_COUNT - 1 : 0]       rxn_i;
+   wire [G_GTCH_COUNT - 1 : 0]       coreclk_i;
+   wire [G_GTCH_COUNT - 1 : 0]       rxrecclk_i;
+   wire [G_GTCH_COUNT - 1 : 0]       qplllock_i;
+   wire [G_GTCH_COUNT - 1 : 0]       txp_i;
+   wire [G_GTCH_COUNT - 1 : 0]       txn_i;
+   wire [G_GTCH_COUNT - 1 : 0]       rxp_i;
+   wire [G_GTCH_COUNT - 1 : 0]       rxn_i;
 
 assign coreclk = coreclk_i[0];
 assign rxrecclk = rxrecclk_i[0];
@@ -230,7 +230,7 @@ assign rxn_i[0] = rxn;
     // Instantiate a module containing the Ethernet core and an example FIFO
     //--------------------------------------------------------------------------
     eth_core_fifo_block #(
-      .G_GT_CHANNEL_COUNT (G_GT_CHANNEL_COUNT),
+      .G_GTCH_COUNT (G_GTCH_COUNT),
       .FIFO_SIZE                       (FIFO_SIZE)
     ) fifo_block_i (
       .refclk_p                        (refclk_p),

@@ -4,7 +4,6 @@
 -- Create Date : 06.11.2015 15:19:47
 -- Module Name : eth_phypin_pkg
 --
--- Description : Назначаем пины интерфейсов
 --
 -------------------------------------------------------------------------
 library ieee;
@@ -15,32 +14,32 @@ use work.prj_cfg.all;
 
 package eth_phypin_pkg is
 
-constant C_GTCH_COUNT_MAX : integer := C_PCFG_ETH_GTCH_COUNT_MAX;
+constant C_GTCH_COUNT : integer := C_PCFG_ETH_GTCH_COUNT;
 
 ----------------------------
 --FIBER:
 ----------------------------
-type TEthPhyFiberPinOUT is record
-txp : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-txn : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+type TEthPhyFiberPin_OUT is record
+txp : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
+txn : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
 end record;
-type TEthPhyFiberPinIN is record
-rxp  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-rxn  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-clk_p: std_logic;
-clk_n: std_logic;
+type TEthPhyFiberPin_IN is record
+rxp  : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
+rxn  : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
+refclk_p: std_logic;
+refclk_n: std_logic;
 end record;
 
 ----------------------------
 --Total
 ----------------------------
-type TEthPhyPinOUT is record
-fiber : TEthPhyFiberPinOUT;
+type TEthPhyPin_OUT is record
+fiber : TEthPhyFiberPin_OUT;
 end record;
-type TEthPhyPinIN is record
-fiber : TEthPhyFiberPinIN;
+type TEthPhyPin_IN is record
+fiber : TEthPhyFiberPin_IN;
 end record;
 
-end eth_phypin_pkg;
+end package eth_phypin_pkg;
 
 

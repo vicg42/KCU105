@@ -59,35 +59,35 @@
 
 (* DowngradeIPIdentifiedWarnings="yes" *)
 module  eth_core_shared_clock_and_reset   #(
-  parameter   G_GT_CHANNEL_COUNT = 1
+  parameter   G_GTCH_COUNT = 1
   )
     (
      input  areset,
      input  refclk_p,
      input  refclk_n,
-     input  [G_GT_CHANNEL_COUNT - 1: 0]   qpll0reset,
+     input  [G_GTCH_COUNT - 1: 0]   qpll0reset,
      output refclk,
-     input  [G_GT_CHANNEL_COUNT - 1: 0]   txoutclk,
+     input  [G_GTCH_COUNT - 1: 0]   txoutclk,
      output coreclk,
      input  qplllock,
-     input  [G_GT_CHANNEL_COUNT - 1: 0]   reset_tx_bufg_gt,
+     input  [G_GTCH_COUNT - 1: 0]   reset_tx_bufg_gt,
      output wire areset_coreclk,
-     output wire [G_GT_CHANNEL_COUNT - 1: 0]   areset_txusrclk2,
+     output wire [G_GTCH_COUNT - 1: 0]   areset_txusrclk2,
      output gttxreset,
      output gtrxreset,
-     output reg [G_GT_CHANNEL_COUNT - 1: 0]   txuserrdy,
-     output [G_GT_CHANNEL_COUNT - 1: 0]   txusrclk,
-     output [G_GT_CHANNEL_COUNT - 1: 0]   txusrclk2,
-     output [G_GT_CHANNEL_COUNT - 1: 0]   qpllreset,
+     output reg [G_GTCH_COUNT - 1: 0]   txuserrdy,
+     output [G_GTCH_COUNT - 1: 0]   txusrclk,
+     output [G_GTCH_COUNT - 1: 0]   txusrclk2,
+     output [G_GTCH_COUNT - 1: 0]   qpllreset,
      output reset_counter_done
     );
 
   wire coreclk_buf;
-  wire [G_GT_CHANNEL_COUNT - 1: 0]   qplllock_txusrclk2;
+  wire [G_GTCH_COUNT - 1: 0]   qplllock_txusrclk2;
   reg [8:0] reset_counter = 9'h000;
   assign reset_counter_done = reset_counter[8];
   reg [3:0] reset_pulse = 4'b1110;
-  wire [G_GT_CHANNEL_COUNT - 1: 0]   gttxreset_txusrclk2;
+  wire [G_GTCH_COUNT - 1: 0]   gttxreset_txusrclk2;
 
   wire refclkcopy;
 
@@ -113,7 +113,7 @@ module  eth_core_shared_clock_and_reset   #(
 
 genvar i0;
 generate
-for (i0 = 0; i0 < G_GT_CHANNEL_COUNT; i0 = i0 + 1)
+for (i0 = 0; i0 < G_GTCH_COUNT; i0 = i0 + 1)
 begin : txusrclk2_ch
 
   BUFG_GT txoutclk_bufg_gt_i
@@ -170,7 +170,7 @@ endgenerate
 
 genvar i1;
 generate
-for (i1 = 0; i1 < G_GT_CHANNEL_COUNT; i1 = i1 + 1)
+for (i1 = 0; i1 < G_GTCH_COUNT; i1 = i1 + 1)
 begin : qplllock_txusrclk2_ch
 
   eth_core_ff_synchronizer_rst2
@@ -214,7 +214,7 @@ endgenerate
 
 genvar i2;
 generate
-for (i2 = 0; i2 < G_GT_CHANNEL_COUNT; i2 = i2 + 1)
+for (i2 = 0; i2 < G_GTCH_COUNT; i2 = i2 + 1)
 begin : txuserrdy_ch
 
   eth_core_ff_synchronizer_rst2

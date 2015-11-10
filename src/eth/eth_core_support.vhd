@@ -14,7 +14,7 @@ use work.reduce_pack.all;
 
 entity eth_core_support is
 generic(
-G_GT_CHANNEL_COUNT : integer := 1
+G_GTCH_COUNT : integer := 1
 );
 port(
 -- Port declarations
@@ -26,83 +26,83 @@ p_in_reset                 : in  std_logic;
 p_out_qpll0outclk          : out std_logic;
 p_out_qpll0outrefclk       : out std_logic;
 p_out_qpll0lock            : out std_logic;
-p_out_qpll0reset           : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
+p_out_qpll0reset           : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 p_out_resetdone            : out std_logic;
-p_out_txusrclk             : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
-p_out_txusrclk2            : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
+p_out_txusrclk             : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+p_out_txusrclk2            : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 p_out_gttxreset            : out std_logic;
 p_out_gtrxreset            : out std_logic;
-p_out_txuserrdy            : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
+p_out_txuserrdy            : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 p_out_reset_counter_done   : out std_logic;
 
-p_in_mac_tx_configuration_vector  : in  std_logic_vector((80 * G_GT_CHANNEL_COUNT) - 1 downto 0);
-p_in_mac_rx_configuration_vector  : in  std_logic_vector((80 * G_GT_CHANNEL_COUNT) - 1 downto 0);
-p_out_mac_status_vector           : out std_logic_vector((2 * G_GT_CHANNEL_COUNT) - 1 downto 0);
-p_in_pcs_pma_configuration_vector : in  std_logic_vector((536 * G_GT_CHANNEL_COUNT) - 1 downto 0);
-p_out_pcs_pma_status_vector       : out std_logic_vector((448 * G_GT_CHANNEL_COUNT) - 1 downto 0);
+p_in_mac_tx_configuration_vector  : in  std_logic_vector((80 * G_GTCH_COUNT) - 1 downto 0);
+p_in_mac_rx_configuration_vector  : in  std_logic_vector((80 * G_GTCH_COUNT) - 1 downto 0);
+p_out_mac_status_vector           : out std_logic_vector((2 * G_GTCH_COUNT) - 1 downto 0);
+p_in_pcs_pma_configuration_vector : in  std_logic_vector((536 * G_GTCH_COUNT) - 1 downto 0);
+p_out_pcs_pma_status_vector       : out std_logic_vector((448 * G_GTCH_COUNT) - 1 downto 0);
 
 p_in_tx_ifg_delay   : in  std_logic_vector(7 downto 0);
 
-p_out_tx_statistics_vector   : out std_logic_vector((26 * G_GT_CHANNEL_COUNT) - 1 downto 0);
-p_out_rx_statistics_vector   : out std_logic_vector((30 * G_GT_CHANNEL_COUNT) - 1 downto 0);
-p_out_tx_statistics_valid    : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
-p_out_rx_statistics_valid    : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
+p_out_tx_statistics_vector   : out std_logic_vector((26 * G_GTCH_COUNT) - 1 downto 0);
+p_out_rx_statistics_vector   : out std_logic_vector((30 * G_GTCH_COUNT) - 1 downto 0);
+p_out_tx_statistics_valid    : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+p_out_rx_statistics_valid    : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 
-p_in_tx_axis_aresetn    : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
-p_in_s_axis_tx_tdata    : in  std_logic_vector((64 * G_GT_CHANNEL_COUNT) - 1  downto 0);
-p_in_s_axis_tx_tkeep    : in  std_logic_vector((8 * G_GT_CHANNEL_COUNT) - 1 downto 0);
-p_in_s_axis_tx_tvalid   : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
-p_in_s_axis_tx_tlast    : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
-p_in_s_axis_tx_tuser    : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
-p_out_s_axis_tx_tready  : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
+p_in_tx_axis_aresetn    : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+p_in_s_axis_tx_tdata    : in  std_logic_vector((64 * G_GTCH_COUNT) - 1  downto 0);
+p_in_s_axis_tx_tkeep    : in  std_logic_vector((8 * G_GTCH_COUNT) - 1 downto 0);
+p_in_s_axis_tx_tvalid   : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+p_in_s_axis_tx_tlast    : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+p_in_s_axis_tx_tuser    : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+p_out_s_axis_tx_tready  : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 
-p_in_rx_axis_aresetn    : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
-p_out_m_axis_rx_tdata   : out std_logic_vector((64 * G_GT_CHANNEL_COUNT) - 1  downto 0);
-p_out_m_axis_rx_tkeep   : out std_logic_vector((8 * G_GT_CHANNEL_COUNT) - 1 downto 0);
-p_out_m_axis_rx_tvalid  : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
-p_out_m_axis_rx_tuser   : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
-p_out_m_axis_rx_tlast   : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
+p_in_rx_axis_aresetn    : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+p_out_m_axis_rx_tdata   : out std_logic_vector((64 * G_GTCH_COUNT) - 1  downto 0);
+p_out_m_axis_rx_tkeep   : out std_logic_vector((8 * G_GTCH_COUNT) - 1 downto 0);
+p_out_m_axis_rx_tvalid  : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+p_out_m_axis_rx_tuser   : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+p_out_m_axis_rx_tlast   : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 
---transceiver_debug_gt_eyescanreset        : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
---transceiver_debug_gt_eyescantrigger      : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
---transceiver_debug_gt_rxcdrhold           : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
---transceiver_debug_gt_txprbsforceerr      : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
---transceiver_debug_gt_txpolarity          : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
---transceiver_debug_gt_rxpolarity          : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
---transceiver_debug_gt_rxrate              : in  std_logic_vector((3 * G_GT_CHANNEL_COUNT) - 1 downto 0);
---transceiver_debug_gt_txpmareset          : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
---transceiver_debug_gt_rxpmareset          : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
---transceiver_debug_gt_rxdfelpmreset       : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
---transceiver_debug_gt_txprecursor         : in  std_logic_vector((5 * G_GT_CHANNEL_COUNT) - 1 downto 0);
---transceiver_debug_gt_txpostcursor        : in  std_logic_vector((5 * G_GT_CHANNEL_COUNT) - 1 downto 0);
---transceiver_debug_gt_txdiffctrl          : in  std_logic_vector((4 * G_GT_CHANNEL_COUNT) - 1 downto 0);
---transceiver_debug_gt_rxlpmen             : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
---transceiver_debug_gt_eyescandataerror    : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
---transceiver_debug_gt_txbufstatus         : out std_logic_vector((2 * G_GT_CHANNEL_COUNT) - 1 downto 0);
---transceiver_debug_gt_txresetdone         : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
---transceiver_debug_gt_rxpmaresetdone      : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
---transceiver_debug_gt_rxresetdone         : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
---transceiver_debug_gt_rxbufstatus         : out std_logic_vector((3 * G_GT_CHANNEL_COUNT) - 1 downto 0);
---transceiver_debug_gt_rxprbserr           : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
---transceiver_debug_gt_dmonitorout         : out std_logic_vector((17 * G_GT_CHANNEL_COUNT) - 1 downto 0);
---transceiver_debug_gt_pcsrsvdin           : in  std_logic_vector((16 * G_GT_CHANNEL_COUNT) - 1 downto 0);
+--transceiver_debug_gt_eyescanreset        : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+--transceiver_debug_gt_eyescantrigger      : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+--transceiver_debug_gt_rxcdrhold           : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+--transceiver_debug_gt_txprbsforceerr      : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+--transceiver_debug_gt_txpolarity          : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+--transceiver_debug_gt_rxpolarity          : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+--transceiver_debug_gt_rxrate              : in  std_logic_vector((3 * G_GTCH_COUNT) - 1 downto 0);
+--transceiver_debug_gt_txpmareset          : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+--transceiver_debug_gt_rxpmareset          : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+--transceiver_debug_gt_rxdfelpmreset       : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+--transceiver_debug_gt_txprecursor         : in  std_logic_vector((5 * G_GTCH_COUNT) - 1 downto 0);
+--transceiver_debug_gt_txpostcursor        : in  std_logic_vector((5 * G_GTCH_COUNT) - 1 downto 0);
+--transceiver_debug_gt_txdiffctrl          : in  std_logic_vector((4 * G_GTCH_COUNT) - 1 downto 0);
+--transceiver_debug_gt_rxlpmen             : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+--transceiver_debug_gt_eyescandataerror    : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+--transceiver_debug_gt_txbufstatus         : out std_logic_vector((2 * G_GTCH_COUNT) - 1 downto 0);
+--transceiver_debug_gt_txresetdone         : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+--transceiver_debug_gt_rxpmaresetdone      : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+--transceiver_debug_gt_rxresetdone         : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+--transceiver_debug_gt_rxbufstatus         : out std_logic_vector((3 * G_GTCH_COUNT) - 1 downto 0);
+--transceiver_debug_gt_rxprbserr           : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+--transceiver_debug_gt_dmonitorout         : out std_logic_vector((17 * G_GTCH_COUNT) - 1 downto 0);
+--transceiver_debug_gt_pcsrsvdin           : in  std_logic_vector((16 * G_GTCH_COUNT) - 1 downto 0);
 
 
 --Pause axis
 p_in_s_axis_pause_tdata    : in  std_logic_vector(15 downto 0);
 p_in_s_axis_pause_tvalid   : in  std_logic;
 
-p_out_txp  : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
-p_out_txn  : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
-p_in_rxp   : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
-p_in_rxn   : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
+p_out_txp  : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+p_out_txn  : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+p_in_rxp   : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+p_in_rxn   : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 
-p_out_tx_disable         : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
-p_out_rxrecclk_out       : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
-p_in_signal_detect       : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
+p_out_tx_disable         : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+p_out_rxrecclk_out       : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+p_in_signal_detect       : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 p_in_sim_speedup_control : in  std_logic;
-p_in_tx_fault            : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
-p_out_pcspma_status      : out std_logic_vector((8 * G_GT_CHANNEL_COUNT) - 1 downto 0)
+p_in_tx_fault            : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+p_out_pcspma_status      : out std_logic_vector((8 * G_GTCH_COUNT) - 1 downto 0)
 );
 end entity eth_core_support;
 
@@ -191,25 +191,25 @@ end component eth_core;
 
 component eth_core_shared_clocking_wrapper is
 generic (
-G_GT_CHANNEL_COUNT : integer := 1
+G_GTCH_COUNT : integer := 1
 );
 port (
 reset              : in  std_logic;
 refclk_p           : in  std_logic;
 refclk_n           : in  std_logic;
-qpll0reset         : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
+qpll0reset         : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 dclk               : in  std_logic;
-txoutclk           : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
+txoutclk           : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 txoutclk_out       : out std_logic;
 coreclk            : out std_logic;
-reset_tx_bufg_gt   : in  std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
+reset_tx_bufg_gt   : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 areset_coreclk     : out std_logic;
-areset_txusrclk2   : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
+areset_txusrclk2   : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 gttxreset          : out std_logic;
 gtrxreset          : out std_logic;
-txuserrdy          : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
-txusrclk           : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
-txusrclk2          : out std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
+txuserrdy          : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+txusrclk           : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+txusrclk2          : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 reset_counter_done : out std_logic;
 qpll0lock_out      : out std_logic;
 qpll0outclk        : out std_logic;
@@ -225,9 +225,9 @@ gt_common_drpwe   : in  std_logic
 );
 end component eth_core_shared_clocking_wrapper;
 
-signal i_tx_resetdone   : std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
-signal i_rx_resetdone   : std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
-signal i_resetdone      : std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
+signal i_tx_resetdone   : std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+signal i_rx_resetdone   : std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+signal i_resetdone      : std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 
 signal i_coreclk        : std_logic;
 signal i_gttxreset      : std_logic;
@@ -237,14 +237,14 @@ signal i_qpll0outclk    : std_logic;
 signal i_qpll0outrefclk : std_logic;
 signal i_reset_counter_done : std_logic;
 
-signal i_qpll0reset         : std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
-signal i_txuserrdy          : std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
+signal i_qpll0reset         : std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+signal i_txuserrdy          : std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 signal i_areset_coreclk     : std_logic;
 
-signal i_reset_tx_bufg_gt   : std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
-signal i_txoutclk           : std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
-signal i_txusrclk           : std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
-signal i_txusrclk2          : std_logic_vector(G_GT_CHANNEL_COUNT - 1 downto 0);
+signal i_reset_tx_bufg_gt   : std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+signal i_txoutclk           : std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+signal i_txusrclk           : std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+signal i_txusrclk2          : std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 
 
 begin --architecture behavioral of eth_core_support is
@@ -253,7 +253,7 @@ begin --architecture behavioral of eth_core_support is
 
 m_eth_core_shared : eth_core_shared_clocking_wrapper
 generic map (
-G_GT_CHANNEL_COUNT => G_GT_CHANNEL_COUNT
+G_GTCH_COUNT => G_GTCH_COUNT
 )
 port map(
 reset              => p_in_reset,
@@ -307,7 +307,7 @@ p_out_txuserrdy <= i_txuserrdy;
 
 p_out_resetdone <= OR_reduce(i_resetdone);
 
-gen_ch : for i in 0 to (G_GT_CHANNEL_COUNT - 1) generate
+gen_ch : for i in 0 to (G_GTCH_COUNT - 1) generate
 begin
 
 i_resetdone(i) <= i_tx_resetdone(i) and i_rx_resetdone(i);
