@@ -146,53 +146,18 @@ parameter   G_GTCH_COUNT = 1
    wire     [G_GTCH_COUNT - 1 : 0]    tx_axis_aresetn;
    wire     [G_GTCH_COUNT - 1 : 0]    rx_axis_aresetn;
 
-   wire              pat_gen_start;
-
    wire      resetdone_out;
    wire      [7:0]   pcspma_status;
-
-   wire              pcs_loopback_sync;
-   wire              enable_custom_preamble_rxrecclk_sync;
-   wire              enable_custom_preamble_coreclk_sync;
-   wire              insert_error_sync;
 
 
    assign coreclk_out = coreclk;
 
-   // Enable or disable VLAN mode
-   assign enable_vlan = 0;
-
-   // Synchronise example design inputs into the applicable clock domain
-   eth_core_sync_block sync_insert_error (
-      .data_in                         (insert_error),
-      .clk                             (coreclk),
-      .data_out                        (insert_error_sync)
-   );
-
-   eth_core_sync_block sync_coreclk_enable_custom_preamble (
-      .data_in                         (enable_custom_preamble),
-      .clk                             (coreclk),
-      .data_out                        (enable_custom_preamble_coreclk_sync)
-   );
-
-
-   eth_core_sync_block sync_rxrecclk_enable_custom_preamble (
-      .data_in                         (enable_custom_preamble),
-      .clk                             (rxrecclk),
-      .data_out                        (enable_custom_preamble_rxrecclk_sync)
-   );
-
-   eth_core_sync_block sync_pcs_loopback (
-      .data_in                         (pcs_loopback),
-      .clk                             (coreclk),
-      .data_out                        (pcs_loopback_sync)
-   );
-
    // Assign the configuration settings to the configuration vectors
-   assign mac_rx_configuration_vector = {72'd0,enable_custom_preamble_rxrecclk_sync,4'd0,enable_vlan,2'b10};
-   assign mac_tx_configuration_vector = {72'd0,enable_custom_preamble_coreclk_sync,4'd0,enable_vlan,2'b10};
+   assign mac_rx_configuration_vector = {72'd0,6'd0,2'b10};
+   assign mac_tx_configuration_vector = {72'd0,6'd0,2'b10};
 
-   assign pcs_pma_configuration_vector = {425'd0,pcs_loopback_sync,110'd0};
+   assign pcs_pma_configuration_vector = {425'd0,111'd0};
+
    assign block_lock = pcspma_status[0];
    assign no_remote_and_local_faults = !mac_status_vector[0] && !mac_status_vector[1] ;
    assign core_ready = block_lock && no_remote_and_local_faults;
@@ -200,8 +165,6 @@ parameter   G_GTCH_COUNT = 1
    // Combine reset sources
    assign tx_axis_aresetn[0]  = ~reset;
    assign rx_axis_aresetn[0]  = ~reset;
-
-   assign pat_gen_start = enable_pat_gen && no_remote_and_local_faults && (pcs_loopback_sync || (block_lock && !pcs_loopback_sync));
 
    // The serialized statistics vector output is intended to only prevent logic stripping
    assign serialized_stats = tx_statistics_vector || rx_statistics_vector;
@@ -229,6 +192,15 @@ assign rxn_i[0] = rxn;
     //--------------------------------------------------------------------------
     // Instantiate a module containing the Ethernet core and an example FIFO
     //--------------------------------------------------------------------------
+      assign tx_axis_tdata  = rx_axis_tdata ;
+      assign tx_axis_tkeep  = rx_axis_tkeep ;
+      assign tx_axis_tvalid = rx_axis_tvalid;
+      assign tx_axis_tlast  = rx_axis_tlast ;
+
+      assign rx_axis_tready = tx_axis_tready ;
+
+
+
     eth_core_fifo_block #(
       .G_GTCH_COUNT (G_GTCH_COUNT),
       .FIFO_SIZE                       (FIFO_SIZE)
@@ -258,6 +230,7 @@ assign rxn_i[0] = rxn;
       .rx_axis_fifo_tvalid             (rx_axis_tvalid),
       .rx_axis_fifo_tlast              (rx_axis_tlast),
       .rx_axis_fifo_tready             (rx_axis_tready),
+
       .tx_axis_mac_aresetn             (tx_axis_aresetn),
       .tx_axis_fifo_aresetn            (tx_axis_aresetn),
       .tx_axis_fifo_tdata              (tx_axis_tdata),
@@ -300,81 +273,11 @@ assign rxn_i[0] = rxn;
 
 
 
-    eth_core_sync_block reset_error_sync_reg (
-      .clk                             (coreclk),
-      .data_in                         (reset_error),
-      .data_out                        (reset_error_sync)
-      );
+assign frame_error = 0;
+assign gen_active_flash = 0;
+assign check_active_flash = 0;
 
-    //--------------------------------------------------------------------------
-    // Instantiate the pattern generator / pattern checker and loopback module
-    //--------------------------------------------------------------------------
-
-    eth_core_gen_check_wrapper pattern_generator (
-      .dest_addr                       (48'hda0102030405),
-      .src_addr                        (48'h5a0102030405),
-      .max_size                        (15'd300),
-      .min_size                        (15'd066),
-      .enable_vlan                     (enable_vlan),
-      .vlan_id                         (12'h002),
-      .vlan_priority                   (3'b010),
-      .preamble_data                   (56'hD55555567555FB),
-      .enable_custom_preamble          (enable_custom_preamble_coreclk_sync),
-
-      .aclk                            (coreclk),
-
-      .aresetn                         (tx_axis_aresetn[0]),
-      .enable_pat_gen                  (pat_gen_start),
-      .reset_error                     (reset_error_sync),
-      .insert_error                    (insert_error_sync),
-      .enable_pat_check                (enable_pat_check),
-      .enable_loopback                 (!pat_gen_start),
-      .frame_error                     (frame_error),
-      .gen_active_flash                (gen_active_flash),
-      .check_active_flash              (check_active_flash),
-
-      .tx_axis_tdata                   (tx_axis_tdata),
-      .tx_axis_tkeep                   (tx_axis_tkeep),
-      .tx_axis_tvalid                  (tx_axis_tvalid[0]),
-      .tx_axis_tlast                   (tx_axis_tlast[0]),
-      .tx_axis_tready                  (tx_axis_tready[0]),
-      .rx_axis_tdata                   (rx_axis_tdata),
-      .rx_axis_tkeep                   (rx_axis_tkeep),
-      .rx_axis_tvalid                  (rx_axis_tvalid[0]),
-      .rx_axis_tlast                   (rx_axis_tlast[0]),
-      .rx_axis_tready                  (rx_axis_tready[0])
-   );
-
-
-   //--------------------------------------------------------------------------
-   // serialise the stats vector output to ensure logic isn't stripped during
-   // synthesis and to reduce the IO required by the example design
-   //--------------------------------------------------------------------------
-   always @(posedge coreclk)
-   begin
-     tx_statistics_valid               <= tx_statistics_valid_int[0];
-     if (tx_statistics_valid_int[0] & !tx_statistics_valid) begin
-        tx_statistics_shift            <= {2'b01,tx_statistics_vector_int};
-     end
-     else begin
-        tx_statistics_shift            <= {tx_statistics_shift[26:0], 1'b0};
-     end
-   end
-
-   assign tx_statistics_vector         = tx_statistics_shift[27];
-
-   always @(posedge rxrecclk)
-   begin
-     rx_statistics_valid               <= rx_statistics_valid_int[0];
-     if (rx_statistics_valid_int[0] & !rx_statistics_valid) begin
-        rx_statistics_shift            <= {2'b01, rx_statistics_vector_int};
-     end
-     else begin
-        rx_statistics_shift            <= {rx_statistics_shift[30:0], 1'b0};
-     end
-   end
-
-   assign rx_statistics_vector         = rx_statistics_shift[31];
-
+assign tx_statistics_vector = 0;
+assign rx_statistics_vector = 0;
 
 endmodule
