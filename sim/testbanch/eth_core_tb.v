@@ -173,6 +173,9 @@ endmodule // frame_typ
 
 module eth_core_tb;
 
+parameter G_AXI_DWIDTH = 64;
+parameter G_GTCH_COUNT = 1;
+
 parameter TB_MODE = "DEMO_TB";
 // parameter TB_MODE = "BIST";
 
@@ -536,7 +539,7 @@ parameter TB_MODE = "DEMO_TB";
   reg         sysclk;
   reg         sim_speedup_control_pulse;
   reg         refclk;
-  wire        coreclk_out;
+  wire  [G_GTCH_COUNT - 1 : 0]   coreclk_out;
   reg         sampleclk;
   reg         bitclk;
 
@@ -546,18 +549,18 @@ parameter TB_MODE = "DEMO_TB";
   wire        simulation_error;
 
   wire        frame_error;
-  wire        core_ready;
+  wire  [G_GTCH_COUNT - 1 : 0]   core_ready;
   reg         tx_monitor_block_lock;
   wire        reset_error;
 
-  wire        txp;
-  wire        txn;
-  wire        rxp_dut;
-  wire        rxn_dut;
+  wire  [G_GTCH_COUNT - 1 : 0]   txp;
+  wire  [G_GTCH_COUNT - 1 : 0]   txn;
+  wire  [G_GTCH_COUNT - 1 : 0]   rxp_dut;
+  wire  [G_GTCH_COUNT - 1 : 0]   rxn_dut;
   wire        enable_pat_gen;
   wire        enable_pat_check;
-  reg         rxp;
-  wire        rxn;
+  reg   [G_GTCH_COUNT - 1 : 0]   rxp;
+  wire  [G_GTCH_COUNT - 1 : 0]   rxn;
 
   reg         test_sh = 0;
   reg         slip = 0;
@@ -589,7 +592,11 @@ parameter TB_MODE = "DEMO_TB";
   /*---------------------------------------------------------------------------
   -- wire up Device Under Test (dut)
   ---------------------------------------------------------------------------*/
-   eth_core_example_design dut
+   eth_core_example_design  #(
+    .G_AXI_DWIDTH (G_AXI_DWIDTH),
+    .G_GTCH_COUNT (G_GTCH_COUNT)
+  )
+  dut
     (
       .reset                  (reset),
 
@@ -740,7 +747,7 @@ parameter TB_MODE = "DEMO_TB";
     input [31:0] d1;
     input [ 3:0] c1;
     begin : rx_stimulus_send_column
-        @(posedge coreclk_out or negedge coreclk_out);
+        @(posedge coreclk_out[0] or negedge coreclk_out[0]);
         d0 <= d1;
         c0 <= c1;
 
@@ -748,9 +755,9 @@ parameter TB_MODE = "DEMO_TB";
         assign c = {c1, c0};
 
         // Need to know when to apply the encoded data to the scrambler
-        if(!decided_clk_edge && |c0 && (coreclk_out !== 1'bx)) // Found first full 64 bit word
+        if(!decided_clk_edge && |c0 && (coreclk_out[0] !== 1'bx)) // Found first full 64 bit word
         begin
-          clk_edge <= !coreclk_out;
+          clk_edge <= !coreclk_out[0];
           decided_clk_edge <= 1;
         end
 
@@ -927,7 +934,7 @@ parameter TB_MODE = "DEMO_TB";
        if (TB_MODE != "BIST") begin
              $display("DUT frame stimulus is from the testbench");
           // Wait for the core to come up
-          while (core_ready !== 1'b1)
+          while (core_ready[0] !== 1'b1)
              rx_stimulus_send_idle;
 
              rx_stimulus_send_idle;
@@ -952,7 +959,7 @@ parameter TB_MODE = "DEMO_TB";
     reg [65:0] TxEnc_Data = 66'h79;
     wire TxEnc_clock;
 
-    assign TxEnc_clock = clk_edge ? coreclk_out : !coreclk_out;
+    assign TxEnc_clock = clk_edge ? coreclk_out[0] : !coreclk_out[0];
     always @(posedge TxEnc_clock) begin
         TxEnc_Data <= TxEnc;
     end
@@ -1049,13 +1056,13 @@ parameter TB_MODE = "DEMO_TB";
     end
 
     // Serialize the RX stimulus
-    assign rxn = !rxp;
+    assign rxn[0] = !rxp[0];
 
     reg[65:0] serial_word = 66'h0;
     integer rxbitno = 'd0;
 
     always @(posedge bitclk) begin : rx_serialize
-        rxp <= serial_word[rxbitno];
+        rxp[0] <= serial_word[rxbitno];
         rxbitno <= (rxbitno + 1) % 66;
         // Pull in the next word when we have sent 66 bits
         if (rxbitno == 'd65) begin
@@ -1073,7 +1080,7 @@ parameter TB_MODE = "DEMO_TB";
      if(!slip)
      begin // Just grab next 66 bits
        RxD[64:0] <= RxD[65:1];
-       RxD[65] <= txp;
+       RxD[65] <= txp[0];
        if(nbits < 65)
        begin
          nbits <= nbits + 1;
@@ -1088,7 +1095,7 @@ parameter TB_MODE = "DEMO_TB";
      else // SLIP!!
      begin // Just grab single bit
        RxD[64:0] <= RxD[65:1];
-       RxD[65] <= txp;
+       RxD[65] <= txp[0];
        test_sh <= 1;
        nbits <= 0;
      end
@@ -1255,7 +1262,7 @@ parameter TB_MODE = "DEMO_TB";
     assign  DeScr_wire[63] = RXD_input[63]^RXD_input[24]^RXD_input[5];
 
     // Synchronous part of descrambler
-    always @(posedge coreclk_out) begin
+    always @(posedge coreclk_out[0]) begin
         RXD_input[63:0] <= RxD_aligned[65:2];
         RX_Sync_header <= RxD_aligned[1:0];
         DeScr_RXD[65:0] <= {DeScr_wire[63:0],RX_Sync_header[1:0]};
@@ -1267,7 +1274,7 @@ parameter TB_MODE = "DEMO_TB";
     // Decode and check the Descrambled TX data...
     // This is not a complete decoder: It only decodes the
     // block words we expect to see.
-    always @(posedge coreclk_out) begin : check_tx
+    always @(posedge coreclk_out[0]) begin : check_tx
         integer frame_no;
         integer word_no;
 
@@ -1278,7 +1285,7 @@ parameter TB_MODE = "DEMO_TB";
          reg [31:0] delayed_rxd_high;
          reg [31:0] delayed_rxd_low;
 
-        if(reset || !core_ready) begin
+        if(reset || !core_ready[0]) begin
             frame_no <= 0;
             word_no <= 0;
             tx_fcs <= 0;

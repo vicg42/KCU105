@@ -61,6 +61,7 @@
 
 (* DowngradeIPIdentifiedWarnings = "yes" *)
 module eth_core_example_design #(
+parameter   G_AXI_DWIDTH = 64,
 parameter   G_GTCH_COUNT = 1
 )
   (
@@ -69,7 +70,7 @@ parameter   G_GTCH_COUNT = 1
 
    input             refclk_p,       // Transceiver reference clock source
    input             refclk_n,
-   output            coreclk_out,
+   output  [G_GTCH_COUNT - 1 : 0]   coreclk_out,
 
    // Example design control inputs
    input             reset,
@@ -79,14 +80,14 @@ parameter   G_GTCH_COUNT = 1
    // Example design status outputs
    output            frame_error,
 
-   output            core_ready,
+   output  [G_GTCH_COUNT - 1 : 0]   core_ready,
    output            qplllock_out,
 
    // Serial I/O from/to transceiver
-   output            txp,
-   output            txn,
-   input             rxp,
-   input             rxn
+   output  [G_GTCH_COUNT - 1 : 0]   txp,
+   output  [G_GTCH_COUNT - 1 : 0]   txn,
+   input   [G_GTCH_COUNT - 1 : 0]   rxp,
+   input   [G_GTCH_COUNT - 1 : 0]   rxn
    );
 /*-------------------------------------------------------------------------*/
 
@@ -96,34 +97,33 @@ parameter   G_GTCH_COUNT = 1
 
 
    // Signal declarations
-   wire              coreclk;
-   wire              block_lock;
+   wire   [G_GTCH_COUNT - 1 : 0]          block_lock;
+   wire   [G_GTCH_COUNT - 1 : 0]          no_remote_and_local_faults;
 
-   wire              no_remote_and_local_faults;
    wire   [(80 * G_GTCH_COUNT) - 1 : 0]   mac_tx_configuration_vector;
    wire   [(80 * G_GTCH_COUNT) - 1 : 0]   mac_rx_configuration_vector;
    wire   [(2 * G_GTCH_COUNT) - 1 : 0]    mac_status_vector;
    wire   [(536 * G_GTCH_COUNT) - 1 : 0]  pcs_pma_configuration_vector;
    wire   [(448 * G_GTCH_COUNT) - 1 : 0]  pcs_pma_status_vector;
-
-   wire   [(64 * G_GTCH_COUNT) - 1 : 0]   tx_axis_tdata;
-   wire   [(8 * G_GTCH_COUNT) - 1 : 0]    tx_axis_tkeep;
-   wire   [G_GTCH_COUNT - 1 : 0]          tx_axis_tvalid;
-   wire   [G_GTCH_COUNT - 1 : 0]          tx_axis_tlast;
-   wire   [G_GTCH_COUNT - 1 : 0]          tx_axis_tready;
-   wire   [(64 * G_GTCH_COUNT) - 1 : 0]   rx_axis_tdata;
-   wire   [(8 * G_GTCH_COUNT) - 1 : 0]    rx_axis_tkeep;
-   wire   [G_GTCH_COUNT - 1 : 0]          rx_axis_tvalid;
-   wire   [G_GTCH_COUNT - 1 : 0]          rx_axis_tlast;
-   wire   [G_GTCH_COUNT - 1 : 0]          rx_axis_tready;
+   wire   [(8 * G_GTCH_COUNT) - 1 : 0]    pcspma_status;
 
    wire   [G_GTCH_COUNT - 1 : 0]          tx_axis_aresetn;
    wire   [G_GTCH_COUNT - 1 : 0]          rx_axis_aresetn;
 
-   wire   [(8 * G_GTCH_COUNT) - 1 : 0]    pcspma_status;
+   wire   [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]          tx_axis_tdata;
+   wire   [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]    tx_axis_tkeep;
+   wire   [G_GTCH_COUNT - 1 : 0]          tx_axis_tvalid;
+   wire   [G_GTCH_COUNT - 1 : 0]          tx_axis_tlast;
+   wire   [G_GTCH_COUNT - 1 : 0]          tx_axis_tready;
+   wire   [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]          rx_axis_tdata;
+   wire   [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]    rx_axis_tkeep;
+   wire   [G_GTCH_COUNT - 1 : 0]          rx_axis_tvalid;
+   wire   [G_GTCH_COUNT - 1 : 0]          rx_axis_tlast;
+   wire   [G_GTCH_COUNT - 1 : 0]          rx_axis_tready;
 
 
-   assign coreclk_out = coreclk;
+
+
 
    // Assign the configuration settings to the configuration vectors
    assign mac_rx_configuration_vector = {72'd0,6'd0,2'b10};
@@ -131,49 +131,46 @@ parameter   G_GTCH_COUNT = 1
 
    assign pcs_pma_configuration_vector = {425'd0,111'd0};
 
-   assign block_lock = pcspma_status[0];
-   assign no_remote_and_local_faults = !mac_status_vector[0] && !mac_status_vector[1] ;
-   assign core_ready = block_lock && no_remote_and_local_faults;
+genvar i;
+generate
+for (i = 0; i < G_GTCH_COUNT; i = i + 1)
+begin : ch
 
-   // Combine reset sources
-   assign tx_axis_aresetn[0]  = ~reset;
-   assign rx_axis_aresetn[0]  = ~reset;
+  assign block_lock[i] = pcspma_status[(8 * i) + 0];
+  assign no_remote_and_local_faults[i] = !mac_status_vector[(2 * i) + 0]
+                                      && !mac_status_vector[(2 * i) + 1] ;
 
+  assign core_ready[i] = block_lock[i] && no_remote_and_local_faults[i];
 
-   wire [G_GTCH_COUNT - 1 : 0]       coreclk_i;
-   wire [G_GTCH_COUNT - 1 : 0]       qplllock_i;
-   wire [G_GTCH_COUNT - 1 : 0]       txp_i;
-   wire [G_GTCH_COUNT - 1 : 0]       txn_i;
-   wire [G_GTCH_COUNT - 1 : 0]       rxp_i;
-   wire [G_GTCH_COUNT - 1 : 0]       rxn_i;
+  // Combine reset sources
+  assign tx_axis_aresetn[i]  = ~reset;
+  assign rx_axis_aresetn[i]  = ~reset;
 
-assign coreclk = coreclk_i[0];
-assign qplllock_out = qplllock_i[0];
-assign txp = txp_i[0];
-assign txn = txn_i[0];
-assign rxp_i[0] = rxp;
-assign rxn_i[0] = rxn;
+  assign tx_axis_tdata[(G_AXI_DWIDTH * (i + 1)) - 1 : (G_AXI_DWIDTH * i)]
+                       = rx_axis_tdata[(G_AXI_DWIDTH * (i + 1)) - 1 : (G_AXI_DWIDTH * i)];
 
+  assign tx_axis_tkeep[((G_AXI_DWIDTH / 8) * (i + 1)) - 1 : ((G_AXI_DWIDTH / 8) * i)]
+                       = rx_axis_tkeep[((G_AXI_DWIDTH / 8) * (i + 1)) - 1 : ((G_AXI_DWIDTH / 8) * i)];
+
+  assign tx_axis_tvalid[i] = rx_axis_tvalid[i];
+  assign tx_axis_tlast[i]  = rx_axis_tlast[i] ;
+
+  assign rx_axis_tready[i] = tx_axis_tready[i] ;
+
+end
+endgenerate
 
     //--------------------------------------------------------------------------
     // Instantiate a module containing the Ethernet core and an example FIFO
     //--------------------------------------------------------------------------
-      assign tx_axis_tdata  = rx_axis_tdata ;
-      assign tx_axis_tkeep  = rx_axis_tkeep ;
-      assign tx_axis_tvalid = rx_axis_tvalid;
-      assign tx_axis_tlast  = rx_axis_tlast ;
-
-      assign rx_axis_tready = tx_axis_tready ;
-
-
-
     eth_core_fifo_block #(
+      .G_AXI_DWIDTH (G_AXI_DWIDTH),
       .G_GTCH_COUNT (G_GTCH_COUNT),
       .FIFO_SIZE                       (FIFO_SIZE)
     ) fifo_block_i (
       .refclk_p                        (refclk_p),
       .refclk_n                        (refclk_n),
-      .coreclk_out                     (coreclk_i),
+      .coreclk_out                     (coreclk_out),
       .rxrecclk_out                    (),
       .dclk                            (clk_in),
 
@@ -211,17 +208,17 @@ assign rxn_i[0] = rxn;
       .pcs_pma_configuration_vector    (pcs_pma_configuration_vector),
       .pcs_pma_status_vector           (pcs_pma_status_vector),
 
-      .txp                             (txp_i),
-      .txn                             (txn_i),
-      .rxp                             (rxp_i),
-      .rxn                             (rxn_i),
+      .txp                             (txp),
+      .txn                             (txn),
+      .rxp                             (rxp),
+      .rxn                             (rxn),
 
       .signal_detect                   (1'b1),
       .tx_fault                        (1'b0),
       .sim_speedup_control             (sim_speedup_control),
       .pcspma_status                   (pcspma_status),
       .resetdone_out                   (),
-      .qplllock_out                    (qplllock_i)
+      .qplllock_out                    (qplllock_out)
       );
 
 assign frame_error = 0;
