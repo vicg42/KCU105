@@ -174,7 +174,7 @@ endmodule // frame_typ
 module eth_core_tb;
 
 parameter G_AXI_DWIDTH = 64;
-parameter G_GTCH_COUNT = 2;
+parameter G_GTCH_COUNT = 1;
 
 parameter TB_MODE = "DEMO_TB";
 // parameter TB_MODE = "BIST";
