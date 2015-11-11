@@ -26,15 +26,16 @@ vcom -64 -93 -work xil_defaultlib "../../src/mem_ctrl/mem_wr_axi_pkg.vhd"
 vcom -64 -93 -work xil_defaultlib "../../src/mem_ctrl/mem_ctrl_axi_pkg.vhd"
 vcom -64 -93 -work xil_defaultlib "../../src/mem_ctrl/mem_wr_axi.vhd"
 
+vcom -64 -93 -work xil_defaultlib "../../src/eth/eth_phypin_pkg.vhd"
 vcom -64 -93 -work xil_defaultlib "../../src/eth/eth_pkg.vhd"
 vcom -64 -93 -work xil_defaultlib "../../src/eth/eth_mac_rx_64.vhd"
 vcom -64 -93 -work xil_defaultlib "../../src/eth/eth_mac_tx_64.vhd"
 
 vlog -64 -work xil_defaultlib "../../src/eth/eth_core_sync_reset.v"
 vlog -64 -work xil_defaultlib "../../src/eth/eth_core_sync_block.v"
-vlog -64 -work xil_defaultlib "../../src/eth/eth_core_fifo_ram.v"
-vlog -64 -work xil_defaultlib "../../src/eth/eth_core_axi_fifo.v"
-vlog -64 -work xil_defaultlib "../../src/eth/eth_core_xgmac_fifo.v"
+vlog -64 -work xil_defaultlib "../../src/eth/fifo/eth_core_fifo_ram.v"
+vlog -64 -work xil_defaultlib "../../src/eth/fifo/eth_core_axi_fifo.v"
+vlog -64 -work xil_defaultlib "../../src/eth/fifo/eth_core_xgmac_fifo.v"
 
 vcom -64 -93 -work xil_defaultlib "../testbanch/eth_mac_rx_tb.vhd"
 
