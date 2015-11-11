@@ -60,6 +60,7 @@
 `timescale 1ps / 1ps
 
 module eth_core_support    #(
+  parameter   G_AXI_DWIDTH = 64,
   parameter   G_GTCH_COUNT = 1
   )
   (
@@ -72,13 +73,13 @@ module eth_core_support    #(
    output                              qpll0outclk_out,
    output                              qpll0outrefclk_out,
    output                              qpll0lock_out,
-   output [G_GTCH_COUNT - 1: 0]  qpll0reset_out,
+   output [G_GTCH_COUNT - 1: 0]        qpll0reset_out,
    output                              resetdone_out,
-   output [G_GTCH_COUNT - 1: 0]  txusrclk_out,
-   output [G_GTCH_COUNT - 1: 0]  txusrclk2_out,
+   output [G_GTCH_COUNT - 1: 0]        txusrclk_out,
+   output [G_GTCH_COUNT - 1: 0]        txusrclk2_out,
    output                              gttxreset_out,
    output                              gtrxreset_out,
-   output [G_GTCH_COUNT - 1: 0]  txuserrdy_out,
+   output [G_GTCH_COUNT - 1: 0]        txuserrdy_out,
    output                              reset_counter_done_out,
 
    input       [(80 * G_GTCH_COUNT) - 1 : 0]    mac_tx_configuration_vector,
@@ -90,21 +91,21 @@ module eth_core_support    #(
    input       [7:0]                   tx_ifg_delay,
 
    output      [(26 * G_GTCH_COUNT) - 1 : 0]  tx_statistics_vector,
-   output      [(30 * G_GTCH_COUNT) - 1 : 0]   rx_statistics_vector,
+   output      [(30 * G_GTCH_COUNT) - 1 : 0]  rx_statistics_vector,
    output      [G_GTCH_COUNT - 1 : 0]         tx_statistics_valid,
    output      [G_GTCH_COUNT - 1 : 0]         rx_statistics_valid,
 
    input       [G_GTCH_COUNT - 1 : 0]         tx_axis_aresetn,
-   input       [(64 * G_GTCH_COUNT) - 1 : 0]  s_axis_tx_tdata,
-   input       [(8 * G_GTCH_COUNT) - 1 : 0]   s_axis_tx_tkeep,
+   input       [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]         s_axis_tx_tdata,
+   input       [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]   s_axis_tx_tkeep,
    input       [G_GTCH_COUNT - 1 : 0]         s_axis_tx_tvalid,
    input       [G_GTCH_COUNT - 1 : 0]         s_axis_tx_tlast,
    input       [G_GTCH_COUNT - 1 : 0]         s_axis_tx_tuser,
    output      [G_GTCH_COUNT - 1 : 0]         s_axis_tx_tready,
 
    input       [G_GTCH_COUNT - 1 : 0]         rx_axis_aresetn,
-   output      [(64 * G_GTCH_COUNT) - 1 : 0]  m_axis_rx_tdata,
-   output      [(8 * G_GTCH_COUNT) - 1 : 0]   m_axis_rx_tkeep,
+   output      [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]         m_axis_rx_tdata,
+   output      [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]   m_axis_rx_tkeep,
    output      [G_GTCH_COUNT - 1 : 0]         m_axis_rx_tvalid,
    output      [G_GTCH_COUNT - 1 : 0]         m_axis_rx_tuser,
    output      [G_GTCH_COUNT - 1 : 0]         m_axis_rx_tlast,
@@ -146,7 +147,7 @@ module eth_core_support    #(
    output      [G_GTCH_COUNT - 1 : 0]         tx_disable,
    output wire [G_GTCH_COUNT - 1 : 0]         rxrecclk_out,
    input       [G_GTCH_COUNT - 1 : 0]         signal_detect,
-   input                               sim_speedup_control,
+   input                                      sim_speedup_control,
    input       [G_GTCH_COUNT - 1 : 0]         tx_fault,
    output      [(8 * G_GTCH_COUNT) - 1 : 0]   pcspma_status
    );
@@ -267,16 +268,16 @@ begin : ch
       .s_axis_pause_tvalid             (s_axis_pause_tvalid),
 
       .tx_axis_aresetn                 (tx_axis_aresetn[i]),
-      .s_axis_tx_tdata                 (s_axis_tx_tdata[(64 * (i + 1)) - 1 : (64 * i)]),
+      .s_axis_tx_tdata                 (s_axis_tx_tdata[(G_AXI_DWIDTH * (i + 1)) - 1 : (G_AXI_DWIDTH * i)]),
       .s_axis_tx_tvalid                (s_axis_tx_tvalid[i]),
       .s_axis_tx_tlast                 (s_axis_tx_tlast[i]),
       .s_axis_tx_tuser                 (s_axis_tx_tuser[i]),
-      .s_axis_tx_tkeep                 (s_axis_tx_tkeep[(8 * (i + 1)) - 1 : (8 * i)]),
+      .s_axis_tx_tkeep                 (s_axis_tx_tkeep[((G_AXI_DWIDTH / 8) * (i + 1)) - 1 : ((G_AXI_DWIDTH / 8) * i)]),
       .s_axis_tx_tready                (s_axis_tx_tready[i]),
 
       .rx_axis_aresetn                 (rx_axis_aresetn[i]),
-      .m_axis_rx_tdata                 (m_axis_rx_tdata[(64 * (i + 1)) - 1 : (64 * i)]),
-      .m_axis_rx_tkeep                 (m_axis_rx_tkeep[(8 * (i + 1)) - 1 : (8 * i)]),
+      .m_axis_rx_tdata                 (m_axis_rx_tdata[(G_AXI_DWIDTH * (i + 1)) - 1 : (G_AXI_DWIDTH * i)]),
+      .m_axis_rx_tkeep                 (m_axis_rx_tkeep[((G_AXI_DWIDTH / 8) * (i + 1)) - 1 : ((G_AXI_DWIDTH / 8) * i)]),
       .m_axis_rx_tvalid                (m_axis_rx_tvalid[i]),
       .m_axis_rx_tuser                 (m_axis_rx_tuser[i]),
       .m_axis_rx_tlast                 (m_axis_rx_tlast[i]),

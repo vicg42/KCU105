@@ -110,6 +110,9 @@ parameter   G_GTCH_COUNT = 1
    wire   [G_GTCH_COUNT - 1 : 0]          tx_axis_aresetn;
    wire   [G_GTCH_COUNT - 1 : 0]          rx_axis_aresetn;
 
+   wire   [G_GTCH_COUNT - 1 : 0]          signal_detect;
+   wire   [G_GTCH_COUNT - 1 : 0]          tx_fault;
+
    wire   [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]          tx_axis_tdata;
    wire   [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]    tx_axis_tkeep;
    wire   [G_GTCH_COUNT - 1 : 0]          tx_axis_tvalid;
@@ -145,6 +148,9 @@ begin : ch
   // Combine reset sources
   assign tx_axis_aresetn[i]  = ~reset;
   assign rx_axis_aresetn[i]  = ~reset;
+
+  assign signal_detect[i] = 1'b1;
+  assign tx_fault[i] = 1'b0;
 
   assign tx_axis_tdata[(G_AXI_DWIDTH * (i + 1)) - 1 : (G_AXI_DWIDTH * i)]
                        = rx_axis_tdata[(G_AXI_DWIDTH * (i + 1)) - 1 : (G_AXI_DWIDTH * i)];
@@ -213,8 +219,8 @@ endgenerate
       .rxp                             (rxp),
       .rxn                             (rxn),
 
-      .signal_detect                   (1'b1),
-      .tx_fault                        (1'b0),
+      .signal_detect                   (signal_detect),
+      .tx_fault                        (tx_fault),
       .sim_speedup_control             (sim_speedup_control),
       .pcspma_status                   (pcspma_status),
       .resetdone_out                   (),

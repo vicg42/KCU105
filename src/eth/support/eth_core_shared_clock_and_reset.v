@@ -156,22 +156,22 @@ endgenerate
      .data_out (areset_coreclk)
     );
 
+genvar i1;
+generate
+for (i1 = 0; i1 < G_GTCH_COUNT; i1 = i1 + 1)
+begin : qplllock_txusrclk2_ch
+
   eth_core_ff_synchronizer_rst2
     #(
       .C_NUM_SYNC_REGS(5),
       .C_RVAL(1'b1))
   areset_txusrclk2_sync_i
     (
-     .clk(txusrclk2),
+     .clk(txusrclk2[i1]),
      .rst(areset),
      .data_in(1'b0),
-     .data_out(areset_txusrclk2)
+     .data_out(areset_txusrclk2[i1])
     );
-
-genvar i1;
-generate
-for (i1 = 0; i1 < G_GTCH_COUNT; i1 = i1 + 1)
-begin : qplllock_txusrclk2_ch
 
   eth_core_ff_synchronizer_rst2
     #(

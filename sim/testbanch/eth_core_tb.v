@@ -559,7 +559,8 @@ parameter TB_MODE = "DEMO_TB";
   wire  [G_GTCH_COUNT - 1 : 0]   rxn_dut;
   wire        enable_pat_gen;
   wire        enable_pat_check;
-  reg   [G_GTCH_COUNT - 1 : 0]   rxp;
+  wire  [G_GTCH_COUNT - 1 : 0]   rxp;
+  reg   [G_GTCH_COUNT - 1 : 0]   rxp_i;
   wire  [G_GTCH_COUNT - 1 : 0]   rxn;
 
   reg         test_sh = 0;
@@ -1055,14 +1056,21 @@ parameter TB_MODE = "DEMO_TB";
         end
     end
 
+genvar idx;
+generate
+for (idx = 0; idx < G_GTCH_COUNT; idx = idx + 1)
+begin : ch
     // Serialize the RX stimulus
-    assign rxn[0] = !rxp[0];
+    assign rxn[idx] = !rxp[idx];
+    assign rxp[idx] = rxp_i[0];
+end
+endgenerate
 
     reg[65:0] serial_word = 66'h0;
     integer rxbitno = 'd0;
 
     always @(posedge bitclk) begin : rx_serialize
-        rxp[0] <= serial_word[rxbitno];
+        rxp_i[0] <= serial_word[rxbitno];
         rxbitno <= (rxbitno + 1) % 66;
         // Pull in the next word when we have sent 66 bits
         if (rxbitno == 'd65) begin

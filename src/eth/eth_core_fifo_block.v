@@ -71,8 +71,8 @@ parameter                              FIFO_SIZE = 1024
    input                               reset,
    output                              resetdone_out,
    output                              qplllock_out,
-   output      [G_GTCH_COUNT - 1 : 0]         coreclk_out,
-   output      [G_GTCH_COUNT - 1 : 0]         rxrecclk_out,
+   output      [G_GTCH_COUNT - 1 : 0]  coreclk_out,
+   output      [G_GTCH_COUNT - 1 : 0]  rxrecclk_out,
 
    input       [(80 * G_GTCH_COUNT) - 1 : 0]    mac_tx_configuration_vector,
    input       [(80 * G_GTCH_COUNT) - 1 : 0]    mac_rx_configuration_vector,
@@ -150,6 +150,7 @@ parameter                              FIFO_SIZE = 1024
    // Instantiate the Ethernet Core Support level
    //----------------------------------------------------------------------------
    eth_core_support #(
+      .G_AXI_DWIDTH (G_AXI_DWIDTH),
       .G_GTCH_COUNT (G_GTCH_COUNT)
    )  support_layer_i(
       .coreclk_out                     (),
