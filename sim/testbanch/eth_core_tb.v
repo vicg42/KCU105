@@ -577,6 +577,20 @@ parameter TB_MODE = "DEMO_TB";
   // To aid the TX data checking code
   reg in_a_frame = 0;
 
+  wire  [G_GTCH_COUNT - 1 : 0]   signal_detect;
+  wire  [G_GTCH_COUNT - 1 : 0]   tx_fault;
+
+  wire  [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]       tx_axis_tdata ;
+  wire  [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0] tx_axis_tkeep ;
+  wire  [G_GTCH_COUNT - 1 : 0]                        tx_axis_tvalid;
+  wire  [G_GTCH_COUNT - 1 : 0]                        tx_axis_tlast ;
+  wire  [G_GTCH_COUNT - 1 : 0]                        tx_axis_tready;
+
+  wire  [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]       rx_axis_tdata ;
+  wire  [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0] rx_axis_tkeep ;
+  wire  [G_GTCH_COUNT - 1 : 0]                        rx_axis_tvalid;
+  wire  [G_GTCH_COUNT - 1 : 0]                        rx_axis_tlast ;
+  wire  [G_GTCH_COUNT - 1 : 0]                        rx_axis_tready;
 
   // select between loopback or local data
   assign rxp_dut  = (TB_MODE == "BIST") ? txp : rxp;
@@ -611,12 +625,49 @@ parameter TB_MODE = "DEMO_TB";
       .sim_speedup_control    (sim_speedup_control_pulse),
       .qplllock_out           (),
 
+      .signal_detect          (signal_detect),
+      .tx_fault               (tx_fault     ),
+
+      .tx_axis_tdata          (tx_axis_tdata ),
+      .tx_axis_tkeep          (tx_axis_tkeep ),
+      .tx_axis_tvalid         (tx_axis_tvalid),
+      .tx_axis_tlast          (tx_axis_tlast ),
+      .tx_axis_tready         (tx_axis_tready),
+
+      .rx_axis_tdata          (rx_axis_tdata ),
+      .rx_axis_tkeep          (rx_axis_tkeep ),
+      .rx_axis_tvalid         (rx_axis_tvalid),
+      .rx_axis_tlast          (rx_axis_tlast ),
+      .rx_axis_tready         (rx_axis_tready),
+
       .core_ready             (core_ready),
       .txp                    (txp),
       .txn                    (txn),
       .rxp                    (rxp_dut),
       .rxn                    (rxn_dut)
    );
+
+genvar idx1;
+generate
+for (idx1 = 0; idx1 < G_GTCH_COUNT; idx1 = idx1 + 1)
+begin : axi_ch
+
+  assign tx_axis_tdata[(G_AXI_DWIDTH * (idx1 + 1)) - 1 : (G_AXI_DWIDTH * idx1)]
+                       = rx_axis_tdata[(G_AXI_DWIDTH * (idx1 + 1)) - 1 : (G_AXI_DWIDTH * idx1)];
+
+  assign tx_axis_tkeep[((G_AXI_DWIDTH / 8) * (idx1 + 1)) - 1 : ((G_AXI_DWIDTH / 8) * idx1)]
+                       = rx_axis_tkeep[((G_AXI_DWIDTH / 8) * (idx1 + 1)) - 1 : ((G_AXI_DWIDTH / 8) * idx1)];
+
+  assign tx_axis_tvalid[idx1] = rx_axis_tvalid[idx1];
+  assign tx_axis_tlast[idx1]  = rx_axis_tlast[idx1] ;
+
+  assign rx_axis_tready[idx1] = tx_axis_tready[idx1];
+
+  assign signal_detect[idx1] = 1'b1;
+  assign tx_fault[idx1] = 1'b0;
+
+end
+endgenerate
 
  /*---------------------------------------------------------------------------
   -- Clock drivers

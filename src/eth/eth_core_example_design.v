@@ -83,6 +83,21 @@ parameter   G_GTCH_COUNT = 1
    output  [G_GTCH_COUNT - 1 : 0]   core_ready,
    output            qplllock_out,
 
+   input   [G_GTCH_COUNT - 1 : 0]   signal_detect,
+   input   [G_GTCH_COUNT - 1 : 0]   tx_fault,
+
+   input   [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]       tx_axis_tdata,
+   input   [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0] tx_axis_tkeep,
+   input   [G_GTCH_COUNT - 1 : 0]                        tx_axis_tvalid,
+   input   [G_GTCH_COUNT - 1 : 0]                        tx_axis_tlast,
+   output  [G_GTCH_COUNT - 1 : 0]                        tx_axis_tready,
+
+   output  [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]       rx_axis_tdata,
+   output  [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0] rx_axis_tkeep,
+   output  [G_GTCH_COUNT - 1 : 0]                        rx_axis_tvalid,
+   output  [G_GTCH_COUNT - 1 : 0]                        rx_axis_tlast,
+   input   [G_GTCH_COUNT - 1 : 0]                        rx_axis_tready,
+
    // Serial I/O from/to transceiver
    output  [G_GTCH_COUNT - 1 : 0]   txp,
    output  [G_GTCH_COUNT - 1 : 0]   txn,
@@ -114,20 +129,6 @@ parameter   G_GTCH_COUNT = 1
    wire   [G_GTCH_COUNT - 1 : 0]          tx_axis_aresetn;
    wire   [G_GTCH_COUNT - 1 : 0]          rx_axis_aresetn;
 
-   wire   [G_GTCH_COUNT - 1 : 0]          signal_detect;
-   wire   [G_GTCH_COUNT - 1 : 0]          tx_fault;
-
-   wire   [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]          tx_axis_tdata;
-   wire   [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]    tx_axis_tkeep;
-   wire   [G_GTCH_COUNT - 1 : 0]          tx_axis_tvalid;
-   wire   [G_GTCH_COUNT - 1 : 0]          tx_axis_tlast;
-   wire   [G_GTCH_COUNT - 1 : 0]          tx_axis_tready;
-   wire   [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]          rx_axis_tdata;
-   wire   [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]    rx_axis_tkeep;
-   wire   [G_GTCH_COUNT - 1 : 0]          rx_axis_tvalid;
-   wire   [G_GTCH_COUNT - 1 : 0]          rx_axis_tlast;
-   wire   [G_GTCH_COUNT - 1 : 0]          rx_axis_tready;
-
 
 genvar i;
 generate
@@ -135,7 +136,7 @@ for (i = 0; i < G_GTCH_COUNT; i = i + 1)
 begin : ch
 
   // Assign the configuration settings to the configuration vectors
-//  assign i_mac_rx_configuration_vector[i] = {72'd0,6'd0,2'b10};
+  //MAC_RX
   assign i_mac_rx_configuration_vector[i][0] = 1'b0; //Transmitter Reset
   assign i_mac_rx_configuration_vector[i][1] = 1'b1; //Transmitter Enable
   assign i_mac_rx_configuration_vector[i][2] = 1'b0; //Transmitter VLAN Enable
@@ -148,7 +149,7 @@ begin : ch
   assign i_mac_rx_configuration_vector[i][9] = 1'b0; //Transmitter LAN/WAN Mode
   assign i_mac_rx_configuration_vector[i][79 : 10] = 0;
 
-//  assign i_mac_tx_configuration_vector[i] = {72'd0,6'd0,2'b10};
+  //MAC_TX
   assign i_mac_tx_configuration_vector[i][0] = 1'b0; //Receiver Reset
   assign i_mac_tx_configuration_vector[i][1] = 1'b1; //Receiver Enable
   assign i_mac_tx_configuration_vector[i][2] = 1'b0; //Receiver VLAN Enable
@@ -161,9 +162,11 @@ begin : ch
   assign i_mac_tx_configuration_vector[i][9] = 1'b0; //Control Frame Length Check Disable
   assign i_mac_tx_configuration_vector[i][79 : 10] = 0;
 
+  //PCS/PMA
   assign i_pcs_pma_configuration_vector[i] = {425'd0,111'd0};
 
 
+  //Status
   assign block_lock[i] = pcspma_status[(8 * i) + 0];
   assign no_remote_and_local_faults[i] = !mac_status_vector[(2 * i) + 0]
                                       && !mac_status_vector[(2 * i) + 1] ;
@@ -178,20 +181,6 @@ begin : ch
   // Combine reset sources
   assign tx_axis_aresetn[i]  = ~reset;
   assign rx_axis_aresetn[i]  = ~reset;
-
-  assign signal_detect[i] = 1'b1;
-  assign tx_fault[i] = 1'b0;
-
-  assign tx_axis_tdata[(G_AXI_DWIDTH * (i + 1)) - 1 : (G_AXI_DWIDTH * i)]
-                       = rx_axis_tdata[(G_AXI_DWIDTH * (i + 1)) - 1 : (G_AXI_DWIDTH * i)];
-
-  assign tx_axis_tkeep[((G_AXI_DWIDTH / 8) * (i + 1)) - 1 : ((G_AXI_DWIDTH / 8) * i)]
-                       = rx_axis_tkeep[((G_AXI_DWIDTH / 8) * (i + 1)) - 1 : ((G_AXI_DWIDTH / 8) * i)];
-
-  assign tx_axis_tvalid[i] = rx_axis_tvalid[i];
-  assign tx_axis_tlast[i]  = rx_axis_tlast[i] ;
-
-  assign rx_axis_tready[i] = tx_axis_tready[i] ;
 
 end
 endgenerate
