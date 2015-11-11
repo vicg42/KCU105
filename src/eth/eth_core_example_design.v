@@ -100,27 +100,27 @@ parameter   G_GTCH_COUNT = 1
    wire              block_lock;
 
    wire              no_remote_and_local_faults;
-   wire    [79 : 0]  mac_tx_configuration_vector;
-   wire    [79 : 0]  mac_rx_configuration_vector;
-   wire   [1 : 0]    mac_status_vector;
-   wire   [535 : 0]  pcs_pma_configuration_vector;
-   wire   [447 : 0]  pcs_pma_status_vector;
+   wire   [(80 * G_GTCH_COUNT) - 1 : 0]   mac_tx_configuration_vector;
+   wire   [(80 * G_GTCH_COUNT) - 1 : 0]   mac_rx_configuration_vector;
+   wire   [(2 * G_GTCH_COUNT) - 1 : 0]    mac_status_vector;
+   wire   [(536 * G_GTCH_COUNT) - 1 : 0]  pcs_pma_configuration_vector;
+   wire   [(448 * G_GTCH_COUNT) - 1 : 0]  pcs_pma_status_vector;
 
-   wire     [63:0]   tx_axis_tdata;
-   wire     [7:0]    tx_axis_tkeep;
-   wire     [0:0]    tx_axis_tvalid;
-   wire     [0:0]    tx_axis_tlast;
-   wire     [0:0]    tx_axis_tready;
-   wire     [63:0]   rx_axis_tdata;
-   wire     [7:0]    rx_axis_tkeep;
-   wire     [0:0]    rx_axis_tvalid;
-   wire     [0:0]    rx_axis_tlast;
-   wire     [0:0]    rx_axis_tready;
+   wire   [(64 * G_GTCH_COUNT) - 1 : 0]   tx_axis_tdata;
+   wire   [(8 * G_GTCH_COUNT) - 1 : 0]    tx_axis_tkeep;
+   wire   [G_GTCH_COUNT - 1 : 0]          tx_axis_tvalid;
+   wire   [G_GTCH_COUNT - 1 : 0]          tx_axis_tlast;
+   wire   [G_GTCH_COUNT - 1 : 0]          tx_axis_tready;
+   wire   [(64 * G_GTCH_COUNT) - 1 : 0]   rx_axis_tdata;
+   wire   [(8 * G_GTCH_COUNT) - 1 : 0]    rx_axis_tkeep;
+   wire   [G_GTCH_COUNT - 1 : 0]          rx_axis_tvalid;
+   wire   [G_GTCH_COUNT - 1 : 0]          rx_axis_tlast;
+   wire   [G_GTCH_COUNT - 1 : 0]          rx_axis_tready;
 
-   wire     [G_GTCH_COUNT - 1 : 0]    tx_axis_aresetn;
-   wire     [G_GTCH_COUNT - 1 : 0]    rx_axis_aresetn;
+   wire   [G_GTCH_COUNT - 1 : 0]          tx_axis_aresetn;
+   wire   [G_GTCH_COUNT - 1 : 0]          rx_axis_aresetn;
 
-   wire      [7:0]   pcspma_status;
+   wire   [(8 * G_GTCH_COUNT) - 1 : 0]    pcspma_status;
 
 
    assign coreclk_out = coreclk;
