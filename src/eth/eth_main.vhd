@@ -44,7 +44,8 @@ p_in_cfg_rd      : in  std_logic;
 p_out_bufeth     : out TEthIO_OUTs;
 p_in_bufeth      : in  TEthIO_INs;
 
-p_out_status_eth : out TEthStatus_OUTs;
+p_out_status_eth : out TEthStatus_OUT;
+p_in_status_eth  : in  TEthStatus_IN;
 
 -------------------------------
 --PHY pin
@@ -56,8 +57,8 @@ p_in_ethphy  : in  TEthPhyPin_IN;
 --DBG
 -------------------------------
 --p_out_dbg : out TEthDBG;
-p_out_sim : out TEthSIM_OUTs;
-p_in_sim  : in  TEthSIM_INs;
+p_out_sim : out TEthSIM_OUT;
+p_in_sim  : in  TEthSIM_IN;
 p_in_tst  : in  std_logic_vector(31 downto 0);
 p_out_tst : out std_logic_vector(31 downto 0);
 
@@ -157,63 +158,53 @@ p_in_rst : in  std_logic
 end component eth_mac_tx;
 
 
-component eth_core_fifo_block is
-generic(
-G_GTCH_COUNT : integer := 1;
-FIFO_SIZE : integer := 1024
+component eth_app is
+generic (
+G_AXI_DWIDTH : integer := 64;
+G_GTCH_COUNT : integer := 1
 );
 port(
--- Port declarations
-refclk_p                     : in  std_logic;
-refclk_n                     : in  std_logic;
-dclk                         : in  std_logic;
-reset                        : in  std_logic;
-resetdone_out                : out std_logic;
-qplllock_out                 : out std_logic;
-coreclk_out                  : out std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-rxrecclk_out                 : out std_logic_vector(C_GTCH_COUNT - 1 downto 0);
+--Clock inputs
+clk_in    : in  std_logic;       --Freerunning clock source
 
-mac_tx_configuration_vector  : in  std_logic_vector((80 * C_GTCH_COUNT) - 1 downto 0);
-mac_rx_configuration_vector  : in  std_logic_vector((80 * C_GTCH_COUNT) - 1 downto 0);
-mac_status_vector            : out std_logic_vector((2 * C_GTCH_COUNT) - 1 downto 0);
-pcs_pma_configuration_vector : in  std_logic_vector((536 * C_GTCH_COUNT) - 1 downto 0);
-pcs_pma_status_vector        : out std_logic_vector((448 * C_GTCH_COUNT) - 1 downto 0);
+refclk_p  : in  std_logic;       --Transceiver reference clock source
+refclk_n  : in  std_logic;
+coreclk_out : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 
-tx_ifg_delay                 : in  std_logic_vector(7 downto 0);
-tx_statistics_vector         : out std_logic_vector((26 * C_GTCH_COUNT) - 1 downto 0);
-rx_statistics_vector         : out std_logic_vector((30 * C_GTCH_COUNT) - 1 downto 0);
-tx_statistics_valid          : out std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-rx_statistics_valid          : out std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-tx_axis_mac_aresetn          : in  std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-tx_axis_fifo_aresetn         : in  std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-tx_axis_fifo_tdata           : in  std_logic_vector((G_AXI_DWIDTH * C_GTCH_COUNT) - 1 downto 0);
-tx_axis_fifo_tkeep           : in  std_logic_vector(((G_AXI_DWIDTH / 8) * C_GTCH_COUNT) - 1 downto 0);
-tx_axis_fifo_tvalid          : in  std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-tx_axis_fifo_tlast           : in  std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-tx_axis_fifo_tready          : out std_logic_vector(C_GTCH_COUNT - 1 downto 0);
+--Example design control inputs
+reset                : in  std_logic;
 
-rx_axis_mac_aresetn          : in  std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-rx_axis_fifo_aresetn         : in  std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-rx_axis_fifo_tdata           : out std_logic_vector((G_AXI_DWIDTH * C_GTCH_COUNT) - 1 downto 0);
-rx_axis_fifo_tkeep           : out std_logic_vector(((G_AXI_DWIDTH / 8) * C_GTCH_COUNT) - 1 downto 0);
-rx_axis_fifo_tvalid          : out std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-rx_axis_fifo_tlast           : out std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-rx_axis_fifo_tready          : in  std_logic_vector(C_GTCH_COUNT - 1 downto 0);
+sim_speedup_control  : in  std_logic;
 
-pause_val                    : in  std_logic_vector(15 downto 0);
-pause_req                    : in  std_logic;
+--Example design status outputs
+frame_error     : out  std_logic;
 
-txp                          : out std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-txn                          : out std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-rxp                          : in  std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-rxn                          : in  std_logic_vector(C_GTCH_COUNT - 1 downto 0);
+txuserrdy_out   : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+core_ready      : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+qplllock_out    : out  std_logic;
 
-signal_detect                : in  std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-sim_speedup_control          : in  std_logic;
-tx_fault                     : in  std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-pcspma_status               : out std_logic_vector((8 * C_GTCH_COUNT) - 1 downto 0)
+signal_detect   : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+tx_fault        : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+
+tx_axis_tdata   : in  std_logic_vector((G_AXI_DWIDTH * G_GTCH_COUNT) - 1 downto 0);
+tx_axis_tkeep   : in  std_logic_vector(((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 downto 0);
+tx_axis_tvalid  : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+tx_axis_tlast   : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+tx_axis_tready  : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+
+rx_axis_tdata   : out std_logic_vector((G_AXI_DWIDTH * G_GTCH_COUNT) - 1 downto 0);
+rx_axis_tkeep   : out std_logic_vector(((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 downto 0);
+rx_axis_tvalid  : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+rx_axis_tlast   : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+rx_axis_tready  : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+
+--Serial I/O from/to transceiver
+txp  : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+txn  : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+rxp  : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+rxn  : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0)
 );
-end component eth_core_fifo_block;
+end component eth_app;
 
 signal i_reg_adr             : unsigned(p_in_cfg_adr'range);
 signal h_reg_ethcfg          : TEthCfg;
@@ -234,26 +225,10 @@ signal i_rx_axis_fifo_tvalid  : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
 signal i_rx_axis_fifo_tlast   : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
 signal i_rx_axis_fifo_tready  : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
 
-
-signal i_qplllock             : std_logic;
 signal i_coreclk_out          : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
 
-signal i_mac_status_vector    : std_logic_vector((2 * C_GTCH_COUNT) - 1 downto 0);
-signal i_pcspma_status        : std_logic_vector((8 * C_GTCH_COUNT) - 1 downto 0);
-signal i_mac_tx_configuration_vector : std_logic_vector((80 * C_GTCH_COUNT) - 1 downto 0);
-signal i_mac_rx_configuration_vector : std_logic_vector((80 * C_GTCH_COUNT) - 1 downto 0);
-signal i_pcs_pma_configuration_vector : std_logic_vector((536 * C_GTCH_COUNT) - 1 downto 0);
+signal i_txuserrdy_out        : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
 
-signal i_signal_detect        : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-signal i_tx_fault             : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-signal i_sim_speedup_control  : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-
-signal i_block_lock          : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-signal i_no_remote_and_local_faults : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
---signal i_core_ready          : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-
-
-signal i_eth_main_tst_out    : std_logic_vector(31 downto 0);
 --signal i_dbg_out             : TEthDBG;
 
 
@@ -451,97 +426,60 @@ p_out_tst => open,
 --SYSTEM
 --------------------------------------
 p_in_clk => i_coreclk_out(i),
-p_in_rst => i_no_remote_and_local_faults(i) --p_in_rst
+p_in_rst => i_txuserrdy_out(i) --p_in_rst
 );
 
-
-i_signal_detect(i) <= '1';
-i_tx_fault(i) <= '0';
-
---Assign the configuration settings to the configuration vectors
-i_mac_rx_configuration_vector((80 * i) + 0) <= '0';
-i_mac_rx_configuration_vector((80 * i) + 1) <= '1';
-i_mac_rx_configuration_vector((80 * (i + 1)) - 1 downto ((80 * i) + 2)) <= (others => '0');
-
-i_mac_tx_configuration_vector((80 * i) + 0) <= '0';
-i_mac_tx_configuration_vector((80 * i) + 1) <= '1';
-i_mac_tx_configuration_vector((80 * (i + 1)) - 1 downto ((80 * i) + 2)) <= (others => '0');
-
-i_pcs_pma_configuration_vector((536 * (i + 1)) - 1 downto (536 * i)) <= (others => '0');
-
-i_block_lock(i) <= i_pcspma_status((8 * i) + 0);
-i_no_remote_and_local_faults(i) <= (not i_mac_status_vector((2 * i) + 0)) and (not i_mac_status_vector((2 * i) + 1));
---i_core_ready(i) <= i_block_lock(i) and i_no_remote_and_local_faults(i);
-p_out_status_eth(i).rdy <= i_block_lock(i) and i_no_remote_and_local_faults(i);
---p_out_status_eth(i).rdy <= i_qplllock;
-
-
-i_tx_axis_mac_aresetn(i) <= not p_in_rst;
-i_tx_axis_fifo_aresetn(i) <= not p_in_rst;
-
-i_rx_axis_mac_aresetn(i) <= not p_in_rst;
-i_rx_axis_fifo_aresetn(i) <= not p_in_rst;
+p_out_sim.coreclk(i) <= i_coreclk_out(i);
 
 end generate gen_mac_ch;
 
 
-m_eth_phy : eth_core_fifo_block
-generic map (
-G_GTCH_COUNT => C_GTCH_COUNT,
-FIFO_SIZE => 1024
+m_eth_app : eth_app
+generic map(
+G_AXI_DWIDTH => G_AXI_DWIDTH,
+G_GTCH_COUNT => C_GTCH_COUNT
 )
 port map(
--- Port declarations
-refclk_p => p_in_ethphy.fiber.refclk_p,
+--Clock inputs
+clk_in => p_in_dclk,  --Freerunning clock source
+
+refclk_p => p_in_ethphy.fiber.refclk_p, --Transceiver reference clock source
 refclk_n => p_in_ethphy.fiber.refclk_n,
-dclk     => p_in_dclk,
+
+coreclk_out => i_coreclk_out,
+
+--Example design control inputs
 reset    => p_in_rst,
-resetdone_out => open,
-qplllock_out  => i_qplllock,
-coreclk_out   => i_coreclk_out ,--  : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
-rxrecclk_out  => open,          --  : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 
-mac_tx_configuration_vector => i_mac_tx_configuration_vector,-- : in  std_logic_vector((80 * G_GTCH_COUNT) - 1 downto 0);
-mac_rx_configuration_vector => i_mac_rx_configuration_vector,-- : in  std_logic_vector((80 * G_GTCH_COUNT) - 1 downto 0);
-mac_status_vector           => i_mac_status_vector          ,-- : out std_logic_vector((2 * G_GTCH_COUNT) - 1 downto 0);
-pcs_pma_configuration_vector => i_pcs_pma_configuration_vector,
-pcs_pma_status_vector       => open,--: out std_logic_vector((448 * G_GTCH_COUNT) - 1 downto 0);
+sim_speedup_control => p_in_sim.speedup_control,
 
-tx_ifg_delay => "00000000",
+--Example design status outputs
+frame_error  => open,
 
-tx_statistics_vector => open,--: out std_logic_vector((26 * G_GTCH_COUNT) - 1 downto 0);
-rx_statistics_vector => open,--: out std_logic_vector((30 * G_GTCH_COUNT) - 1 downto 0);
-tx_statistics_valid  => open,--: out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
-rx_statistics_valid  => open,--: out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+txuserrdy_out => i_txuserrdy_out,
+core_ready  => p_out_status_eth.rdy,
+qplllock_out => p_out_status_eth.qplllock,
 
-tx_axis_mac_aresetn  => i_tx_axis_mac_aresetn ,-- : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
-tx_axis_fifo_aresetn => i_tx_axis_fifo_aresetn,-- : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
-tx_axis_fifo_tdata   => i_tx_axis_fifo_tdata  ,-- : in  std_logic_vector((64 * G_GTCH_COUNT) - 1 downto 0);
-tx_axis_fifo_tkeep   => i_tx_axis_fifo_tkeep  ,-- : in  std_logic_vector((8 * G_GTCH_COUNT) - 1 downto 0);
-tx_axis_fifo_tvalid  => i_tx_axis_fifo_tvalid ,-- : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
-tx_axis_fifo_tlast   => i_tx_axis_fifo_tlast  ,-- : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
-tx_axis_fifo_tready  => i_tx_axis_fifo_tready ,-- : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+signal_detect => p_in_status_eth.signal_detect,
+tx_fault      => p_in_status_eth.tx_fault,
 
-rx_axis_mac_aresetn  => i_rx_axis_mac_aresetn ,-- : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
-rx_axis_fifo_aresetn => i_rx_axis_fifo_aresetn,-- : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
-rx_axis_fifo_tdata   => i_rx_axis_fifo_tdata  ,-- : out std_logic_vector((64 * G_GTCH_COUNT) - 1 downto 0);
-rx_axis_fifo_tkeep   => i_rx_axis_fifo_tkeep  ,-- : out std_logic_vector((8 * G_GTCH_COUNT) - 1 downto 0);
-rx_axis_fifo_tvalid  => i_rx_axis_fifo_tvalid ,-- : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
-rx_axis_fifo_tlast   => i_rx_axis_fifo_tlast  ,-- : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
-rx_axis_fifo_tready  => i_rx_axis_fifo_tready ,-- : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+tx_axis_tdata   => i_tx_axis_fifo_tdata,
+tx_axis_tkeep   => i_tx_axis_fifo_tkeep,
+tx_axis_tvalid  => i_tx_axis_fifo_tvalid,
+tx_axis_tlast   => i_tx_axis_fifo_tlast,
+tx_axis_tready  => i_tx_axis_fifo_tready,
 
-pause_val => "0000000000000000",
-pause_req => '0',
+rx_axis_tdata   => i_rx_axis_fifo_tdata,
+rx_axis_tkeep   => i_rx_axis_fifo_tkeep,
+rx_axis_tvalid  => i_rx_axis_fifo_tvalid,
+rx_axis_tlast   => i_rx_axis_fifo_tlast,
+rx_axis_tready  => i_rx_axis_fifo_tready,
 
+--Serial I/O from/to transceiver
 txp => p_out_ethphy.fiber.txp,
 txn => p_out_ethphy.fiber.txp,
 rxp => p_in_ethphy.fiber.rxp,
-rxn => p_in_ethphy.fiber.rxn,
-
-signal_detect  => i_signal_detect,
-sim_speedup_control => p_in_sim(0).sim_speedup_control,
-tx_fault       => i_tx_fault,
-pcspma_status => i_pcspma_status
+rxn => p_in_ethphy.fiber.rxn
 );
 
 

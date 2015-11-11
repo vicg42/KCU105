@@ -73,6 +73,7 @@ parameter                              FIFO_SIZE = 1024
    output                              qplllock_out,
    output      [G_GTCH_COUNT - 1 : 0]  coreclk_out,
    output      [G_GTCH_COUNT - 1 : 0]  rxrecclk_out,
+   output      [G_GTCH_COUNT - 1 : 0]  txuserrdy_out,
 
    input       [(80 * G_GTCH_COUNT) - 1 : 0]    mac_tx_configuration_vector,
    input       [(80 * G_GTCH_COUNT) - 1 : 0]    mac_rx_configuration_vector,
@@ -168,7 +169,7 @@ parameter                              FIFO_SIZE = 1024
       .txusrclk2_out                   (coreclk),
       .gttxreset_out                   (),
       .gtrxreset_out                   (),
-      .txuserrdy_out                   (),
+      .txuserrdy_out                   (txuserrdy_out),
       .rxrecclk_out                    (rxrecclk_out),
       .tx_ifg_delay                    (tx_ifg_delay),
       .tx_statistics_vector            (tx_statistics_vector),

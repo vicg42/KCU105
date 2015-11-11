@@ -640,6 +640,7 @@ parameter TB_MODE = "DEMO_TB";
       .rx_axis_tlast          (rx_axis_tlast ),
       .rx_axis_tready         (rx_axis_tready),
 
+      .txuserrdy_out          (),
       .core_ready             (core_ready),
       .txp                    (txp),
       .txn                    (txn),

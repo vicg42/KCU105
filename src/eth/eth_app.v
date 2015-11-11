@@ -80,6 +80,7 @@ parameter   G_GTCH_COUNT = 1
    // Example design status outputs
    output            frame_error,
 
+   output  [G_GTCH_COUNT - 1 : 0]   txuserrdy_out,
    output  [G_GTCH_COUNT - 1 : 0]   core_ready,
    output            qplllock_out,
 
@@ -198,6 +199,7 @@ endgenerate
       .coreclk_out                     (coreclk_out),
       .rxrecclk_out                    (),
       .dclk                            (clk_in),
+      .txuserrdy_out                   (txuserrdy_out),
 
       .reset                           (reset),
 
