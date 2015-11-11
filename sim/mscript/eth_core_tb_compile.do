@@ -95,7 +95,7 @@ vlog -64 -incr -work xil_defaultlib  \
 "../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/eth_core_gen_check_wrapper.v" \
 "../testbanch/eth_core_example/eth_core_example.srcs/sources_1/imports/example_design/eth_core_clocking.v" \
 "../../src/eth/eth_core_fifo_block.v" \
-"../../src/eth/eth_core_example_design.v" \
+"../../src/eth/eth_app.v" \
 "../testbanch/eth_core_tb.v" \
 
 # compile glbl module

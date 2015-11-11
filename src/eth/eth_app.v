@@ -49,7 +49,7 @@
 // Title      : Example Design top level
 // Project    : 10G Gigabit Ethernet
 //-----------------------------------------------------------------------------
-// File       : eth_core_example_design.v
+// File       : eth_app.v
 // Author     : Xilinx Inc.
 //-----------------------------------------------------------------------------
 // Description: This is the example design top level code for the 10G
@@ -60,7 +60,7 @@
 `timescale 1ps / 1ps
 
 (* DowngradeIPIdentifiedWarnings = "yes" *)
-module eth_core_example_design #(
+module eth_app #(
 parameter   G_AXI_DWIDTH = 64,
 parameter   G_GTCH_COUNT = 1
 )

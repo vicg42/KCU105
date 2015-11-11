@@ -607,7 +607,7 @@ parameter TB_MODE = "DEMO_TB";
   /*---------------------------------------------------------------------------
   -- wire up Device Under Test (dut)
   ---------------------------------------------------------------------------*/
-   eth_core_example_design  #(
+   eth_app  #(
     .G_AXI_DWIDTH (G_AXI_DWIDTH),
     .G_GTCH_COUNT (G_GTCH_COUNT)
   )
