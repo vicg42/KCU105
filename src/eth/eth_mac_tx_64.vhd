@@ -77,7 +77,7 @@ signal i_rd_chunk_cnt      : unsigned(15 downto 0);
 signal i_rd_chunk_count    : unsigned(15 downto 0);
 signal i_rd_chunk_rem      : unsigned(15 downto 0);
 
-constant CI_CHUNK : integer := 8;
+constant CI_CHUNK    : integer := 8;
 signal sr_txbuf_do         : std_logic_vector(G_AXI_DWIDTH - 1 downto 0);
 
 signal i_eth_axi_tdata     : std_logic_vector(G_AXI_DWIDTH - 1 downto 0);
@@ -85,10 +85,8 @@ signal i_eth_axi_tkeep     : std_logic_vector((G_AXI_DWIDTH / 8) - 1 downto 0);
 signal i_eth_axi_tvalid    : std_logic;
 signal i_eth_axi_tlast     : std_logic;
 
-constant CI_MAC_LEN  : integer := 2;
-constant CI_MAC_DST  : integer := 6;
-constant CI_MAC_SRC  : integer := 6;
-constant CI_ADD      : integer := CI_MAC_LEN;-- + CI_MAC_DST + CI_MAC_SRC;
+constant CI_MAC_LEN  : integer := 2;--Field Length/Type - count byte
+constant CI_ADD      : integer := CI_MAC_LEN;
 
 
 
@@ -138,7 +136,7 @@ if rising_edge(p_in_clk) then
 
               i_total_count_byte((8 * 2) - 1 downto 8 * 0) <= UNSIGNED(p_in_usr_axi_tdata((8 * 2) - 1 downto 8 * 0)) + CI_ADD;
 
-              if UNSIGNED(p_in_usr_axi_tdata((8 * 2) - 1 downto 8 * 0)) /= TO_UNSIGNED(0, 16) then
+              if (UNSIGNED(p_in_usr_axi_tdata((8 * 2) - 1 downto 8 * 0)) /= TO_UNSIGNED(0, 16)) then
 
                 i_fsm_eth_tx <= S_TX_ADR0;
 
@@ -177,11 +175,13 @@ if rising_edge(p_in_clk) then
               i_eth_axi_tdata((CI_CHUNK * 3) - 1 downto CI_CHUNK * 2) <= p_in_cfg.mac.src(4);
               i_eth_axi_tdata((CI_CHUNK * 4) - 1 downto CI_CHUNK * 3) <= p_in_cfg.mac.src(5);
 
+              i_eth_axi_tkeep(3 downto 0) <= "1111";
+
               --!!@@@@@@@@!! Swap length fiald !!@@@@@@@@!!
               i_eth_axi_tdata((CI_CHUNK * 5) - 1 downto CI_CHUNK * 4) <= p_in_usr_axi_tdata((8 * 2) - 1 downto 8 * 1);
               i_eth_axi_tdata((CI_CHUNK * 6) - 1 downto CI_CHUNK * 5) <= p_in_usr_axi_tdata((8 * 1) - 1 downto 8 * 0);
 
-              i_eth_axi_tkeep(5 downto 0) <= "111111";
+              i_eth_axi_tkeep(5 downto 4) <= "11";
 
               --Usr Data
               i_eth_axi_tdata((CI_CHUNK * 7) - 1 downto CI_CHUNK * 6) <= p_in_usr_axi_tdata((CI_CHUNK * 3) - 1 downto CI_CHUNK * 2);
@@ -193,7 +193,13 @@ if rising_edge(p_in_clk) then
 
                 i_rd_chunk_cnt <= (others => '0');
 
-                if (i_rd_chunk_rem(3 downto 0) >= TO_UNSIGNED(5, 4)) then
+                if (i_rd_chunk_rem(3 downto 0) < TO_UNSIGNED(4, 4)) then
+
+                  i_eth_axi_tkeep(7 downto 6) <= "11";
+
+                  i_fsm_eth_tx <= S_TX_END;
+
+                else
 
                   i_eth_axi_tlast <= '1';
 
@@ -205,16 +211,14 @@ if rising_edge(p_in_clk) then
 
                   i_fsm_eth_tx <= S_TX_IDLE;
 
-                else
-
-                  i_fsm_eth_tx <= S_TX_END;
-
                 end if;
 
               else
 
                 i_eth_axi_tkeep(7 downto 6) <= "11";
+
                 i_rd_chunk_cnt <= i_rd_chunk_cnt + 1;
+
                 i_fsm_eth_tx <= S_TX_D;
 
               end if;
@@ -238,26 +242,32 @@ if rising_edge(p_in_clk) then
 
                 i_rd_chunk_cnt <= (others => '0');
 
-                if i_rd_chunk_rem(2 downto 0) >= TO_UNSIGNED(4, 3) then
+                if i_rd_chunk_rem(3 downto 0) < TO_UNSIGNED(4, 3) then
+
+                  i_fsm_eth_tx <= S_TX_END;
+
+                else
 
                   i_eth_axi_tlast <= '1';
 
+                  i_eth_axi_tkeep(3 downto 0) <= (others => '1');
+
                   case (i_rd_chunk_rem(2 downto 0)) is
-                  when "111" => i_eth_axi_tkeep(7 downto 0) <= "00011111";
-                  when "110" => i_eth_axi_tkeep(7 downto 0) <= "00111111";
-                  when "101" => i_eth_axi_tkeep(7 downto 0) <= "01111111";
-                  when "100" => i_eth_axi_tkeep(7 downto 0) <= "11111111";
+                  when "111" => i_eth_axi_tkeep(7 downto 4) <= "0001";
+                  when "110" => i_eth_axi_tkeep(7 downto 4) <= "0011";
+                  when "101" => i_eth_axi_tkeep(7 downto 4) <= "0111";
+                  when "100" => i_eth_axi_tkeep(7 downto 4) <= "1111";
                   when others => null;
                   end case;
 
                   i_fsm_eth_tx <= S_TX_IDLE;
 
-                else
-                  i_fsm_eth_tx <= S_TX_END;
                 end if;
 
             else
+
               i_rd_chunk_cnt <= i_rd_chunk_cnt + 1;
+
             end if;
 
           end if;
@@ -276,13 +286,14 @@ if rising_edge(p_in_clk) then
             i_eth_axi_tlast <= '1';
 
             case (i_rd_chunk_rem(1 downto 0)) is
-            when "11" => i_eth_axi_tkeep(7 downto 0) <= "00000001";
-            when "10" => i_eth_axi_tkeep(7 downto 0) <= "00000011";
-            when "01" => i_eth_axi_tkeep(7 downto 0) <= "00000111";
-            when "00" => i_eth_axi_tkeep(7 downto 0) <= "00001111";
-
+            when "11" => i_eth_axi_tkeep(3 downto 0) <= "0001";
+            when "10" => i_eth_axi_tkeep(3 downto 0) <= "0011";
+            when "01" => i_eth_axi_tkeep(3 downto 0) <= "0111";
+            when "00" => i_eth_axi_tkeep(3 downto 0) <= "1111";
             when others => null;
             end case;
+
+            i_eth_axi_tkeep(7 downto 4) <= (others => '0');
 
             i_fsm_eth_tx <= S_TX_IDLE;
 

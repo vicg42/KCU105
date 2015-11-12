@@ -177,7 +177,7 @@ if rising_edge(p_in_clk) then
 
             if (AND_reduce(i_ethrx_mac_valid) = '1')
               and (UNSIGNED(i_ethrx_len) <= TO_UNSIGNED(16#600#, i_ethrx_len'length)) then
-            --Valid adress
+            --Valid adress + Field Length/Type of MAC frame is Length
 
                 i_ethrx_wren <= '1';
                 i_ethrx_sof <= '1';
@@ -199,7 +199,7 @@ if rising_edge(p_in_clk) then
                 end if;
 
             else
-            --Bad adress
+            --Bad
                 i_eth_axi_tready <= '1';
 
                 if p_in_eth_axi_tlast = '1' then
