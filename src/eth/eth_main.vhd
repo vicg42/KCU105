@@ -57,7 +57,6 @@ p_in_ethphy  : in  TEthPhyPin_IN;
 --DBG
 -------------------------------
 --p_out_dbg : out TEthDBG;
-p_out_sim : out TEthSIM_OUT;
 p_in_sim  : in  TEthSIM_IN;
 p_in_tst  : in  std_logic_vector(31 downto 0);
 p_out_tst : out std_logic_vector(31 downto 0);
@@ -445,7 +444,6 @@ p_in_rst => i_txuserrdy_out(i) --p_in_rst
 
 p_out_bufeth(i).clk <= i_coreclk_out(i);
 p_out_bufeth(i).rst <= not i_txuserrdy_out(i);
-p_out_sim.coreclk(i) <= i_coreclk_out(i);
 
 end generate gen_mac_ch;
 

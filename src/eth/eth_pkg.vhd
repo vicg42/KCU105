@@ -61,10 +61,6 @@ tx_fault       : std_logic_vector(0 to C_GTCH_COUNT - 1);
 end record;
 
 
-type TEthSIM_OUT is record
-coreclk : std_logic_vector(0 to C_GTCH_COUNT - 1);
-end record;
-
 type TEthSIM_IN is record
 speedup_control : std_logic;
 end record;

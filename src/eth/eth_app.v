@@ -137,31 +137,31 @@ for (i = 0; i < G_GTCH_COUNT; i = i + 1)
 begin : ch
 
   // Assign the configuration settings to the configuration vectors
-  //MAC_RX
-  assign i_mac_rx_configuration_vector[i][0] = 1'b0; //Transmitter Reset
-  assign i_mac_rx_configuration_vector[i][1] = 1'b1; //Transmitter Enable
-  assign i_mac_rx_configuration_vector[i][2] = 1'b0; //Transmitter VLAN Enable
-  assign i_mac_rx_configuration_vector[i][3] = 1'b0; //Transmitter In-Band FCS Enable
-  assign i_mac_rx_configuration_vector[i][4] = 1'b0; //Transmitter Jumbo Frame Enable
-  assign i_mac_rx_configuration_vector[i][5] = 1'b0; //Transmitter Flow Control Enable
-  assign i_mac_rx_configuration_vector[i][6] = 1'b0;
-  assign i_mac_rx_configuration_vector[i][7] = 1'b0;
-  assign i_mac_rx_configuration_vector[i][8] = 1'b0;
-  assign i_mac_rx_configuration_vector[i][9] = 1'b0; //Transmitter LAN/WAN Mode
-  assign i_mac_rx_configuration_vector[i][79 : 10] = 0;
-
   //MAC_TX
-  assign i_mac_tx_configuration_vector[i][0] = 1'b0; //Receiver Reset
-  assign i_mac_tx_configuration_vector[i][1] = 1'b1; //Receiver Enable
-  assign i_mac_tx_configuration_vector[i][2] = 1'b0; //Receiver VLAN Enable
-  assign i_mac_tx_configuration_vector[i][3] = 1'b0; //Receiver In-Band FCS Enable
-  assign i_mac_tx_configuration_vector[i][4] = 1'b0; //Receiver Jumbo Frame Enable
-  assign i_mac_tx_configuration_vector[i][5] = 1'b0; //Receive Flow Control Enable
+  assign i_mac_tx_configuration_vector[i][0] = 1'b0; //Transmitter Reset
+  assign i_mac_tx_configuration_vector[i][1] = 1'b1; //Transmitter Enable
+  assign i_mac_tx_configuration_vector[i][2] = 1'b0; //Transmitter VLAN Enable
+  assign i_mac_tx_configuration_vector[i][3] = 1'b0; //Transmitter In-Band FCS Enable
+  assign i_mac_tx_configuration_vector[i][4] = 1'b0; //Transmitter Jumbo Frame Enable
+  assign i_mac_tx_configuration_vector[i][5] = 1'b0; //Transmitter Flow Control Enable
   assign i_mac_tx_configuration_vector[i][6] = 1'b0;
   assign i_mac_tx_configuration_vector[i][7] = 1'b0;
-  assign i_mac_tx_configuration_vector[i][8] = 1'b0; //Receiver Length/Type Error Disable
-  assign i_mac_tx_configuration_vector[i][9] = 1'b0; //Control Frame Length Check Disable
+  assign i_mac_tx_configuration_vector[i][8] = 1'b0; //Transmitter Interframe Gap Adjust Enable
+  assign i_mac_tx_configuration_vector[i][9] = 1'b0; //Transmitter LAN/WAN Mode
   assign i_mac_tx_configuration_vector[i][79 : 10] = 0;
+
+  //MAC_RX
+  assign i_mac_rx_configuration_vector[i][0] = 1'b0; //Receiver Reset
+  assign i_mac_rx_configuration_vector[i][1] = 1'b1; //Receiver Enable
+  assign i_mac_rx_configuration_vector[i][2] = 1'b0; //Receiver VLAN Enable
+  assign i_mac_rx_configuration_vector[i][3] = 1'b0; //Receiver In-Band FCS Enable
+  assign i_mac_rx_configuration_vector[i][4] = 1'b0; //Receiver Jumbo Frame Enable
+  assign i_mac_rx_configuration_vector[i][5] = 1'b0; //Receive Flow Control Enable
+  assign i_mac_rx_configuration_vector[i][6] = 1'b0;
+  assign i_mac_rx_configuration_vector[i][7] = 1'b0;
+  assign i_mac_rx_configuration_vector[i][8] = 1'b0; //Receiver Length/Type Error Disable
+  assign i_mac_rx_configuration_vector[i][9] = 1'b0; //Control Frame Length Check Disable
+  assign i_mac_rx_configuration_vector[i][79 : 10] = 0;
 
   //PCS/PMA
   assign i_pcs_pma_configuration_vector[i] = {425'd0,111'd0};

@@ -87,7 +87,6 @@ p_in_ethphy  : in  TEthPhyPin_IN;
 --DBG
 -------------------------------
 --p_out_dbg : out  TEthDBG;
-p_out_sim : out  TEthSIM_OUT;
 p_in_sim  : in   TEthSIM_IN;
 p_in_tst  : in   std_logic_vector(31 downto 0);
 p_out_tst : out  std_logic_vector(31 downto 0);
@@ -121,28 +120,6 @@ srst      : in  std_logic
 );
 end component;
 
---component fifo_eth2fg
---port (
---din       : in  std_logic_vector(127 downto 0);
---wr_en     : in  std_logic;
---wr_clk    : in  std_logic;
---
---dout      : out std_logic_vector(127 downto 0);
---rd_en     : in  std_logic;
---rd_clk    : in  std_logic;
---
---empty     : out std_logic;
---full      : out std_logic;
---prog_full : out std_logic;
-----
-----wr_rst_busy : out std_logic;
-----rd_rst_busy : out std_logic;
-----
-----clk       : in  std_logic;
-----srst      : in  std_logic
---rst       : in  std_logic
---);
---end component;
 
 signal i_out_bufeth      : TEthIO_OUTs;
 signal i_in_bufeth       : TEthIO_INs;
@@ -153,7 +130,6 @@ signal i_in_status_eth   : TEthStatus_IN;
 signal i_out_ethphy      : TEthPhyPin_OUT;
 signal i_in_ethphy       : TEthPhyPin_IN;
 
-signal i_out_sim         : TEthSIM_OUT;
 signal i_in_sim          : TEthSIM_IN;
 signal i_in_tst          : std_logic_vector(31 downto 0);
 signal i_out_tst         : std_logic_vector(31 downto 0);
@@ -237,29 +213,6 @@ clk       => i_out_bufeth(0).clk,
 srst      => i_out_bufeth(0).rst
 );
 
---m_fifo_loop : fifo_eth2fg
---port map(
---din       => std_logic_vector(i_fifo_di),
---wr_en     => i_fifo_wr,
---wr_clk    : in  std_logic;
---
---dout      => i_fifo_do,
---rd_en     => i_fifo_rd,
---rd_clk    : in  std_logic;
---
---empty     => i_fifo_empty,
---full      => open,
---prog_full => i_fifo_full,
-----
-----wr_rst_busy : out std_logic;
-----rd_rst_busy : out std_logic;
-----
-----clk       : in  std_logic;
-----srst      : in  std_logic
---rst       => reset
---);
---end component;
-
 
 m_eth : eth_main
 generic map(
@@ -301,7 +254,6 @@ p_in_ethphy  => i_in_ethphy ,
 --DBG
 -------------------------------
 --p_out_dbg : out   TEthDBG;
-p_out_sim => i_out_sim,
 p_in_sim  => i_in_sim ,
 p_in_tst  => i_in_tst ,
 p_out_tst => i_out_tst,
