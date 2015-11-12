@@ -191,9 +191,25 @@ parameter TB_MODE = "DEMO_TB";
     initial
     begin
 
-        frame0.data[0]  = 32'h04030201;  // <---
-        frame0.data[1]  = 32'h02020605;  //    |
-        frame0.data[2]  = 32'h06050403;  //    |  This part of the frame is looped
+//        frame0.data[0]  = 32'hA1A1A1A1;  // <---
+//        frame0.data[1]  = 32'hB2B2A1A1;  //    |
+//        frame0.data[2]  = 32'h02010008;  //    |  This part of the frame is looped
+//        frame0.data[3]  = 32'h06050403;  //    |  if FRAME_GEN_MULTIPLIER is set to
+//        frame0.data[4]  = 32'h41400807;  //    |  more than 1
+//        frame0.data[5]  = 32'h45444342;  //    |
+//        frame0.data[6]  = 32'h49484746;  //    |
+//        frame0.data[7]  = 32'h4D4C4B4A;  //    |
+//        frame0.data[8]  = 32'h51504F4E;  //    |
+//        frame0.data[9]  = 32'h55545352;  //    |
+//        frame0.data[10] = 32'h59585756;  //    |
+//        frame0.data[11] = 32'h5D5C5B5A;  //    |
+//        frame0.data[12] = 32'h61605F5E;  //    |
+//        frame0.data[13] = 32'h65646362;  //    |
+//        frame0.data[14] = 32'h69686766;  // <---
+
+        frame0.data[0]  = 32'hA4A3A2A1;  // <---
+        frame0.data[1]  = 32'hB2B1A6A5;  //    |
+        frame0.data[2]  = 32'hB6B5B4B3;  //    |  This part of the frame is looped
         frame0.data[3]  = 32'h55AA2E00;  //    |  if FRAME_GEN_MULTIPLIER is set to
         frame0.data[4]  = 32'hAA55AA55;  //    |  more than 1
         frame0.data[5]  = 32'h55AA55AA;  //    |
@@ -259,9 +275,9 @@ parameter TB_MODE = "DEMO_TB";
         frame0.error = 1'b0;
 
         //Frame 1
-        frame1.data[0]  = 32'h04030201;  // <---
-        frame1.data[1]  = 32'h02020605;  //    |
-        frame1.data[2]  = 32'h06050403;  //    |  This part of the frame is looped
+        frame1.data[0]  = 32'hA4A3A2A1;  // <---
+        frame1.data[1]  = 32'hB2B1A6A5;  //    |
+        frame1.data[2]  = 32'hB6B5B4B3;  //    |  This part of the frame is looped
         frame1.data[3]  = 32'h55AA0081;  //    |  if FRAME_GEN_MULTIPLIER is set to
         frame1.data[4]  = 32'hAA55AA55;  //    |  more than 1
         frame1.data[5]  = 32'h55AA55AA;  //    |
@@ -327,9 +343,9 @@ parameter TB_MODE = "DEMO_TB";
         frame1.error = 1'b0;
 
         //Frame 2
-        frame2.data[0]  = 32'h04030201;  // <---
-        frame2.data[1]  = 32'h02020605;  //    |
-        frame2.data[2]  = 32'h06050403;  //    |  This part of the frame is looped
+        frame2.data[0]  = 32'hA4A3A2A1;  // <---
+        frame2.data[1]  = 32'hB2B1A6A5;  //    |
+        frame2.data[2]  = 32'hB6B5B4B3;  //    |  This part of the frame is looped
         frame2.data[3]  = 32'h55AA3700;  //    |  if FRAME_GEN_MULTIPLIER is set to
         frame2.data[4]  = 32'hAA55AA55;  //    |  more than 1
         frame2.data[5]  = 32'h55AA55AA;  //    |
@@ -395,9 +411,9 @@ parameter TB_MODE = "DEMO_TB";
         frame2.error = 1'b1;
 
         //Frame 3
-        frame3.data[0]  = 32'h04030201;  // <---
-        frame3.data[1]  = 32'h02020605;  //    |
-        frame3.data[2]  = 32'h06050403;  //    |  This part of the frame is looped
+        frame3.data[0]  = 32'hA4A3A2A1;  // <---
+        frame3.data[1]  = 32'hB2B1A6A5;  //    |
+        frame3.data[2]  = 32'hB6B5B4B3;  //    |  This part of the frame is looped
         frame3.data[3]  = 32'h55AA1600;  //    |  if FRAME_GEN_MULTIPLIER is set to
         frame3.data[4]  = 32'hAA55AA55;  //    |  more than 1
         frame3.data[5]  = 32'h55AA55AA;  //    |

@@ -15,7 +15,7 @@ use work.eth_phypin_pkg.all;
 
 package eth_pkg is
 
-type TEthMacAdr is array (0 to 5) of unsigned(7 downto 0);
+type TEthMacAdr is array (0 to 5) of std_logic_vector(7 downto 0);
 type TEthMAC is record
 dst : TEthMacAdr;
 src : TEthMacAdr;

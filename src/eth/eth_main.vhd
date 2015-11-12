@@ -263,36 +263,50 @@ process(p_in_cfg_clk)
 begin
 if rising_edge(p_in_cfg_clk) then
   if p_in_rst = '1' then
-    for i in 0 to h_reg_ethcfg.mac.dst'high loop
-    h_reg_ethcfg.mac.dst(i) <= (others => '0');
-    h_reg_ethcfg.mac.src(i) <= (others => '0');
-    end loop;
+--    for i in 0 to h_reg_ethcfg.mac.dst'high loop
+--    h_reg_ethcfg.mac.dst(i) <= (others => '0');
+--    h_reg_ethcfg.mac.src(i) <= (others => '0');
+--    end loop;
+
+    h_reg_ethcfg.mac.dst(0) <= std_logic_vector(TO_UNSIGNED(16#B1#, 8));
+    h_reg_ethcfg.mac.dst(1) <= std_logic_vector(TO_UNSIGNED(16#B2#, 8));
+    h_reg_ethcfg.mac.dst(2) <= std_logic_vector(TO_UNSIGNED(16#B3#, 8));
+    h_reg_ethcfg.mac.dst(3) <= std_logic_vector(TO_UNSIGNED(16#B4#, 8));
+    h_reg_ethcfg.mac.dst(4) <= std_logic_vector(TO_UNSIGNED(16#B5#, 8));
+    h_reg_ethcfg.mac.dst(5) <= std_logic_vector(TO_UNSIGNED(16#B6#, 8));
+
+    h_reg_ethcfg.mac.src(0) <= std_logic_vector(TO_UNSIGNED(16#A1#, 8));
+    h_reg_ethcfg.mac.src(1) <= std_logic_vector(TO_UNSIGNED(16#A2#, 8));
+    h_reg_ethcfg.mac.src(2) <= std_logic_vector(TO_UNSIGNED(16#A3#, 8));
+    h_reg_ethcfg.mac.src(3) <= std_logic_vector(TO_UNSIGNED(16#A4#, 8));
+    h_reg_ethcfg.mac.src(4) <= std_logic_vector(TO_UNSIGNED(16#A5#, 8));
+    h_reg_ethcfg.mac.src(5) <= std_logic_vector(TO_UNSIGNED(16#A6#, 8));
 
   else
     if p_in_cfg_wr = '1' then
         if i_reg_adr = TO_UNSIGNED(C_ETH_REG_MAC_PATRN0, i_reg_adr'length) then
-          h_reg_ethcfg.mac.dst(0) <= UNSIGNED(p_in_cfg_txdata(7 downto 0));
-          h_reg_ethcfg.mac.dst(1) <= UNSIGNED(p_in_cfg_txdata(15 downto 8));
+          h_reg_ethcfg.mac.dst(0) <= p_in_cfg_txdata(7 downto 0);
+          h_reg_ethcfg.mac.dst(1) <= p_in_cfg_txdata(15 downto 8);
 
         elsif i_reg_adr = TO_UNSIGNED(C_ETH_REG_MAC_PATRN1, i_reg_adr'length) then
-          h_reg_ethcfg.mac.dst(2) <= UNSIGNED(p_in_cfg_txdata(7 downto 0));
-          h_reg_ethcfg.mac.dst(3) <= UNSIGNED(p_in_cfg_txdata(15 downto 8));
+          h_reg_ethcfg.mac.dst(2) <= p_in_cfg_txdata(7 downto 0);
+          h_reg_ethcfg.mac.dst(3) <= p_in_cfg_txdata(15 downto 8);
 
         elsif i_reg_adr = TO_UNSIGNED(C_ETH_REG_MAC_PATRN2, i_reg_adr'length) then
-          h_reg_ethcfg.mac.dst(4) <= UNSIGNED(p_in_cfg_txdata(7 downto 0));
-          h_reg_ethcfg.mac.dst(5) <= UNSIGNED(p_in_cfg_txdata(15 downto 8));
+          h_reg_ethcfg.mac.dst(4) <= p_in_cfg_txdata(7 downto 0);
+          h_reg_ethcfg.mac.dst(5) <= p_in_cfg_txdata(15 downto 8);
 
         elsif i_reg_adr = TO_UNSIGNED(C_ETH_REG_MAC_PATRN3, i_reg_adr'length) then
-          h_reg_ethcfg.mac.src(0) <= UNSIGNED(p_in_cfg_txdata(7 downto 0));
-          h_reg_ethcfg.mac.src(1) <= UNSIGNED(p_in_cfg_txdata(15 downto 8));
+          h_reg_ethcfg.mac.src(0) <= p_in_cfg_txdata(7 downto 0);
+          h_reg_ethcfg.mac.src(1) <= p_in_cfg_txdata(15 downto 8);
 
         elsif i_reg_adr = TO_UNSIGNED(C_ETH_REG_MAC_PATRN4, i_reg_adr'length) then
-          h_reg_ethcfg.mac.src(2) <= UNSIGNED(p_in_cfg_txdata(7 downto 0));
-          h_reg_ethcfg.mac.src(3) <= UNSIGNED(p_in_cfg_txdata(15 downto 8));
+          h_reg_ethcfg.mac.src(2) <= p_in_cfg_txdata(7 downto 0);
+          h_reg_ethcfg.mac.src(3) <= p_in_cfg_txdata(15 downto 8);
 
         elsif i_reg_adr = TO_UNSIGNED(C_ETH_REG_MAC_PATRN5, i_reg_adr'length) then
-          h_reg_ethcfg.mac.src(4) <= UNSIGNED(p_in_cfg_txdata(7 downto 0));
-          h_reg_ethcfg.mac.src(5) <= UNSIGNED(p_in_cfg_txdata(15 downto 8));
+          h_reg_ethcfg.mac.src(4) <= p_in_cfg_txdata(7 downto 0);
+          h_reg_ethcfg.mac.src(5) <= p_in_cfg_txdata(15 downto 8);
 
         end if;
     end if;
@@ -309,28 +323,28 @@ if rising_edge(p_in_cfg_clk) then
   else
     if p_in_cfg_rd = '1' then
         if i_reg_adr = TO_UNSIGNED(C_ETH_REG_MAC_PATRN0, i_reg_adr'length) then
-          p_out_cfg_rxdata(7 downto 0)  <= std_logic_vector(h_reg_ethcfg.mac.dst(0));
-          p_out_cfg_rxdata(15 downto 8) <= std_logic_vector(h_reg_ethcfg.mac.dst(1));
+          p_out_cfg_rxdata(7 downto 0)  <= h_reg_ethcfg.mac.dst(0);
+          p_out_cfg_rxdata(15 downto 8) <= h_reg_ethcfg.mac.dst(1);
 
         elsif i_reg_adr = TO_UNSIGNED(C_ETH_REG_MAC_PATRN1, i_reg_adr'length) then
-          p_out_cfg_rxdata(7 downto 0)  <= std_logic_vector(h_reg_ethcfg.mac.dst(2));
-          p_out_cfg_rxdata(15 downto 8) <= std_logic_vector(h_reg_ethcfg.mac.dst(3));
+          p_out_cfg_rxdata(7 downto 0)  <= h_reg_ethcfg.mac.dst(2);
+          p_out_cfg_rxdata(15 downto 8) <= h_reg_ethcfg.mac.dst(3);
 
         elsif i_reg_adr = TO_UNSIGNED(C_ETH_REG_MAC_PATRN2, i_reg_adr'length) then
-          p_out_cfg_rxdata(7 downto 0)  <= std_logic_vector(h_reg_ethcfg.mac.dst(4));
-          p_out_cfg_rxdata(15 downto 8) <= std_logic_vector(h_reg_ethcfg.mac.dst(5));
+          p_out_cfg_rxdata(7 downto 0)  <= h_reg_ethcfg.mac.dst(4);
+          p_out_cfg_rxdata(15 downto 8) <= h_reg_ethcfg.mac.dst(5);
 
         elsif i_reg_adr = TO_UNSIGNED(C_ETH_REG_MAC_PATRN3, i_reg_adr'length) then
-          p_out_cfg_rxdata(7 downto 0)  <= std_logic_vector(h_reg_ethcfg.mac.src(0));
-          p_out_cfg_rxdata(15 downto 8) <= std_logic_vector(h_reg_ethcfg.mac.src(1));
+          p_out_cfg_rxdata(7 downto 0)  <= h_reg_ethcfg.mac.src(0);
+          p_out_cfg_rxdata(15 downto 8) <= h_reg_ethcfg.mac.src(1);
 
         elsif i_reg_adr = TO_UNSIGNED(C_ETH_REG_MAC_PATRN4, i_reg_adr'length) then
-          p_out_cfg_rxdata(7 downto 0)  <= std_logic_vector(h_reg_ethcfg.mac.src(2));
-          p_out_cfg_rxdata(15 downto 8) <= std_logic_vector(h_reg_ethcfg.mac.src(3));
+          p_out_cfg_rxdata(7 downto 0)  <= h_reg_ethcfg.mac.src(2);
+          p_out_cfg_rxdata(15 downto 8) <= h_reg_ethcfg.mac.src(3);
 
         elsif i_reg_adr = TO_UNSIGNED(C_ETH_REG_MAC_PATRN5, i_reg_adr'length) then
-          p_out_cfg_rxdata(7 downto 0)  <= std_logic_vector(h_reg_ethcfg.mac.src(4));
-          p_out_cfg_rxdata(15 downto 8) <= std_logic_vector(h_reg_ethcfg.mac.src(5));
+          p_out_cfg_rxdata(7 downto 0)  <= h_reg_ethcfg.mac.src(4);
+          p_out_cfg_rxdata(15 downto 8) <= h_reg_ethcfg.mac.src(5);
 
         end if;
     end if;
@@ -383,7 +397,7 @@ p_out_tst => open,
 --SYSTEM
 --------------------------------------
 p_in_clk => i_coreclk_out(i),
-p_in_rst => p_in_rst
+p_in_rst => i_txuserrdy_out(i) --p_in_rst
 );
 
 

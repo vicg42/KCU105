@@ -161,7 +161,7 @@ end generate gen_ch;
 i_in_bufeth(0).tx_axi_tdata <= i_out_bufeth(0).rx_axi_tdata;
 i_in_bufeth(0).tx_axi_tvalid <= i_out_bufeth(0).rx_axi_tvalid;
 
-i_in_bufeth(0).rx_axi_tready <= i_out_bufeth(0).tx_axi_tready;
+i_in_bufeth(0).rx_axi_tready <= '1';--i_out_bufeth(0).tx_axi_tready;
 
 
 m_eth : eth_main

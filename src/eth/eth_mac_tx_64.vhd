@@ -103,7 +103,7 @@ i_rd_chunk_rem <= i_rd_chunk_count((i_total_count_byte'length - log2(G_AXI_DWIDT
 process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
-  if p_in_rst = '1' then
+  if p_in_rst = '0' then
     i_fsm_eth_tx <= S_TX_IDLE;
 
     i_eth_axi_tdata <= (others => '0');
@@ -147,15 +147,15 @@ if rising_edge(p_in_clk) then
 
           if (p_in_eth_axi_tready = '1' and p_in_usr_axi_tvalid = '1') then
 
-              i_eth_axi_tdata((8 * 1) - 1 downto 8 * 0) <= std_logic_vector(p_in_cfg.mac.dst(0));
-              i_eth_axi_tdata((8 * 2) - 1 downto 8 * 1) <= std_logic_vector(p_in_cfg.mac.dst(1));
-              i_eth_axi_tdata((8 * 3) - 1 downto 8 * 2) <= std_logic_vector(p_in_cfg.mac.dst(2));
-              i_eth_axi_tdata((8 * 4) - 1 downto 8 * 3) <= std_logic_vector(p_in_cfg.mac.dst(3));
-              i_eth_axi_tdata((8 * 5) - 1 downto 8 * 4) <= std_logic_vector(p_in_cfg.mac.dst(4));
-              i_eth_axi_tdata((8 * 6) - 1 downto 8 * 5) <= std_logic_vector(p_in_cfg.mac.dst(5));
+              i_eth_axi_tdata((8 * 1) - 1 downto 8 * 0) <= p_in_cfg.mac.dst(0);
+              i_eth_axi_tdata((8 * 2) - 1 downto 8 * 1) <= p_in_cfg.mac.dst(1);
+              i_eth_axi_tdata((8 * 3) - 1 downto 8 * 2) <= p_in_cfg.mac.dst(2);
+              i_eth_axi_tdata((8 * 4) - 1 downto 8 * 3) <= p_in_cfg.mac.dst(3);
+              i_eth_axi_tdata((8 * 5) - 1 downto 8 * 4) <= p_in_cfg.mac.dst(4);
+              i_eth_axi_tdata((8 * 6) - 1 downto 8 * 5) <= p_in_cfg.mac.dst(5);
 
-              i_eth_axi_tdata((8 * 7) - 1 downto 8 * 6) <= std_logic_vector(p_in_cfg.mac.src(0));
-              i_eth_axi_tdata((8 * 8) - 1 downto 8 * 7) <= std_logic_vector(p_in_cfg.mac.src(1));
+              i_eth_axi_tdata((8 * 7) - 1 downto 8 * 6) <= p_in_cfg.mac.src(0);
+              i_eth_axi_tdata((8 * 8) - 1 downto 8 * 7) <= p_in_cfg.mac.src(1);
 
               i_eth_axi_tkeep(7 downto 0) <= "11111111";
 
@@ -171,10 +171,10 @@ if rising_edge(p_in_clk) then
 
           if (p_in_eth_axi_tready = '1' and p_in_usr_axi_tvalid = '1') then
 
-              i_eth_axi_tdata((8 * 1) - 1 downto 8 * 0) <= std_logic_vector(p_in_cfg.mac.src(2));
-              i_eth_axi_tdata((8 * 2) - 1 downto 8 * 1) <= std_logic_vector(p_in_cfg.mac.src(3));
-              i_eth_axi_tdata((8 * 3) - 1 downto 8 * 2) <= std_logic_vector(p_in_cfg.mac.src(4));
-              i_eth_axi_tdata((8 * 4) - 1 downto 8 * 3) <= std_logic_vector(p_in_cfg.mac.src(5));
+              i_eth_axi_tdata((8 * 1) - 1 downto 8 * 0) <= p_in_cfg.mac.src(2);
+              i_eth_axi_tdata((8 * 2) - 1 downto 8 * 1) <= p_in_cfg.mac.src(3);
+              i_eth_axi_tdata((8 * 3) - 1 downto 8 * 2) <= p_in_cfg.mac.src(4);
+              i_eth_axi_tdata((8 * 4) - 1 downto 8 * 3) <= p_in_cfg.mac.src(5);
 
               --!!@@@@@@@@!! Swap length fiald !!@@@@@@@@!!
               i_eth_axi_tdata((8 * 5) - 1 downto 8 * 4) <= p_in_usr_axi_tdata((8 * 2) - 1 downto 8 * 1);

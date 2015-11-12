@@ -80,8 +80,7 @@ signal i_rx_sof          : std_logic;
 signal i_rx_eof          : std_logic;
 signal i_usr_axi_tvalid  : std_logic;
 
-signal i_ethrx_mac_dst   : TEthMacAdr;
-signal i_ethrx_mac_valid : std_logic_vector(i_ethrx_mac_dst'length - 1 downto 0);
+signal i_ethrx_mac_valid : std_logic_vector(5 downto 0);
 
 signal i_ethrx_dbe       : std_logic_vector((G_AXI_DWIDTH / 8) - 1 downto 0);
 signal i_ethrx_sof       : std_logic;
@@ -108,11 +107,11 @@ end generate;
 process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
-  if (p_in_rst = '1') then
+  if (p_in_rst = '0') then
 
     i_fsm_eth_rx <= S_RX_IDLE;
 
-    for i in 0 to i_ethrx_mac_dst'length - 1 loop
+    for i in 0 to i_ethrx_mac_valid'length - 1 loop
     i_ethrx_mac_valid(i) <= '0';
     end loop;
 
@@ -144,8 +143,8 @@ if rising_edge(p_in_clk) then
 
           if (p_in_eth_axi_tvalid = '1') then
 
-            for i in 0 to i_ethrx_mac_dst'length - 1 loop
-              if (p_in_cfg.mac.src(i) = UNSIGNED(i_eth_axi_data(i))) then
+            for i in 0 to i_ethrx_mac_valid'length - 1 loop
+              if (p_in_cfg.mac.src(i) = i_eth_axi_data(i)) then
                 i_ethrx_mac_valid(i) <= '1';
               end if;
             end loop;
