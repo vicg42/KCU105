@@ -4,7 +4,7 @@
 -- Create Date : 02.11.2015 14:45:38
 -- Module Name : eth_rx
 --
--- Extract from eth stream data: MacDst + MacSrc
+-- Àrom eth stream data extract MacDst + MacSrc
 --
 -- Eth_Port : MacDst + MacSrc + Len + Data;
 -- USR_Port : Len + Data;
@@ -202,7 +202,7 @@ if rising_edge(p_in_clk) then
             --Bad
                 i_eth_axi_tready <= '1';
 
-                if p_in_eth_axi_tlast = '1' then
+                if (p_in_eth_axi_tlast = '1') then
                   i_fsm_eth_rx <= S_RX_IDLE;
                 else
                   i_fsm_eth_rx <= S_RX_WAIT;
@@ -266,7 +266,9 @@ if rising_edge(p_in_clk) then
         when S_RX_WAIT =>
 
             if (p_in_eth_axi_tvalid = '1' and p_in_eth_axi_tlast = '1') then
+
               i_fsm_eth_rx <= S_RX_IDLE;
+
             end if;
 
       end case;

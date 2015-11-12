@@ -4,7 +4,7 @@
 -- Create Date : 01.05.2011 16:43:52
 -- Module Name : eth_mac_tx
 --
--- Add to user stream data MacDst and MacSrc
+-- To user stream data add MacDst and MacSrc
 --
 -- USR_Port : Len + Data;
 -- Eth_Port : MacDst + MacSrc + Len + Data;
