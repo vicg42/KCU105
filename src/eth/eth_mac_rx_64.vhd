@@ -65,7 +65,8 @@ type TEth_fsm_rx is (
 S_RX_IDLE,
 S_RX_CHK,
 S_RX_D,
-S_RX_END
+S_RX_END,
+S_RX_WAIT
 );
 signal i_fsm_eth_rx      : TEth_fsm_rx;
 
@@ -81,7 +82,7 @@ signal i_rx_eof          : std_logic;
 signal i_usr_axi_tvalid  : std_logic;
 
 signal i_ethrx_mac_valid : std_logic_vector(5 downto 0);
-
+signal i_ethrx_len       : std_logic_vector(15 downto 0);
 signal i_ethrx_dbe       : std_logic_vector((G_AXI_DWIDTH / 8) - 1 downto 0);
 signal i_ethrx_sof       : std_logic;
 signal i_ethrx_eof       : std_logic;
@@ -100,6 +101,10 @@ gen : for i in 0 to (G_AXI_DWIDTH / i_eth_axi_data(0)'length) - 1 generate begin
 i_eth_axi_data(i) <= p_in_eth_axi_tdata((i_eth_axi_data(i)'length * (i + 1)) - 1 downto (i_eth_axi_data(i)'length * i));
 end generate;
 
+
+--######## !!!! Swap length fiald !!! ##########
+i_ethrx_len(15 downto 8) <= i_eth_axi_data(4);
+i_ethrx_len(7  downto 0) <= i_eth_axi_data(5);
 
 ---------------------------------------------
 --
@@ -160,15 +165,15 @@ if rising_edge(p_in_clk) then
 
           if (p_in_eth_axi_tvalid = '1') then
 
-            --######## !!!! Swap length fiald !!! ##########
-            sr_eth_axi_data(5) <= i_eth_axi_data(4);
-            sr_eth_axi_data(4) <= i_eth_axi_data(5);
+            sr_eth_axi_data(4) <= i_ethrx_len(7 downto 0);
+            sr_eth_axi_data(5) <= i_ethrx_len(15 downto 8);
 
             for i in 6 to i_eth_axi_data'length - 1 loop
             sr_eth_axi_data(i) <= i_eth_axi_data(i);
             end loop;
 
-            if (AND_reduce(i_ethrx_mac_valid) = '1') then
+            if (AND_reduce(i_ethrx_mac_valid) = '1')
+              and (UNSIGNED(i_ethrx_len) <= TO_UNSIGNED(16#600#, i_ethrx_len'length)) then
             --Valid adress
 
                 i_ethrx_wren <= '1';
@@ -200,6 +205,8 @@ if rising_edge(p_in_clk) then
 
                 if p_in_eth_axi_tlast = '1' then
                   i_fsm_eth_rx <= S_RX_IDLE;
+                else
+                  i_fsm_eth_rx <= S_RX_WAIT;
                 end if;
 
             end if;
@@ -253,6 +260,15 @@ if rising_edge(p_in_clk) then
             i_eth_axi_tready <= '1';
 
             i_fsm_eth_rx <= S_RX_IDLE;
+
+        --------------------------------------
+        --
+        --------------------------------------
+        when S_RX_WAIT =>
+
+            if (p_in_eth_axi_tvalid = '1' and p_in_eth_axi_tlast = '1') then
+              i_fsm_eth_rx <= S_RX_IDLE;
+            end if;
 
       end case;
 
