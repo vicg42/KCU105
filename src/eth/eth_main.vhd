@@ -443,6 +443,8 @@ p_in_clk => i_coreclk_out(i),
 p_in_rst => i_txuserrdy_out(i) --p_in_rst
 );
 
+p_out_bufeth(i).clk <= i_coreclk_out(i);
+p_out_bufeth(i).rst <= not i_txuserrdy_out(i);
 p_out_sim.coreclk(i) <= i_coreclk_out(i);
 
 end generate gen_mac_ch;

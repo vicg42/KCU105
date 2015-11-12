@@ -4,6 +4,10 @@
 -- Create Date : 01.05.2011 16:43:52
 -- Module Name : eth_mac_tx
 --
+-- Add to user stream data MacDst and MacSrc
+--
+-- USR_Port : Len + Data;
+-- Eth_Port : MacDst + MacSrc + Len + Data;
 --
 -------------------------------------------------------------------------
 library ieee;
@@ -73,6 +77,7 @@ signal i_rd_chunk_cnt      : unsigned(15 downto 0);
 signal i_rd_chunk_count    : unsigned(15 downto 0);
 signal i_rd_chunk_rem      : unsigned(15 downto 0);
 
+constant CI_CHUNK : integer := 8;
 signal sr_txbuf_do         : std_logic_vector(G_AXI_DWIDTH - 1 downto 0);
 
 signal i_eth_axi_tdata     : std_logic_vector(G_AXI_DWIDTH - 1 downto 0);
@@ -83,19 +88,19 @@ signal i_eth_axi_tlast     : std_logic;
 constant CI_MAC_LEN  : integer := 2;
 constant CI_MAC_DST  : integer := 6;
 constant CI_MAC_SRC  : integer := 6;
-constant CI_ADD      : integer := CI_MAC_LEN + CI_MAC_DST + CI_MAC_SRC;
+constant CI_ADD      : integer := CI_MAC_LEN;-- + CI_MAC_DST + CI_MAC_SRC;
 
 
 
 begin --architecture behavioral of eth_mac_tx is
 
 
-i_rd_chunk_count <= RESIZE(i_total_count_byte(i_rd_chunk_count'high downto log2(G_AXI_DWIDTH / 8)), i_rd_chunk_count'length)
+i_rd_chunk_count <= RESIZE(i_total_count_byte(i_rd_chunk_count'high downto log2(G_AXI_DWIDTH / CI_CHUNK)), i_rd_chunk_count'length)
               + (TO_UNSIGNED(0, i_rd_chunk_count'length - 2)
-                  & OR_reduce(i_total_count_byte(log2(G_AXI_DWIDTH / 8) - 1 downto 0)));
+                  & OR_reduce(i_total_count_byte(log2(G_AXI_DWIDTH / CI_CHUNK) - 1 downto 0)));
 
-i_rd_chunk_rem <= i_rd_chunk_count((i_total_count_byte'length - log2(G_AXI_DWIDTH / 8)) - 1 downto 0)
-                                                    & TO_UNSIGNED(0, (log2(G_AXI_DWIDTH / 8))) - i_total_count_byte;
+i_rd_chunk_rem <= i_rd_chunk_count((i_total_count_byte'length - log2(G_AXI_DWIDTH / CI_CHUNK)) - 1 downto 0)
+                                                    & TO_UNSIGNED(0, (log2(G_AXI_DWIDTH / CI_CHUNK))) - i_total_count_byte;
 
 ---------------------------------------------
 --
@@ -129,8 +134,6 @@ if rising_edge(p_in_clk) then
           i_eth_axi_tvalid <= '0';
           i_eth_axi_tlast <= '0';
 
-          i_rd_chunk_cnt <= (others =>'0');
-
           if (p_in_usr_axi_tvalid = '1') then
 
               i_total_count_byte((8 * 2) - 1 downto 8 * 0) <= UNSIGNED(p_in_usr_axi_tdata((8 * 2) - 1 downto 8 * 0)) + CI_ADD;
@@ -147,21 +150,19 @@ if rising_edge(p_in_clk) then
 
           if (p_in_eth_axi_tready = '1' and p_in_usr_axi_tvalid = '1') then
 
-              i_eth_axi_tdata((8 * 1) - 1 downto 8 * 0) <= p_in_cfg.mac.dst(0);
-              i_eth_axi_tdata((8 * 2) - 1 downto 8 * 1) <= p_in_cfg.mac.dst(1);
-              i_eth_axi_tdata((8 * 3) - 1 downto 8 * 2) <= p_in_cfg.mac.dst(2);
-              i_eth_axi_tdata((8 * 4) - 1 downto 8 * 3) <= p_in_cfg.mac.dst(3);
-              i_eth_axi_tdata((8 * 5) - 1 downto 8 * 4) <= p_in_cfg.mac.dst(4);
-              i_eth_axi_tdata((8 * 6) - 1 downto 8 * 5) <= p_in_cfg.mac.dst(5);
+              i_eth_axi_tdata((CI_CHUNK * 1) - 1 downto CI_CHUNK * 0) <= p_in_cfg.mac.dst(0);
+              i_eth_axi_tdata((CI_CHUNK * 2) - 1 downto CI_CHUNK * 1) <= p_in_cfg.mac.dst(1);
+              i_eth_axi_tdata((CI_CHUNK * 3) - 1 downto CI_CHUNK * 2) <= p_in_cfg.mac.dst(2);
+              i_eth_axi_tdata((CI_CHUNK * 4) - 1 downto CI_CHUNK * 3) <= p_in_cfg.mac.dst(3);
+              i_eth_axi_tdata((CI_CHUNK * 5) - 1 downto CI_CHUNK * 4) <= p_in_cfg.mac.dst(4);
+              i_eth_axi_tdata((CI_CHUNK * 6) - 1 downto CI_CHUNK * 5) <= p_in_cfg.mac.dst(5);
 
-              i_eth_axi_tdata((8 * 7) - 1 downto 8 * 6) <= p_in_cfg.mac.src(0);
-              i_eth_axi_tdata((8 * 8) - 1 downto 8 * 7) <= p_in_cfg.mac.src(1);
+              i_eth_axi_tdata((CI_CHUNK * 7) - 1 downto CI_CHUNK * 6) <= p_in_cfg.mac.src(0);
+              i_eth_axi_tdata((CI_CHUNK * CI_CHUNK) - 1 downto CI_CHUNK * 7) <= p_in_cfg.mac.src(1);
 
               i_eth_axi_tkeep(7 downto 0) <= "11111111";
 
               i_eth_axi_tvalid <= '1';
-
-              i_rd_chunk_cnt <= i_rd_chunk_cnt + 1;
 
               i_fsm_eth_tx <= S_TX_ADR1;
 
@@ -171,33 +172,34 @@ if rising_edge(p_in_clk) then
 
           if (p_in_eth_axi_tready = '1' and p_in_usr_axi_tvalid = '1') then
 
-              i_eth_axi_tdata((8 * 1) - 1 downto 8 * 0) <= p_in_cfg.mac.src(2);
-              i_eth_axi_tdata((8 * 2) - 1 downto 8 * 1) <= p_in_cfg.mac.src(3);
-              i_eth_axi_tdata((8 * 3) - 1 downto 8 * 2) <= p_in_cfg.mac.src(4);
-              i_eth_axi_tdata((8 * 4) - 1 downto 8 * 3) <= p_in_cfg.mac.src(5);
+              i_eth_axi_tdata((CI_CHUNK * 1) - 1 downto CI_CHUNK * 0) <= p_in_cfg.mac.src(2);
+              i_eth_axi_tdata((CI_CHUNK * 2) - 1 downto CI_CHUNK * 1) <= p_in_cfg.mac.src(3);
+              i_eth_axi_tdata((CI_CHUNK * 3) - 1 downto CI_CHUNK * 2) <= p_in_cfg.mac.src(4);
+              i_eth_axi_tdata((CI_CHUNK * 4) - 1 downto CI_CHUNK * 3) <= p_in_cfg.mac.src(5);
 
               --!!@@@@@@@@!! Swap length fiald !!@@@@@@@@!!
-              i_eth_axi_tdata((8 * 5) - 1 downto 8 * 4) <= p_in_usr_axi_tdata((8 * 2) - 1 downto 8 * 1);
-              i_eth_axi_tdata((8 * 6) - 1 downto 8 * 5) <= p_in_usr_axi_tdata((8 * 1) - 1 downto 8 * 0);
+              i_eth_axi_tdata((CI_CHUNK * 5) - 1 downto CI_CHUNK * 4) <= p_in_usr_axi_tdata((8 * 2) - 1 downto 8 * 1);
+              i_eth_axi_tdata((CI_CHUNK * 6) - 1 downto CI_CHUNK * 5) <= p_in_usr_axi_tdata((8 * 1) - 1 downto 8 * 0);
 
               i_eth_axi_tkeep(5 downto 0) <= "111111";
 
               --Usr Data
-              i_eth_axi_tdata((8 * 7) - 1 downto 8 * 6) <= p_in_usr_axi_tdata((8 * 3) - 1 downto 8 * 2);
-              i_eth_axi_tdata((8 * 8) - 1 downto 8 * 7) <= p_in_usr_axi_tdata((8 * 4) - 1 downto 8 * 3);
+              i_eth_axi_tdata((CI_CHUNK * 7) - 1 downto CI_CHUNK * 6) <= p_in_usr_axi_tdata((CI_CHUNK * 3) - 1 downto CI_CHUNK * 2);
+              i_eth_axi_tdata((CI_CHUNK * 8) - 1 downto CI_CHUNK * 7) <= p_in_usr_axi_tdata((CI_CHUNK * 4) - 1 downto CI_CHUNK * 3);
 
-              sr_txbuf_do((8 * 4) - 1 downto (8 * 0)) <= p_in_usr_axi_tdata((8 * 8) - 1 downto (8 * 4));
+              sr_txbuf_do((CI_CHUNK * 4) - 1 downto (CI_CHUNK * 0)) <= p_in_usr_axi_tdata((CI_CHUNK * 8) - 1 downto (CI_CHUNK * 4));
 
               if (i_rd_chunk_cnt = (i_rd_chunk_count - 1)) then
 
-                if (i_rd_chunk_rem(2 downto 0) <= TO_UNSIGNED(2, 3)) then
+                i_rd_chunk_cnt <= (others => '0');
+
+                if (i_rd_chunk_rem(3 downto 0) >= TO_UNSIGNED(5, 4)) then
 
                   i_eth_axi_tlast <= '1';
 
-                  case (i_rd_chunk_rem(1 downto 0)) is
-                  when "10" => i_eth_axi_tkeep(7 downto 6) <= "00";
-                  when "01" => i_eth_axi_tkeep(7 downto 6) <= "01";
-                  when "00" => i_eth_axi_tkeep(7 downto 6) <= "11";
+                  case (i_rd_chunk_rem(2 downto 0)) is
+                  when "100" => i_eth_axi_tkeep(7 downto 6) <= "11";
+                  when "101" => i_eth_axi_tkeep(7 downto 6) <= "01";
                   when others => null;
                   end case;
 
@@ -227,21 +229,24 @@ if rising_edge(p_in_clk) then
 
           if (p_in_eth_axi_tready = '1' and p_in_usr_axi_tvalid = '1') then
 
+            i_eth_axi_tdata((CI_CHUNK * 4) - 1 downto (CI_CHUNK * 0)) <= sr_txbuf_do((CI_CHUNK * 4) - 1 downto (CI_CHUNK * 0));
+            i_eth_axi_tdata((CI_CHUNK * 8) - 1 downto (CI_CHUNK * 4)) <= p_in_usr_axi_tdata((CI_CHUNK * 4) - 1 downto (CI_CHUNK * 0));
+
+            sr_txbuf_do((CI_CHUNK * 4) - 1 downto (CI_CHUNK * 0)) <= p_in_usr_axi_tdata((CI_CHUNK * 8) - 1 downto (CI_CHUNK * 4));
+
             if (i_rd_chunk_cnt = (i_rd_chunk_count - 1)) then
 
-                if i_rd_chunk_rem(2 downto 0) <= TO_UNSIGNED(4, 3) then
+                i_rd_chunk_cnt <= (others => '0');
+
+                if i_rd_chunk_rem(2 downto 0) >= TO_UNSIGNED(4, 3) then
 
                   i_eth_axi_tlast <= '1';
 
                   case (i_rd_chunk_rem(2 downto 0)) is
-                  when "111" => i_eth_axi_tkeep(7 downto 0) <= "00000001";
-                  when "110" => i_eth_axi_tkeep(7 downto 0) <= "00000011";
-                  when "101" => i_eth_axi_tkeep(7 downto 0) <= "00000111";
-                  when "100" => i_eth_axi_tkeep(7 downto 0) <= "00001111";
-                  when "011" => i_eth_axi_tkeep(7 downto 0) <= "00011111";
-                  when "010" => i_eth_axi_tkeep(7 downto 0) <= "00111111";
-                  when "001" => i_eth_axi_tkeep(7 downto 0) <= "01111111";
-                  when "000" => i_eth_axi_tkeep(7 downto 0) <= "11111111";
+                  when "111" => i_eth_axi_tkeep(7 downto 0) <= "00011111";
+                  when "110" => i_eth_axi_tkeep(7 downto 0) <= "00111111";
+                  when "101" => i_eth_axi_tkeep(7 downto 0) <= "01111111";
+                  when "100" => i_eth_axi_tkeep(7 downto 0) <= "11111111";
                   when others => null;
                   end case;
 
@@ -265,17 +270,17 @@ if rising_edge(p_in_clk) then
 
           if (p_in_eth_axi_tready = '1') then
 
+            i_eth_axi_tdata((CI_CHUNK * 4) - 1 downto (CI_CHUNK * 0)) <= sr_txbuf_do((CI_CHUNK * 4) - 1 downto (CI_CHUNK * 0));
+            i_eth_axi_tdata((CI_CHUNK * 8) - 1 downto (CI_CHUNK * 4)) <= (others => '0');
+
             i_eth_axi_tlast <= '1';
 
-            case (i_rd_chunk_rem(2 downto 0)) is
-            when "111" => i_eth_axi_tkeep(7 downto 0) <= "00000001";
-            when "110" => i_eth_axi_tkeep(7 downto 0) <= "00000011";
-            when "101" => i_eth_axi_tkeep(7 downto 0) <= "00000111";
-            when "100" => i_eth_axi_tkeep(7 downto 0) <= "00001111";
-            when "011" => i_eth_axi_tkeep(7 downto 0) <= "00011111";
-            when "010" => i_eth_axi_tkeep(7 downto 0) <= "00111111";
-            when "001" => i_eth_axi_tkeep(7 downto 0) <= "01111111";
-            when "000" => i_eth_axi_tkeep(7 downto 0) <= "11111111";
+            case (i_rd_chunk_rem(1 downto 0)) is
+            when "11" => i_eth_axi_tkeep(7 downto 0) <= "00000001";
+            when "10" => i_eth_axi_tkeep(7 downto 0) <= "00000011";
+            when "01" => i_eth_axi_tkeep(7 downto 0) <= "00000111";
+            when "00" => i_eth_axi_tkeep(7 downto 0) <= "00001111";
+
             when others => null;
             end case;
 

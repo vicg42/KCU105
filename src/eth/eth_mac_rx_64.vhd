@@ -4,7 +4,10 @@
 -- Create Date : 02.11.2015 14:45:38
 -- Module Name : eth_rx
 --
--- Extract from MAC Frame: Dst + Src Adress
+-- Extract from eth stream data: MacDst + MacSrc
+--
+-- Eth_Port : MacDst + MacSrc + Len + Data;
+-- USR_Port : Len + Data;
 --
 -------------------------------------------------------------------------
 library ieee;
@@ -121,7 +124,7 @@ if rising_edge(p_in_clk) then
     end loop;
 
     for i in 0 to i_eth_axi_data'length - 1 loop
-    sr_eth_axi_data(i) <= (others=>'0');
+    sr_eth_axi_data(i) <= (others => '1');
     end loop;
 
     i_ethrx_dbe <= (others => '0');
@@ -189,10 +192,6 @@ if rising_edge(p_in_clk) then
                   i_fsm_eth_rx <= S_RX_IDLE;
 
                 else
-
-                  for i in 4 to i_eth_axi_data'length - 1 loop
-                  sr_eth_axi_data(i) <= i_eth_axi_data(i);
-                  end loop;
 
                   i_ethrx_dbe <= (others => '1');
                   i_fsm_eth_rx <= S_RX_D;
@@ -309,11 +308,11 @@ p_out_usr_axi_tuser(1) <= i_rx_eof;
 --DBG
 ------------------------------------
 gen_dbg_off : if strcmp(G_DBG,"OFF") generate
-p_out_tst(31 downto 0) <= (others=>'0');
+p_out_tst(31 downto 0) <= (others => '0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
-p_out_tst(31 downto 0) <= (others=>'0');
+p_out_tst(31 downto 0) <= (others => '0');
 end generate gen_dbg_on;
 
 end architecture behavioral;

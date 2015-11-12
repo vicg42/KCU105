@@ -101,6 +101,49 @@ p_in_rst : in  std_logic
 end component eth_main;
 
 
+component fifo_host2eth
+port (
+din       : in  std_logic_vector(127 downto 0);
+wr_en     : in  std_logic;
+
+dout      : out std_logic_vector(127 downto 0);
+rd_en     : in  std_logic;
+
+empty     : out std_logic;
+full      : out std_logic;
+prog_full : out std_logic;
+
+wr_rst_busy : out std_logic;
+rd_rst_busy : out std_logic;
+
+clk       : in  std_logic;
+srst      : in  std_logic
+);
+end component;
+
+--component fifo_eth2fg
+--port (
+--din       : in  std_logic_vector(127 downto 0);
+--wr_en     : in  std_logic;
+--wr_clk    : in  std_logic;
+--
+--dout      : out std_logic_vector(127 downto 0);
+--rd_en     : in  std_logic;
+--rd_clk    : in  std_logic;
+--
+--empty     : out std_logic;
+--full      : out std_logic;
+--prog_full : out std_logic;
+----
+----wr_rst_busy : out std_logic;
+----rd_rst_busy : out std_logic;
+----
+----clk       : in  std_logic;
+----srst      : in  std_logic
+--rst       : in  std_logic
+--);
+--end component;
+
 signal i_out_bufeth      : TEthIO_OUTs;
 signal i_in_bufeth       : TEthIO_INs;
 
@@ -115,7 +158,12 @@ signal i_in_sim          : TEthSIM_IN;
 signal i_in_tst          : std_logic_vector(31 downto 0);
 signal i_out_tst         : std_logic_vector(31 downto 0);
 
-
+signal i_fifo_di         : unsigned(127 downto 0);
+signal i_fifo_do         : std_logic_vector(127 downto 0);
+signal i_fifo_wr         : std_logic;
+signal i_fifo_rd         : std_logic;
+signal i_fifo_empty      : std_logic;
+signal i_fifo_full       : std_logic;
 
 
 begin --architecture behavioral of eth_core_example_design is
@@ -146,7 +194,7 @@ i_in_ethphy.fiber.rxn(i) <= rxn(i);
 txp(i) <= i_out_ethphy.fiber.txp(i);
 txn(i) <= i_out_ethphy.fiber.txn(i);
 
-coreclk_out(i) <= i_out_sim.coreclk(i);
+coreclk_out(i) <= i_out_bufeth(i).clk;
 
 end generate gen_ch;
 
@@ -155,13 +203,62 @@ end generate gen_ch;
 --i_in_bufeth(0).tx_axi_tvalid <= '1';
 --i_in_bufeth(0).rx_axi_tready <= '1';
 
+--i_in_bufeth(0).tx_axi_tdata <= i_out_bufeth(0).rx_axi_tdata;
+--i_in_bufeth(0).tx_axi_tvalid <= i_out_bufeth(0).rx_axi_tvalid;
+--
+--i_in_bufeth(0).rx_axi_tready <= '1';--i_out_bufeth(0).tx_axi_tready;
 
 
 
-i_in_bufeth(0).tx_axi_tdata <= i_out_bufeth(0).rx_axi_tdata;
-i_in_bufeth(0).tx_axi_tvalid <= i_out_bufeth(0).rx_axi_tvalid;
+i_fifo_di <= RESIZE(UNSIGNED(i_out_bufeth(0).rx_axi_tdata), i_fifo_di'length);
+i_fifo_wr <= i_out_bufeth(0).rx_axi_tvalid;
+i_in_bufeth(0).rx_axi_tready <= not i_fifo_full;
 
-i_in_bufeth(0).rx_axi_tready <= '1';--i_out_bufeth(0).tx_axi_tready;
+i_in_bufeth(0).tx_axi_tdata <= i_fifo_do(i_in_bufeth(0).tx_axi_tdata'range);
+i_fifo_rd <= i_out_bufeth(0).tx_axi_tready;
+i_in_bufeth(0).tx_axi_tvalid <= not i_fifo_empty;
+
+m_fifo_loop : fifo_host2eth
+port map(
+din       => std_logic_vector(i_fifo_di),
+wr_en     => i_fifo_wr,
+
+dout      => i_fifo_do,
+rd_en     => i_fifo_rd,
+
+empty     => i_fifo_empty,
+full      => open,
+prog_full => i_fifo_full,
+
+wr_rst_busy => open,
+rd_rst_busy => open,
+
+clk       => i_out_bufeth(0).clk,
+srst      => i_out_bufeth(0).rst
+);
+
+--m_fifo_loop : fifo_eth2fg
+--port map(
+--din       => std_logic_vector(i_fifo_di),
+--wr_en     => i_fifo_wr,
+--wr_clk    : in  std_logic;
+--
+--dout      => i_fifo_do,
+--rd_en     => i_fifo_rd,
+--rd_clk    : in  std_logic;
+--
+--empty     => i_fifo_empty,
+--full      => open,
+--prog_full => i_fifo_full,
+----
+----wr_rst_busy : out std_logic;
+----rd_rst_busy : out std_logic;
+----
+----clk       : in  std_logic;
+----srst      : in  std_logic
+--rst       => reset
+--);
+--end component;
 
 
 m_eth : eth_main

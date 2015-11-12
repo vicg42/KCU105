@@ -38,6 +38,8 @@ rx_axi_tdata  : std_logic_vector(64 - 1 downto 0);
 rx_axi_tkeep  : std_logic_vector((64 / 8) - 1 downto 0);
 
 tx_axi_tready : std_logic;
+clk : std_logic;
+rst : std_logic;
 end record;
 
 type TEthIO_IN is record
