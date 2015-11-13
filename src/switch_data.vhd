@@ -1,10 +1,9 @@
 -------------------------------------------------------------------------
--- Engineer    : Golovachenko Victor
+-- Engineer    : Golovachenko Victor (vicg42@gmail.com)
 --
 -- Create Date : 04.06.2015 16:44:21
 -- Module Name : switch_data
 --
--- Description :
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -14,14 +13,14 @@ library work;
 use work.vicg_common_pkg.all;
 use work.reduce_pack.all;
 use work.prj_def.all;
---use work.eth_pkg.all;
+use work.eth_pkg.all;
 
 entity switch_data is
 generic(
-G_ETH_CH_COUNT : integer:=1;
-G_ETH_DWIDTH : integer:=32;
-G_VBUFI_OWIDTH : integer:=32;
-G_HOST_DWIDTH : integer:=32
+G_ETH_CH_COUNT : integer := 1;
+G_ETH_DWIDTH : integer := 32;
+G_VBUFI_OWIDTH : integer := 32;
+G_HOST_DWIDTH : integer := 32
 );
 port(
 -------------------------------
@@ -63,19 +62,21 @@ p_in_hclk              : in   std_logic;
 -------------------------------
 p_in_eth_tmr_irq       : in   std_logic;
 p_in_eth_tmr_en        : in   std_logic;
-p_in_eth_clk           : in   std_logic;
-----p_in_eth               : in   TEthOUTs;
-----p_out_eth              : out  TEthINs;
+p_in_eth               : in   TEthIO_OUTs;
+p_out_eth              : out  TEthIO_INs;
 
 -------------------------------
 --FG_BUFI
 -------------------------------
-p_in_vbufi_rdclk       : in   std_logic;
-p_out_vbufi_do         : out  std_logic_vector(G_VBUFI_OWIDTH - 1 downto 0);
-p_in_vbufi_rd          : in   std_logic;
-p_out_vbufi_empty      : out  std_logic;
-p_out_vbufi_full       : out  std_logic;
-p_out_vbufi_pfull      : out  std_logic;
+p_in_fgbufi            : in   TFgBufI_INs;
+p_out_fgbufi           : out  TFgBufI_OUTs;
+
+--p_in_vbufi_rdclk       : in   std_logic;
+--p_out_vbufi_do         : out  std_logic_vector(G_VBUFI_OWIDTH - 1 downto 0);
+--p_in_vbufi_rd          : in   std_logic;
+--p_out_vbufi_empty      : out  std_logic;
+--p_out_vbufi_full       : out  std_logic;
+--p_out_vbufi_pfull      : out  std_logic;
 
 -------------------------------
 --DBG
@@ -155,97 +156,87 @@ rst       : in  std_logic
 );
 end component;
 
---component pkt_filter
---generic(
---G_DWIDTH : integer := 32;
---G_FRR_COUNT : integer := 3
---);
---port(
-----------------------------------------
-----CFG
-----------------------------------------
---p_in_frr        : in    TEthFRR;
---
-----------------------------------------
-----Upstream Port
-----------------------------------------
---p_in_upp_data   : in    std_logic_vector(G_DWIDTH - 1 downto 0);
---p_in_upp_wr     : in    std_logic;
---p_in_upp_eof    : in    std_logic;
---p_in_upp_sof    : in    std_logic;
---
-----------------------------------------
-----Downstream Port
-----------------------------------------
---p_out_dwnp_data : out   std_logic_vector(G_DWIDTH - 1 downto 0);
---p_out_dwnp_wr   : out   std_logic;
---p_out_dwnp_eof  : out   std_logic;
---p_out_dwnp_sof  : out   std_logic;
---
----------------------------------
-----DBG
----------------------------------
---p_in_tst        : in    std_logic_vector(31 downto 0);
---p_out_tst       : out   std_logic_vector(31 downto 0);
---
-----------------------------------------
-----SYSTEM
-----------------------------------------
---p_in_clk        : in    std_logic;
---p_in_rst        : in    std_logic
---);
---end component pkt_filter;
+component pkt_filter
+generic(
+G_DWIDTH : integer := 32;
+G_FRR_COUNT : integer := 3
+);
+port(
+--------------------------------------
+--CFG
+--------------------------------------
+p_in_frr        : in    TEthFRR;
 
-signal i_reg_adr                     : unsigned(p_in_cfg_adr'range);
+--------------------------------------
+--Upstream Port
+--------------------------------------
+p_in_upp_data   : in    std_logic_vector(G_DWIDTH - 1 downto 0);
+p_in_upp_wr     : in    std_logic;
+p_in_upp_eof    : in    std_logic;
+p_in_upp_sof    : in    std_logic;
 
-signal h_reg_dbg                     : std_logic_vector(C_SWT_REG_DBG_LAST_BIT downto 0);
-signal h_reg_ctrl                    : std_logic_vector(C_SWT_REG_CTRL_LAST_BIT downto 0);
-signal h_reg_eth2h_frr               : TEthFRR;
-signal h_reg_eth2fg_frr              : TEthFRR;
+--------------------------------------
+--Downstream Port
+--------------------------------------
+p_out_dwnp_data : out   std_logic_vector(G_DWIDTH - 1 downto 0);
+p_out_dwnp_wr   : out   std_logic;
+p_out_dwnp_eof  : out   std_logic;
+p_out_dwnp_sof  : out   std_logic;
 
-signal b_rst_eth_bufs                : std_logic;
-signal b_rst_fg_bufs                 : std_logic;
+-------------------------------
+--DBG
+-------------------------------
+p_in_tst        : in    std_logic_vector(31 downto 0);
+p_out_tst       : out   std_logic_vector(31 downto 0);
 
-signal syn_eth_rxd                   : std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
-signal syn_eth_rxd_wr                : std_logic;
-signal syn_eth_rxd_sof               : std_logic;
-signal syn_eth_rxd_eof               : std_logic;
-signal syn_eth2h_frr                 : TEthFRR;
-signal syn_eth2fg_frr                : TEthFRR;
+--------------------------------------
+--SYSTEM
+--------------------------------------
+p_in_clk        : in    std_logic;
+p_in_rst        : in    std_logic
+);
+end component pkt_filter;
 
-signal i_eth_tmr_en                  : std_logic;
-signal i_eth_tmr_irq                 : std_logic;
-signal sr_eth_tx_start               : std_logic_vector(0 to 1);
-signal i_eth_txbuf_full              : std_logic;
-signal i_eth_txbuf_empty             : std_logic;
-signal sr_eth_txbuf_empty            : std_logic;
-signal i_eth_rxbuf_full              : std_logic;
-signal i_eth_rxbuf_empty             : std_logic;
-signal i_eth_rxbuf_fltr_dout         : std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
-signal i_eth_rxbuf_fltr_den          : std_logic;
-signal i_eth_rxbuf_fltr_eof          : std_logic;
-signal i_eth_rx_irq                  : std_logic;
-signal sr_eth_rxd_rdy                : std_logic_vector(0 to 1);
-signal i_eth_rx_irq_out              : std_logic;
-signal i_eth_htxd_rdy                : std_logic;
-signal sr_eth_htxd_rdy               : std_logic;
-signal i_eth_txbuf_empty_en          : std_logic;
-signal sr_eth_rxbuf_fltr_den         : std_logic_vector(0 to 1);
+signal i_reg_adr              : unsigned(p_in_cfg_adr'range);
 
-signal tst_txbuf_empty               : std_logic;
-signal tst_eth_rxbuf_den             : std_logic;
-signal tst_eth_rxbuf_dout            : std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
+signal h_reg_dbg              : std_logic_vector(C_SWT_REG_DBG_LAST_BIT downto 0);
+signal h_reg_ctrl             : std_logic_vector(C_SWT_REG_CTRL_LAST_BIT downto 0);
+signal h_reg_eth2h_frr        : TEthFRR;
+signal h_reg_eth2fg_frr       : TEthFRR;
 
-signal i_vbufi_fltr_dout             : std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
-signal i_vbufi_fltr_dout_swap        : std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
-signal i_vbufi_fltr_den              : std_logic;
-signal i_vbufi_pfull                 : std_logic;
-signal i_vbufi_rdclk                 : std_logic;
+signal b_rst_eth_bufs         : std_logic;
+signal b_rst_fg_bufs          : std_logic;
 
-signal tst_eth_txbuf_do              : std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
-signal tst_eth_txbuf_rd              : std_logic;
-signal tst_vbufi_empty               : std_logic;
-signal tst_vbufi_empty_o             : std_logic;
+Type TEthCH_d is array (0 to G_ETH_CH_COUNT - 1) of std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
+Type TEthCH_fgfrr is array (0 to G_ETH_CH_COUNT - 1) of TEthFRR;
+
+signal syn_eth_rxd            : TEthCH_d;
+signal syn_eth_rxd_wr         : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+signal syn_eth_rxd_sof        : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+signal syn_eth_rxd_eof        : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+signal syn_eth2h_frr          : TEthCH_fgfrr;
+signal syn_eth2fg_frr         : TEthCH_fgfrr;
+
+signal i_eth_tmr_en           : std_logic;
+signal i_eth_tmr_irq          : std_logic;
+signal sr_eth_tx_start        : std_logic_vector(0 to 1);
+signal i_eth_txbuf_full       : std_logic;
+signal i_eth_txbuf_empty      : std_logic;
+signal i_eth_rxbuf_full       : std_logic;
+signal i_eth_rxbuf_empty      : std_logic;
+signal i_eth_fltr_do          : std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
+signal i_eth_fltr_den         : std_logic;
+signal i_eth_fltr_eof         : std_logic;
+signal i_eth_rx_irq           : std_logic;
+signal i_eth_rx_irq_out       : std_logic;
+signal i_eth_htxd_rdy         : std_logic;
+signal sr_eth_htxd_rdy        : std_logic;
+signal i_eth_txbuf_empty_en   : std_logic;
+
+signal i_fgbuf_fltr_do        : TEthCH_d;
+signal i_fgbuf_fltr_den       : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+
+
 
 
 begin --architecture behavioral of switch_data
@@ -373,52 +364,56 @@ b_rst_eth_bufs <= p_in_rst or h_reg_ctrl(C_SWT_REG_CTRL_RST_ETH_BUFS_BIT);
 b_rst_fg_bufs <= p_in_rst or h_reg_ctrl(C_SWT_REG_CTRL_RST_FG_BUFS_BIT);
 
 
-------Подсинхриваем маски для FltrEthPkt началом прининятого пакета Eth
-----process(p_in_eth_clk)
-----begin
-----if rising_edge(p_in_eth_clk) then
-----  if p_in_rst = '1' then
-----
-----    for i in 0 to C_SWT_GET_FRR_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT) - 1 loop
-----      syn_eth2h_frr(2 * i) <= (others => '0');
-----      syn_eth2h_frr((2 * i) + 1) <= (others => '0');
-----    end loop;
-----
-----    for i in 0 to C_SWT_GET_FRR_REG_COUNT(C_SWT_ETH_FG_FRR_COUNT) - 1 loop
-----      syn_eth2fg_frr(2 * i) <= (others => '0');
-----      syn_eth2fg_frr((2 * i) + 1) <= (others => '0');
-----    end loop;
-----
-----    syn_eth_rxd <= (others => '0');
-----    syn_eth_rxd_wr <= '0';
-----    syn_eth_rxd_sof <= '0';
-----    syn_eth_rxd_eof <= '0';
-----
-----  else
-----
-----    if p_in_eth(0).rxsof = '1' then
-----
-----      for i in 0 to C_SWT_GET_FRR_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT) - 1 loop
-----        syn_eth2h_frr(2 * i) <= h_reg_eth2h_frr(2 * i);
-----        syn_eth2h_frr((2 * i) + 1) <= h_reg_eth2h_frr((2 * i) + 1);
-----      end loop;
-----
-----      for i in 0 to C_SWT_GET_FRR_REG_COUNT(C_SWT_ETH_FG_FRR_COUNT) - 1 loop
-----        syn_eth2fg_frr(2 * i) <= h_reg_eth2fg_frr(2 * i);
-----        syn_eth2fg_frr((2 * i) + 1) <= h_reg_eth2fg_frr((2 * i) + 1);
-----      end loop;
-----
-----    end if;
-----
-----    syn_eth_rxd <= p_in_eth(0).rxbuf_di;
-----    syn_eth_rxd_wr <= p_in_eth(0).rxbuf_wr;
-----    syn_eth_rxd_sof <= p_in_eth(0).rxsof;
-----    syn_eth_rxd_eof <= p_in_eth(0).rxeof;
-----
-----  end if;
-----end if;
-----end process;
+--
+gen_frr_syn : for eth_ch in 0 to (G_ETH_CH_COUNT - 1) generate
+begin
 
+process(p_in_eth(eth_ch).clk)
+begin
+if rising_edge(p_in_eth(eth_ch).clk) then
+  if p_in_eth(eth_ch).rst = '1' then
+
+    for i in 0 to C_SWT_GET_FRR_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT) - 1 loop
+      syn_eth2h_frr(eth_ch)(2 * i) <= (others => '0');
+      syn_eth2h_frr(eth_ch)((2 * i) + 1) <= (others => '0');
+    end loop;
+
+    for i in 0 to C_SWT_GET_FRR_REG_COUNT(C_SWT_ETH_FG_FRR_COUNT) - 1 loop
+      syn_eth2fg_frr(eth_ch)(2 * i) <= (others => '0');
+      syn_eth2fg_frr(eth_ch)((2 * i) + 1) <= (others => '0');
+    end loop;
+
+    syn_eth_rxd(eth_ch) <= (others => '0');
+    syn_eth_rxd_wr(eth_ch) <= '0';
+    syn_eth_rxd_sof(eth_ch) <= '0';
+    syn_eth_rxd_eof(eth_ch) <= '0';
+
+  else
+
+    if p_in_eth(eth_ch).rxsof = '1' then
+
+      for i in 0 to C_SWT_GET_FRR_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT) - 1 loop
+        syn_eth2h_frr(eth_ch)(2 * i) <= h_reg_eth2h_frr(2 * i);
+        syn_eth2h_frr(eth_ch)((2 * i) + 1) <= h_reg_eth2h_frr((2 * i) + 1);
+      end loop;
+
+      for i in 0 to C_SWT_GET_FRR_REG_COUNT(C_SWT_ETH_FG_FRR_COUNT) - 1 loop
+        syn_eth2fg_frr(eth_ch)(2 * i) <= h_reg_eth2fg_frr(2 * i);
+        syn_eth2fg_frr(eth_ch)((2 * i) + 1) <= h_reg_eth2fg_frr((2 * i) + 1);
+      end loop;
+
+    end if;
+
+    syn_eth_rxd(eth_ch) <= p_in_eth(eth_ch).rx_axi_tdata;
+    syn_eth_rxd_wr(eth_ch) <= p_in_eth(eth_ch).rx_axi_tvalid;
+    syn_eth_rxd_sof(eth_ch) <= p_in_eth(eth_ch).rx_axi_tuser(0);
+    syn_eth_rxd_eof(eth_ch) <= p_in_eth(eth_ch).rx_axi_tuser(1);
+
+  end if;
+end if;
+end process;
+
+end generate gen_frr_syn;
 
 
 
@@ -428,28 +423,38 @@ b_rst_fg_bufs <= p_in_rst or h_reg_ctrl(C_SWT_REG_CTRL_RST_FG_BUFS_BIT);
 p_out_eth_htxbuf_empty <= not i_eth_htxd_rdy;
 p_out_eth_htxbuf_full <= i_eth_txbuf_full;
 
---p_out_eth(0).txbuf_full <= i_eth_txbuf_full;
---p_out_eth(0).txbuf_empty <= not (not i_eth_txbuf_empty and i_eth_txbuf_empty_en)
---                            when i_eth_tmr_en = '1' else i_eth_txbuf_empty;
-
-tst_txbuf_empty <= not (not i_eth_txbuf_empty and i_eth_txbuf_empty_en)
-                  when i_eth_tmr_en = '1'
-                    else (not (not i_eth_txbuf_empty and sr_eth_htxd_rdy));
-
-process(p_in_eth_clk)
+process(p_in_eth(0).tx_axi_done, p_in_hclk)
 begin
-if rising_edge(p_in_eth_clk) then
+if (p_in_eth(0).tx_axi_done = '1') then
+  i_eth_htxd_rdy <= '0';
+
+elsif rising_edge(p_in_hclk) then
+
+  if (p_in_eth_htxd_rdy = '1') then
+    i_eth_htxd_rdy <= '1';
+  end if;
+
+end if;
+end process;
+
+p_out_eth(0).tx_axi_tvalid <= not (not i_eth_txbuf_empty and i_eth_txbuf_empty_en)
+                            when i_eth_tmr_en = '1' else i_eth_txbuf_empty;
+
+process(p_in_eth(0).clk)
+begin
+if rising_edge(p_in_eth(0).clk) then
+
   i_eth_tmr_en <= p_in_eth_tmr_en;
   i_eth_tmr_irq <= p_in_eth_tmr_irq;
 
-  sr_eth_tx_start <= i_eth_tmr_irq & sr_eth_tx_start(0 to 0);
   sr_eth_htxd_rdy <= i_eth_htxd_rdy;
+  sr_eth_tx_start <= i_eth_tmr_irq & sr_eth_tx_start(0 to sr_eth_tx_start'high - 1);
 
-  if i_eth_txbuf_empty = '1' then
+  if (p_in_eth(0).tx_axi_done = '1') then
     i_eth_txbuf_empty_en <= '0';
 
-  elsif i_eth_tmr_en = '1' and sr_eth_htxd_rdy = '1'
-    and sr_eth_tx_start(0) = '1' and sr_eth_tx_start(1) = '0' then
+  elsif (sr_eth_htxd_rdy = '1' and i_eth_tmr_en = '1'
+    and sr_eth_tx_start(0) = '1' and sr_eth_tx_start(1) = '0') then
 
     i_eth_txbuf_empty_en <= '1';
   end if;
@@ -457,107 +462,133 @@ if rising_edge(p_in_eth_clk) then
 end if;
 end process;
 
-m_buf_host2eth : fifo_host2eth
+m_h2eth_buf : fifo_host2eth
 port map(
 din     => p_in_eth_htxbuf_di,
 wr_en   => p_in_eth_htxbuf_wr,
---wr_clk  => p_in_hclk,
+wr_clk  => p_in_hclk,
 
-dout    => tst_eth_rxbuf_dout,--p_out_eth(0).txbuf_do,
-rd_en   => tst_eth_rxbuf_den ,--p_in_eth(0).txbuf_rd ,
---rd_clk  => p_in_eth_clk,
+dout    => p_out_eth(0).tx_axi_tdata , --tst_eth_rxbuf_dout,--
+rd_en   => p_in_eth (0).tx_axi_tready, --tst_eth_rxbuf_den ,--
+rd_clk  => p_in_eth (0).clk,
 
 empty   => i_eth_txbuf_empty,
 full    => open,
 prog_full => i_eth_txbuf_full,
 
-wr_rst_busy => open,
-rd_rst_busy => open,
-
-clk     => p_in_hclk,
-srst    => b_rst_eth_bufs
+--wr_rst_busy => open,
+--rd_rst_busy => open,
+--
+--clk     => p_in_hclk,
+--srst    => b_rst_eth_bufs
 );
 
 
-process(p_in_hclk)
+
+--XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+--Host <- ETHG
+--XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+m_eth2h_fltr: pkt_filter
+generic map(
+G_DWIDTH => G_ETH_DWIDTH,
+G_FRR_COUNT => C_SWT_ETH_HOST_FRR_COUNT
+)
+port map(
+--------------------------------------
+--CFG
+--------------------------------------
+p_in_frr        => syn_eth2h_frr,
+
+--------------------------------------
+--Upstream Port
+--------------------------------------
+p_in_upp_data   => syn_eth_rxd    (0),
+p_in_upp_wr     => syn_eth_rxd_wr (0),
+p_in_upp_eof    => syn_eth_rxd_eof(0),
+p_in_upp_sof    => syn_eth_rxd_sof(0),
+
+--------------------------------------
+--Downstream Port
+--------------------------------------
+p_out_dwnp_data => i_eth_fltr_do ,
+p_out_dwnp_wr   => i_eth_fltr_den,
+p_out_dwnp_eof  => i_eth_fltr_eof,
+p_out_dwnp_sof  => open,
+
+-------------------------------
+--DBG
+-------------------------------
+p_in_tst        => (others => '0'),
+p_out_tst       => open,
+
+--------------------------------------
+--SYSTEM
+--------------------------------------
+p_in_clk        => p_in_eth(0).clk,
+p_in_rst        => b_rst_eth_bufs
+);
+
+--Bus convertor for data Eth -> HOST
+process(p_in_eth(0).clk)
 begin
-if rising_edge(p_in_hclk) then
-  sr_eth_txbuf_empty <= i_eth_txbuf_empty;
+if rising_edge(p_in_eth(0).clk) then
+  if (b_rst_eth_bufs = '1') then
 
-  if sr_eth_txbuf_empty = '1' then
-    i_eth_htxd_rdy <= '0';
+    for i in 0 to i_eth2h_chunk'length - 1 loop
+    i_eth2h_chunk(i) <= (others => '0');
+    end loop;
+    i_eth2h_wr <= '0';
 
-  elsif p_in_eth_htxd_rdy = '1' then
-    i_eth_htxd_rdy <= '1';
+    i_eth2h_chunk_cnt <= (others => '0');
+
+  else
+    if (i_eth_fltr_den = '1') then
+
+      if (i_eth_fltr_eof = '1') then
+        i_eth2h_chunk_cnt <= (others => '0');
+      else
+        i_eth2h_chunk_cnt <= i_eth2h_chunk_cnt + 1;
+      end if;
+
+      for i in 0 to i_eth2h_chunk'length - 1 loop
+        if (i_eth2h_chunk_cnt = i) then
+          i_eth2h_chunk(i) <= i_eth_fltr_do;
+        end if;
+      end loop;
+
+    end if;
+
+    i_eth2h_wr <= AND_reduce(i_eth2h_chunk_cnt) or i_eth_fltr_eof;
 
   end if;
 end if;
 end process;
 
-----XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-----Host <- ETHG
-----XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
---m_eth2host_pkt_fltr: pkt_filter
---generic map(
---G_DWIDTH => G_ETH_DWIDTH,
---G_FRR_COUNT => C_SWT_ETH_HOST_FRR_COUNT
---)
---port map(
-----------------------------------------
-----CFG
-----------------------------------------
---p_in_frr        => syn_eth2h_frr,
---
-----------------------------------------
-----Upstream Port
-----------------------------------------
---p_in_upp_data   => syn_eth_rxd,
---p_in_upp_wr     => syn_eth_rxd_wr,
---p_in_upp_eof    => syn_eth_rxd_eof,
---p_in_upp_sof    => syn_eth_rxd_sof,
---
-----------------------------------------
-----Downstream Port
-----------------------------------------
---p_out_dwnp_data => i_eth_rxbuf_fltr_dout,
---p_out_dwnp_wr   => i_eth_rxbuf_fltr_den,
---p_out_dwnp_eof  => i_eth_rxbuf_fltr_eof,
---p_out_dwnp_sof  => open,
---
----------------------------------
-----DBG
----------------------------------
---p_in_tst        => (others=>'0'),
---p_out_tst       => open,
---
-----------------------------------------
-----SYSTEM
-----------------------------------------
---p_in_clk        => p_in_eth_clk,
---p_in_rst        => b_rst_eth_bufs
---);
+gen_eth2h_di : for i in 0 to i_eth02h_chunk'length - 1 generate begin
+i_eth2h_di((i_eth2h_chunk_cnt(i)'length * (i + 1)) - 1
+                                    downto (i_eth2h_chunk(i)'length * i)) <= i_eth2h_chunk(i);
+end generate gen_gen_eth2h_di;
 
-i_eth_rxbuf_fltr_den  <= tst_eth_rxbuf_den and h_reg_dbg(C_SWT_REG_DBG_ETHLOOP_BIT);
-
-m_buf_eth2host : fifo_eth2host
+m_eth2h_buf : fifo_eth2host
 port map(
-din     => tst_eth_rxbuf_dout, --i_eth_rxbuf_fltr_dout,
-wr_en   => i_eth_rxbuf_fltr_den,
---wr_clk  => p_in_eth_clk,
+din     => i_eth2h_di     , --tst_eth_rxbuf_dout  , --
+wr_en   => i_eth2h_wr     , --i_eth_rxbuf_fltr_den, --
+wr_clk  => p_in_eth(0).clk, --p_in_eth_clk        , --
 
 dout    => p_out_eth_hrxbuf_do,
 rd_en   => p_in_eth_hrxbuf_rd,
---rd_clk  => p_in_hclk,
+rd_clk  => p_in_hclk,
 
 empty   => i_eth_rxbuf_empty,
 full    => open,
 prog_full => i_eth_rxbuf_full,
 
-wr_rst_busy => open,
-rd_rst_busy => open,
+--
+--wr_rst_busy => open,
+--rd_rst_busy => open,
 
-clk     => p_in_hclk,
-srst    => b_rst_eth_bufs
+--clk     => p_in_hclk,
+--srst    => b_rst_eth_bufs
 );
 
 p_out_eth_hrxbuf_empty <= i_eth_rxbuf_empty;
@@ -567,20 +598,20 @@ p_out_eth_hrxbuf_full <= i_eth_rxbuf_full;
 --p_out_eth(0).rxbuf_full <= i_vbufi_pfull;
 
 --expand IRQ strobe
-process(p_in_eth_clk)
+process(p_in_eth(0).clk)
 begin
-if rising_edge(p_in_eth_clk) then
-  if p_in_rst = '1' then
+if rising_edge(p_in_eth(0).clk) then
+  if b_rst_eth_bufs = '1' then
     i_eth_rx_irq <= '0';
-    sr_eth_rxd_rdy <= (others => '0');
+    sr_eth_fltr_eof <= (others => '0');
 
   else
 
-    sr_eth_rxd_rdy <= i_eth_rxbuf_fltr_eof & sr_eth_rxd_rdy(0 to sr_eth_rxd_rdy'high - 1);
+    sr_eth_fltr_eof <= i_eth_fltr_eof & sr_eth_fltr_eof(0 to sr_eth_fltr_eof'high - 1);
 
-    if (i_eth_rxbuf_fltr_eof = '1') then
+    if (i_eth_fltr_eof = '1') then
       i_eth_rx_irq <= '1';
-    elsif (sr_eth_rxd_rdy(sr_eth_rxd_rdy'high) = '1') then
+    elsif (sr_eth_fltr_eof(sr_eth_fltr_eof'high) = '1') then
       i_eth_rx_irq <= '0';
     end if;
 
@@ -598,87 +629,69 @@ end process;
 
 p_out_eth_hirq <= i_eth_rx_irq_out;
 
---for test loopback
-tst_eth_rxbuf_den <= not (tst_txbuf_empty);
 
-process(p_in_eth_clk)
+
+
+--XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+--EthG -> FG
+--XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+gen_fgbuf : for eth_ch in 0 to (G_ETH_CH_COUNT - 1) generate
 begin
-if rising_edge(p_in_eth_clk) then
-  if p_in_rst = '1' then
-    sr_eth_rxbuf_fltr_den <= (others => '0');
-    i_eth_rxbuf_fltr_eof <= '0';
-  else
-    sr_eth_rxbuf_fltr_den <= i_eth_rxbuf_fltr_den & sr_eth_rxbuf_fltr_den(0 to 0);
-    i_eth_rxbuf_fltr_eof <= (not sr_eth_rxbuf_fltr_den(0)) and sr_eth_rxbuf_fltr_den(1);
-  end if;
-end if;
-end process;
 
+m_eth2fg_fltr: pkt_filter
+generic map(
+G_DWIDTH => G_ETH_DWIDTH,
+G_FRR_COUNT => C_SWT_ETH_FG_FRR_COUNT
+)
+port map(
+--------------------------------------
+--CFG
+--------------------------------------
+p_in_frr        => syn_eth2fg_frr(eth_ch),
 
-----XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-----EthG->VIDEO_CTRL
-----XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-----m_eth2fg_pkt_fltr: pkt_filter
-----generic map(
-----G_DWIDTH => G_ETH_DWIDTH,
-----G_FRR_COUNT => C_SWT_ETH_FG_FRR_COUNT
-----)
-----port map(
-------------------------------------------
-------CFG
-------------------------------------------
-----p_in_frr        => syn_eth2fg_frr,
-----
-------------------------------------------
-------Upstream Port
-------------------------------------------
-----p_in_upp_data   => syn_eth_rxd,
-----p_in_upp_wr     => syn_eth_rxd_wr,
-----p_in_upp_eof    => syn_eth_rxd_eof,
-----p_in_upp_sof    => syn_eth_rxd_sof,
-----
-------------------------------------------
-------Downstream Port
-------------------------------------------
-----p_out_dwnp_data => i_vbufi_fltr_dout,
-----p_out_dwnp_wr   => i_vbufi_fltr_den,
-----p_out_dwnp_eof  => open,
-----p_out_dwnp_sof  => open,
-----
------------------------------------
-------DBG
------------------------------------
-----p_in_tst        => (others=>'0'),
-----p_out_tst       => open,
-----
-------------------------------------------
-------SYSTEM
-------------------------------------------
-----p_in_clk        => p_in_eth_clk,
-----p_in_rst        => b_rst_fg_bufs
-----);
-----
-----gen_swap_d : for i in 0 to (i_vbufi_fltr_dout'length / 32) - 1 generate
-----i_vbufi_fltr_dout_swap((i_vbufi_fltr_dout_swap'length - (32 * i)) - 1 downto
-----                              (i_vbufi_fltr_dout_swap'length - (32 * (i + 1)) ))
-----                          <= i_vbufi_fltr_dout((32 * (i + 1)) - 1 downto (32 * i));
-----end generate;-- gen_swap_d;
+--------------------------------------
+--Upstream Port
+--------------------------------------
+p_in_upp_data   => syn_eth_rxd    (eth_ch),
+p_in_upp_wr     => syn_eth_rxd_wr (eth_ch),
+p_in_upp_eof    => syn_eth_rxd_eof(eth_ch),
+p_in_upp_sof    => syn_eth_rxd_sof(eth_ch),
 
-i_vbufi_fltr_den  <= tst_eth_rxbuf_den and OR_reduce(h_reg_eth2fg_frr(0));
+--------------------------------------
+--Downstream Port
+--------------------------------------
+p_out_dwnp_data => i_fgbuf_fltr_do (eth_ch),
+p_out_dwnp_wr   => i_fgbuf_fltr_den(eth_ch),
+p_out_dwnp_eof  => open,
+p_out_dwnp_sof  => open,
+
+-------------------------------
+--DBG
+-------------------------------
+p_in_tst        => (others => '0'),
+p_out_tst       => open,
+
+--------------------------------------
+--SYSTEM
+--------------------------------------
+p_in_clk        => p_in_eth(eth_ch).clk,
+p_in_rst        => b_rst_fg_bufs
+);
+
 
 m_buf_eth2fg : fifo_eth2fg
 port map(
-din       => tst_eth_rxbuf_dout,--i_vbufi_fltr_dout,
-wr_en     => i_vbufi_fltr_den ,
+din       => i_fgbuf_fltr_do (eth_ch),
+wr_en     => i_fgbuf_fltr_den(eth_ch),
 wr_clk    => p_in_eth_clk,
 
-dout      => p_out_vbufi_do,
-rd_en     => p_in_vbufi_rd,
-rd_clk    => p_in_vbufi_rdclk,
+dout      => p_out_fgbufi(eth_ch).do  ,
+rd_en     => p_in_fgbufi (eth_ch).rd   ,
+rd_clk    => p_in_fgbufi (eth_ch).rdclk,
 
-empty     => tst_vbufi_empty,--p_out_vbufi_empty,
-full      => p_out_vbufi_full,
-prog_full => i_vbufi_pfull,
+empty     => p_out_fgbufi(eth_ch).empty,
+full      => p_out_fgbufi(eth_ch).full ,
+prog_full => p_out_fgbufi(eth_ch).pfull,
 
 --wr_rst_busy => open,
 --rd_rst_busy => open,
@@ -688,9 +701,7 @@ prog_full => i_vbufi_pfull,
 rst  => b_rst_fg_bufs
 );
 
-p_out_vbufi_pfull <= i_vbufi_pfull;
-p_out_vbufi_empty <= tst_vbufi_empty;
-
+end generate gen_fgbuf;
 
 
 --##################################
@@ -714,3 +725,44 @@ end if;
 end process;
 
 end architecture behavioral;
+
+
+
+process(i_eth_clk(0))
+begin
+if rising_edge(i_eth_clk(0)) then
+  if (p_in_rst = '1') then
+
+    for i in 0 to i_eth2h_chunk(0)'length - 1 loop
+    i_eth2h_chunk(0)(i) <= (others => '0');
+    end loop;
+    i_eth2h_wr(0) <= '0';
+
+    i_eth2h_chunk_cnt(0) <= (others => '0');
+
+  else
+    if (i_eth_d_wr(0) = '1') then
+
+      if (i_eth_eof(0) = '1') then
+        i_eth2h_chunk_cnt(0) <= (others => '0');
+      else
+        i_eth2h_chunk_cnt(0) <= i_eth02h_chunk_cnt(0) + 1;
+      end if;
+
+      for i in 0 to i_eth2h_chunk(0)'length - 1 loop
+        if (i_eth2h_chunk_cnt(0) = i) then
+          i_eth2h_chunk(0)(i) <= i_eth_d;
+        end if;
+      end loop;
+
+    end if;
+
+    i_eth2h_wr(0) <= AND_reduce(i_eth2h_chunk_cnt(0)) or i_eth_eof(0);
+
+  end if;
+end if;
+end process;
+
+gen_eth2h_di : for i in 0 to i_eth2h_chunk(0)'length - 1 generate begin
+i_eth2h_di((i_eth2h_chunk(0)(i)'length * (i + 1)) - 1 downto (i_eth2h_chunk(0)(i)'length * i)) <= i_eth2h_chunk(0)(i);
+end generate gen_gen_eth2h_di;
