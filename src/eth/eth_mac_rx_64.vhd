@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------
 -- Engineer    : Golovachenko Victor (vicg42@gmail.com)
 --
--- Create Date : 02.11.2015 14:45:38
--- Module Name : eth_rx
+-- Create Date : 13.11.2015 10:08:49
+-- Module Name : eth_mac_rx
 --
--- Àrom eth stream data extract MacDst + MacSrc
+-- From eth stream data extract MacDst + MacSrc
 --
 -- Eth_Port : MacDst + MacSrc + Len + Data;
 -- USR_Port : Len + Data;
@@ -306,16 +306,13 @@ p_out_usr_axi_tuser(0) <= i_rx_sof;
 p_out_usr_axi_tuser(1) <= i_rx_eof;
 
 
-------------------------------------
+--##################################
 --DBG
-------------------------------------
-gen_dbg_off : if strcmp(G_DBG,"OFF") generate
+--##################################
+--gen_dbg_on : if strcmp(G_DBG,"ON") generate
 p_out_tst(31 downto 0) <= (others => '0');
-end generate gen_dbg_off;
+--end generate gen_dbg_on;
 
-gen_dbg_on : if strcmp(G_DBG,"ON") generate
-p_out_tst(31 downto 0) <= (others => '0');
-end generate gen_dbg_on;
 
 end architecture behavioral;
 

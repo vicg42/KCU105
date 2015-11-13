@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------
 -- Engineer    : Golovachenko Victor (vicg42@gmail.com)
 --
--- Create Date : 01.05.2011 16:43:52
+-- Create Date : 13.11.2015 10:08:38
 -- Module Name : eth_mac_tx
 --
 -- To user stream data add MacDst and MacSrc
@@ -313,15 +313,11 @@ p_out_eth_axi_tlast <= i_eth_axi_tlast;
 p_out_usr_axi_tready <= (p_in_usr_axi_tvalid) and p_in_eth_axi_tready and i_eth_axi_tvalid;
 
 
-------------------------------------
+--##################################
 --DBG
-------------------------------------
-gen_dbg_off : if strcmp(G_DBG,"OFF") generate
+--##################################
+--gen_dbg_on : if strcmp(G_DBG,"ON") generate
 p_out_tst(31 downto 0) <= (others => '0');
-end generate gen_dbg_off;
-
-gen_dbg_on : if strcmp(G_DBG,"ON") generate
-p_out_tst(31 downto 0) <= (others => '0');
-end generate gen_dbg_on;
+--end generate gen_dbg_on;
 
 end architecture behavioral;
