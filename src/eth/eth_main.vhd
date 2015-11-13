@@ -41,11 +41,11 @@ p_in_cfg_rd      : in  std_logic;
 -------------------------------
 --UsrBuf
 -------------------------------
-p_out_bufeth     : out TEthIO_OUTs;
-p_in_bufeth      : in  TEthIO_INs;
+p_out_ethbuf     : out TEthIO_OUTs;
+p_in_ethbuf      : in  TEthIO_INs;
 
-p_out_status_eth : out TEthStatus_OUT;
-p_in_status_eth  : in  TEthStatus_IN;
+p_out_eth_status : out TEthStatus_OUT;
+p_in_eth_status  : in  TEthStatus_IN;
 
 -------------------------------
 --PHY pin
@@ -132,6 +132,7 @@ p_in_cfg : in  TEthCfg;
 p_in_usr_axi_tdata   : in   std_logic_vector(G_AXI_DWIDTH - 1 downto 0);
 p_out_usr_axi_tready : out  std_logic;
 p_in_usr_axi_tvalid  : in   std_logic;
+p_out_usr_axi_done   : out  std_logic;
 
 --------------------------------------
 --ETH core (Tx)
@@ -373,9 +374,10 @@ p_in_cfg => h_reg_ethcfg,
 --------------------------------------
 --ETH <- USR TXBUF
 --------------------------------------
-p_in_usr_axi_tdata   => p_in_bufeth (i).tx_axi_tdata,
-p_out_usr_axi_tready => p_out_bufeth(i).tx_axi_tready,
-p_in_usr_axi_tvalid  => p_in_bufeth (i).tx_axi_tvalid,
+p_in_usr_axi_tdata   => p_in_ethbuf (i).tx_axi_tdata,
+p_out_usr_axi_tready => p_out_ethbuf(i).tx_axi_tready,
+p_in_usr_axi_tvalid  => p_in_ethbuf (i).tx_axi_tvalid,
+p_out_usr_axi_done   => p_out_ethbuf(i).tx_axi_done,
 
 --------------------------------------
 --ETH core (Tx)
@@ -414,11 +416,11 @@ p_in_cfg => h_reg_ethcfg,
 --------------------------------------
 --USR RXBUF <- ETH
 --------------------------------------
-p_in_usr_axi_tready  => p_in_bufeth (i).rx_axi_tready,
-p_out_usr_axi_tdata  => p_out_bufeth(i).rx_axi_tdata ,
-p_out_usr_axi_tkeep  => p_out_bufeth(i).rx_axi_tkeep ,
-p_out_usr_axi_tvalid => p_out_bufeth(i).rx_axi_tvalid,
-p_out_usr_axi_tuser  => p_out_bufeth(i).rx_axi_tuser ,
+p_in_usr_axi_tready  => p_in_ethbuf (i).rx_axi_tready,
+p_out_usr_axi_tdata  => p_out_ethbuf(i).rx_axi_tdata ,
+p_out_usr_axi_tkeep  => p_out_ethbuf(i).rx_axi_tkeep ,
+p_out_usr_axi_tvalid => p_out_ethbuf(i).rx_axi_tvalid,
+p_out_usr_axi_tuser  => p_out_ethbuf(i).rx_axi_tuser ,
 
 --------------------------------------
 --ETH core (Rx)
@@ -442,8 +444,8 @@ p_in_clk => i_coreclk_out(i),
 p_in_rst => i_txuserrdy_out(i) --p_in_rst
 );
 
-p_out_bufeth(i).clk <= i_coreclk_out(i);
-p_out_bufeth(i).rst <= not i_txuserrdy_out(i);
+p_out_ethbuf(i).clk <= i_coreclk_out(i);
+p_out_ethbuf(i).rst <= not i_txuserrdy_out(i);
 
 end generate gen_mac_ch;
 
@@ -471,11 +473,11 @@ sim_speedup_control => p_in_sim.speedup_control,
 frame_error  => open,
 
 txuserrdy_out => i_txuserrdy_out,
-core_ready  => p_out_status_eth.rdy,
-qplllock_out => p_out_status_eth.qplllock,
+core_ready  => p_out_eth_status.rdy,
+qplllock_out => p_out_eth_status.qplllock,
 
-signal_detect => p_in_status_eth.signal_detect,
-tx_fault      => p_in_status_eth.tx_fault,
+signal_detect => p_in_eth_status.signal_detect,
+tx_fault      => p_in_eth_status.tx_fault,
 
 tx_axis_tdata   => i_tx_axis_fifo_tdata,
 tx_axis_tkeep   => i_tx_axis_fifo_tkeep,

@@ -36,6 +36,7 @@ p_in_cfg : in  TEthCfg;
 p_in_usr_axi_tdata   : in   std_logic_vector(G_AXI_DWIDTH - 1 downto 0);
 p_out_usr_axi_tready : out  std_logic;
 p_in_usr_axi_tvalid  : in   std_logic;
+p_out_usr_axi_done   : out  std_logic;
 
 --------------------------------------
 --ETH core (Tx)
@@ -67,7 +68,8 @@ S_TX_IDLE,
 S_TX_ADR0,
 S_TX_ADR1,
 S_TX_D,
-S_TX_END
+S_TX_DE,
+S_TX_DONE
 );
 signal i_fsm_eth_tx        : TEth_fsm_tx;
 
@@ -197,7 +199,7 @@ if rising_edge(p_in_clk) then
 
                   i_eth_axi_tkeep(7 downto 6) <= "11";
 
-                  i_fsm_eth_tx <= S_TX_END;
+                  i_fsm_eth_tx <= S_TX_DE;
 
                 else
 
@@ -209,7 +211,7 @@ if rising_edge(p_in_clk) then
                   when others => null;
                   end case;
 
-                  i_fsm_eth_tx <= S_TX_IDLE;
+                  i_fsm_eth_tx <= S_TX_DONE;
 
                 end if;
 
@@ -244,7 +246,7 @@ if rising_edge(p_in_clk) then
 
                 if i_rd_chunk_rem(3 downto 0) < TO_UNSIGNED(4, 3) then
 
-                  i_fsm_eth_tx <= S_TX_END;
+                  i_fsm_eth_tx <= S_TX_DE;
 
                 else
 
@@ -260,7 +262,7 @@ if rising_edge(p_in_clk) then
                   when others => null;
                   end case;
 
-                  i_fsm_eth_tx <= S_TX_IDLE;
+                  i_fsm_eth_tx <= S_TX_DONE;
 
                 end if;
 
@@ -276,7 +278,7 @@ if rising_edge(p_in_clk) then
         --------------------------------------
         --
         --------------------------------------
-        when S_TX_END =>
+        when S_TX_DE =>
 
           if (p_in_eth_axi_tready = '1') then
 
@@ -295,6 +297,21 @@ if rising_edge(p_in_clk) then
 
             i_eth_axi_tkeep(7 downto 4) <= (others => '0');
 
+            i_fsm_eth_tx <= S_TX_DONE;
+
+          end if;
+
+
+        --------------------------------------
+        --
+        --------------------------------------
+        when S_TX_DONE =>
+
+          i_eth_axi_tvalid <= '0';
+          i_eth_axi_tlast <= '0';
+
+          if (p_in_eth_axi_tready = '1' and p_in_usr_axi_tvalid = '0') then
+
             i_fsm_eth_tx <= S_TX_IDLE;
 
           end if;
@@ -309,6 +326,7 @@ p_out_eth_axi_tkeep <= i_eth_axi_tkeep;
 p_out_eth_axi_tvalid <= i_eth_axi_tvalid;
 p_out_eth_axi_tlast <= i_eth_axi_tlast;
 
+p_out_usr_axi_done <= i_eth_axi_tlast and p_in_eth_axi_tready;
 
 p_out_usr_axi_tready <= (p_in_usr_axi_tvalid) and p_in_eth_axi_tready and i_eth_axi_tvalid;
 

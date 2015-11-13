@@ -71,11 +71,11 @@ p_in_cfg_rd      : in  std_logic;
 -------------------------------
 --UsrBuf
 -------------------------------
-p_out_bufeth     : out TEthIO_OUTs;
-p_in_bufeth      : in  TEthIO_INs;
+p_out_ethbuf     : out TEthIO_OUTs;
+p_in_ethbuf      : in  TEthIO_INs;
 
-p_out_status_eth : out TEthStatus_OUT;
-p_in_status_eth  : in  TEthStatus_IN;
+p_out_eth_status : out TEthStatus_OUT;
+p_in_eth_status  : in  TEthStatus_IN;
 
 -------------------------------
 --PHY pin
@@ -121,11 +121,11 @@ srst      : in  std_logic
 end component;
 
 
-signal i_out_bufeth      : TEthIO_OUTs;
-signal i_in_bufeth       : TEthIO_INs;
+signal i_out_ethbuf      : TEthIO_OUTs;
+signal i_in_ethbuf       : TEthIO_INs;
 
-signal i_out_status_eth  : TEthStatus_OUT;
-signal i_in_status_eth   : TEthStatus_IN;
+signal i_out_eth_status  : TEthStatus_OUT;
+signal i_in_eth_status   : TEthStatus_IN;
 
 signal i_out_ethphy      : TEthPhyPin_OUT;
 signal i_in_ethphy       : TEthPhyPin_IN;
@@ -160,39 +160,39 @@ i_in_ethphy.fiber.refclk_n <= refclk_n;
 
 gen_ch : for i in 0 to (C_GTCH_COUNT - 1) generate
 begin
-i_in_status_eth.signal_detect(i) <= '1';
-i_in_status_eth.tx_fault(i) <= '0';
+i_in_eth_status.signal_detect(i) <= '1';
+i_in_eth_status.tx_fault(i) <= '0';
 
-core_ready(i) <= i_out_status_eth.rdy(i);
+core_ready(i) <= i_out_eth_status.rdy(i);
 
 i_in_ethphy.fiber.rxp(i) <= rxp(i);
 i_in_ethphy.fiber.rxn(i) <= rxn(i);
 txp(i) <= i_out_ethphy.fiber.txp(i);
 txn(i) <= i_out_ethphy.fiber.txn(i);
 
-coreclk_out(i) <= i_out_bufeth(i).clk;
+coreclk_out(i) <= i_out_ethbuf(i).clk;
 
 end generate gen_ch;
 
 
---i_in_bufeth(0).tx_axi_tdata  <= std_logic_vector(TO_UNSIGNED(16#A0001#, i_in_bufeth(0).tx_axi_tdata'length));
---i_in_bufeth(0).tx_axi_tvalid <= '1';
---i_in_bufeth(0).rx_axi_tready <= '1';
+--i_in_ethbuf(0).tx_axi_tdata  <= std_logic_vector(TO_UNSIGNED(16#A0001#, i_in_ethbuf(0).tx_axi_tdata'length));
+--i_in_ethbuf(0).tx_axi_tvalid <= '1';
+--i_in_ethbuf(0).rx_axi_tready <= '1';
 
---i_in_bufeth(0).tx_axi_tdata <= i_out_bufeth(0).rx_axi_tdata;
---i_in_bufeth(0).tx_axi_tvalid <= i_out_bufeth(0).rx_axi_tvalid;
+--i_in_ethbuf(0).tx_axi_tdata <= i_out_ethbuf(0).rx_axi_tdata;
+--i_in_ethbuf(0).tx_axi_tvalid <= i_out_ethbuf(0).rx_axi_tvalid;
 --
---i_in_bufeth(0).rx_axi_tready <= '1';--i_out_bufeth(0).tx_axi_tready;
+--i_in_ethbuf(0).rx_axi_tready <= '1';--i_out_ethbuf(0).tx_axi_tready;
 
 
 
-i_fifo_di <= RESIZE(UNSIGNED(i_out_bufeth(0).rx_axi_tdata), i_fifo_di'length);
-i_fifo_wr <= i_out_bufeth(0).rx_axi_tvalid;
-i_in_bufeth(0).rx_axi_tready <= not i_fifo_full;
+i_fifo_di <= RESIZE(UNSIGNED(i_out_ethbuf(0).rx_axi_tdata), i_fifo_di'length);
+i_fifo_wr <= i_out_ethbuf(0).rx_axi_tvalid;
+i_in_ethbuf(0).rx_axi_tready <= not i_fifo_full;
 
-i_in_bufeth(0).tx_axi_tdata <= i_fifo_do(i_in_bufeth(0).tx_axi_tdata'range);
-i_fifo_rd <= i_out_bufeth(0).tx_axi_tready;
-i_in_bufeth(0).tx_axi_tvalid <= not i_fifo_empty;
+i_in_ethbuf(0).tx_axi_tdata <= i_fifo_do(i_in_ethbuf(0).tx_axi_tdata'range);
+i_fifo_rd <= i_out_ethbuf(0).tx_axi_tready;
+i_in_ethbuf(0).tx_axi_tvalid <= not i_fifo_empty;
 
 m_fifo_loop : fifo_host2eth
 port map(
@@ -209,8 +209,8 @@ prog_full => i_fifo_full,
 wr_rst_busy => open,
 rd_rst_busy => open,
 
-clk       => i_out_bufeth(0).clk,
-srst      => i_out_bufeth(0).rst
+clk       => i_out_ethbuf(0).clk,
+srst      => i_out_ethbuf(0).rst
 );
 
 
@@ -238,11 +238,11 @@ p_in_cfg_rd      => '0',
 -------------------------------
 --UsrBuf
 -------------------------------
-p_out_bufeth => i_out_bufeth,
-p_in_bufeth  => i_in_bufeth ,
+p_out_ethbuf => i_out_ethbuf,
+p_in_ethbuf  => i_in_ethbuf ,
 
-p_out_status_eth => i_out_status_eth,
-p_in_status_eth  => i_in_status_eth,
+p_out_eth_status => i_out_eth_status,
+p_in_eth_status  => i_in_eth_status,
 
 -------------------------------
 --PHY pin
