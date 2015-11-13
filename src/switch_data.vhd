@@ -71,13 +71,6 @@ p_out_eth              : out  TEthIO_INs;
 p_in_fgbufi            : in   TFgBufI_INs;
 p_out_fgbufi           : out  TFgBufI_OUTs;
 
---p_in_vbufi_rdclk       : in   std_logic;
---p_out_vbufi_do         : out  std_logic_vector(G_VBUFI_OWIDTH - 1 downto 0);
---p_in_vbufi_rd          : in   std_logic;
---p_out_vbufi_empty      : out  std_logic;
---p_out_vbufi_full       : out  std_logic;
---p_out_vbufi_pfull      : out  std_logic;
-
 -------------------------------
 --DBG
 -------------------------------
@@ -97,19 +90,23 @@ component fifo_host2eth
 port (
 din       : in  std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
 wr_en     : in  std_logic;
+wr_clk    : in  std_logic;
 
 dout      : out std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
 rd_en     : in  std_logic;
+rd_clk    : in  std_logic;
 
 empty     : out std_logic;
 full      : out std_logic;
 prog_full : out std_logic;
 
-wr_rst_busy : out std_logic;
-rd_rst_busy : out std_logic;
+rst       : in  std_logic
 
-clk       : in  std_logic;
-srst      : in  std_logic
+--wr_rst_busy : out std_logic;
+--rd_rst_busy : out std_logic;
+--
+--clk       : in  std_logic;
+--srst      : in  std_logic
 );
 end component;
 
@@ -117,19 +114,23 @@ component fifo_eth2host
 port (
 din       : in  std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
 wr_en     : in  std_logic;
+wr_clk    : in  std_logic;
 
 dout      : out std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
 rd_en     : in  std_logic;
+rd_clk    : in  std_logic;
 
 empty     : out std_logic;
 full      : out std_logic;
 prog_full : out std_logic;
 
-wr_rst_busy : out std_logic;
-rd_rst_busy : out std_logic;
+rst       : in  std_logic
 
-clk       : in  std_logic;
-srst      : in  std_logic
+--wr_rst_busy : out std_logic;
+--rd_rst_busy : out std_logic;
+--
+--clk       : in  std_logic;
+--srst      : in  std_logic
 );
 end component;
 
@@ -146,13 +147,14 @@ rd_clk    : in  std_logic;
 empty     : out std_logic;
 full      : out std_logic;
 prog_full : out std_logic;
---
+
+rst       : in  std_logic
+
 --wr_rst_busy : out std_logic;
 --rd_rst_busy : out std_logic;
 --
 --clk       : in  std_logic;
 --srst      : in  std_logic
-rst       : in  std_logic
 );
 end component;
 
@@ -233,9 +235,14 @@ signal i_eth_htxd_rdy         : std_logic;
 signal sr_eth_htxd_rdy        : std_logic;
 signal i_eth_txbuf_empty_en   : std_logic;
 
+type TEth2h_chunk is array (0 to (G_HOST_DWIDTH / G_ETH_DWIDTH) - 1)
+                                               of std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
+signal i_eth2h_chunk          : TEth2h_chunk;
+signal i_eth2h_chunk_cnt      : unsigned(selval(1, log2(i_eth2h_chunk'length), (i_eth2h_chunk'length = 1)) - 1 downto 0);
+signal i_eth2h_wr             : std_logic;
+
 signal i_fgbuf_fltr_do        : TEthCH_d;
 signal i_fgbuf_fltr_den       : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-
 
 
 
@@ -468,20 +475,22 @@ din     => p_in_eth_htxbuf_di,
 wr_en   => p_in_eth_htxbuf_wr,
 wr_clk  => p_in_hclk,
 
-dout    => p_out_eth(0).tx_axi_tdata , --tst_eth_rxbuf_dout,--
-rd_en   => p_in_eth (0).tx_axi_tready, --tst_eth_rxbuf_den ,--
+dout    => p_out_eth(0).tx_axi_tdata ,
+rd_en   => p_in_eth (0).tx_axi_tready,
 rd_clk  => p_in_eth (0).clk,
 
 empty   => i_eth_txbuf_empty,
 full    => open,
 prog_full => i_eth_txbuf_full,
 
+rst  => b_rst_fg_bufs
+);
 --wr_rst_busy => open,
 --rd_rst_busy => open,
 --
 --clk     => p_in_hclk,
 --srst    => b_rst_eth_bufs
-);
+--);
 
 
 
@@ -571,31 +580,32 @@ end generate gen_gen_eth2h_di;
 
 m_eth2h_buf : fifo_eth2host
 port map(
-din     => i_eth2h_di     , --tst_eth_rxbuf_dout  , --
-wr_en   => i_eth2h_wr     , --i_eth_rxbuf_fltr_den, --
-wr_clk  => p_in_eth(0).clk, --p_in_eth_clk        , --
+din     => i_eth2h_di     ,
+wr_en   => i_eth2h_wr     ,
+wr_clk  => p_in_eth(0).clk,
 
 dout    => p_out_eth_hrxbuf_do,
-rd_en   => p_in_eth_hrxbuf_rd,
+rd_en   => p_in_eth_hrxbuf_rd ,
 rd_clk  => p_in_hclk,
 
 empty   => i_eth_rxbuf_empty,
 full    => open,
 prog_full => i_eth_rxbuf_full,
 
+rst  => b_rst_fg_bufs
+);
 --
 --wr_rst_busy => open,
 --rd_rst_busy => open,
 
 --clk     => p_in_hclk,
 --srst    => b_rst_eth_bufs
-);
+--);
 
 p_out_eth_hrxbuf_empty <= i_eth_rxbuf_empty;
 p_out_eth_hrxbuf_full <= i_eth_rxbuf_full;
 
---p_out_eth(0).rxbuf_empty <= i_eth_rxbuf_empty;
---p_out_eth(0).rxbuf_full <= i_vbufi_pfull;
+p_out_eth(0).rx_axi_tready <= '1';
 
 --expand IRQ strobe
 process(p_in_eth(0).clk)
@@ -628,7 +638,6 @@ end if;
 end process;
 
 p_out_eth_hirq <= i_eth_rx_irq_out;
-
 
 
 
@@ -693,13 +702,14 @@ empty     => p_out_fgbufi(eth_ch).empty,
 full      => p_out_fgbufi(eth_ch).full ,
 prog_full => p_out_fgbufi(eth_ch).pfull,
 
+rst  => b_rst_fg_bufs
+);
 --wr_rst_busy => open,
 --rd_rst_busy => open,
 
 --clk  : in  std_logic;
 --srst => b_rst_fg_bufs
-rst  => b_rst_fg_bufs
-);
+--);
 
 end generate gen_fgbuf;
 
@@ -708,61 +718,14 @@ end generate gen_fgbuf;
 --DBG
 --##################################
 p_out_tst(0) <= b_rst_fg_bufs;
-p_out_tst(1) <= i_eth_txbuf_empty;
-p_out_tst(2) <= tst_txbuf_empty;
-p_out_tst(3) <= tst_vbufi_empty_o;
+p_out_tst(1) <= '0';
+p_out_tst(2) <= '0';
+p_out_tst(3) <= '0';
 p_out_tst(4) <= OR_reduce(h_reg_eth2fg_frr(0));
 p_out_tst(5) <= h_reg_dbg(C_SWT_REG_DBG_HOST2FG_BIT);
-p_out_tst(6) <= tst_eth_rxbuf_den;
-p_out_tst(7) <= i_vbufi_fltr_den;
-p_out_tst(31 downto 8) <= (others => '0');
+p_out_tst(6) <= '0';
+p_out_tst(7) <= '0';
+p_out_tst(31 downto 0) <= (others => '0');
 
-process(p_in_eth_clk)
-begin
-if rising_edge(p_in_eth_clk) then
-tst_vbufi_empty_o <= tst_vbufi_empty;
-end if;
-end process;
 
 end architecture behavioral;
-
-
-
-process(i_eth_clk(0))
-begin
-if rising_edge(i_eth_clk(0)) then
-  if (p_in_rst = '1') then
-
-    for i in 0 to i_eth2h_chunk(0)'length - 1 loop
-    i_eth2h_chunk(0)(i) <= (others => '0');
-    end loop;
-    i_eth2h_wr(0) <= '0';
-
-    i_eth2h_chunk_cnt(0) <= (others => '0');
-
-  else
-    if (i_eth_d_wr(0) = '1') then
-
-      if (i_eth_eof(0) = '1') then
-        i_eth2h_chunk_cnt(0) <= (others => '0');
-      else
-        i_eth2h_chunk_cnt(0) <= i_eth02h_chunk_cnt(0) + 1;
-      end if;
-
-      for i in 0 to i_eth2h_chunk(0)'length - 1 loop
-        if (i_eth2h_chunk_cnt(0) = i) then
-          i_eth2h_chunk(0)(i) <= i_eth_d;
-        end if;
-      end loop;
-
-    end if;
-
-    i_eth2h_wr(0) <= AND_reduce(i_eth2h_chunk_cnt(0)) or i_eth_eof(0);
-
-  end if;
-end if;
-end process;
-
-gen_eth2h_di : for i in 0 to i_eth2h_chunk(0)'length - 1 generate begin
-i_eth2h_di((i_eth2h_chunk(0)(i)'length * (i + 1)) - 1 downto (i_eth2h_chunk(0)(i)'length * i)) <= i_eth2h_chunk(0)(i);
-end generate gen_gen_eth2h_di;
