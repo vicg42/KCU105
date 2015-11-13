@@ -31,6 +31,7 @@ type TEthCfgs is array (0 to 0) of TEthCfg;
 -------------------------------------
 --Eth<->USR
 -------------------------------------
+--Eth -> USR
 type TEthIO_OUT is record
 rx_axi_tuser  : std_logic_vector(1 downto 0);
 rx_axi_tvalid : std_logic;
@@ -44,6 +45,7 @@ clk : std_logic;
 rst : std_logic;
 end record;
 
+--Eth <- USR
 type TEthIO_IN is record
 tx_axi_tdata  : std_logic_vector(64 - 1 downto 0);
 tx_axi_tvalid : std_logic;
