@@ -215,7 +215,8 @@ constant C_HDEV_OPTOUT_LAST_BIT               : integer := C_HDEV_OPTOUT_MEM_TRN
 constant C_CFGDEV_FG                          : integer := 0;
 constant C_CFGDEV_SWT                         : integer := 1;
 constant C_CFGDEV_TMR                         : integer := 2;
-constant C_CFGDEV_COUNT                       : integer := C_CFGDEV_TMR + 1;
+constant C_CFGDEV_ETH                         : integer := 3;
+constant C_CFGDEV_COUNT                       : integer := C_CFGDEV_ETH + 1;
 constant C_CFGDEV_COUNT_MAX                   : integer := 8;
 
 

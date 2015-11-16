@@ -43,12 +43,12 @@ pin_out_led_lpc     : out   std_logic_vector(3 downto 0);
 --------------------------------------------------
 --ETH
 --------------------------------------------------
-pin_out_ethphy_txp    : out std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
-pin_out_ethphy_txn    : out std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
-pin_in_ethphy_rxp     : in  std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
-pin_in_ethphy_rxn     : in  std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
-pin_in_ethphy_refclkp : in  std_logic;
-pin_in_ethphy_refclkn : in  std_logic;
+pin_out_ethphy_txp     : out std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
+pin_out_ethphy_txn     : out std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
+pin_in_ethphy_rxp      : in  std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
+pin_in_ethphy_rxn      : in  std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
+pin_in_ethphy_refclk_p : in  std_logic;
+pin_in_ethphy_refclk_n : in  std_logic;
 
 --------------------------------------------------
 --RAM
@@ -173,15 +173,15 @@ signal i_ethio_tx_axi_tready : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0
 signal i_ethio_tx_axi_tvalid : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 signal i_ethio_tx_axi_done   : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 
-signal i_ethio_clk           : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-signal i_ethio_rst           : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+signal i_ethio_clk           : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
+signal i_ethio_rst           : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 
-signal i_eth_status_rdy      : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-signal i_eth_status_carier   : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+signal i_eth_status_rdy      : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
+signal i_eth_status_carier   : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 signal i_eth_status_qplllock : std_logic;
 
-signal i_sfp_signal_detect   : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-signal i_sfp_tx_fault        : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+signal i_sfp_signal_detect   : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
+signal i_sfp_tx_fault        : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 
 signal i_test_led          : std_logic_vector(0 downto 0);
 signal sr_host_rst_n       : std_logic_vector(0 to 2) := (others => '1');
@@ -454,14 +454,14 @@ p_in_cfg_rd      => i_cfg_rd_dev(C_CFGDEV_ETH),
 -------------------------------
 --UsrBuf
 -------------------------------
---RXBUF <- ETH
+--rxbuf <- eth
 p_in_rxbuf_axi_tready  => i_ethio_rx_axi_tready,
 p_out_rxbuf_axi_tdata  => i_ethio_rx_axi_tdata ,
 p_out_rxbuf_axi_tkeep  => i_ethio_rx_axi_tkeep ,
 p_out_rxbuf_axi_tvalid => i_ethio_rx_axi_tvalid,
 p_out_rxbuf_axi_tuser  => i_ethio_rx_axi_tuser ,
 
---TXBUF -> ETH
+--txbuf -> eth
 p_in_txbuf_axi_tdata   => i_ethio_tx_axi_tdata ,
 p_out_txbuf_axi_tready => i_ethio_tx_axi_tready,
 p_in_txbuf_axi_tvalid  => i_ethio_tx_axi_tvalid,
@@ -478,22 +478,22 @@ p_out_status_carier   => i_eth_status_carier,
 p_out_status_qplllock => i_eth_status_qplllock,
 
 p_in_sfp_signal_detect => i_sfp_signal_detect,
-p_in_sfp_tx_fault      => i_sfp_sfp_tx_fault,
+p_in_sfp_tx_fault      => i_sfp_tx_fault,
 
 -------------------------------
 --PHY pin
 -------------------------------
-p_out_ethphy_txp    => pin_out_ethphy_txp   ,
-p_out_ethphy_txn    => pin_out_ethphy_txn   ,
-p_in_ethphy_rxp     => pin_in_ethphy_rxp    ,
-p_in_ethphy_rxn     => pin_in_ethphy_rxn    ,
-p_in_ethphy_refclkp => pin_in_ethphy_refclkp,
-p_in_ethphy_refclkn => pin_in_ethphy_refclkn,
+p_out_ethphy_txp     => pin_out_ethphy_txp    ,
+p_out_ethphy_txn     => pin_out_ethphy_txn    ,
+p_in_ethphy_rxp      => pin_in_ethphy_rxp     ,
+p_in_ethphy_rxn      => pin_in_ethphy_rxn     ,
+p_in_ethphy_refclk_p => pin_in_ethphy_refclk_p,
+p_in_ethphy_refclk_n => pin_in_ethphy_refclk_n,
 
 -------------------------------
 --DBG
 -------------------------------
---p_in_sim  : in  TEthSIM_IN;
+p_in_sim_speedup_control => '0',
 p_in_tst  => (others => '0'),
 p_out_tst => open,
 
@@ -521,7 +521,7 @@ port map(
 -------------------------------
 p_in_cfg_clk     => g_host_clk,
 
-p_in_cfg_adr     => i_cfg_radr(2 downto 0),
+p_in_cfg_adr     => i_cfg_radr(5 downto 0),
 p_in_cfg_adr_ld  => i_cfg_radr_ld,
 
 p_in_cfg_txdata  => i_cfg_txd,
@@ -557,20 +557,20 @@ p_in_eth_tmr_irq       => i_tmr_irq(C_TMR_ETH),
 p_in_eth_tmr_en        => i_tmr_en(C_TMR_ETH) ,
 
 --rxbuf <- eth
-p_in_ethio_rx_axi_tready  => i_ethio_rx_axi_tready,--: in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-p_out_ethio_rx_axi_tdata  => i_ethio_rx_axi_tdata ,--: out  std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUN
-p_out_ethio_rx_axi_tkeep  => i_ethio_rx_axi_tkeep ,--: out  std_logic_vector(((G_ETH_DWIDTH / 8) * G_ETH_C
-p_out_ethio_rx_axi_tvalid => i_ethio_rx_axi_tvalid,--: out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-p_out_ethio_rx_axi_tuser  => i_ethio_rx_axi_tuser ,--: out  std_logic_vector((2 * G_ETH_CH_COUNT) - 1
+p_out_ethio_rx_axi_tready => i_ethio_rx_axi_tready,
+p_in_ethio_rx_axi_tdata   => i_ethio_rx_axi_tdata ,
+p_in_ethio_rx_axi_tkeep   => i_ethio_rx_axi_tkeep ,
+p_in_ethio_rx_axi_tvalid  => i_ethio_rx_axi_tvalid,
+p_in_ethio_rx_axi_tuser   => i_ethio_rx_axi_tuser ,
 
 --txbuf -> eth
-p_in_ethio_tx_axi_tdata   => i_ethio_tx_axi_tdata ,--: in   std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNp
-p_out_ethio_tx_axi_tready => i_ethio_tx_axi_tready,--: out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-p_in_ethio_tx_axi_tvalid  => i_ethio_tx_axi_tvalid,--: in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);,
-p_out_ethio_tx_axi_done   => i_ethio_tx_axi_done  ,--: out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_ethio_tx_axi_tdata  => i_ethio_tx_axi_tdata ,
+p_in_ethio_tx_axi_tready  => i_ethio_tx_axi_tready,
+p_out_ethio_tx_axi_tvalid => i_ethio_tx_axi_tvalid,
+p_in_ethio_tx_axi_done    => i_ethio_tx_axi_done  ,
 
-p_in_ethio_clk => i_ethio_clk,
-p_in_ethio_rst => i_ethio_rst,
+p_in_ethio_clk            => i_ethio_clk,
+p_in_ethio_rst            => i_ethio_rst,
 
 -------------------------------
 --FG_BUFI

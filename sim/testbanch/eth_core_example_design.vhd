@@ -84,8 +84,8 @@ p_out_txbuf_axi_tready : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 p_in_txbuf_axi_tvalid  : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 p_out_txbuf_axi_done   : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
-p_out_buf_clk  : out   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-p_out_buf_rst  : out   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_ethio_clk  : out   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_ethio_rst  : out   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
 -------------------------------
 --
@@ -110,7 +110,7 @@ p_in_ethphy_refclk_n: in  std_logic;
 -------------------------------
 --DBG
 -------------------------------
-p_in_sim  : in  TEthSIM_IN;
+p_in_sim_speedup_control : in  std_logic;
 p_in_tst  : in  std_logic_vector(31 downto 0);
 p_out_tst : out std_logic_vector(31 downto 0);
 
@@ -161,7 +161,6 @@ signal i_ethio_tx_axi_done   : std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 signal i_ethio_clk           : std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 signal i_ethio_rst           : std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 
-signal i_in_sim          : TEthSIM_IN;
 signal i_in_tst          : std_logic_vector(31 downto 0);
 signal i_out_tst         : std_logic_vector(31 downto 0);
 
@@ -178,8 +177,6 @@ begin --architecture behavioral of eth_core_example_design is
 
 
 frame_error        <= '0';
-
-i_in_sim.speedup_control <= sim_speedup_control;
 
 gen_ch : for i in 0 to (G_GTCH_COUNT - 1) generate
 begin
@@ -257,8 +254,8 @@ p_out_txbuf_axi_tready => i_ethio_tx_axi_tready,
 p_in_txbuf_axi_tvalid  => i_ethio_tx_axi_tvalid,
 p_out_txbuf_axi_done   => i_ethio_tx_axi_done  ,
 
-p_out_buf_clk  => i_ethio_clk,
-p_out_buf_rst  => i_ethio_rst,
+p_out_ethio_clk  => i_ethio_clk,
+p_out_ethio_rst  => i_ethio_rst,
 
 
 p_out_status_rdy      => core_ready,
@@ -281,7 +278,7 @@ p_in_ethphy_refclk_n => refclk_n,
 -------------------------------
 --DBG
 -------------------------------
-p_in_sim  => i_in_sim ,
+p_in_sim_speedup_control => sim_speedup_control,
 p_in_tst  => i_in_tst ,
 p_out_tst => i_out_tst,
 

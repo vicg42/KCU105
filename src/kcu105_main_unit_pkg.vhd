@@ -17,6 +17,7 @@ use work.pcie_pkg.all;
 use work.mem_wr_pkg.all;
 use work.mem_ctrl_pkg.all;
 use work.fg_pkg.all;
+use work.eth_pkg.all;
 
 package kcu105_main_unit_pkg is
 
@@ -273,31 +274,34 @@ p_in_ethio_rx_axi_tvalid  : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 p_in_ethio_rx_axi_tuser   : in   std_logic_vector((2 * G_ETH_CH_COUNT) - 1 downto 0);
 
 --txbuf -> eth
-p_out_ethio_tx_axi_tdata  : in   std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
-p_in_ethio_tx_axi_tready  : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-p_out_ethio_tx_axi_tvalid : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-p_in_ethio_tx_axi_done    : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_ethio_tx_axi_tdata  : out  std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
+p_in_ethio_tx_axi_tready  : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_ethio_tx_axi_tvalid : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_ethio_tx_axi_done    : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+
+p_in_ethio_clk            : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_ethio_rst            : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
 -------------------------------
 --FG_BUFI
 -------------------------------
-p_out_fgbufi_do        : out  std_logic_vector((G_FGBUFI_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
-p_in_fgbufi_rd         : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-p_in_fgbufi_rdclk      : in   std_logic;
-p_out_fgbufi_empty     : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-p_out_fgbufi_full      : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-p_out_fgbufi_pfull     : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_fgbufi_do    : out  std_logic_vector((G_FGBUFI_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
+p_in_fgbufi_rd     : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_fgbufi_rdclk  : in   std_logic;
+p_out_fgbufi_empty : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_fgbufi_full  : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_fgbufi_pfull : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
 -------------------------------
 --DBG
 -------------------------------
-p_in_tst               : in   std_logic_vector(31 downto 0);
-p_out_tst              : out  std_logic_vector(31 downto 0);
+p_in_tst  : in   std_logic_vector(31 downto 0);
+p_out_tst : out  std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
 -------------------------------
-p_in_rst     : in    std_logic
+p_in_rst  : in    std_logic
 );
 end component switch_data;
 
@@ -336,8 +340,8 @@ component eth_main is
 generic(
 G_ETH_CH_COUNT : integer := 1;
 G_ETH_DWIDTH : integer := 64;
-G_DBG : string := "OFF";
-G_SIM : string := "OFF"
+G_DBG  : string := "OFF";
+G_SIM  : string := "OFF"
 );
 port(
 -------------------------------
@@ -357,25 +361,28 @@ p_in_cfg_rd      : in  std_logic;
 -------------------------------
 --UsrBuf
 -------------------------------
---RXBUF <- ETH
+--rxbuf <- eth
 p_in_rxbuf_axi_tready  : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 p_out_rxbuf_axi_tdata  : out  std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
 p_out_rxbuf_axi_tkeep  : out  std_logic_vector(((G_ETH_DWIDTH / 8) * G_ETH_CH_COUNT) - 1 downto 0);
 p_out_rxbuf_axi_tvalid : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 p_out_rxbuf_axi_tuser  : out  std_logic_vector((2 * G_ETH_CH_COUNT) - 1 downto 0);
 
---TXBUF -> ETH
+--txbuf -> eth
 p_in_txbuf_axi_tdata   : in   std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
 p_out_txbuf_axi_tready : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 p_in_txbuf_axi_tvalid  : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 p_out_txbuf_axi_done   : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
+p_out_buf_clk  : out   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_buf_rst  : out   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+
 -------------------------------
 --
 -------------------------------
-p_out_status_rdy      : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-p_out_status_carier   : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-p_out_status_qplllock : std_logic;
+p_out_status_rdy      : out std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_status_carier   : out std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_status_qplllock : out std_logic;
 
 p_in_sfp_signal_detect : in std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 p_in_sfp_tx_fault      : in std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
@@ -393,7 +400,7 @@ p_in_ethphy_refclk_n: in  std_logic;
 -------------------------------
 --DBG
 -------------------------------
-p_in_sim  : in  TEthSIM_IN;
+p_in_sim_speedup_control : in  std_logic;
 p_in_tst  : in  std_logic_vector(31 downto 0);
 p_out_tst : out std_logic_vector(31 downto 0);
 
@@ -404,4 +411,5 @@ p_in_dclk : in  std_logic; --DRP clk
 p_in_rst : in  std_logic
 );
 end component eth_main;
+
 end package kcu105_main_unit_pkg;

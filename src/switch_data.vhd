@@ -71,10 +71,10 @@ p_in_ethio_rx_axi_tvalid  : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 p_in_ethio_rx_axi_tuser   : in   std_logic_vector((2 * G_ETH_CH_COUNT) - 1 downto 0);
 
 --txbuf -> eth
-p_out_ethio_tx_axi_tdata  : in   std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
-p_in_ethio_tx_axi_tready  : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-p_out_ethio_tx_axi_tvalid : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-p_in_ethio_tx_axi_done    : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_ethio_tx_axi_tdata  : out  std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
+p_in_ethio_tx_axi_tready  : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_ethio_tx_axi_tvalid : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_ethio_tx_axi_done    : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
 p_in_ethio_clk            : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 p_in_ethio_rst            : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
@@ -106,7 +106,7 @@ architecture behavioral of switch_data is
 
 component fifo_host2eth
 port (
-din       : in  std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
+din       : in  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 wr_en     : in  std_logic;
 wr_clk    : in  std_logic;
 
@@ -130,11 +130,11 @@ end component;
 
 component fifo_eth2host
 port (
-din       : in  std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
+din       : in  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 wr_en     : in  std_logic;
 wr_clk    : in  std_logic;
 
-dout      : out std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
+dout      : out std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 rd_en     : in  std_logic;
 rd_clk    : in  std_logic;
 
@@ -247,6 +247,7 @@ signal i_eth_rxbuf_empty      : std_logic;
 signal i_eth_fltr_do          : std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
 signal i_eth_fltr_den         : std_logic;
 signal i_eth_fltr_eof         : std_logic;
+signal sr_eth_fltr_eof        : std_logic_vector(0 to 3);
 signal i_eth_rx_irq           : std_logic;
 signal i_eth_rx_irq_out       : std_logic;
 signal i_eth_htxd_rdy         : std_logic;
@@ -258,6 +259,7 @@ type TEth2h_chunk is array (0 to (G_HOST_DWIDTH / G_ETH_DWIDTH) - 1)
 signal i_eth2h_chunk          : TEth2h_chunk;
 signal i_eth2h_chunk_cnt      : unsigned(selval(1, log2(i_eth2h_chunk'length), (i_eth2h_chunk'length = 1)) - 1 downto 0);
 signal i_eth2h_wr             : std_logic;
+signal i_eth2h_di             : std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 
 signal i_fgbuf_fltr_do        : TEthCH_d;
 signal i_fgbuf_fltr_den       : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
@@ -396,7 +398,7 @@ begin
 process(p_in_ethio_clk(eth_ch))
 begin
 if rising_edge(p_in_ethio_clk(eth_ch)) then
-  if p_in_eth(eth_ch).rst = '1' then
+  if (p_in_ethio_rst(eth_ch) = '1') then
 
     for i in 0 to C_SWT_GET_FRR_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT) - 1 loop
       syn_eth2h_frr(eth_ch)(2 * i) <= (others => '0');
@@ -415,7 +417,8 @@ if rising_edge(p_in_ethio_clk(eth_ch)) then
 
   else
 
-    if p_in_eth(eth_ch).rxsof = '1' then
+    if (p_in_ethio_rx_axi_tuser((2 * eth_ch) + 1) = '1') then
+    --eof
 
       for i in 0 to C_SWT_GET_FRR_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT) - 1 loop
         syn_eth2h_frr(eth_ch)(2 * i) <= h_reg_eth2h_frr(2 * i);
@@ -524,7 +527,7 @@ port map(
 --------------------------------------
 --CFG
 --------------------------------------
-p_in_frr        => syn_eth2h_frr,
+p_in_frr        => syn_eth2h_frr(0),
 
 --------------------------------------
 --Upstream Port
@@ -591,10 +594,10 @@ if rising_edge(p_in_ethio_clk(0)) then
 end if;
 end process;
 
-gen_eth2h_di : for i in 0 to i_eth02h_chunk'length - 1 generate begin
-i_eth2h_di((i_eth2h_chunk_cnt(i)'length * (i + 1)) - 1
+gen_eth2h_di : for i in 0 to i_eth2h_chunk'length - 1 generate begin
+i_eth2h_di((i_eth2h_chunk(i)'length * (i + 1)) - 1
                                     downto (i_eth2h_chunk(i)'length * i)) <= i_eth2h_chunk(i);
-end generate gen_gen_eth2h_di;
+end generate gen_eth2h_di;
 
 m_eth2h_buf : fifo_eth2host
 port map(
@@ -623,7 +626,7 @@ rst  => b_rst_fg_bufs
 p_out_eth_hrxbuf_empty <= i_eth_rxbuf_empty;
 p_out_eth_hrxbuf_full <= i_eth_rxbuf_full;
 
-p_out_eth(0).rx_axi_tready <= '1';
+p_out_ethio_rx_axi_tready(0) <= '1';
 
 --expand IRQ strobe
 process(p_in_ethio_clk(0))

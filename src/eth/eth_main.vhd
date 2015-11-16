@@ -40,14 +40,14 @@ p_in_cfg_rd      : in  std_logic;
 -------------------------------
 --UsrBuf
 -------------------------------
---RXBUF <- ETH
+--rxbuf <- eth
 p_in_rxbuf_axi_tready  : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 p_out_rxbuf_axi_tdata  : out  std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
 p_out_rxbuf_axi_tkeep  : out  std_logic_vector(((G_ETH_DWIDTH / 8) * G_ETH_CH_COUNT) - 1 downto 0);
 p_out_rxbuf_axi_tvalid : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 p_out_rxbuf_axi_tuser  : out  std_logic_vector((2 * G_ETH_CH_COUNT) - 1 downto 0);
 
---TXBUF -> ETH
+--txbuf -> eth
 p_in_txbuf_axi_tdata   : in   std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
 p_out_txbuf_axi_tready : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 p_in_txbuf_axi_tvalid  : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
@@ -79,7 +79,7 @@ p_in_ethphy_refclk_n: in  std_logic;
 -------------------------------
 --DBG
 -------------------------------
-p_in_sim  : in  TEthSIM_IN;
+p_in_sim_speedup_control : in  std_logic;
 p_in_tst  : in  std_logic_vector(31 downto 0);
 p_out_tst : out std_logic_vector(31 downto 0);
 
@@ -490,7 +490,7 @@ coreclk_out => i_coreclk_out,
 --Example design control inputs
 reset    => p_in_rst,
 
-sim_speedup_control => p_in_sim.speedup_control,
+sim_speedup_control => p_in_sim_speedup_control,
 
 --Example design status outputs
 frame_error  => open,

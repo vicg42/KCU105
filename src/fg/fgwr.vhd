@@ -49,7 +49,7 @@ p_out_frmrk    : out   std_logic_vector(31 downto 0);
 -------------------------------
 --DataIN
 -------------------------------
-p_in_vbufi_do     : in    std_logic_vector((G_MEMWR_DWIDTH * G_VBUFI_COUNT) - 1 downto 0);
+p_in_vbufi_do     : in    std_logic_vector((G_MEM_DWIDTH * G_VBUFI_COUNT) - 1 downto 0);
 p_out_vbufi_rd    : out   std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
 p_in_vbufi_empty  : in    std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
 p_in_vbufi_full   : in    std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
@@ -96,7 +96,7 @@ signal i_pkt_size_byte    : unsigned(15 downto 0);
 
 signal i_vbufi_rden       : std_logic;
 signal i_vbufi_rd         : std_logic;
-signal i_vbufi_do         : std_logic_vector(G_MEMWR_DWIDTH - 1 downto 0);
+signal i_vbufi_do         : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 signal i_vbufi_empty      : std_logic;
 
 signal i_fr_rdy           : std_logic_vector(G_VCH_COUNT - 1 downto 0);
@@ -148,10 +148,10 @@ p_out_frmrk <= i_fr_rowmrk when p_in_tst(C_FG_REG_DBG_TIMESTUMP_BIT) = '0'
 --Read VPKT
 ------------------------------------------------
 p_out_vbufi_rd(0) <= i_vbufi_rd;
-i_vbufi_rd <= ((i_vbufi_rden or i_skp_en) and (not p_in_vbufi_empty))
+i_vbufi_rd <= ((i_vbufi_rden or i_skp_en) and (not p_in_vbufi_empty(0)))
             or (i_memwr_rden and i_memwr_rd);
 
-i_vbufi_do <= p_in_vbufi_do((G_MEMWR_DWIDTH * (0 + 1)) - 1 downto (G_MEMWR_DWIDTH * 0));
+i_vbufi_do <= p_in_vbufi_do((G_MEM_DWIDTH * (0 + 1)) - 1 downto (G_MEM_DWIDTH * 0));
 
 i_vbufi_empty <= p_in_vbufi_empty(0);
 
