@@ -221,7 +221,7 @@ component switch_data is
 generic(
 G_ETH_CH_COUNT : integer := 1;
 G_ETH_DWIDTH : integer := 32;
-G_VBUFI_OWIDTH : integer := 32;
+G_FGBUFI_DWIDTH : integer := 32;
 G_HOST_DWIDTH : integer := 32
 );
 port(
@@ -264,13 +264,24 @@ p_in_hclk              : in   std_logic;
 -------------------------------
 p_in_eth_tmr_irq       : in   std_logic;
 p_in_eth_tmr_en        : in   std_logic;
-p_in_eth               : in   TEthIO_OUTs;
-p_out_eth              : out  TEthIO_INs;
+
+--rxbuf <- eth
+p_out_ethio_rx_axi_tready : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_ethio_rx_axi_tdata   : in   std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
+p_in_ethio_rx_axi_tkeep   : in   std_logic_vector(((G_ETH_DWIDTH / 8) * G_ETH_CH_COUNT) - 1 downto 0);
+p_in_ethio_rx_axi_tvalid  : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_ethio_rx_axi_tuser   : in   std_logic_vector((2 * G_ETH_CH_COUNT) - 1 downto 0);
+
+--txbuf -> eth
+p_out_ethio_tx_axi_tdata  : in   std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
+p_in_ethio_tx_axi_tready  : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_ethio_tx_axi_tvalid : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_ethio_tx_axi_done    : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
 -------------------------------
 --FG_BUFI
 -------------------------------
-p_out_fgbufi_do        : out  std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
+p_out_fgbufi_do        : out  std_logic_vector((G_FGBUFI_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
 p_in_fgbufi_rd         : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 p_in_fgbufi_rdclk      : in   std_logic;
 p_out_fgbufi_empty     : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
@@ -320,4 +331,77 @@ p_in_rst         : in   std_logic
 );
 end component timers;
 
+
+component eth_main is
+generic(
+G_ETH_CH_COUNT : integer := 1;
+G_ETH_DWIDTH : integer := 64;
+G_DBG : string := "OFF";
+G_SIM : string := "OFF"
+);
+port(
+-------------------------------
+--CFG
+-------------------------------
+p_in_cfg_clk     : in  std_logic;
+
+p_in_cfg_adr     : in  std_logic_vector(2 downto 0);
+p_in_cfg_adr_ld  : in  std_logic;
+
+p_in_cfg_txdata  : in  std_logic_vector(15 downto 0);
+p_in_cfg_wr      : in  std_logic;
+
+p_out_cfg_rxdata : out std_logic_vector(15 downto 0);
+p_in_cfg_rd      : in  std_logic;
+
+-------------------------------
+--UsrBuf
+-------------------------------
+--RXBUF <- ETH
+p_in_rxbuf_axi_tready  : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_rxbuf_axi_tdata  : out  std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
+p_out_rxbuf_axi_tkeep  : out  std_logic_vector(((G_ETH_DWIDTH / 8) * G_ETH_CH_COUNT) - 1 downto 0);
+p_out_rxbuf_axi_tvalid : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_rxbuf_axi_tuser  : out  std_logic_vector((2 * G_ETH_CH_COUNT) - 1 downto 0);
+
+--TXBUF -> ETH
+p_in_txbuf_axi_tdata   : in   std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
+p_out_txbuf_axi_tready : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_txbuf_axi_tvalid  : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_txbuf_axi_done   : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+
+-------------------------------
+--
+-------------------------------
+p_out_status_rdy      : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_status_carier   : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_status_qplllock : std_logic;
+
+p_in_sfp_signal_detect : in std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_sfp_tx_fault      : in std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+
+-------------------------------
+--PHY pin
+-------------------------------
+p_out_ethphy_txp    : out std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_ethphy_txn    : out std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_ethphy_rxp     : in  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_ethphy_rxn     : in  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_ethphy_refclk_p: in  std_logic;
+p_in_ethphy_refclk_n: in  std_logic;
+
+-------------------------------
+--DBG
+-------------------------------
+p_in_sim  : in  TEthSIM_IN;
+p_in_tst  : in  std_logic_vector(31 downto 0);
+p_out_tst : out std_logic_vector(31 downto 0);
+
+-------------------------------
+--System
+-------------------------------
+p_in_dclk : in  std_logic; --DRP clk
+p_in_rst : in  std_logic
+);
+end component eth_main;
 end package kcu105_main_unit_pkg;

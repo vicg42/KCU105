@@ -19,7 +19,7 @@ entity switch_data is
 generic(
 G_ETH_CH_COUNT : integer := 1;
 G_ETH_DWIDTH : integer := 32;
-G_VBUFI_OWIDTH : integer := 32;
+G_FGBUFI_DWIDTH : integer := 32;
 G_HOST_DWIDTH : integer := 32
 );
 port(
@@ -62,29 +62,43 @@ p_in_hclk              : in   std_logic;
 -------------------------------
 p_in_eth_tmr_irq       : in   std_logic;
 p_in_eth_tmr_en        : in   std_logic;
-p_in_eth               : in   TEthIO_OUTs;
-p_out_eth              : out  TEthIO_INs;
+
+--rxbuf <- eth
+p_out_ethio_rx_axi_tready : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_ethio_rx_axi_tdata   : in   std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
+p_in_ethio_rx_axi_tkeep   : in   std_logic_vector(((G_ETH_DWIDTH / 8) * G_ETH_CH_COUNT) - 1 downto 0);
+p_in_ethio_rx_axi_tvalid  : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_ethio_rx_axi_tuser   : in   std_logic_vector((2 * G_ETH_CH_COUNT) - 1 downto 0);
+
+--txbuf -> eth
+p_out_ethio_tx_axi_tdata  : in   std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
+p_in_ethio_tx_axi_tready  : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_ethio_tx_axi_tvalid : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_ethio_tx_axi_done    : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+
+p_in_ethio_clk            : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_ethio_rst            : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
 -------------------------------
 --FG_BUFI
 -------------------------------
-p_out_fgbufi_do        : out  std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
-p_in_fgbufi_rd         : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-p_in_fgbufi_rdclk      : in   std_logic;
-p_out_fgbufi_empty     : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-p_out_fgbufi_full      : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-p_out_fgbufi_pfull     : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_fgbufi_do    : out  std_logic_vector((G_FGBUFI_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
+p_in_fgbufi_rd     : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_fgbufi_rdclk  : in   std_logic;
+p_out_fgbufi_empty : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_fgbufi_full  : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_fgbufi_pfull : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
 -------------------------------
 --DBG
 -------------------------------
-p_in_tst               : in   std_logic_vector(31 downto 0);
-p_out_tst              : out  std_logic_vector(31 downto 0);
+p_in_tst  : in   std_logic_vector(31 downto 0);
+p_out_tst : out  std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
 -------------------------------
-p_in_rst     : in    std_logic
+p_in_rst  : in    std_logic
 );
 end entity switch_data;
 
@@ -144,7 +158,7 @@ din       : in  std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
 wr_en     : in  std_logic;
 wr_clk    : in  std_logic;
 
-dout      : out std_logic_vector(G_VBUFI_OWIDTH - 1 downto 0);
+dout      : out std_logic_vector(G_FGBUFI_DWIDTH - 1 downto 0);
 rd_en     : in  std_logic;
 rd_clk    : in  std_logic;
 
@@ -379,9 +393,9 @@ b_rst_fg_bufs <= p_in_rst or h_reg_ctrl(C_SWT_REG_CTRL_RST_FG_BUFS_BIT);
 gen_frr_syn : for eth_ch in 0 to (G_ETH_CH_COUNT - 1) generate
 begin
 
-process(p_in_eth(eth_ch).clk)
+process(p_in_ethio_clk(eth_ch))
 begin
-if rising_edge(p_in_eth(eth_ch).clk) then
+if rising_edge(p_in_ethio_clk(eth_ch)) then
   if p_in_eth(eth_ch).rst = '1' then
 
     for i in 0 to C_SWT_GET_FRR_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT) - 1 loop
@@ -415,10 +429,10 @@ if rising_edge(p_in_eth(eth_ch).clk) then
 
     end if;
 
-    syn_eth_rxd(eth_ch) <= p_in_eth(eth_ch).rx_axi_tdata;
-    syn_eth_rxd_wr(eth_ch) <= p_in_eth(eth_ch).rx_axi_tvalid;
-    syn_eth_rxd_sof(eth_ch) <= p_in_eth(eth_ch).rx_axi_tuser(0);
-    syn_eth_rxd_eof(eth_ch) <= p_in_eth(eth_ch).rx_axi_tuser(1);
+    syn_eth_rxd(eth_ch) <= p_in_ethio_rx_axi_tdata((G_ETH_DWIDTH * (eth_ch + 1)) - 1 downto (G_ETH_DWIDTH * eth_ch));
+    syn_eth_rxd_wr(eth_ch) <= p_in_ethio_rx_axi_tvalid(eth_ch);
+    syn_eth_rxd_sof(eth_ch) <= p_in_ethio_rx_axi_tuser((2 * eth_ch) + 0);
+    syn_eth_rxd_eof(eth_ch) <= p_in_ethio_rx_axi_tuser((2 * eth_ch) + 1);
 
   end if;
 end if;
@@ -434,9 +448,9 @@ end generate gen_frr_syn;
 p_out_eth_htxbuf_empty <= not i_eth_htxd_rdy;
 p_out_eth_htxbuf_full <= i_eth_txbuf_full;
 
-process(p_in_eth(0).tx_axi_done, p_in_hclk)
+process(p_in_ethio_tx_axi_done(0), p_in_hclk)
 begin
-if (p_in_eth(0).tx_axi_done = '1') then
+if (p_in_ethio_tx_axi_done(0) = '1') then
   i_eth_htxd_rdy <= '0';
 
 elsif rising_edge(p_in_hclk) then
@@ -448,12 +462,12 @@ elsif rising_edge(p_in_hclk) then
 end if;
 end process;
 
-p_out_eth(0).tx_axi_tvalid <= not (not i_eth_txbuf_empty and i_eth_txbuf_empty_en)
+p_out_ethio_tx_axi_tvalid(0) <= not (not i_eth_txbuf_empty and i_eth_txbuf_empty_en)
                             when i_eth_tmr_en = '1' else i_eth_txbuf_empty;
 
-process(p_in_eth(0).clk)
+process(p_in_ethio_clk(0))
 begin
-if rising_edge(p_in_eth(0).clk) then
+if rising_edge(p_in_ethio_clk(0)) then
 
   i_eth_tmr_en <= p_in_eth_tmr_en;
   i_eth_tmr_irq <= p_in_eth_tmr_irq;
@@ -461,7 +475,7 @@ if rising_edge(p_in_eth(0).clk) then
   sr_eth_htxd_rdy <= i_eth_htxd_rdy;
   sr_eth_tx_start <= i_eth_tmr_irq & sr_eth_tx_start(0 to sr_eth_tx_start'high - 1);
 
-  if (p_in_eth(0).tx_axi_done = '1') then
+  if (p_in_ethio_tx_axi_done(0) = '1') then
     i_eth_txbuf_empty_en <= '0';
 
   elsif (sr_eth_htxd_rdy = '1' and i_eth_tmr_en = '1'
@@ -479,9 +493,9 @@ din     => p_in_eth_htxbuf_di,
 wr_en   => p_in_eth_htxbuf_wr,
 wr_clk  => p_in_hclk,
 
-dout    => p_out_eth(0).tx_axi_tdata ,
-rd_en   => p_in_eth (0).tx_axi_tready,
-rd_clk  => p_in_eth (0).clk,
+dout    => p_out_ethio_tx_axi_tdata((G_ETH_DWIDTH * (0 + 1)) - 1 downto (G_ETH_DWIDTH * 0)),
+rd_en   => p_in_ethio_tx_axi_tready(0),
+rd_clk  => p_in_ethio_clk(0),
 
 empty   => i_eth_txbuf_empty,
 full    => open,
@@ -537,14 +551,14 @@ p_out_tst       => open,
 --------------------------------------
 --SYSTEM
 --------------------------------------
-p_in_clk        => p_in_eth(0).clk,
+p_in_clk        => p_in_ethio_clk(0),
 p_in_rst        => b_rst_eth_bufs
 );
 
 --Bus convertor for data Eth -> HOST
-process(p_in_eth(0).clk)
+process(p_in_ethio_clk(0))
 begin
-if rising_edge(p_in_eth(0).clk) then
+if rising_edge(p_in_ethio_clk(0)) then
   if (b_rst_eth_bufs = '1') then
 
     for i in 0 to i_eth2h_chunk'length - 1 loop
@@ -586,7 +600,7 @@ m_eth2h_buf : fifo_eth2host
 port map(
 din     => i_eth2h_di     ,
 wr_en   => i_eth2h_wr     ,
-wr_clk  => p_in_eth(0).clk,
+wr_clk  => p_in_ethio_clk(0),
 
 dout    => p_out_eth_hrxbuf_do,
 rd_en   => p_in_eth_hrxbuf_rd ,
@@ -612,9 +626,9 @@ p_out_eth_hrxbuf_full <= i_eth_rxbuf_full;
 p_out_eth(0).rx_axi_tready <= '1';
 
 --expand IRQ strobe
-process(p_in_eth(0).clk)
+process(p_in_ethio_clk(0))
 begin
-if rising_edge(p_in_eth(0).clk) then
+if rising_edge(p_in_ethio_clk(0)) then
   if b_rst_eth_bufs = '1' then
     i_eth_rx_irq <= '0';
     sr_eth_fltr_eof <= (others => '0');
@@ -687,7 +701,7 @@ p_out_tst       => open,
 --------------------------------------
 --SYSTEM
 --------------------------------------
-p_in_clk        => p_in_eth(eth_ch).clk,
+p_in_clk        => p_in_ethio_clk(eth_ch),
 p_in_rst        => b_rst_fg_bufs
 );
 
@@ -696,9 +710,9 @@ m_eth2fg_buf : fifo_eth2fg
 port map(
 din       => i_fgbuf_fltr_do (eth_ch),
 wr_en     => i_fgbuf_fltr_den(eth_ch),
-wr_clk    => p_in_eth(eth_ch).clk,
+wr_clk    => p_in_ethio_clk(eth_ch),
 
-dout      => p_out_fgbufi_do((G_ETH_DWIDTH * (eth_ch + 1)) - 1 downto (G_ETH_DWIDTH * eth_ch)),
+dout      => p_out_fgbufi_do((G_FGBUFI_DWIDTH * (eth_ch + 1)) - 1 downto (G_FGBUFI_DWIDTH * eth_ch)),
 rd_en     => p_in_fgbufi_rd(eth_ch),
 rd_clk    => p_in_fgbufi_rdclk,
 
