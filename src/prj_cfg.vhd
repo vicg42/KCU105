@@ -37,6 +37,8 @@ constant C_PCFG_MEMARB_CH_COUNT        : integer := 2; --CH0(HOST2MEM) +
                                                        --CH1(FG_RD) +
                                                        --CH2(FG_WR)
 
+constant C_PCFG_ETH_CH_COUNT           : integer := 1;
+constant C_PCFG_ETH_DWIDTH             : integer := 64;
 
 end package prj_cfg;
 

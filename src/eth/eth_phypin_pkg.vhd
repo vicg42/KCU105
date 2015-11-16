@@ -14,7 +14,7 @@ use work.prj_cfg.all;
 
 package eth_phypin_pkg is
 
-constant C_GTCH_COUNT : integer := C_PCFG_ETH_GTCH_COUNT;
+constant C_GTCH_COUNT : integer := C_PCFG_ETH_CH_COUNT;
 
 ----------------------------
 --FIBER:

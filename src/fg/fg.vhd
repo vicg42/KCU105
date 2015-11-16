@@ -24,6 +24,7 @@ entity fg is
 generic(
 G_VSYN_ACTIVE : std_logic := '1';
 G_DBGCS  : string := "OFF";
+G_VBUFI_COUNT : integer := 1;
 G_MEM_AWIDTH : integer := 32;
 G_MEMWR_DWIDTH : integer := 32;
 G_MEMRD_DWIDTH : integer := 32
@@ -62,11 +63,11 @@ p_out_vbufo_empty : out   std_logic;
 -------------------------------
 --VBUFI -> MEM(VBUF)
 -------------------------------
-p_in_vbufi_do     : in    std_logic_vector(G_MEMWR_DWIDTH - 1 downto 0);
-p_out_vbufi_rd    : out   std_logic;
-p_in_vbufi_empty  : in    std_logic;
-p_in_vbufi_full   : in    std_logic;
-p_in_vbufi_pfull  : in    std_logic;
+p_in_vbufi_do     : in    std_logic_vector((G_MEMWR_DWIDTH * G_VBUFI_COUNT) - 1 downto 0);
+p_out_vbufi_rd    : out   std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
+p_in_vbufi_empty  : in    std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
+p_in_vbufi_full   : in    std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
+p_in_vbufi_pfull  : in    std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
 
 ---------------------------------
 --MEM
@@ -116,6 +117,7 @@ component fgwr
 generic(
 G_DBGCS : string := "OFF";
 
+G_VBUFI_COUNT : integer := 1;
 G_VCH_COUNT : integer := 1;
 
 G_MEM_VCH_M_BIT   : integer := 25;
@@ -142,11 +144,11 @@ p_out_frmrk    : out   std_logic_vector(31 downto 0);
 ----------------------------
 --
 ----------------------------
-p_in_vbufi_do     : in    std_logic_vector(G_MEMWR_DWIDTH - 1 downto 0);
-p_out_vbufi_rd    : out   std_logic;
-p_in_vbufi_empty  : in    std_logic;
-p_in_vbufi_full   : in    std_logic;
-p_in_vbufi_pfull  : in    std_logic;
+p_in_vbufi_do     : in    std_logic_vector((G_MEMWR_DWIDTH * G_VBUFI_COUNT) - 1 downto 0);
+p_out_vbufi_rd    : out   std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
+p_in_vbufi_empty  : in    std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
+p_in_vbufi_full   : in    std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
+p_in_vbufi_pfull  : in    std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
 
 ---------------------------------
 --Port MEM_CTRL
@@ -790,6 +792,7 @@ end generate gen_vch;
 m_fgwr : fgwr
 generic map(
 G_DBGCS => G_DBGCS,
+G_VBUFI_COUNT => G_VBUFI_COUNT,
 G_VCH_COUNT => C_FG_VCH_COUNT,
 G_MEM_VCH_M_BIT   => C_FG_MEM_VCH_M_BIT,
 G_MEM_VCH_L_BIT   => C_FG_MEM_VCH_L_BIT,
@@ -815,7 +818,6 @@ p_out_frmrk    => i_fgwr_mrk,
 ----------------------------
 --DataIN
 ----------------------------
---p_in_vbufi     => p_in_vbufi(0),
 p_in_vbufi_do    => p_in_vbufi_do   ,
 p_out_vbufi_rd   => p_out_vbufi_rd  ,
 p_in_vbufi_empty => p_in_vbufi_empty,

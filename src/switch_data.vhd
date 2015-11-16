@@ -68,8 +68,12 @@ p_out_eth              : out  TEthIO_INs;
 -------------------------------
 --FG_BUFI
 -------------------------------
-p_in_fgbufi            : in   TFgBufI_INs;
-p_out_fgbufi           : out  TFgBufI_OUTs;
+p_out_fgbufi_do        : out  std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
+p_in_fgbufi_rd         : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_fgbufi_rdclk      : in   std_logic;
+p_out_fgbufi_empty     : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_fgbufi_full      : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_fgbufi_pfull     : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
 -------------------------------
 --DBG
@@ -688,19 +692,19 @@ p_in_rst        => b_rst_fg_bufs
 );
 
 
-m_buf_eth2fg : fifo_eth2fg
+m_eth2fg_buf : fifo_eth2fg
 port map(
 din       => i_fgbuf_fltr_do (eth_ch),
 wr_en     => i_fgbuf_fltr_den(eth_ch),
-wr_clk    => p_in_eth_clk,
+wr_clk    => p_in_eth(eth_ch).clk,
 
-dout      => p_out_fgbufi(eth_ch).do  ,
-rd_en     => p_in_fgbufi (eth_ch).rd   ,
-rd_clk    => p_in_fgbufi (eth_ch).rdclk,
+dout      => p_out_fgbufi_do((G_ETH_DWIDTH * (eth_ch + 1)) - 1 downto (G_ETH_DWIDTH * eth_ch)),
+rd_en     => p_in_fgbufi_rd(eth_ch),
+rd_clk    => p_in_fgbufi_rdclk,
 
-empty     => p_out_fgbufi(eth_ch).empty,
-full      => p_out_fgbufi(eth_ch).full ,
-prog_full => p_out_fgbufi(eth_ch).pfull,
+empty     => p_out_fgbufi_empty(eth_ch),
+full      => p_out_fgbufi_full (eth_ch),
+prog_full => p_out_fgbufi_pfull(eth_ch),
 
 rst  => b_rst_fg_bufs
 );

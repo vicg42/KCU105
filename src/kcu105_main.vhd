@@ -40,6 +40,12 @@ pin_out_led_hpc     : out   std_logic_vector(3 downto 0);
 pin_out_led_lpc     : out   std_logic_vector(3 downto 0);
 
 --------------------------------------------------
+--ETH
+--------------------------------------------------
+pin_out_ethphy      : out TEthPhyPin_OUT;
+pin_in_ethphy       : in  TEthPhyPin_IN;
+
+--------------------------------------------------
 --RAM
 --------------------------------------------------
 pin_out_phymem      : out   TMEMCTRL_pinouts;
@@ -145,12 +151,17 @@ signal i_fg_rd_start       : std_logic;
 signal i_fg_tst_in         : std_logic_vector(31 downto 0);
 signal i_fg_tst_out        : std_logic_vector(31 downto 0);
 
-constant CI_VBUFI_OWIDTH : integer := C_AXIS_DWIDTH(2);
-signal i_fg_bufi_do        : std_logic_vector(CI_VBUFI_OWIDTH - 1 downto 0);
-signal i_fg_bufi_rd        : std_logic;
-signal i_fg_bufi_empty     : std_logic;
-signal i_fg_bufi_full      : std_logic;
-signal i_fg_bufi_pfull     : std_logic;
+signal i_fg_bufi_do        : std_logic_vector((C_PCFG_ETH_DWIDTH * C_PCFG_ETH_CH_COUNT) - 1 downto 0);
+signal i_fg_bufi_rd        : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
+signal i_fg_bufi_empty     : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
+signal i_fg_bufi_full      : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
+signal i_fg_bufi_pfull     : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
+
+
+signal i_ethbuf_out        : TEthIO_OUTs;
+signal i_ethbuf_in         : TEthIO_INs;
+signal i_eth_status_out    : TEthStatus_OUT;
+signal i_eth_status_in     : TEthStatus_IN;
 
 signal i_test_led          : std_logic_vector(0 downto 0);
 signal sr_host_rst_n       : std_logic_vector(0 to 2) := (others => '1');
@@ -400,11 +411,63 @@ p_in_rst         => i_usrclk_rst
 --#########################################
 --Switch
 --#########################################
+m_eth : eth_main
+generic map(
+G_AXI_DWIDTH => C_PCFG_ETH_DWIDTH
+)
+port map(
+-------------------------------
+--CFG
+-------------------------------
+p_in_cfg_clk     => g_host_clk,
+
+p_in_cfg_adr     => i_cfg_radr(2 downto 0),
+p_in_cfg_adr_ld  => i_cfg_radr_ld,
+
+p_in_cfg_txdata  => i_cfg_txd,
+p_in_cfg_wr      => i_cfg_wr_dev(C_CFGDEV_ETH),
+
+p_out_cfg_rxdata => i_cfg_rxd_dev(C_CFGDEV_ETH),
+p_in_cfg_rd      => i_cfg_rd_dev(C_CFGDEV_ETH),
+
+-------------------------------
+--UsrBuf
+-------------------------------
+p_out_ethbuf     => i_ethbuf_out,
+p_in_ethbuf      => i_ethbuf_in ,
+
+p_out_eth_status => i_eth_status_out,
+p_in_eth_status  => i_eth_status_in ,
+
+-------------------------------
+--PHY pin
+-------------------------------
+p_out_ethphy => pin_out_ethphy,
+p_in_ethphy  => pin_in_ethphy ,
+
+-------------------------------
+--DBG
+-------------------------------
+--p_in_sim  : in  TEthSIM_IN;
+p_in_tst  => (others => '0'),
+p_out_tst => open,
+
+-------------------------------
+--System
+-------------------------------
+p_in_dclk => g_usrclk(0), --DRP clk
+p_in_rst => i_usrclk_rst
+);
+
+
+--#########################################
+--Switch
+--#########################################
 m_swt : switch_data
 generic map(
---G_ETH_CH_COUNT => ,--: integer:=1;
+G_ETH_CH_COUNT => C_PCFG_ETH_CH_COUNT,
 G_ETH_DWIDTH   => C_HDEV_DWIDTH,
-G_VBUFI_OWIDTH => CI_VBUFI_OWIDTH,
+G_VBUFI_OWIDTH => C_PCFG_ETH_DWIDTH,
 G_HOST_DWIDTH  => C_HDEV_DWIDTH
 )
 port map(
@@ -413,7 +476,7 @@ port map(
 -------------------------------
 p_in_cfg_clk     => g_host_clk,
 
-p_in_cfg_adr     => i_cfg_radr(5 downto 0),
+p_in_cfg_adr     => i_cfg_radr(2 downto 0),
 p_in_cfg_adr_ld  => i_cfg_radr_ld,
 
 p_in_cfg_txdata  => i_cfg_txd,
@@ -447,19 +510,18 @@ p_in_hclk              => g_host_clk,
 -------------------------------
 p_in_eth_tmr_irq       => i_tmr_irq(C_TMR_ETH),
 p_in_eth_tmr_en        => i_tmr_en(C_TMR_ETH) ,
-p_in_eth_clk           => g_host_clk,
---p_in_eth               : in   TEthOUTs;
---p_out_eth              : out  TEthINs;
+p_in_eth               => i_ethbuf_in ,--: in   TEthOUTs;
+p_out_eth              => i_ethbuf_out,--: out  TEthINs;
 
 -------------------------------
 --FG_BUFI
 -------------------------------
-p_in_vbufi_rdclk  => g_usr_highclk,
-p_out_vbufi_do    => i_fg_bufi_do,
-p_in_vbufi_rd     => i_fg_bufi_rd,
-p_out_vbufi_empty => i_fg_bufi_empty,
-p_out_vbufi_full  => i_fg_bufi_full,
-p_out_vbufi_pfull => i_fg_bufi_pfull,
+p_in_fgbufi_rdclk  => g_usr_highclk  ,
+p_out_fgbufi_do    => i_fg_bufi_do   ,
+p_in_fgbufi_rd     => i_fg_bufi_rd   ,
+p_out_fgbufi_empty => i_fg_bufi_empty,
+p_out_fgbufi_full  => i_fg_bufi_full,
+p_out_fgbufi_pfull => i_fg_bufi_pfull,
 
 -------------------------------
 --DBG
@@ -483,8 +545,9 @@ i_fg_rd_start <= i_host_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)
 m_fg : fg
 generic map(
 G_DBGCS => "ON",
+G_VBUFI_COUNT => C_PCFG_ETH_CH_COUNT,
 G_MEM_AWIDTH => C_AXI_AWIDTH,
-G_MEMWR_DWIDTH => CI_VBUFI_OWIDTH,
+G_MEMWR_DWIDTH => C_PCFG_ETH_DWIDTH,
 G_MEMRD_DWIDTH => C_HDEV_DWIDTH
 )
 port map(

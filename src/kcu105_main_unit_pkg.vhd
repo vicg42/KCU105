@@ -147,6 +147,7 @@ component fg is
 generic(
 G_VSYN_ACTIVE : std_logic := '1';
 G_DBGCS  : string := "OFF";
+G_VBUFI_COUNT : integer := 1;
 G_MEM_AWIDTH : integer := 32;
 G_MEMWR_DWIDTH : integer := 32;
 G_MEMRD_DWIDTH : integer := 32
@@ -185,11 +186,11 @@ p_out_vbufo_empty : out   std_logic;
 -------------------------------
 --VBUFI -> MEM(VBUF)
 -------------------------------
-p_in_vbufi_do     : in    std_logic_vector(G_MEMWR_DWIDTH - 1 downto 0);
-p_out_vbufi_rd    : out   std_logic;
-p_in_vbufi_empty  : in    std_logic;
-p_in_vbufi_full   : in    std_logic;
-p_in_vbufi_pfull  : in    std_logic;
+p_in_vbufi_do     : in    std_logic_vector((G_MEMWR_DWIDTH * G_VBUFI_COUNT) - 1 downto 0);
+p_out_vbufi_rd    : out   std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
+p_in_vbufi_empty  : in    std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
+p_in_vbufi_full   : in    std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
+p_in_vbufi_pfull  : in    std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
 
 ---------------------------------
 --MEM
@@ -218,10 +219,10 @@ end component fg;
 
 component switch_data is
 generic(
-G_ETH_CH_COUNT : integer:=1;
-G_ETH_DWIDTH : integer:=32;
-G_VBUFI_OWIDTH : integer:=32;
-G_HOST_DWIDTH : integer:=32
+G_ETH_CH_COUNT : integer := 1;
+G_ETH_DWIDTH : integer := 32;
+G_VBUFI_OWIDTH : integer := 32;
+G_HOST_DWIDTH : integer := 32
 );
 port(
 -------------------------------
@@ -263,19 +264,18 @@ p_in_hclk              : in   std_logic;
 -------------------------------
 p_in_eth_tmr_irq       : in   std_logic;
 p_in_eth_tmr_en        : in   std_logic;
-p_in_eth_clk           : in   std_logic;
-----p_in_eth               : in   TEthOUTs;
-----p_out_eth              : out  TEthINs;
+p_in_eth               : in   TEthIO_OUTs;
+p_out_eth              : out  TEthIO_INs;
 
 -------------------------------
 --FG_BUFI
 -------------------------------
-p_in_vbufi_rdclk       : in   std_logic;
-p_out_vbufi_do         : out  std_logic_vector(G_VBUFI_OWIDTH - 1 downto 0);
-p_in_vbufi_rd          : in   std_logic;
-p_out_vbufi_empty      : out  std_logic;
-p_out_vbufi_full       : out  std_logic;
-p_out_vbufi_pfull      : out  std_logic;
+p_out_fgbufi_do        : out  std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
+p_in_fgbufi_rd         : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_fgbufi_rdclk      : in   std_logic;
+p_out_fgbufi_empty     : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_fgbufi_full      : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_fgbufi_pfull     : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
 -------------------------------
 --DBG
