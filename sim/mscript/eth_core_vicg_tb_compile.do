@@ -98,7 +98,6 @@ vcom -64 -93 -work xil_defaultlib  \
 "../../../../../lib/common/hw/lib/vicg/reduce_pack.vhd" \
 "../testbanch/prj_cfg_sim.vhd" \
 "../../src/prj_def.vhd" \
-"../../src/eth/eth_phypin_pkg.vhd" \
 "../../src/eth/eth_pkg.vhd" \
 "../../src/eth/eth_mac_rx_64.vhd" \
 "../../src/eth/eth_mac_tx_64.vhd" \

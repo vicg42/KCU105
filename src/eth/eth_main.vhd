@@ -13,14 +13,14 @@ use ieee.numeric_std.all;
 library work;
 use work.reduce_pack.all;
 use work.prj_def.all;
-use work.eth_phypin_pkg.all;
 use work.eth_pkg.all;
 
 entity eth_main is
 generic(
-G_AXI_DWIDTH : integer := 64;
-G_DBG        : string:="OFF";
-G_SIM        : string:="OFF"
+G_ETH_CH_COUNT : integer := 1;
+G_ETH_DWIDTH : integer := 64;
+G_DBG  : string := "OFF";
+G_SIM  : string := "OFF"
 );
 port(
 -------------------------------
@@ -40,22 +40,45 @@ p_in_cfg_rd      : in  std_logic;
 -------------------------------
 --UsrBuf
 -------------------------------
-p_out_ethbuf     : out TEthIO_OUTs;
-p_in_ethbuf      : in  TEthIO_INs;
+--RXBUF <- ETH
+p_in_rxbuf_axi_tready  : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_rxbuf_axi_tdata  : out  std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
+p_out_rxbuf_axi_tkeep  : out  std_logic_vector(((G_ETH_DWIDTH / 8) * G_ETH_CH_COUNT) - 1 downto 0);
+p_out_rxbuf_axi_tvalid : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_rxbuf_axi_tuser  : out  std_logic_vector((2 * G_ETH_CH_COUNT) - 1 downto 0);
 
-p_out_eth_status : out TEthStatus_OUT;
-p_in_eth_status  : in  TEthStatus_IN;
+--TXBUF -> ETH
+p_in_txbuf_axi_tdata   : in   std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
+p_out_txbuf_axi_tready : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_txbuf_axi_tvalid  : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_txbuf_axi_done   : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+
+p_out_buf_clk  : out   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_buf_rst  : out   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+
+-------------------------------
+--
+-------------------------------
+p_out_status_rdy      : out std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_status_carier   : out std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_status_qplllock : out std_logic;
+
+p_in_sfp_signal_detect : in std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_sfp_tx_fault      : in std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
 -------------------------------
 --PHY pin
 -------------------------------
-p_out_ethphy : out TEthPhyPin_OUT;
-p_in_ethphy  : in  TEthPhyPin_IN;
+p_out_ethphy_txp    : out std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_ethphy_txn    : out std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_ethphy_rxp     : in  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_ethphy_rxn     : in  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_ethphy_refclk_p: in  std_logic;
+p_in_ethphy_refclk_n: in  std_logic;
 
 -------------------------------
 --DBG
 -------------------------------
---p_out_dbg : out TEthDBG;
 p_in_sim  : in  TEthSIM_IN;
 p_in_tst  : in  std_logic_vector(31 downto 0);
 p_out_tst : out std_logic_vector(31 downto 0);
@@ -209,25 +232,25 @@ end component eth_app;
 signal i_reg_adr         : unsigned(p_in_cfg_adr'range);
 signal h_reg_ethcfg      : TEthCfg;
 
-signal i_tx_mac_aresetn  : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-signal i_tx_fifo_aresetn : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-signal i_tx_fifo_tdata   : std_logic_vector((G_AXI_DWIDTH * C_GTCH_COUNT) - 1 downto 0);
-signal i_tx_fifo_tkeep   : std_logic_vector(((G_AXI_DWIDTH / 8) * C_GTCH_COUNT) - 1 downto 0);
-signal i_tx_fifo_tvalid  : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-signal i_tx_fifo_tlast   : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-signal i_tx_fifo_tready  : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
+signal i_tx_mac_aresetn  : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+signal i_tx_fifo_aresetn : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+signal i_tx_fifo_tdata   : std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
+signal i_tx_fifo_tkeep   : std_logic_vector(((G_ETH_DWIDTH / 8) * G_ETH_CH_COUNT) - 1 downto 0);
+signal i_tx_fifo_tvalid  : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+signal i_tx_fifo_tlast   : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+signal i_tx_fifo_tready  : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
-signal i_rx_mac_aresetn  : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-signal i_rx_fifo_aresetn : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-signal i_rx_fifo_tdata   : std_logic_vector((G_AXI_DWIDTH * C_GTCH_COUNT) - 1 downto 0);
-signal i_rx_fifo_tkeep   : std_logic_vector(((G_AXI_DWIDTH / 8) * C_GTCH_COUNT) - 1 downto 0);
-signal i_rx_fifo_tvalid  : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-signal i_rx_fifo_tlast   : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
-signal i_rx_fifo_tready  : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
+signal i_rx_mac_aresetn  : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+signal i_rx_fifo_aresetn : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+signal i_rx_fifo_tdata   : std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
+signal i_rx_fifo_tkeep   : std_logic_vector(((G_ETH_DWIDTH / 8) * G_ETH_CH_COUNT) - 1 downto 0);
+signal i_rx_fifo_tvalid  : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+signal i_rx_fifo_tlast   : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+signal i_rx_fifo_tready  : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
-signal i_coreclk_out     : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
+signal i_coreclk_out     : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
-signal i_txuserrdy_out   : std_logic_vector(C_GTCH_COUNT - 1 downto 0);
+signal i_txuserrdy_out   : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
 --signal i_dbg_out         : TEthDBG;
 
@@ -357,12 +380,12 @@ end process;
 ----------------------------------------------------
 --
 ----------------------------------------------------
-gen_mac_ch: for i in 0 to (C_GTCH_COUNT - 1) generate
+gen_mac_ch: for i in 0 to (G_ETH_CH_COUNT - 1) generate
 begin
 
 m_mac_tx : eth_mac_tx
 generic map(
-G_AXI_DWIDTH => G_AXI_DWIDTH,
+G_AXI_DWIDTH => G_ETH_DWIDTH,
 G_DBG => "OFF"
 )
 port map(
@@ -374,17 +397,17 @@ p_in_cfg => h_reg_ethcfg,
 --------------------------------------
 --ETH <- USR TXBUF
 --------------------------------------
-p_in_usr_axi_tdata   => p_in_ethbuf (i).tx_axi_tdata,
-p_out_usr_axi_tready => p_out_ethbuf(i).tx_axi_tready,
-p_in_usr_axi_tvalid  => p_in_ethbuf (i).tx_axi_tvalid,
-p_out_usr_axi_done   => p_out_ethbuf(i).tx_axi_done,
+p_in_usr_axi_tdata   => p_in_txbuf_axi_tdata((G_ETH_DWIDTH * (i + 1)) - 1 downto (G_ETH_DWIDTH * i)),
+p_out_usr_axi_tready => p_out_txbuf_axi_tready(i),
+p_in_usr_axi_tvalid  => p_in_txbuf_axi_tvalid(i),
+p_out_usr_axi_done   => p_out_txbuf_axi_done(i),
 
 --------------------------------------
 --ETH core (Tx)
 --------------------------------------
 p_in_eth_axi_tready  => i_tx_fifo_tready(i),
-p_out_eth_axi_tdata  => i_tx_fifo_tdata((G_AXI_DWIDTH * (i + 1)) - 1 downto (G_AXI_DWIDTH * i)),
-p_out_eth_axi_tkeep  => i_tx_fifo_tkeep(((G_AXI_DWIDTH / 8) * (i + 1)) - 1 downto ((G_AXI_DWIDTH / 8) * i)),
+p_out_eth_axi_tdata  => i_tx_fifo_tdata((G_ETH_DWIDTH * (i + 1)) - 1 downto (G_ETH_DWIDTH * i)),
+p_out_eth_axi_tkeep  => i_tx_fifo_tkeep(((G_ETH_DWIDTH / 8) * (i + 1)) - 1 downto ((G_ETH_DWIDTH / 8) * i)),
 p_out_eth_axi_tvalid => i_tx_fifo_tvalid(i),
 p_out_eth_axi_tlast  => i_tx_fifo_tlast(i),
 
@@ -404,7 +427,7 @@ p_in_rst => i_txuserrdy_out(i) --p_in_rst
 
 m_mac_rx : eth_mac_rx
 generic map(
-G_AXI_DWIDTH => G_AXI_DWIDTH,
+G_AXI_DWIDTH => G_ETH_DWIDTH,
 G_DBG => "OFF"
 )
 port map(
@@ -416,18 +439,18 @@ p_in_cfg => h_reg_ethcfg,
 --------------------------------------
 --USR RXBUF <- ETH
 --------------------------------------
-p_in_usr_axi_tready  => p_in_ethbuf (i).rx_axi_tready,
-p_out_usr_axi_tdata  => p_out_ethbuf(i).rx_axi_tdata ,
-p_out_usr_axi_tkeep  => p_out_ethbuf(i).rx_axi_tkeep ,
-p_out_usr_axi_tvalid => p_out_ethbuf(i).rx_axi_tvalid,
-p_out_usr_axi_tuser  => p_out_ethbuf(i).rx_axi_tuser ,
+p_in_usr_axi_tready  => p_in_rxbuf_axi_tready (i),
+p_out_usr_axi_tdata  => p_out_rxbuf_axi_tdata ((G_ETH_DWIDTH * (i + 1)) - 1 downto (G_ETH_DWIDTH * i)),
+p_out_usr_axi_tkeep  => p_out_rxbuf_axi_tkeep (((G_ETH_DWIDTH / 8) * (i + 1)) - 1 downto ((G_ETH_DWIDTH / 8) * i)),
+p_out_usr_axi_tvalid => p_out_rxbuf_axi_tvalid(i),
+p_out_usr_axi_tuser  => p_out_rxbuf_axi_tuser ((2 * (i + 1)) - 1 downto (2 * i)),
 
 --------------------------------------
 --ETH core (Rx)
 --------------------------------------
 p_out_eth_axi_tready => i_rx_fifo_tready(i),
-p_in_eth_axi_tdata   => i_rx_fifo_tdata((G_AXI_DWIDTH * (i + 1)) - 1 downto (G_AXI_DWIDTH * i)),
-p_in_eth_axi_tkeep   => i_rx_fifo_tkeep(((G_AXI_DWIDTH / 8) * (i + 1)) - 1 downto ((G_AXI_DWIDTH / 8) * i)),
+p_in_eth_axi_tdata   => i_rx_fifo_tdata((G_ETH_DWIDTH * (i + 1)) - 1 downto (G_ETH_DWIDTH * i)),
+p_in_eth_axi_tkeep   => i_rx_fifo_tkeep(((G_ETH_DWIDTH / 8) * (i + 1)) - 1 downto ((G_ETH_DWIDTH / 8) * i)),
 p_in_eth_axi_tvalid  => i_rx_fifo_tvalid(i),
 p_in_eth_axi_tlast   => i_rx_fifo_tlast(i),
 
@@ -444,23 +467,23 @@ p_in_clk => i_coreclk_out(i),
 p_in_rst => i_txuserrdy_out(i) --p_in_rst
 );
 
-p_out_ethbuf(i).clk <= i_coreclk_out(i);
-p_out_ethbuf(i).rst <= not i_txuserrdy_out(i);
+p_out_buf_clk(i) <= i_coreclk_out(i);
+p_out_buf_rst(i) <= not i_txuserrdy_out(i);
 
 end generate gen_mac_ch;
 
 
 m_eth_app : eth_app
 generic map(
-G_AXI_DWIDTH => G_AXI_DWIDTH,
-G_GTCH_COUNT => C_GTCH_COUNT
+G_AXI_DWIDTH => G_ETH_DWIDTH,
+G_GTCH_COUNT => G_ETH_CH_COUNT
 )
 port map(
 --Clock inputs
 clk_in => p_in_dclk,  --Freerunning clock source
 
-refclk_p => p_in_ethphy.fiber.refclk_p, --Transceiver reference clock source
-refclk_n => p_in_ethphy.fiber.refclk_n,
+refclk_p => p_in_ethphy_refclk_p, --Transceiver reference clock source
+refclk_n => p_in_ethphy_refclk_n,
 
 coreclk_out => i_coreclk_out,
 
@@ -473,11 +496,11 @@ sim_speedup_control => p_in_sim.speedup_control,
 frame_error  => open,
 
 txuserrdy_out => i_txuserrdy_out,
-core_ready  => p_out_eth_status.rdy,
-qplllock_out => p_out_eth_status.qplllock,
+core_ready  => p_out_status_rdy,
+qplllock_out => p_out_status_qplllock,
 
-signal_detect => p_in_eth_status.signal_detect,
-tx_fault      => p_in_eth_status.tx_fault,
+signal_detect => p_in_sfp_signal_detect,
+tx_fault      => p_in_sfp_tx_fault,
 
 tx_axis_tdata   => i_tx_fifo_tdata,
 tx_axis_tkeep   => i_tx_fifo_tkeep,
@@ -492,10 +515,10 @@ rx_axis_tlast   => i_rx_fifo_tlast,
 rx_axis_tready  => i_rx_fifo_tready,
 
 --Serial I/O from/to transceiver
-txp => p_out_ethphy.fiber.txp,
-txn => p_out_ethphy.fiber.txp,
-rxp => p_in_ethphy.fiber.rxp,
-rxn => p_in_ethphy.fiber.rxn
+txp => p_out_ethphy_txp,
+txn => p_out_ethphy_txn,
+rxp => p_in_ethphy_rxp,
+rxn => p_in_ethphy_rxn
 );
 
 
