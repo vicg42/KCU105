@@ -190,6 +190,13 @@ signal i_test_led          : std_logic_vector(0 downto 0);
 signal sr_host_rst_n       : std_logic_vector(0 to 2) := (others => '1');
 signal i_swt_tst_out       : std_logic_vector(31 downto 0);
 
+
+attribute keep : string;
+attribute keep of g_host_clk : signal is "true";
+attribute keep of g_usr_highclk : signal is "true";
+attribute keep of g_usrclk : signal is "true";
+attribute keep of i_ethio_clk : signal is "true";
+
 component dbgcs_ila_hostclk is
 port (
 clk : in std_logic;
