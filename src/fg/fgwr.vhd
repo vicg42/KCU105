@@ -39,39 +39,39 @@ port(
 -------------------------------
 --CFG
 -------------------------------
-p_in_memtrn    : in    std_logic_vector(7 downto 0);
---p_in_work_en   : in    std_logic;
+p_in_memtrn : in  std_logic_vector(7 downto 0);
+--p_in_work_en : in  std_logic;
 
-p_in_frbuf     : in    TFG_FrBufs;
-p_out_frrdy    : out   std_logic_vector(G_VCH_COUNT - 1 downto 0);
-p_out_frmrk    : out   std_logic_vector(31 downto 0);
+p_in_frbuf  : in  TFG_FrBufs;
+p_out_frrdy : out std_logic_vector(G_VCH_COUNT - 1 downto 0);
+p_out_frmrk : out std_logic_vector(31 downto 0);
 
 -------------------------------
 --DataIN
 -------------------------------
-p_in_vbufi_do     : in    std_logic_vector((G_MEM_DWIDTH * G_VBUFI_COUNT) - 1 downto 0);
-p_out_vbufi_rd    : out   std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
-p_in_vbufi_empty  : in    std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
-p_in_vbufi_full   : in    std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
-p_in_vbufi_pfull  : in    std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
+p_in_vbufi_do    : in  std_logic_vector((G_MEM_DWIDTH * G_VBUFI_COUNT) - 1 downto 0);
+p_out_vbufi_rd   : out std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
+p_in_vbufi_empty : in  std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
+p_in_vbufi_full  : in  std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
+p_in_vbufi_pfull : in  std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
 
 -------------------------------
 --MEM_CTRL Port
 -------------------------------
-p_out_mem      : out   TMemIN;
-p_in_mem       : in    TMemOUT;
+p_out_mem : out TMemIN;
+p_in_mem  : in  TMemOUT;
 
 -------------------------------
 --DBG
 -------------------------------
-p_in_tst       : in    std_logic_vector(31 downto 0);
-p_out_tst      : out   std_logic_vector(31 downto 0);
+p_in_tst  : in  std_logic_vector(31 downto 0);
+p_out_tst : out std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
 -------------------------------
-p_in_clk       : in    std_logic;
-p_in_rst       : in    std_logic
+p_in_clk : in  std_logic;
+p_in_rst : in  std_logic
 );
 end entity fgwr;
 
