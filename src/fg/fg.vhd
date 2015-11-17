@@ -833,7 +833,7 @@ p_in_mem       => p_in_memwr,
 -------------------------------
 --DBG
 -------------------------------
-p_in_tst       => p_in_tst, --tst_ctrl(31 downto 0),--
+p_in_tst       => tst_ctrl(31 downto 0),
 p_out_tst      => i_fgwr_tst_out,
 
 -------------------------------
