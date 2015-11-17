@@ -86,6 +86,7 @@ constant CI_ADD      : integer := 2;--Field Length: byte count
 type TFsm_state is (
 S_IDLE,
 S_PKTH_RD,
+S_PKTH_RD1,
 S_MEM_START,
 S_MEM_WR,
 S_PKTSKIP
@@ -162,7 +163,6 @@ i_vbufi_empty <= p_in_vbufi_empty(0);
 process(p_in_clk)
 Type TTimestump_test is array (0 to G_VCH_COUNT - 1) of unsigned(31 downto 0);
 variable timestump_cnt : TTimestump_test;
-variable fr_pixcount : unsigned(i_fr_pixcount'range);
 variable fr_rownum : unsigned(i_fr_rownum'range);
 begin
 if rising_edge(p_in_clk) then
@@ -185,7 +185,6 @@ if rising_edge(p_in_clk) then
       timestump_cnt(i) := (others => '0');
     end loop;
 
-    fr_pixcount := (others => '0');
     fr_rownum   := (others => '0');
 
     i_fr_bufnum <= (others => '0');
@@ -259,17 +258,8 @@ if rising_edge(p_in_clk) then
           end loop;
 
           --frame resolution:
-          fr_pixcount := UNSIGNED(i_vbufi_do((32 * 1) + 15 downto (32 * 1) +  0));
+          i_fr_pixcount <= UNSIGNED(i_vbufi_do((32 * 1) + 15 downto (32 * 1) +  0));
           i_fr_rowcount <= UNSIGNED(i_vbufi_do((32 * 1) + 31 downto (32 * 1) + 16));
-          i_fr_pixcount <= fr_pixcount;
-
-          --current number of row and pixel
-          i_fr_pixnum <= UNSIGNED(i_vbufi_do((32 * 2) + 15 downto (32 * 2) +  0));
-          fr_rownum := UNSIGNED(i_vbufi_do((32 * 2) + 31 downto (32 * 2) + 16));
-          i_fr_rownum <= fr_rownum;
-
-          --timestump:
-          i_fr_rowmrk <= i_vbufi_do((32 * 3) + 31 downto (32 * 3) + 0);
 
           i_err <= '0';
 
@@ -279,10 +269,26 @@ if rising_edge(p_in_clk) then
 
         end if;
 
-        i_mem_adr_base <= fr_pixcount * fr_rownum;
+        i_fsm_fgwr <= S_PKTH_RD1;
 
-        i_fsm_fgwr <= S_MEM_START;
 
+      when S_PKTH_RD1 =>
+
+        if (i_vbufi_empty = '0') then
+
+          --current number of row and pixel
+          i_fr_pixnum <= UNSIGNED(i_vbufi_do((32 * 0) + 15 downto (32 * 0) +  0));
+          fr_rownum := UNSIGNED(i_vbufi_do((32 * 0) + 31 downto (32 * 0) + 16));
+          i_fr_rownum <= fr_rownum;
+
+          --timestump:
+          i_fr_rowmrk <= i_vbufi_do((32 * 1) + 31 downto (32 * 1) + 0);
+
+          i_mem_adr_base <= i_fr_pixcount * fr_rownum;
+
+          i_fsm_fgwr <= S_MEM_START;
+
+        end if;
 
       --------------------------------------
       --MEM_WR
