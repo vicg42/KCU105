@@ -53,6 +53,13 @@ set_property PACKAGE_PIN    Y33    [get_ports {pin_out_led_lpc[3]}];
 set_property IOSTANDARD   LVCMOS18 [get_ports {pin_out_led_lpc[*]}];
 
 
+###############################################################################
+#Eth10G
+###############################################################################
+set_property PACKAGE_PIN M6 [get_ports pin_in_ethphy_refclk_p]
+set_property PACKAGE_PIN K21 [get_ports {pin_in_sfp_los[0]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {pin_in_sfp_los[0]}]
+
 
 ###############################################################################
 #PCI-Express
@@ -215,3 +222,9 @@ set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
 set_property CONFIG_VOLTAGE 1.8 [current_design]
 set_property CFGBVS GND [current_design]
 
+
+
+set_property C_CLK_INPUT_FREQ_HZ 300000000 [get_debug_cores dbg_hub]
+set_property C_ENABLE_CLK_DIVIDER false [get_debug_cores dbg_hub]
+set_property C_USER_SCAN_CHAIN 1 [get_debug_cores dbg_hub]
+connect_debug_port dbg_hub/clk [get_nets clk]
