@@ -81,6 +81,7 @@ architecture behavioral of fgwr is
 constant dly : time := 1 ps;
 
 constant CI_PKT_TYPE : integer := 1;
+constant CI_ADD      : integer := 2;--Field Length: byte count
 
 type TFsm_state is (
 S_IDLE,
@@ -222,7 +223,7 @@ if rising_edge(p_in_clk) then
 
           if (UNSIGNED(i_vbufi_do(15 downto 0)) /= TO_UNSIGNED(0, 16)) then
 
-            i_pkt_size_byte <= UNSIGNED(i_vbufi_do(15 downto 0)) + 2;
+            i_pkt_size_byte <= UNSIGNED(i_vbufi_do(15 downto 0)) + CI_ADD;
 
             i_vbufi_rden <= '0';
 
