@@ -25,8 +25,4 @@ end record;
 type TEthCfgs is array (0 to 0) of TEthCfg;
 
 
-type TEthSIM_IN is record
-speedup_control : std_logic;
-end record;
-
 end package eth_pkg;

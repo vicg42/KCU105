@@ -50,6 +50,9 @@ pin_in_ethphy_rxn      : in  std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 pin_in_ethphy_refclk_p : in  std_logic;
 pin_in_ethphy_refclk_n : in  std_logic;
 
+pin_in_sfp_los         : in  std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
+--pin_out_sfp_tx_disble  : out std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
+
 --------------------------------------------------
 --RAM
 --------------------------------------------------
@@ -477,8 +480,8 @@ p_out_status_rdy      => i_eth_status_rdy,
 p_out_status_carier   => i_eth_status_carier,
 p_out_status_qplllock => i_eth_status_qplllock,
 
-p_in_sfp_signal_detect => i_sfp_signal_detect,
-p_in_sfp_tx_fault      => i_sfp_tx_fault,
+p_in_sfp_signal_detect => (others => '1'),--i_sfp_signal_detect,
+p_in_sfp_tx_fault      => (others => '0'),--i_sfp_tx_fault,
 
 -------------------------------
 --PHY pin
@@ -730,7 +733,7 @@ i_host_dev_status(C_HREG_DEV_STATUS_CFG_TXRDY_BIT) <= i_host_txbuf_empty(C_HDEV_
 
 i_host_dev_status(C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT) <= OR_reduce(i_mem_ctrl_status.rdy);
 
-i_host_dev_status(C_HREG_DEV_STATUS_ETH_RDY_BIT) <= '1';--i_ethphy_out.rdy;
+i_host_dev_status(C_HREG_DEV_STATUS_ETH_RDY_BIT) <= '1';--OR_reduce(i_eth_status_rdy);
 i_host_dev_status(C_HREG_DEV_STATUS_ETH_LINK_BIT) <= '1';--i_ethphy_out.link;
 i_host_dev_status(C_HREG_DEV_STATUS_ETH_RXRDY_BIT) <= not i_host_rxbuf_empty(C_HDEV_ETH);
 i_host_dev_status(C_HREG_DEV_STATUS_ETH_TXRDY_BIT) <= i_host_txbuf_empty(C_HDEV_ETH);
@@ -921,10 +924,11 @@ pin_out_led(1) <= i_host_tst2_out(0);--i_user_lnk_up
 pin_out_led(2) <= OR_reduce(i_mem_ctrl_status.rdy);
 pin_out_led(3) <= i_fg_tst_out(23);--detect error in recive video packet
 pin_out_led(4) <= '0';
-pin_out_led(5) <= '0';
-pin_out_led(6) <= '0';
-pin_out_led(7) <= '0';
+pin_out_led(5) <= not pin_in_sfp_los(0);
+pin_out_led(6) <= i_eth_status_rdy(0);
+pin_out_led(7) <= i_eth_status_qplllock;
 
+--pin_out_sfp_tx_disble(0) <= '0';
 
 pin_out_led_hpc(0) <= i_swt_tst_out(4);-- <= OR_reduce(h_reg_eth2fg_frr(0))
 pin_out_led_hpc(1) <= i_swt_tst_out(5);-- <= h_reg_ctrl(C_SWT_REG_CTRL_DBG_HOST2FG_BIT);

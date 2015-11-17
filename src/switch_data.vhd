@@ -504,7 +504,7 @@ empty   => i_eth_txbuf_empty,
 full    => open,
 prog_full => i_eth_txbuf_full,
 
-rst  => b_rst_fg_bufs
+rst  => b_rst_eth_bufs
 );
 --wr_rst_busy => open,
 --rd_rst_busy => open,
@@ -613,7 +613,7 @@ empty   => i_eth_rxbuf_empty,
 full    => open,
 prog_full => i_eth_rxbuf_full,
 
-rst  => b_rst_fg_bufs
+rst  => b_rst_eth_bufs
 );
 --
 --wr_rst_busy => open,
@@ -738,7 +738,7 @@ end generate gen_fgbuf;
 --##################################
 --DBG
 --##################################
-p_out_tst(0) <= b_rst_fg_bufs;
+p_out_tst(0) <= b_rst_eth_bufs;
 p_out_tst(1) <= '0';
 p_out_tst(2) <= '0';
 p_out_tst(3) <= '0';
@@ -746,7 +746,7 @@ p_out_tst(4) <= OR_reduce(h_reg_eth2fg_frr(0));
 p_out_tst(5) <= h_reg_dbg(C_SWT_REG_DBG_HOST2FG_BIT);
 p_out_tst(6) <= '0';
 p_out_tst(7) <= '0';
-p_out_tst(31 downto 0) <= (others => '0');
+p_out_tst(31 downto 8) <= (others => '0');
 
 
 end architecture behavioral;
