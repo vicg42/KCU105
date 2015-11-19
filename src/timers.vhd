@@ -218,14 +218,13 @@ end process;
 
 
 --expand IRQ strobe
-process(p_in_tmr_clk)
+process(p_in_tmr_clk, p_in_rst)
 begin
-if rising_edge(p_in_tmr_clk) then
-  if p_in_rst = '1' then
-    i_tmr_irq_exp(i) <= '0';
-    sr_tmr_irq(i) <= (others => '0');
-  else
+if p_in_rst = '1' then
+  i_tmr_irq_exp(i) <= '0';
+  sr_tmr_irq(i) <= (others => '0');
 
+elsif rising_edge(p_in_tmr_clk) then
     if i_tmr_irq(i) = '1' then
       i_tmr_irq_exp(i) <= '1';
     elsif sr_tmr_irq(i)(sr_tmr_irq(i)'high) = '1' then
@@ -234,7 +233,6 @@ if rising_edge(p_in_tmr_clk) then
 
     sr_tmr_irq(i) <= i_tmr_irq(i) & sr_tmr_irq(i)(0 to sr_tmr_irq'high - 1);
 
-  end if;
 end if;
 end process;
 

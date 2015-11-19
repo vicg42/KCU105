@@ -109,9 +109,15 @@ empty       : OUT std_logic;
 full        : OUT std_logic;
 prog_full   : OUT std_logic;
 
-rst         : IN  std_logic
+--rst         : IN  std_logic
+
+wr_rst_busy : out std_logic;
+rd_rst_busy : out std_logic;
+
+--clk       : in  std_logic;
+srst      : in  std_logic
 );
-end component;
+end component fg_bufo;
 
 component fgwr
 generic(
@@ -931,7 +937,13 @@ empty     => p_out_vbufo_empty,
 full      => open,
 prog_full => i_vbufo_full,
 
-rst       => i_vbufo_rst
+--rst       => i_vbufo_rst
+
+wr_rst_busy => open,
+rd_rst_busy => open,
+
+--clk       : in  std_logic;
+srst      => i_vbufo_rst
 );
 
 i_vbufo_rst <= p_in_rst or p_in_tst(0);

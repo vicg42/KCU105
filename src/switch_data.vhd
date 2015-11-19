@@ -126,7 +126,7 @@ rst       : in  std_logic
 --clk       : in  std_logic;
 --srst      : in  std_logic
 );
-end component;
+end component fifo_host2eth;
 
 component fifo_eth2host
 port (
@@ -142,15 +142,15 @@ empty     : out std_logic;
 full      : out std_logic;
 prog_full : out std_logic;
 
-rst       : in  std_logic
+--rst       : in  std_logic
 
---wr_rst_busy : out std_logic;
---rd_rst_busy : out std_logic;
---
+wr_rst_busy : out std_logic;
+rd_rst_busy : out std_logic;
+
 --clk       : in  std_logic;
---srst      : in  std_logic
+srst      : in  std_logic
 );
-end component;
+end component fifo_eth2host;
 
 component fifo_eth2fg
 port (
@@ -166,15 +166,15 @@ empty     : out std_logic;
 full      : out std_logic;
 prog_full : out std_logic;
 
-rst       : in  std_logic
+--rst       : in  std_logic
 
---wr_rst_busy : out std_logic;
---rd_rst_busy : out std_logic;
---
+wr_rst_busy : out std_logic;
+rd_rst_busy : out std_logic;
+
 --clk       : in  std_logic;
---srst      : in  std_logic
+srst      : in  std_logic
 );
-end component;
+end component fifo_eth2fg;
 
 component pkt_filter
 generic(
@@ -225,7 +225,7 @@ signal h_reg_eth2h_frr        : TEthFRR;
 signal h_reg_eth2fg_frr       : TEthFRR;
 
 signal b_rst_eth_bufs         : std_logic;
-signal b_rst_fg_bufs          : std_logic;
+signal b_rst_fg_bufs          : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
 Type TEthCH_d is array (0 to G_ETH_CH_COUNT - 1) of std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
 Type TEthCH_fgfrr is array (0 to G_ETH_CH_COUNT - 1) of TEthFRR;
@@ -264,6 +264,7 @@ signal i_eth2h_di             : std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 signal i_fgbuf_fltr_do        : TEthCH_d;
 signal i_fgbuf_fltr_den       : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
+signal i_h2eth_buf_rst        : std_logic;
 
 
 begin --architecture behavioral of switch_data
@@ -387,8 +388,12 @@ end if;
 end process;
 
 
+process(p_in_ethio_clk(0))
+begin
+if rising_edge(p_in_ethio_clk(0)) then
 b_rst_eth_bufs <= p_in_rst or h_reg_ctrl(C_SWT_REG_CTRL_RST_ETH_BUFS_BIT);
-b_rst_fg_bufs <= p_in_rst or h_reg_ctrl(C_SWT_REG_CTRL_RST_FG_BUFS_BIT);
+end if;
+end process;
 
 
 --
@@ -504,7 +509,7 @@ empty   => i_eth_txbuf_empty,
 full    => open,
 prog_full => i_eth_txbuf_full,
 
-rst  => b_rst_eth_bufs
+rst  => i_h2eth_buf_rst
 );
 --wr_rst_busy => open,
 --rd_rst_busy => open,
@@ -513,6 +518,7 @@ rst  => b_rst_eth_bufs
 --srst    => b_rst_eth_bufs
 --);
 
+i_h2eth_buf_rst <= b_rst_eth_bufs or p_in_ethio_tx_axi_done(0);
 
 
 --XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -613,15 +619,15 @@ empty   => i_eth_rxbuf_empty,
 full    => open,
 prog_full => i_eth_rxbuf_full,
 
-rst  => b_rst_eth_bufs
-);
---
---wr_rst_busy => open,
---rd_rst_busy => open,
+--rst  => b_rst_eth_bufs
+--);
+
+wr_rst_busy => open,
+rd_rst_busy => open,
 
 --clk     => p_in_hclk,
---srst    => b_rst_eth_bufs
---);
+srst    => b_rst_eth_bufs
+);
 
 p_out_eth_hrxbuf_empty <= i_eth_rxbuf_empty;
 p_out_eth_hrxbuf_full <= i_eth_rxbuf_full;
@@ -668,6 +674,13 @@ p_out_eth_hirq <= i_eth_rx_irq_out;
 gen_fgbuf : for eth_ch in 0 to (G_ETH_CH_COUNT - 1) generate
 begin
 
+process(p_in_ethio_clk(eth_ch))
+begin
+if rising_edge(p_in_ethio_clk(eth_ch)) then
+b_rst_fg_bufs(eth_ch) <= p_in_rst or h_reg_ctrl(C_SWT_REG_CTRL_RST_FG_BUFS_BIT);
+end if;
+end process;
+
 m_eth2fg_fltr: pkt_filter
 generic map(
 G_DWIDTH => G_ETH_DWIDTH,
@@ -705,7 +718,7 @@ p_out_tst       => open,
 --SYSTEM
 --------------------------------------
 p_in_clk        => p_in_ethio_clk(eth_ch),
-p_in_rst        => b_rst_fg_bufs
+p_in_rst        => b_rst_fg_bufs(eth_ch)
 );
 
 
@@ -723,14 +736,14 @@ empty     => p_out_fgbufi_empty(eth_ch),
 full      => p_out_fgbufi_full (eth_ch),
 prog_full => p_out_fgbufi_pfull(eth_ch),
 
-rst  => b_rst_fg_bufs
-);
---wr_rst_busy => open,
---rd_rst_busy => open,
+--rst  => b_rst_fg_bufs
+--);
+wr_rst_busy => open,
+rd_rst_busy => open,
 
 --clk  : in  std_logic;
---srst => b_rst_fg_bufs
---);
+srst => b_rst_fg_bufs(eth_ch)
+);
 
 end generate gen_fgbuf;
 

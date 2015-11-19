@@ -239,6 +239,7 @@ c0_ddr4_ui_clk          : out std_logic;
 addn_ui_clkout1         : out std_logic;
 addn_ui_clkout2         : out std_logic;
 dbg_clk                 : out std_logic;
+dbg_bus                 : out std_logic_vector(511 downto 0);
 
 --system
 c0_sys_clk_p : in std_logic;

@@ -182,6 +182,7 @@ signal i_ethio_rst           : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0
 signal i_eth_status_rdy      : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 signal i_eth_status_carier   : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 signal i_eth_status_qplllock : std_logic;
+signal i_eth_rst             : std_logic;
 
 signal i_sfp_signal_detect   : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 signal i_sfp_tx_fault        : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
@@ -312,6 +313,7 @@ begin --architecture struct
 --***********************************************************
 i_glob_rst <= i_host_gctrl(C_HREG_CTRL_RST_MEM_BIT);--or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT) not i_host_rst_n or
 i_arb_mem_rst <= not OR_reduce(i_mem_ctrl_status.rdy);
+i_eth_rst <= i_host_gctrl(C_HREG_CTRL_RST_ETH_BIT);
 
 i_host_mem_tst_in(0) <= i_arb_mem_rst;
 
@@ -511,7 +513,7 @@ p_out_tst => open,
 --System
 -------------------------------
 p_in_dclk => g_usrclk(0), --DRP clk
-p_in_rst => i_usrclk_rst
+p_in_rst => i_eth_rst --i_usrclk_rst
 );
 
 

@@ -61,6 +61,7 @@ constant C_HREG_FRMWARE_LAST_BIT              : integer := 15;
 --Register C_HREG_CTRL / Bit Map:
 constant C_HREG_CTRL_RST_ALL_BIT              : integer := 0;
 constant C_HREG_CTRL_RST_MEM_BIT              : integer := 1;
+constant C_HREG_CTRL_RST_ETH_BIT              : integer := 2;
 constant C_HREG_CTRL_FG_RDDONE_BIT            : integer := 3;
 constant C_HREG_CTRL_LAST_BIT                 : integer := C_HREG_CTRL_FG_RDDONE_BIT;
 

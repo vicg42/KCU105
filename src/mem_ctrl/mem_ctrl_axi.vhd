@@ -139,6 +139,7 @@ c0_ddr4_ui_clk          => i_clk(i)          ,--: out STD_LOGIC;
 addn_ui_clkout1         => open              ,--: out STD_LOGIC; --200MHz
 addn_ui_clkout2         => open              ,--: out STD_LOGIC; --150MHz
 dbg_clk                 => open              ,--: out STD_LOGIC;
+dbg_bus                 => open              ,--: out std_logic_vector(511 downto 0);
 
 --System
 c0_sys_clk_p => p_in_sys(i).clk_p ,--: in STD_LOGIC;
