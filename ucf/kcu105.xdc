@@ -60,6 +60,8 @@ set_property PACKAGE_PIN M6 [get_ports pin_in_ethphy_refclk_p]
 set_property PACKAGE_PIN K21 [get_ports {pin_in_sfp_los[0]}]
 set_property IOSTANDARD LVCMOS18 [get_ports {pin_in_sfp_los[0]}]
 
+create_clock -period 6.400 -name refclkcopy [get_ports {pin_in_ethphy_refclk_p}]
+
 
 ###############################################################################
 #PCI-Express
