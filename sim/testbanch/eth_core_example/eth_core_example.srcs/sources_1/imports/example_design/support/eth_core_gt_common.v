@@ -75,6 +75,8 @@ module  eth_core_gt_common # (
      input          gt_common_drpwe
     );
 
+assign gt_common_drpdo = 0;
+assign gt_common_drprdy = 0;
 
 //***************************** Parameter Declarations ************************
     localparam QPLL_FBDIV_TOP =  66;
@@ -118,33 +120,16 @@ module  eth_core_gt_common # (
   wire GTHE3_COMMON_QPLL0LOCK;
   wire GTHE3_COMMON_QPLL0OUTCLK;
   wire GTHE3_COMMON_QPLL0OUTREFCLK;
-
+  
   // Connect only required internal signals to GT Common block
   assign GTHE3_COMMON_QPLL0RESET = qpllreset;
   assign qpll0lock = GTHE3_COMMON_QPLL0LOCK;
   assign qpll0outclk = GTHE3_COMMON_QPLL0OUTCLK;
-  assign qpll0outrefclk = GTHE3_COMMON_QPLL0OUTREFCLK;
+  assign qpll0outrefclk = GTHE3_COMMON_QPLL0OUTREFCLK;  
 
   wire GTHE3_COMMON_GTSOUTHREFCLK00;
   assign GTHE3_COMMON_GTSOUTHREFCLK00 = refclk;
   assign GTHE3_COMMON_QPLL0REFCLKSEL = 3'b101;
-  wire [8:0] GTHE3_COMMON_DRPADDR;
-  wire GTHE3_COMMON_DRPCLK;
-  wire [15:0] GTHE3_COMMON_DRPDI;
-  wire [15:0] GTHE3_COMMON_DRPDO;
-  wire GTHE3_COMMON_DRPEN;
-  wire GTHE3_COMMON_DRPRDY;
-  wire GTHE3_COMMON_DRPWE;
-
-  assign GTHE3_COMMON_DRPADDR = gt_common_drpaddr;
-  assign GTHE3_COMMON_DRPCLK  = gt_common_drpclk;
-  assign GTHE3_COMMON_DRPDI   = gt_common_drpdi;
-  assign gt_common_drpdo      = GTHE3_COMMON_DRPDO;
-  assign GTHE3_COMMON_DRPEN   = gt_common_drpen;
-  assign gt_common_drprdy     = GTHE3_COMMON_DRPRDY;
-  assign GTHE3_COMMON_DRPWE   = gt_common_drpwe;
-
-
   // Instantiate the 10GBASER/KR GT Common block
   eth_core_gt_common_wrapper eth_core_gt_common_wrapper_i
   (
@@ -153,13 +138,13 @@ module  eth_core_gt_common # (
    .GTHE3_COMMON_BGPDB(1'b1),
    .GTHE3_COMMON_BGRCALOVRD(5'b11111),
    .GTHE3_COMMON_BGRCALOVRDENB(1'b1),
-   .GTHE3_COMMON_DRPADDR(GTHE3_COMMON_DRPADDR),
-   .GTHE3_COMMON_DRPCLK(GTHE3_COMMON_DRPCLK),
-   .GTHE3_COMMON_DRPDI(GTHE3_COMMON_DRPDI),
-   .GTHE3_COMMON_DRPDO(GTHE3_COMMON_DRPDO),
-   .GTHE3_COMMON_DRPEN(GTHE3_COMMON_DRPEN),
-   .GTHE3_COMMON_DRPRDY(GTHE3_COMMON_DRPRDY),
-   .GTHE3_COMMON_DRPWE(GTHE3_COMMON_DRPWE),
+   .GTHE3_COMMON_DRPADDR(9'b000000000),
+   .GTHE3_COMMON_DRPCLK(1'b0),
+   .GTHE3_COMMON_DRPDI(16'b0000000000000000),
+   .GTHE3_COMMON_DRPDO(),
+   .GTHE3_COMMON_DRPEN(1'b0),
+   .GTHE3_COMMON_DRPRDY(),
+   .GTHE3_COMMON_DRPWE(1'b0),
    .GTHE3_COMMON_GTGREFCLK0(1'b0),
    .GTHE3_COMMON_GTGREFCLK1(1'b0),
    .GTHE3_COMMON_GTNORTHREFCLK00(1'b0),
@@ -216,5 +201,5 @@ module  eth_core_gt_common # (
   );
 
 
-
 endmodule
+

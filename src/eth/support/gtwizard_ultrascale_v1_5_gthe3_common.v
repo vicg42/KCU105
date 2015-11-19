@@ -52,7 +52,7 @@
 
 `timescale 1ps/1ps
 
-module gtwizard_ultrascale_v1_5_gthe3_common #(
+module gtwizard_ultrascale_v1_6_0_gthe3_common #(
 
 
   // -------------------------------------------------------------------------------------------------------------------

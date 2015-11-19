@@ -232,6 +232,9 @@ end component eth_app;
 signal i_reg_adr         : unsigned(p_in_cfg_adr'range);
 signal h_reg_ethcfg      : TEthCfg;
 
+Type TEthCH_CFG is array (0 to G_ETH_CH_COUNT - 1) of TEthCfg;
+signal i_reg_ethcfg      : TEthCH_CFG;
+
 signal i_tx_mac_aresetn  : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 signal i_tx_fifo_aresetn : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 signal i_tx_fifo_tdata   : std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
@@ -376,12 +379,18 @@ end if;
 end process;
 
 
-
 ----------------------------------------------------
 --
 ----------------------------------------------------
 gen_mac_ch: for i in 0 to (G_ETH_CH_COUNT - 1) generate
 begin
+
+process(i_coreclk_out(i))
+begin
+if rising_edge(i_coreclk_out(i)) then
+  i_reg_ethcfg(i) <= h_reg_ethcfg;
+end if;
+end process;
 
 m_mac_tx : eth_mac_tx
 generic map(
@@ -392,7 +401,7 @@ port map(
 --------------------------------------
 --CFG
 --------------------------------------
-p_in_cfg => h_reg_ethcfg,
+p_in_cfg => i_reg_ethcfg(i),
 
 --------------------------------------
 --ETH <- USR TXBUF

@@ -19,7 +19,7 @@ src : TEthMacAdr;
 end record;
 
 type TEthCfg is record
-usrctrl  : std_logic_vector(15 downto 0);
+--usrctrl  : std_logic_vector(15 downto 0);
 mac      : TEthMAC;
 end record;
 type TEthCfgs is array (0 to 0) of TEthCfg;

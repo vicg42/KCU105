@@ -72,7 +72,7 @@ module eth_core_gt_common_wrapper (
 
 
 
-gtwizard_ultrascale_v1_5_gthe3_common #(
+gtwizard_ultrascale_v1_6_0_gthe3_common #(
   .GTHE3_COMMON_BGBYPASSB_TIE_EN                (1'b1),
   .GTHE3_COMMON_BGBYPASSB_VAL                   (1'b1),
   .GTHE3_COMMON_BGMONITORENB_TIE_EN             (1'b1),
@@ -159,7 +159,7 @@ gtwizard_ultrascale_v1_5_gthe3_common #(
   .GTHE3_COMMON_QPLL0_CP_G3                     (10'b1111111111),
   .GTHE3_COMMON_QPLL0_FBDIV                     (66),
   .GTHE3_COMMON_QPLL0_FBDIV_G3                  (80),
-  .GTHE3_COMMON_QPLL0_INIT_CFG0                 (16'b0000000000000000),
+  .GTHE3_COMMON_QPLL0_INIT_CFG0                 (16'b0000001010110010),
   .GTHE3_COMMON_QPLL0_INIT_CFG1                 (8'b00000000),
   .GTHE3_COMMON_QPLL0_LOCK_CFG                  (16'b0010000111101000),
   .GTHE3_COMMON_QPLL0_LOCK_CFG_G3               (16'b0010000111101000),
@@ -194,7 +194,7 @@ gtwizard_ultrascale_v1_5_gthe3_common #(
   .GTHE3_COMMON_QPLL1_CP_G3                     (10'b1111111111),
   .GTHE3_COMMON_QPLL1_FBDIV                     (66),
   .GTHE3_COMMON_QPLL1_FBDIV_G3                  (80),
-  .GTHE3_COMMON_QPLL1_INIT_CFG0                 (16'b0000000000000000),
+  .GTHE3_COMMON_QPLL1_INIT_CFG0                 (16'b0000001010110010),
   .GTHE3_COMMON_QPLL1_INIT_CFG1                 (8'b00000000),
   .GTHE3_COMMON_QPLL1_LOCK_CFG                  (16'b0010000111101000),
   .GTHE3_COMMON_QPLL1_LOCK_CFG_G3               (16'b0010000111101000),

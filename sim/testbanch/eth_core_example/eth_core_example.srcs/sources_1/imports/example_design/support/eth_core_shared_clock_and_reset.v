@@ -73,7 +73,7 @@ module  eth_core_shared_clock_and_reset
      output wire areset_txusrclk2,
      output gttxreset,
      output gtrxreset,
-     output reg txuserrdy,
+     output reg txuserrdy = 1'b0,
      output txusrclk,
      output txusrclk2,
      output qpllreset,

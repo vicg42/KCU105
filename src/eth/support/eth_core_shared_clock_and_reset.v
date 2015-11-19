@@ -75,7 +75,7 @@ module  eth_core_shared_clock_and_reset   #(
      output wire [G_GTCH_COUNT - 1: 0]   areset_txusrclk2,
      output gttxreset,
      output gtrxreset,
-     output reg [G_GTCH_COUNT - 1: 0]   txuserrdy,
+     output reg [G_GTCH_COUNT - 1: 0]   txuserrdy = 0,
      output [G_GTCH_COUNT - 1: 0]   txusrclk,
      output [G_GTCH_COUNT - 1: 0]   txusrclk2,
      output [G_GTCH_COUNT - 1: 0]   qpllreset,

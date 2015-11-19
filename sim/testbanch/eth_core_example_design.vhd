@@ -84,8 +84,8 @@ p_out_txbuf_axi_tready : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 p_in_txbuf_axi_tvalid  : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 p_out_txbuf_axi_done   : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
-p_out_ethio_clk  : out   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-p_out_ethio_rst  : out   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_buf_clk  : out   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_buf_rst  : out   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
 -------------------------------
 --
@@ -254,9 +254,8 @@ p_out_txbuf_axi_tready => i_ethio_tx_axi_tready,
 p_in_txbuf_axi_tvalid  => i_ethio_tx_axi_tvalid,
 p_out_txbuf_axi_done   => i_ethio_tx_axi_done  ,
 
-p_out_ethio_clk  => i_ethio_clk,
-p_out_ethio_rst  => i_ethio_rst,
-
+p_out_buf_clk => i_ethio_clk,
+p_out_buf_rst => i_ethio_rst,
 
 p_out_status_rdy      => core_ready,
 p_out_status_carier   => open,

@@ -121,10 +121,10 @@ parameter                              FIFO_SIZE = 1024
 
    // Signal declarations
 
-   wire [G_GTCH_COUNT - 1 : 0]         rx_axis_mac_aresetn_i;
-   wire [G_GTCH_COUNT - 1 : 0]         rx_axis_fifo_aresetn_i;
-   wire [G_GTCH_COUNT - 1 : 0]         tx_axis_mac_aresetn_i;
-   wire [G_GTCH_COUNT - 1 : 0]         tx_axis_fifo_aresetn_i;
+   reg [G_GTCH_COUNT - 1 : 0]         rx_axis_mac_aresetn_i;
+   reg [G_GTCH_COUNT - 1 : 0]         rx_axis_fifo_aresetn_i;
+   reg [G_GTCH_COUNT - 1 : 0]         tx_axis_mac_aresetn_i;
+   reg [G_GTCH_COUNT - 1 : 0]         tx_axis_fifo_aresetn_i;
 
    wire         [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]  tx_axis_mac_tdata;
    wire         [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]   tx_axis_mac_tkeep;
@@ -217,6 +217,8 @@ parameter                              FIFO_SIZE = 1024
       .transceiver_debug_gt_rxpmaresetdone   (),
       .transceiver_debug_gt_txresetdone      (),
       .transceiver_debug_gt_rxresetdone      (),
+      .transceiver_debug_gt_txoutclksel      (3'b101),
+      .transceiver_debug_gt_txpcsreset       (zero_i[G_GTCH_COUNT - 1 : 0]), //(1'b0),
       .transceiver_debug_gt_txprecursor      (zero_i[(5 * G_GTCH_COUNT) - 1 : 0]), //(5'b0),
       .transceiver_debug_gt_txpostcursor     (zero_i[(5 * G_GTCH_COUNT) - 1 : 0]), //(5'b0),
       .transceiver_debug_gt_txdiffctrl       (zero_i[(4 * G_GTCH_COUNT) - 1 : 0]), //(4'b0),
@@ -239,10 +241,18 @@ generate
 for (i = 0; i < G_GTCH_COUNT; i = i + 1)
 begin : ch
 
-   assign rx_axis_mac_aresetn_i[i]  = ~reset | rx_axis_mac_aresetn[i];
-   assign rx_axis_fifo_aresetn_i[i] = ~reset | rx_axis_fifo_aresetn[i];
-   assign tx_axis_mac_aresetn_i[i]  = ~reset | tx_axis_mac_aresetn[i];
-   assign tx_axis_fifo_aresetn_i[i] = ~reset | tx_axis_fifo_aresetn[i];
+//   assign rx_axis_mac_aresetn_i[i]  = ~reset;// | rx_axis_mac_aresetn[i];
+//   assign rx_axis_fifo_aresetn_i[i] = ~reset;// | rx_axis_fifo_aresetn[i];
+//   assign tx_axis_mac_aresetn_i[i]  = ~reset;// | tx_axis_mac_aresetn[i];
+//   assign tx_axis_fifo_aresetn_i[i] = ~reset;// | tx_axis_fifo_aresetn[i];
+
+   always @(coreclk[i], reset)
+   begin
+    rx_axis_mac_aresetn_i[i]  <= ~reset;
+    rx_axis_fifo_aresetn_i[i] <= ~reset;
+    tx_axis_mac_aresetn_i[i]  <= ~reset;
+    tx_axis_fifo_aresetn_i[i] <= ~reset;
+   end
 
    //----------------------------------------------------------------------------
    // Instantiate the example design FIFO

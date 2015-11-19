@@ -13,15 +13,15 @@ vlib work
 vlib msim
 
 vlib msim/xil_defaultlib
-vlib msim/ten_gig_eth_mac_v15_0
-vlib msim/gtwizard_ultrascale_v1_5
-vlib msim/ten_gig_eth_pcs_pma_v6_0
+vlib msim/ten_gig_eth_mac_v15_0_2
+vlib msim/gtwizard_ultrascale_v1_6_0
+vlib msim/ten_gig_eth_pcs_pma_v6_0_2
 vlib msim/fifo_generator_v12_0
 
 vmap xil_defaultlib msim/xil_defaultlib
-vmap ten_gig_eth_mac_v15_0 msim/ten_gig_eth_mac_v15_0
-vmap gtwizard_ultrascale_v1_5 msim/gtwizard_ultrascale_v1_5
-vmap ten_gig_eth_pcs_pma_v6_0 msim/ten_gig_eth_pcs_pma_v6_0
+vmap ten_gig_eth_mac_v15_0_2 msim/ten_gig_eth_mac_v15_0_2
+vmap gtwizard_ultrascale_v1_6_0 msim/gtwizard_ultrascale_v1_6_0
+vmap ten_gig_eth_pcs_pma_v6_0_2 msim/ten_gig_eth_pcs_pma_v6_0_2
 vmap fifo_generator_v12_0 msim/fifo_generator_v12_0
 
 vlog -64 -incr -work xil_defaultlib  \
@@ -38,53 +38,54 @@ vlog -64 -incr -work xil_defaultlib  \
 "../../src/eth/eth_core_sync_reset.v" \
 "../../src/eth/eth_core_sync_block.v" \
 
-vlog -64 -incr -work ten_gig_eth_mac_v15_0  \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_0/ten_gig_eth_mac_v15_0/hdl/ten_gig_eth_mac_v15_0_rfs.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_0/ten_gig_eth_mac_v15_0/hdl/bd_1_ten_gig_eth_mac_0_core.v" \
+vlog -64 -incr -work ten_gig_eth_mac_v15_0_2  \
+"../testbanch/eth_core_example/eth_core_example.ip_user_files/ipstatic/ten_gig_eth_mac_v15_0_2/hdl/ten_gig_eth_mac_v15_0_rfs.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_0/ip/ip_0/ten_gig_eth_mac_v15_0/hdl/bd_0_ten_gig_eth_mac_0_core.v" \
 
-vcom -64 -93 -work ten_gig_eth_mac_v15_0  \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_0/synth/bd_1_ten_gig_eth_mac_0_block.vhd" \
-
-vcom -64 -93 -work xil_defaultlib  \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_0/synth/bd_1_ten_gig_eth_mac_0.vhd" \
-
-vlog -64 -incr -work gtwizard_ultrascale_v1_5  \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_bit_synchronizer.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gthe3_cpll_cal.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gthe3_cpll_cal_freq_counter.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_buffbypass_rx.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_buffbypass_tx.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_reset.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_userclk_rx.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_userclk_tx.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_userdata_rx.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_gtwiz_userdata_tx.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/gtwizard_ultrascale_v1_5/hdl/verilog/gtwizard_ultrascale_v1_5_reset_synchronizer.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/sim/gtwizard_ultrascale_v1_5_gthe3_channel.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/sim/bd_1_ten_gig_eth_pcs_pma_0_gt_gthe3_channel_wrapper.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/sim/bd_1_ten_gig_eth_pcs_pma_0_gt_gtwizard_gthe3.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/sim/bd_1_ten_gig_eth_pcs_pma_0_gt_gtwizard_top.v" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ip_0/sim/bd_1_ten_gig_eth_pcs_pma_0_gt.v" \
-
-vlog -64 -incr -work ten_gig_eth_pcs_pma_v6_0  \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/ten_gig_eth_pcs_pma_v6_0/hdl/ten_gig_eth_pcs_pma_v6_0_rfs.v" \
-
-vcom -64 -93 -work ten_gig_eth_pcs_pma_v6_0  \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/synth/bd_1_ten_gig_eth_pcs_pma_0_ff_synchronizer_rst.vhd" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/synth/bd_1_ten_gig_eth_pcs_pma_0_ff_synchronizer.vhd" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/synth/bd_1_ten_gig_eth_pcs_pma_0_local_clock_and_reset.vhd" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/synth/bd_1_ten_gig_eth_pcs_pma_0_sim_speedup_controller.vhd" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/synth/bd_1_ten_gig_eth_pcs_pma_0_cable_pull_logic.vhd" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/synth/bd_1_ten_gig_eth_pcs_pma_0_block.vhd" \
+vcom -64 -93 -work ten_gig_eth_mac_v15_0_2  \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_0/ip/ip_0/synth/bd_0_ten_gig_eth_mac_0_block.vhd" \
 
 vcom -64 -93 -work xil_defaultlib  \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_1/synth/bd_1_ten_gig_eth_pcs_pma_0.vhd" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_2/work/xlconstant.vhd" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_2/sim/bd_1_dcm_locked_driver_0.vhd" \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/ip/ip_3/sim/bd_1_pma_pmd_type_driver_0.vhd" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_0/ip/ip_0/synth/bd_0_ten_gig_eth_mac_0.vhd" \
+
+vlog -64 -incr -work gtwizard_ultrascale_v1_6_0  \
+"../testbanch/eth_core_example/eth_core_example.ip_user_files/ipstatic/gtwizard_ultrascale_v1_6_0/hdl/verilog/gtwizard_ultrascale_v1_6_bit_synchronizer.v" \
+"../testbanch/eth_core_example/eth_core_example.ip_user_files/ipstatic/gtwizard_ultrascale_v1_6_0/hdl/verilog/gtwizard_ultrascale_v1_6_gthe3_cpll_cal.v" \
+"../testbanch/eth_core_example/eth_core_example.ip_user_files/ipstatic/gtwizard_ultrascale_v1_6_0/hdl/verilog/gtwizard_ultrascale_v1_6_gthe3_cpll_cal_freq_counter.v" \
+"../testbanch/eth_core_example/eth_core_example.ip_user_files/ipstatic/gtwizard_ultrascale_v1_6_0/hdl/verilog/gtwizard_ultrascale_v1_6_gtwiz_buffbypass_rx.v" \
+"../testbanch/eth_core_example/eth_core_example.ip_user_files/ipstatic/gtwizard_ultrascale_v1_6_0/hdl/verilog/gtwizard_ultrascale_v1_6_gtwiz_buffbypass_tx.v" \
+"../testbanch/eth_core_example/eth_core_example.ip_user_files/ipstatic/gtwizard_ultrascale_v1_6_0/hdl/verilog/gtwizard_ultrascale_v1_6_gtwiz_reset.v" \
+"../testbanch/eth_core_example/eth_core_example.ip_user_files/ipstatic/gtwizard_ultrascale_v1_6_0/hdl/verilog/gtwizard_ultrascale_v1_6_gtwiz_userclk_rx.v" \
+"../testbanch/eth_core_example/eth_core_example.ip_user_files/ipstatic/gtwizard_ultrascale_v1_6_0/hdl/verilog/gtwizard_ultrascale_v1_6_gtwiz_userclk_tx.v" \
+"../testbanch/eth_core_example/eth_core_example.ip_user_files/ipstatic/gtwizard_ultrascale_v1_6_0/hdl/verilog/gtwizard_ultrascale_v1_6_gtwiz_userdata_rx.v" \
+"../testbanch/eth_core_example/eth_core_example.ip_user_files/ipstatic/gtwizard_ultrascale_v1_6_0/hdl/verilog/gtwizard_ultrascale_v1_6_gtwiz_userdata_tx.v" \
+"../testbanch/eth_core_example/eth_core_example.ip_user_files/ipstatic/gtwizard_ultrascale_v1_6_0/hdl/verilog/gtwizard_ultrascale_v1_6_reset_synchronizer.v" \
+"../testbanch/eth_core_example/eth_core_example.ip_user_files/ipstatic/gtwizard_ultrascale_v1_6_0/hdl/verilog/gtwizard_ultrascale_v1_6_reset_inv_synchronizer.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_0/ip/ip_1/ip_0/sim/gtwizard_ultrascale_v1_6_gthe3_channel.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_0/ip/ip_1/ip_0/sim/bd_0_ten_gig_eth_pcs_pma_0_gt_gthe3_channel_wrapper.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_0/ip/ip_1/ip_0/sim/bd_0_ten_gig_eth_pcs_pma_0_gt_gtwizard_gthe3.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_0/ip/ip_1/ip_0/sim/bd_0_ten_gig_eth_pcs_pma_0_gt_gtwizard_top.v" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_0/ip/ip_1/ip_0/sim/bd_0_ten_gig_eth_pcs_pma_0_gt.v" \
+
+vlog -64 -incr -work ten_gig_eth_pcs_pma_v6_0_2  \
+"../testbanch/eth_core_example/eth_core_example.ip_user_files/ipstatic/ten_gig_eth_pcs_pma_v6_0_2/hdl/ten_gig_eth_pcs_pma_v6_0_rfs.v" \
+
+vcom -64 -93 -work ten_gig_eth_pcs_pma_v6_0_2  \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_0/ip/ip_1/synth/bd_0_ten_gig_eth_pcs_pma_0_ff_synchronizer_rst.vhd" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_0/ip/ip_1/synth/bd_0_ten_gig_eth_pcs_pma_0_ff_synchronizer.vhd" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_0/ip/ip_1/synth/bd_0_ten_gig_eth_pcs_pma_0_local_clock_and_reset.vhd" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_0/ip/ip_1/synth/bd_0_ten_gig_eth_pcs_pma_0_sim_speedup_controller.vhd" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_0/ip/ip_1/synth/bd_0_ten_gig_eth_pcs_pma_0_cable_pull_logic.vhd" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_0/ip/ip_1/synth/bd_0_ten_gig_eth_pcs_pma_0_block.vhd" \
 
 vcom -64 -93 -work xil_defaultlib  \
-"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_1/hdl/bd_1.vhd" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_0/ip/ip_1/synth/bd_0_ten_gig_eth_pcs_pma_0.vhd" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_0/ip/ip_2/work/xlconstant.vhd" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_0/ip/ip_2/sim/bd_0_dcm_locked_driver_0.vhd" \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_0/ip/ip_3/sim/bd_0_pma_pmd_type_driver_0.vhd" \
+
+vcom -64 -93 -work xil_defaultlib  \
+"../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/bd_0/hdl/bd_0.vhd" \
 
 vcom -64 -93 -work xil_defaultlib  \
 "../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/sim/eth_core.vhd" \
@@ -120,7 +121,7 @@ vlog -work xil_defaultlib "glbl.v"
 
 
 vsim -voptargs="+acc" -t 1ps -L unisims_ver -L unimacro_ver \
--L secureip -L ten_gig_eth_mac_v15_0 -L gtwizard_ultrascale_v1_5 -L ten_gig_eth_pcs_pma_v6_0 -L xil_defaultlib \
+-L secureip -L ten_gig_eth_mac_v15_0_2 -L gtwizard_ultrascale_v1_6_0 -L ten_gig_eth_pcs_pma_v6_0_2 -L xil_defaultlib \
 -lib xil_defaultlib xil_defaultlib.eth_core_tb xil_defaultlib.glbl
 
 

@@ -208,6 +208,8 @@ parameter                              FIFO_SIZE = 1024
       .transceiver_debug_gt_rxpmaresetdone   (),
       .transceiver_debug_gt_txresetdone      (),
       .transceiver_debug_gt_rxresetdone      (),
+      .transceiver_debug_gt_txoutclksel     (3'b101),
+      .transceiver_debug_gt_txpcsreset      (1'b0),
       .transceiver_debug_gt_txprecursor      (5'b0),
       .transceiver_debug_gt_txpostcursor     (5'b0),
       .transceiver_debug_gt_txdiffctrl       (4'b0),
