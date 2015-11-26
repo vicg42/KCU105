@@ -52,6 +52,7 @@ p_out_eth_axi_tlast  : out  std_logic;
 --------------------------------------
 p_in_tst  : in   std_logic_vector(31 downto 0);
 p_out_tst : out  std_logic_vector(31 downto 0);
+p_out_dbg : out  TEthDBG_MacTx;
 
 --------------------------------------
 --SYSTEM
@@ -80,7 +81,7 @@ signal i_rd_chunk_count    : unsigned(15 downto 0);
 signal i_rd_chunk_rem      : unsigned(15 downto 0);
 
 constant CI_CHUNK    : integer := 8;
-signal sr_txbuf_do         : std_logic_vector(G_AXI_DWIDTH - 1 downto 0);
+signal sr_txbuf_do         : std_logic_vector((CI_CHUNK * 4) - 1 downto (CI_CHUNK * 0));
 
 signal i_eth_axi_tdata     : std_logic_vector(G_AXI_DWIDTH - 1 downto 0);
 signal i_eth_axi_tkeep     : std_logic_vector((G_AXI_DWIDTH / 8) - 1 downto 0);
@@ -90,6 +91,10 @@ signal i_eth_axi_tlast     : std_logic;
 constant CI_MAC_LEN  : integer := 2;--Field Length/Type - count byte
 constant CI_ADD      : integer := CI_MAC_LEN;
 
+signal i_usr_axi_done   : std_logic;
+signal i_usr_axi_tready : std_logic;
+
+signal tst_fsm  : unsigned(2 downto 0);
 
 
 begin --architecture behavioral of eth_mac_tx is
@@ -326,9 +331,12 @@ p_out_eth_axi_tkeep <= i_eth_axi_tkeep;
 p_out_eth_axi_tvalid <= i_eth_axi_tvalid;
 p_out_eth_axi_tlast <= i_eth_axi_tlast;
 
-p_out_usr_axi_done <= i_eth_axi_tlast and p_in_eth_axi_tready;
+i_usr_axi_done <= i_eth_axi_tlast and p_in_eth_axi_tready;
 
-p_out_usr_axi_tready <= (p_in_usr_axi_tvalid) and p_in_eth_axi_tready and i_eth_axi_tvalid;
+i_usr_axi_tready <= (p_in_usr_axi_tvalid) and p_in_eth_axi_tready and i_eth_axi_tvalid;
+
+p_out_usr_axi_done <= i_usr_axi_done;
+p_out_usr_axi_tready <= i_usr_axi_tready;
 
 
 --##################################
@@ -337,5 +345,25 @@ p_out_usr_axi_tready <= (p_in_usr_axi_tvalid) and p_in_eth_axi_tready and i_eth_
 --gen_dbg_on : if strcmp(G_DBG,"ON") generate
 p_out_tst(31 downto 0) <= (others => '0');
 --end generate gen_dbg_on;
+
+p_out_dbg.usr_axi_tready <= i_usr_axi_tready;
+p_out_dbg.usr_axi_tvalid <= p_in_usr_axi_tvalid;
+p_out_dbg.usr_axi_done   <= i_usr_axi_done;
+p_out_dbg.usr_axi_tdata  <= p_in_usr_axi_tdata;
+
+p_out_dbg.eth_axi_tready <= p_in_eth_axi_tready;
+p_out_dbg.eth_axi_tdata <= i_eth_axi_tdata;
+p_out_dbg.eth_axi_tkeep <= i_eth_axi_tkeep;
+p_out_dbg.eth_axi_tvalid <= i_eth_axi_tvalid;
+p_out_dbg.eth_axi_tlast <= i_eth_axi_tlast;
+
+p_out_dbg.fsm <= std_logic_vector(tst_fsm);
+
+tst_fsm <= TO_UNSIGNED(16#01#, p_out_dbg.fsm'length) when i_fsm_eth_tx = S_TX_ADR0   else
+                TO_UNSIGNED(16#02#, p_out_dbg.fsm'length) when i_fsm_eth_tx = S_TX_ADR1   else
+                TO_UNSIGNED(16#03#, p_out_dbg.fsm'length) when i_fsm_eth_tx = S_TX_D   else
+                TO_UNSIGNED(16#04#, p_out_dbg.fsm'length) when i_fsm_eth_tx = S_TX_DE   else
+                TO_UNSIGNED(16#05#, p_out_dbg.fsm'length) when i_fsm_eth_tx = S_TX_DONE   else
+                TO_UNSIGNED(16#00#, p_out_dbg.fsm'length);-- when i_fsm_eth_tx = S_TX_IDLE   else
 
 end architecture behavioral;

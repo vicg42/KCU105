@@ -139,6 +139,7 @@ signal i_host_mem_status   : TPce2Mem_Status;
 signal i_host_mem_tst_out  : std_logic_vector(63 downto 0);
 signal i_host_mem_tst_in   : std_logic_vector(31 downto 0);
 
+signal i_mem_ctrl_rst      : std_logic;
 signal i_memin_fgwrch      : TMemINChVD;
 signal i_memout_fgwrch     : TMemOUTChVD;
 signal i_memin_ch          : TMemINCh;
@@ -154,6 +155,7 @@ signal i_arb_mem_tst_out   : std_logic_vector(31 downto 0);
 signal i_mem_ctrl_status   : TMEMCTRL_status;
 signal i_mem_ctrl_sysout   : TMEMCTRL_sysout;
 
+signal i_fg_rst            : std_logic;
 signal i_fgwr_chen         : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
 signal i_fg_rd_start       : std_logic;
 signal i_fg_tst_in         : std_logic_vector(31 downto 0);
@@ -180,15 +182,17 @@ signal i_ethio_clk           : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0
 signal i_ethio_rst           : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 
 signal i_eth_status_rdy      : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
-signal i_eth_status_carier   : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
+--signal i_eth_status_carier   : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 signal i_eth_status_qplllock : std_logic;
 signal i_eth_rst             : std_logic;
+signal i_eth_dbg             : TEthDBG;
 
 signal i_sfp_signal_detect   : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 signal i_sfp_tx_fault        : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 
-signal i_test_led          : std_logic_vector(0 downto 0);
-signal sr_host_rst_n       : std_logic_vector(0 to 2) := (others => '1');
+signal i_test_led          : std_logic_vector(1 downto 0);
+
+signal i_swt_rst           : std_logic;
 signal i_swt_tst_out       : std_logic_vector(31 downto 0);
 
 
@@ -201,14 +205,14 @@ attribute keep of i_ethio_clk : signal is "true";
 component dbgcs_ila_hostclk is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(17 downto 0)
+probe0 : in std_logic_vector(97 downto 0)
 );
 end component dbgcs_ila_hostclk;
 
 component dbgcs_ila_usr_highclk is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(118 downto 0)
+probe0 : in std_logic_vector(163 downto 0)
 );
 end component dbgcs_ila_usr_highclk;
 
@@ -245,28 +249,47 @@ type TDBG2_darray is array (0 to 0) of std_logic_vector(31 downto 0);
 --end record;
 
 type TCFG_dbg is record
---dadr    : std_logic_vector(3 downto 0);
---radr    : std_logic_vector(5 downto 0);
+dadr    : std_logic_vector(3 downto 0);
+radr    : std_logic_vector(5 downto 0);
 radr_ld : std_logic;
 wr      : std_logic;
 rd      : std_logic;
---txd     : std_logic_vector(15 downto 0);
---rxd     : std_logic_vector(15 downto 0);
---rxbuf_empty : std_logic;
---txbuf_empty : std_logic;
---irq : std_logic;
+txd     : std_logic_vector(15 downto 0);
+rxd     : std_logic_vector(15 downto 0);
+rxbuf_empty : std_logic;
+txbuf_empty : std_logic;
+irq : std_logic;
 end record;
 
 type TSWT_dbg is record
-eth_txbuf_hrdy : std_logic;
-eth_txbuf_wr : std_logic;
-eth_txbuf_empty : std_logic;
-eth_txbuf_empty_tst : std_logic;
-eth_tmr_irq : std_logic;
-eth_tmr_en : std_logic;
-vbufi_empty : std_logic;
-eth_rxbuf_den : std_logic;
-vbufi_fltr_den : std_logic;
+h2eth_txd_rdy : std_logic;
+h2eth_txd : std_logic_vector(31 downto 0);
+h2eth_wr : std_logic;
+h2eth_txbuf_empty : std_logic;
+
+i_h2eth_buf_rst   : std_logic;
+i_eth_txbuf_empty : std_logic;
+ethio_clk         : std_logic;
+--ethio_rst         : std_logic;
+
+ethio_rx_axi_tready : std_logic                    ;
+ethio_rx_axi_tdata  : std_logic_vector(63 downto 0);
+ethio_rx_axi_tkeep  : std_logic_vector(7 downto 0) ;
+ethio_rx_axi_tvalid : std_logic                    ;
+ethio_rx_axi_tuser  : std_logic_vector(1 downto 0) ;
+
+fgbuf_fltr_den : std_logic;
+eth2fg_frr : std_logic;
+
+--eth_txbuf_hrdy : std_logic;
+--eth_txbuf_wr : std_logic;
+--eth_txbuf_empty : std_logic;
+--eth_txbuf_empty_tst : std_logic;
+--eth_tmr_irq : std_logic;
+--eth_tmr_en : std_logic;
+--vbufi_empty : std_logic;
+--eth_rxbuf_den : std_logic;
+--vbufi_fltr_den : std_logic;
 end record;
 
 type TFGWR_dbg is record
@@ -290,13 +313,18 @@ hirq : std_logic;
 hdrdy : std_logic;
 end record;
 
+type TEth_dbg is record
+tx : TEthDBG_MacTx;
+rx : TEthDBG_MacRx;
+end record;
 
 type TMAIN_dbg is record
 pcie : TPCIE_dbg;
 --h2m  : TH2M_dbg;
 cfg : TCFG_dbg;
---swt : TSWT_dbg;
+swt : TSWT_dbg;
 --fg : TFG_dbg;
+eth : TEth_dbg;
 end record;
 
 signal i_dbg    : TMAIN_dbg;
@@ -311,9 +339,12 @@ begin --architecture struct
 --***********************************************************
 --RESET
 --***********************************************************
-i_glob_rst <= i_host_gctrl(C_HREG_CTRL_RST_MEM_BIT);--or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT) not i_host_rst_n or
+i_mem_ctrl_rst <= i_host_gctrl(C_HREG_CTRL_RST_MEM_BIT);--or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT) not i_host_rst_n or
 i_arb_mem_rst <= not OR_reduce(i_mem_ctrl_status.rdy);
 i_eth_rst <= i_host_gctrl(C_HREG_CTRL_RST_ETH_BIT);
+i_cfg_rst <= i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT);
+i_swt_rst <= i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT);
+i_fg_rst <= i_arb_mem_rst;
 
 i_host_mem_tst_in(0) <= i_arb_mem_rst;
 
@@ -394,11 +425,12 @@ p_out_tst            => i_cfg_tst_out,
 -------------------------------
 --System
 -------------------------------
-p_in_rst             => i_glob_rst
+p_in_rst             => i_cfg_rst
 );
 
 i_cfg_rxd <= i_cfg_rxd_dev(C_CFGDEV_SWT) when UNSIGNED(i_cfg_dadr) = TO_UNSIGNED(C_CFGDEV_SWT, i_cfg_dadr'length) else
              i_cfg_rxd_dev(C_CFGDEV_TMR) when UNSIGNED(i_cfg_dadr) = TO_UNSIGNED(C_CFGDEV_TMR, i_cfg_dadr'length) else
+             i_cfg_rxd_dev(C_CFGDEV_ETH) when UNSIGNED(i_cfg_dadr) = TO_UNSIGNED(C_CFGDEV_ETH, i_cfg_dadr'length) else
              i_cfg_rxd_dev(C_CFGDEV_FG);
 
 gen_cfg_dev : for i in 0 to C_CFGDEV_COUNT - 1 generate
@@ -445,6 +477,7 @@ p_in_rst         => i_usrclk_rst
 --#########################################
 m_eth : eth_main
 generic map(
+G_DBG => C_PCFG_ETH_DBG,
 G_ETH_CH_COUNT => C_PCFG_ETH_CH_COUNT,
 G_ETH_DWIDTH => C_PCFG_ETH_DWIDTH
 )
@@ -486,7 +519,7 @@ p_out_buf_rst => i_ethio_rst,
 --
 -------------------------------
 p_out_status_rdy      => i_eth_status_rdy,
-p_out_status_carier   => i_eth_status_carier,
+--p_out_status_carier   => i_eth_status_carier,
 p_out_status_qplllock => i_eth_status_qplllock,
 
 p_in_sfp_signal_detect => (others => '1'),--i_sfp_signal_detect,
@@ -508,6 +541,7 @@ p_in_ethphy_refclk_n => pin_in_ethphy_refclk_n,
 p_in_sim_speedup_control => '0',
 p_in_tst  => (others => '0'),
 p_out_tst => open,
+p_out_dbg => i_eth_dbg,
 
 -------------------------------
 --System
@@ -603,7 +637,7 @@ p_out_tst => i_swt_tst_out,
 -------------------------------
 --System
 -------------------------------
-p_in_rst  => i_glob_rst
+p_in_rst  => i_swt_rst
 );
 
 
@@ -683,7 +717,7 @@ p_out_tst         => i_fg_tst_out,
 --System
 -------------------------------
 p_in_clk          => g_usr_highclk,
-p_in_rst          => i_arb_mem_rst
+p_in_rst          => i_fg_rst
 );
 
 
@@ -742,8 +776,8 @@ i_host_dev_status(C_HREG_DEV_STATUS_CFG_TXRDY_BIT) <= i_host_txbuf_empty(C_HDEV_
 
 i_host_dev_status(C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT) <= OR_reduce(i_mem_ctrl_status.rdy);
 
-i_host_dev_status(C_HREG_DEV_STATUS_ETH_RDY_BIT) <= '1';--OR_reduce(i_eth_status_rdy);
-i_host_dev_status(C_HREG_DEV_STATUS_ETH_LINK_BIT) <= '1';--i_ethphy_out.link;
+i_host_dev_status(C_HREG_DEV_STATUS_ETH_RDY_BIT) <= i_eth_status_qplllock;
+i_host_dev_status(C_HREG_DEV_STATUS_ETH_LINK_BIT) <= i_eth_status_rdy(0);
 i_host_dev_status(C_HREG_DEV_STATUS_ETH_RXRDY_BIT) <= not i_host_rxbuf_empty(C_HDEV_ETH);
 i_host_dev_status(C_HREG_DEV_STATUS_ETH_TXRDY_BIT) <= i_host_txbuf_empty(C_HDEV_ETH);
 
@@ -900,7 +934,7 @@ p_inout_phymem  => pin_inout_phymem,
 ------------------------------------
 p_out_sys       => i_mem_ctrl_sysout,
 p_in_sys        => pin_in_phymem,
-p_in_rst        => i_glob_rst
+p_in_rst        => i_mem_ctrl_rst
 );
 
 
@@ -942,10 +976,30 @@ pin_out_led(7) <= i_eth_status_qplllock;
 pin_out_led_hpc(0) <= i_swt_tst_out(4);-- <= OR_reduce(h_reg_eth2fg_frr(0))
 pin_out_led_hpc(1) <= i_swt_tst_out(5);-- <= h_reg_ctrl(C_SWT_REG_CTRL_DBG_HOST2FG_BIT);
 pin_out_led_hpc(2) <= i_tmr_irq(0) and i_tmr_en(0);
-pin_out_led_hpc(3) <= i_test_led(0);
+pin_out_led_hpc(3) <= i_test_led(1);
 
 pin_out_led_lpc(3 downto 0) <= pin_in_btn(3 downto 0);
 
+
+m_led2 : fpga_test_01
+generic map(
+G_BLINK_T05 => 10#250#,
+G_CLK_T05us => 10#62#
+)
+port map (
+p_out_test_led  => i_test_led(1),
+p_out_test_done => open,
+
+p_out_1us  => open,
+p_out_1ms  => open,
+p_out_1s   => open,
+-------------------------------
+--System
+-------------------------------
+p_in_clken => '1',
+p_in_clk   => i_ethio_clk(0),
+p_in_rst   => i_ethio_rst(0)
+);
 
 ----#############################################
 ----DBGCS
@@ -982,16 +1036,46 @@ i_dbg.pcie <= i_host_dbg;
 --i_dbg.swt.eth_rxbuf_den <= i_swt_tst_out(6);-- <= tst_eth_rxbuf_den;
 --i_dbg.swt.vbufi_fltr_den <= i_swt_tst_out(7);-- <= i_vbufi_fltr_den;
 
---i_dbg.cfg.dadr    <= i_cfg_dadr(3 downto 0);
---i_dbg.cfg.radr    <= i_cfg_radr(5 downto 0);
+i_dbg.swt.ethio_rx_axi_tdata  <= i_ethio_rx_axi_tdata (63 downto 0);
+i_dbg.swt.ethio_rx_axi_tkeep  <= i_ethio_rx_axi_tkeep (7 downto 0);
+--i_dbg.swt.ethio_rx_axi_tvalid <= i_ethio_rx_axi_tvalid(0);
+--i_dbg.swt.ethio_rx_axi_tuser  <= i_ethio_rx_axi_tuser (1 downto 0);
+
+i_dbg.swt.ethio_rx_axi_tvalid <= i_swt_tst_out(6);
+i_dbg.swt.ethio_rx_axi_tuser  <= i_swt_tst_out(7) & i_swt_tst_out(8);
+--i_swt_tst_out(7);-- <= syn_eth_rxd_sof(0);
+--i_swt_tst_out(8);-- <= syn_eth_rxd_eof(0);
+
+i_dbg.swt.h2eth_txd         <= i_host_txd(C_HDEV_ETH)        ;
+i_dbg.swt.h2eth_wr          <= i_host_wr(C_HDEV_ETH)         ;
+i_dbg.swt.h2eth_txbuf_empty <= i_host_txbuf_empty(C_HDEV_ETH);
+i_dbg.swt.h2eth_txd_rdy     <= i_host_txd_rdy(C_HDEV_ETH)    ;
+
+i_dbg.swt.i_h2eth_buf_rst   <= i_swt_tst_out(0);--<= i_h2eth_buf_rst;
+i_dbg.swt.i_eth_txbuf_empty <= i_swt_tst_out(1);--<= i_eth_txbuf_empty;
+i_dbg.swt.ethio_clk <= i_ethio_clk(0);
+--i_dbg.swt.ethio_rst <= i_ethio_rst(0);
+i_dbg.swt.eth2fg_frr <= i_swt_tst_out(4);-- <= OR_reduce(h_reg_eth2fg_frr(0));
+i_dbg.swt.fgbuf_fltr_den <= i_swt_tst_out(9);-- <= i_fgbuf_fltr_den(0);
+
+i_dbg.eth.tx <= i_eth_dbg.tx(0);
+i_dbg.eth.rx <= i_eth_dbg.rx(0);
+
+
+i_dbg.cfg.dadr    <= i_cfg_dadr(3 downto 0);
+i_dbg.cfg.radr    <= i_cfg_radr(5 downto 0);
 i_dbg.cfg.radr_ld <= i_cfg_radr_ld;
 i_dbg.cfg.wr      <= i_cfg_wr     ;
 i_dbg.cfg.rd      <= i_cfg_rd     ;
---i_dbg.cfg.txd     <= i_cfg_txd    ;
---i_dbg.cfg.rxd     <= i_cfg_rxd_dev(C_CFGDEV_SWT);--i_cfg_rxd    ;
---i_dbg.cfg.rxbuf_empty <= i_host_rxbuf_empty(C_HDEV_CFG);
---i_dbg.cfg.txbuf_empty <= i_host_txbuf_empty(C_HDEV_CFG);
---i_dbg.cfg.irq <= i_host_dev_irq(C_HIRQ_CFG);
+i_dbg.cfg.txd     <= i_cfg_txd    ;
+i_dbg.cfg.rxd     <= i_cfg_rxd    ;--i_cfg_rxd_dev(C_CFGDEV_SWT);--
+i_dbg.cfg.rxbuf_empty <= i_host_rxbuf_empty(C_HDEV_CFG);
+i_dbg.cfg.txbuf_empty <= i_host_txbuf_empty(C_HDEV_CFG);
+i_dbg.cfg.irq <= i_host_dev_irq(C_HIRQ_CFG);
+
+
+
+
 --
 ----i_dbg.h2m.mem_start     <= i_host_mem_tst_out(0)           ;-- <= i_mem_start;
 ----i_dbg.h2m.mem_done      <= i_host_mem_tst_out(1)           ;-- <= i_mem_done;
@@ -1233,7 +1317,19 @@ probe0(14) => i_dbg.pcie.axi_rq_tlast ,
 
 probe0(15) => i_dbg.cfg.radr_ld,
 probe0(16) => i_dbg.cfg.wr,
-probe0(17) => i_dbg.cfg.rd
+probe0(17) => i_dbg.cfg.rd,
+probe0(18) => i_dbg.cfg.rxbuf_empty,
+probe0(19) => i_dbg.cfg.txbuf_empty,
+probe0(20) => i_dbg.cfg.irq,
+probe0(24  downto 21) => i_dbg.cfg.dadr,
+probe0(30  downto 25) => i_dbg.cfg.radr,
+probe0(46 downto 31) => i_dbg.cfg.txd,
+probe0(62 downto 47) => i_dbg.cfg.rxd,
+
+probe0(63) => i_dbg.swt.h2eth_wr          ,
+probe0(64) => i_dbg.swt.h2eth_txbuf_empty ,
+probe0(65) => i_dbg.swt.h2eth_txd_rdy     ,
+probe0(97 downto 66) => i_dbg.swt.h2eth_txd
 
 --probe0(18) => i_dbg.swt.eth_txbuf_wr,
 --probe0(19) => i_dbg.swt.eth_txbuf_empty,
@@ -1365,6 +1461,39 @@ probe0(17) => i_dbg.cfg.rd
 --probe0(118 downto 87) => i_dbg.fg.fgwr.vbufi_d2
 --);
 --
+
+m_dbg_highclk : dbgcs_ila_usr_highclk
+port map (
+clk => i_dbg.swt.ethio_clk,
+
+probe0(0) => i_dbg.swt.i_h2eth_buf_rst,
+probe0(1) => i_dbg.swt.i_eth_txbuf_empty,
+probe0(2) => i_dbg.swt.eth2fg_frr, --i_dbg.swt.ethio_rst,
+
+probe0(3) => i_dbg.swt.fgbuf_fltr_den,
+
+probe0(4) => i_dbg.eth.tx.usr_axi_tready,
+probe0(5) => i_dbg.eth.tx.usr_axi_done  ,
+probe0(6) => i_dbg.eth.tx.eth_axi_tvalid,
+probe0(7) => i_dbg.eth.tx.eth_axi_tready,
+probe0(10 downto 8) => i_dbg.eth.tx.fsm, -- : std_logic_vector(2 downto 0);
+
+probe0(13 downto 11) => i_dbg.eth.rx.fsm,
+probe0(14) => i_dbg.eth.rx.eth_axi_tvalid,
+probe0(15) => i_dbg.eth.rx.eth_axi_tlast ,
+
+probe0(16)           => i_dbg.swt.ethio_rx_axi_tvalid,
+probe0(18 downto 17) => i_dbg.swt.ethio_rx_axi_tuser,
+probe0(82 downto 19) => i_dbg.swt.ethio_rx_axi_tdata,
+probe0(90 downto 83) => i_dbg.swt.ethio_rx_axi_tkeep,
+
+probe0(154 downto 91) => i_dbg.eth.tx.eth_axi_tdata,
+probe0(162 downto 155) => i_dbg.eth.tx.eth_axi_tkeep,
+
+probe0(163) => i_dbg.eth.tx.eth_axi_tlast
+);
+
+
 --end generate gen_dbgcs_on;
 
 end architecture struct;

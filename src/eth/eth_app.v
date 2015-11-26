@@ -61,6 +61,7 @@
 
 (* DowngradeIPIdentifiedWarnings = "yes" *)
 module eth_app #(
+parameter   G_FIFO_SIZE = 1024, // Set FIFO memory size
 parameter   G_AXI_DWIDTH = 64,
 parameter   G_GTCH_COUNT = 1
 )
@@ -106,11 +107,6 @@ parameter   G_GTCH_COUNT = 1
    input   [G_GTCH_COUNT - 1 : 0]   rxn
    );
 /*-------------------------------------------------------------------------*/
-
-
-   // Set FIFO memory size
-   localparam        FIFO_SIZE  = 1024;
-
 
    // Signal declarations
    wire   [G_GTCH_COUNT - 1 : 0]          block_lock;
@@ -192,7 +188,7 @@ endgenerate
     eth_core_fifo_block #(
       .G_AXI_DWIDTH (G_AXI_DWIDTH),
       .G_GTCH_COUNT (G_GTCH_COUNT),
-      .FIFO_SIZE                       (FIFO_SIZE)
+      .FIFO_SIZE                       (G_FIFO_SIZE)
     ) fifo_block_i (
       .refclk_p                        (refclk_p),
       .refclk_n                        (refclk_n),

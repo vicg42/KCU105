@@ -175,7 +175,7 @@ module eth_core_support    #(
   wire reset_counter_done;
   wire [G_GTCH_COUNT - 1 : 0]   txusrclk;
   wire [G_GTCH_COUNT - 1 : 0]   txusrclk2;
-  wire txoutclk_in;
+//  wire txoutclk_in;
   wire [G_GTCH_COUNT - 1 : 0]   resetdone_i;
 
   assign coreclk_out            = coreclk;
@@ -209,7 +209,7 @@ module eth_core_support    #(
      .dclk                             (dclk),
      .coreclk                          (coreclk),
      .txoutclk                         (txoutclk),
-     .txoutclk_out                     (txoutclk_in),
+//     .txoutclk_out                     (txoutclk_in),
      .areset_coreclk                   (areset_coreclk),
      .areset_txusrclk2                 (areset_txusrclk2),
      .gttxreset                        (gttxreset),

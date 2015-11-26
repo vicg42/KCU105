@@ -192,9 +192,9 @@ parameter TB_MODE = "DEMO_TB";
     begin
 
         //Length = x2E (d46)
-        frame0.data[0]  = 32'hA4A3A2A1;  // <---
-        frame0.data[1]  = 32'hB2B1A6A5;  //    |
-        frame0.data[2]  = 32'hB6B5B4B3;  //    |  This part of the frame is looped
+        frame0.data[0]  = 32'hC4C3C2C1;  // <---
+        frame0.data[1]  = 32'hD2D1C6C5;  //    |
+        frame0.data[2]  = 32'hD6D5D4D3;  //    |  This part of the frame is looped
         frame0.data[3]  = 32'h02010800;  //    |  if FRAME_GEN_MULTIPLIER is set to
         frame0.data[4]  = 32'h06050403;  //    |  more than 1
         frame0.data[5]  = 32'h0A090807;  //    |
@@ -260,9 +260,9 @@ parameter TB_MODE = "DEMO_TB";
         frame0.error = 1'b0;
 
         //Frame 1
-        frame1.data[0]  = 32'hA4A3A2A1;  // <---
-        frame1.data[1]  = 32'hB2B1A6A5;  //    |
-        frame1.data[2]  = 32'hB6B5B4B3;  //    |  This part of the frame is looped
+        frame1.data[0]  = 32'hC4C3C2C1;  // <---
+        frame1.data[1]  = 32'hD2D1C6C5;  //    |
+        frame1.data[2]  = 32'hD6D5D4D3;  //    |  This part of the frame is looped
         frame1.data[3]  = 32'h55AA0081;  //    |  if FRAME_GEN_MULTIPLIER is set to
         frame1.data[4]  = 32'hAA55AA55;  //    |  more than 1
         frame1.data[5]  = 32'h55AA55AA;  //    |
@@ -328,9 +328,9 @@ parameter TB_MODE = "DEMO_TB";
         frame1.error = 1'b0;
 
         //Frame 2
-        frame2.data[0]  = 32'hA4A3A2A1;  // <---
-        frame2.data[1]  = 32'hB2B1A6A5;  //    |
-        frame2.data[2]  = 32'hB6B5B4B3;  //    |  This part of the frame is looped
+        frame2.data[0]  = 32'hC4C3C2C1;  // <---
+        frame2.data[1]  = 32'hD2D1C6C5;  //    |
+        frame2.data[2]  = 32'hD6D5D4D3;  //    |  This part of the frame is looped
         frame2.data[3]  = 32'h55AA3700;  //    |  if FRAME_GEN_MULTIPLIER is set to
         frame2.data[4]  = 32'hAA55AA55;  //    |  more than 1
         frame2.data[5]  = 32'h55AA55AA;  //    |
@@ -396,9 +396,9 @@ parameter TB_MODE = "DEMO_TB";
         frame2.error = 1'b1;
 
         //Frame 3
-        frame3.data[0]  = 32'hA4A3A2A1;  // <---
-        frame3.data[1]  = 32'hB2B1A6A5;  //    |
-        frame3.data[2]  = 32'hB6B5B4B3;  //    |  This part of the frame is looped
+        frame3.data[0]  = 32'hC4C3C2C1;  // <---
+        frame3.data[1]  = 32'hD2D1C6C5;  //    |
+        frame3.data[2]  = 32'hD6D5D4D3;  //    |  This part of the frame is looped
         frame3.data[3]  = 32'h11101600;  //    |  if FRAME_GEN_MULTIPLIER is set to
         frame3.data[4]  = 32'h15141312;  //    |  more than 1
         frame3.data[5]  = 32'h19181716;  //    |

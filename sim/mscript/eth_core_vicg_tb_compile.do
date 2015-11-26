@@ -16,13 +16,13 @@ vlib msim/xil_defaultlib
 vlib msim/ten_gig_eth_mac_v15_0_2
 vlib msim/gtwizard_ultrascale_v1_6_0
 vlib msim/ten_gig_eth_pcs_pma_v6_0_2
-vlib msim/fifo_generator_v12_0
+vlib msim/fifo_generator_v13_0_0
 
 vmap xil_defaultlib msim/xil_defaultlib
 vmap ten_gig_eth_mac_v15_0_2 msim/ten_gig_eth_mac_v15_0_2
 vmap gtwizard_ultrascale_v1_6_0 msim/gtwizard_ultrascale_v1_6_0
 vmap ten_gig_eth_pcs_pma_v6_0_2 msim/ten_gig_eth_pcs_pma_v6_0_2
-vmap fifo_generator_v12_0 msim/fifo_generator_v12_0
+vmap fifo_generator_v13_0_0 msim/fifo_generator_v13_0_0
 
 vlog -64 -incr -work xil_defaultlib  \
 "../../src/eth/support/gtwizard_ultrascale_v1_5_gthe3_common.v" \
@@ -90,9 +90,11 @@ vcom -64 -93 -work xil_defaultlib  \
 vcom -64 -93 -work xil_defaultlib  \
 "../testbanch/eth_core_example/eth_core_example.srcs/sources_1/ip/eth_core/sim/eth_core.vhd" \
 
-vcom -64 -93 -work fifo_generator_v12_0 "../testbanch/fifo_host2eth_example/fifo_host2eth_example.srcs/sources_1/ip/fifo_host2eth/fifo_generator_v12_0/simulation/fifo_generator_vhdl_beh.vhd"
-vcom -64 -93 -work fifo_generator_v12_0 "../testbanch/fifo_host2eth_example/fifo_host2eth_example.srcs/sources_1/ip/fifo_host2eth/fifo_generator_v12_0/hdl/fifo_generator_v12_0_vh_rfs.vhd"
-vcom -64 -93 -work xil_defaultlib "../testbanch/fifo_host2eth_example/fifo_host2eth_example.srcs/sources_1/ip/fifo_host2eth/sim/fifo_host2eth.vhd"
+vcom -64 -93 -work fifo_generator_v13_0_0 "../testbanch/fifo_host2eth_example/fifo_host2eth_example.ip_user_files/ipstatic/fifo_generator_v13_0_0/simulation/fifo_generator_vhdl_beh.vhd"
+vcom -64 -93 -work fifo_generator_v13_0_0 "../testbanch/fifo_host2eth_example/fifo_host2eth_example.ip_user_files/ipstatic/fifo_generator_v13_0_0/hdl/fifo_generator_v13_0_rfs.vhd"
+vcom -64 -93 -work xil_defaultlib         "../testbanch/fifo_host2eth_example/fifo_host2eth_example.srcs/sources_1/ip/fifo_host2eth/sim/fifo_host2eth.vhd"
+vcom -64 -93 -work xil_defaultlib         "../testbanch/fifo_eth2host_example/fifo_eth2host_example.srcs/sources_1/ip/fifo_eth2host/sim/fifo_eth2host.vhd"
+vcom -64 -93 -work xil_defaultlib         "../testbanch/fifo_eth2fg_example/fifo_eth2fg_example.srcs/sources_1/ip/fifo_eth2fg/sim/fifo_eth2fg.vhd"
 
 vcom -64 -93 -work xil_defaultlib  \
 "../../../../../lib/common/hw/lib/vicg/vicg_common_pkg.vhd" \
@@ -103,6 +105,8 @@ vcom -64 -93 -work xil_defaultlib  \
 "../../src/eth/eth_mac_rx_64.vhd" \
 "../../src/eth/eth_mac_tx_64.vhd" \
 "../../src/eth/eth_main.vhd" \
+"../../src/pkt_filter.vhd" \
+"../../src/switch_data.vhd" \
 "../testbanch/eth_core_example_design.vhd" \
 
 vlog -64 -incr -work xil_defaultlib  \
@@ -121,7 +125,7 @@ vlog -work xil_defaultlib "glbl.v"
 
 
 vsim -voptargs="+acc" -t 1ps -L unisims_ver -L unimacro_ver \
--L secureip -L ten_gig_eth_mac_v15_0_2 -L gtwizard_ultrascale_v1_6_0 -L ten_gig_eth_pcs_pma_v6_0_2 -L xil_defaultlib \
+-L secureip -L ten_gig_eth_mac_v15_0_2 -L gtwizard_ultrascale_v1_6_0 -L ten_gig_eth_pcs_pma_v6_0_2 -L fifo_generator_v13_0_0 -L xil_defaultlib \
 -lib xil_defaultlib xil_defaultlib.eth_core_tb xil_defaultlib.glbl
 
 

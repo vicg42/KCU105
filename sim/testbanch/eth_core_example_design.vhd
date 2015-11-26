@@ -144,6 +144,94 @@ srst      : in  std_logic
 end component;
 
 
+component switch_data is
+generic(
+G_ETH_CH_COUNT : integer := 1;
+G_ETH_DWIDTH : integer := 32;
+G_FGBUFI_DWIDTH : integer := 32;
+G_HOST_DWIDTH : integer := 32
+);
+port(
+-------------------------------
+--CFG
+-------------------------------
+p_in_cfg_clk     : in   std_logic;
+
+p_in_cfg_adr     : in   std_logic_vector(5 downto 0);
+p_in_cfg_adr_ld  : in   std_logic;
+
+p_in_cfg_txdata  : in   std_logic_vector(15 downto 0);
+p_in_cfg_wr      : in   std_logic;
+
+p_out_cfg_rxdata : out  std_logic_vector(15 downto 0);
+p_in_cfg_rd      : in   std_logic;
+
+-------------------------------
+--HOST
+-------------------------------
+--host -> dev
+p_in_eth_htxd_rdy      : in   std_logic;
+p_in_eth_htxbuf_di     : in   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+p_in_eth_htxbuf_wr     : in   std_logic;
+p_out_eth_htxbuf_full  : out  std_logic;
+p_out_eth_htxbuf_empty : out  std_logic;
+
+--host <- dev
+p_out_eth_hrxbuf_do    : out  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+p_in_eth_hrxbuf_rd     : in   std_logic;
+p_out_eth_hrxbuf_full  : out  std_logic;
+p_out_eth_hrxbuf_empty : out  std_logic;
+
+p_out_eth_hirq         : out  std_logic;
+
+p_in_hclk              : in   std_logic;
+
+-------------------------------
+--ETH
+-------------------------------
+p_in_eth_tmr_irq       : in   std_logic;
+p_in_eth_tmr_en        : in   std_logic;
+
+--rxbuf <- eth
+p_out_ethio_rx_axi_tready : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_ethio_rx_axi_tdata   : in   std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
+p_in_ethio_rx_axi_tkeep   : in   std_logic_vector(((G_ETH_DWIDTH / 8) * G_ETH_CH_COUNT) - 1 downto 0);
+p_in_ethio_rx_axi_tvalid  : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_ethio_rx_axi_tuser   : in   std_logic_vector((2 * G_ETH_CH_COUNT) - 1 downto 0);
+
+--txbuf -> eth
+p_out_ethio_tx_axi_tdata  : out  std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
+p_in_ethio_tx_axi_tready  : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_ethio_tx_axi_tvalid : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_ethio_tx_axi_done    : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+
+p_in_ethio_clk            : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_ethio_rst            : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+
+-------------------------------
+--FG_BUFI
+-------------------------------
+p_out_fgbufi_do    : out  std_logic_vector((G_FGBUFI_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0);
+p_in_fgbufi_rd     : in   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_in_fgbufi_rdclk  : in   std_logic;
+p_out_fgbufi_empty : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_fgbufi_full  : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_fgbufi_pfull : out  std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+
+-------------------------------
+--DBG
+-------------------------------
+p_in_tst  : in   std_logic_vector(31 downto 0);
+p_out_tst : out  std_logic_vector(31 downto 0);
+
+-------------------------------
+--System
+-------------------------------
+p_in_rst  : in    std_logic
+);
+end component switch_data;
+
+
 signal i_sfp_signal_detect : std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 signal i_sfp_tx_fault      : std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 
@@ -171,6 +259,19 @@ signal i_fifo_rd         : std_logic;
 signal i_fifo_empty      : std_logic;
 signal i_fifo_full       : std_logic;
 
+constant CI_HCLK_PERIOD : TIME := 2.5 ns; --400MHz
+constant CI_HOST_DWIDTH : natural := 128;
+
+signal i_eth_hrxbuf_do   : std_logic_vector(CI_HOST_DWIDTH - 1 downto 0);
+signal i_eth_htxbuf_wr   : std_logic;
+signal i_eth_hrxbuf_empty: std_logic;
+signal i_eth_hirq        : std_logic;
+signal i_hclk            : std_logic;
+
+signal sr_eth_hirq     : std_logic := '0';
+signal sr_eth_hirq_dly : std_logic_vector(0 to 15) := (others => '0');
+
+
 
 begin --architecture behavioral of eth_core_example_design is
 
@@ -187,33 +288,139 @@ end generate gen_ch;
 
 coreclk_out <= i_ethio_clk;
 
-i_fifo_di <= RESIZE(UNSIGNED(i_ethio_rx_axi_tdata((G_AXI_DWIDTH * (0 + 1)) - 1 downto (G_AXI_DWIDTH * 0))), i_fifo_di'length);
-i_fifo_wr <= i_ethio_rx_axi_tvalid(0);
-i_ethio_rx_axi_tready(0) <= not i_fifo_full;
+--i_fifo_di <= RESIZE(UNSIGNED(i_ethio_rx_axi_tdata((G_AXI_DWIDTH * (0 + 1)) - 1 downto (G_AXI_DWIDTH * 0))), i_fifo_di'length);
+--i_fifo_wr <= i_ethio_rx_axi_tvalid(0);
+--i_ethio_rx_axi_tready(0) <= not i_fifo_full;
+--
+--i_ethio_tx_axi_tdata((G_AXI_DWIDTH * (0 + 1)) - 1 downto (G_AXI_DWIDTH * 0)) <= i_fifo_do(G_AXI_DWIDTH - 1 downto 0);
+--i_fifo_rd <= i_ethio_tx_axi_tready(0);
+--i_ethio_tx_axi_tvalid(0) <= not i_fifo_empty;
+--
+--
+--m_fifo_loop : fifo_host2eth
+--port map(
+--din       => std_logic_vector(i_fifo_di),
+--wr_en     => i_fifo_wr,
+--
+--dout      => i_fifo_do,
+--rd_en     => i_fifo_rd,
+--
+--empty     => i_fifo_empty,
+--full      => open,
+--prog_full => i_fifo_full,
+--
+--wr_rst_busy => open,
+--rd_rst_busy => open,
+--
+--clk       => i_ethio_clk(0),
+--srst      => i_ethio_rst(0)
+--);
 
-i_ethio_tx_axi_tdata((G_AXI_DWIDTH * (0 + 1)) - 1 downto (G_AXI_DWIDTH * 0)) <= i_fifo_do(G_AXI_DWIDTH - 1 downto 0);
-i_fifo_rd <= i_ethio_tx_axi_tready(0);
-i_ethio_tx_axi_tvalid(0) <= not i_fifo_empty;
 
+i_eth_htxbuf_wr <= not i_eth_hrxbuf_empty;
 
-m_fifo_loop : fifo_host2eth
+gen_hclk : process
+begin
+i_hclk <= '0';
+wait for (CI_HCLK_PERIOD / 2);
+i_hclk <= '1';
+wait for (CI_HCLK_PERIOD / 2);
+end process;
+
+m_swt : switch_data
+generic map(
+G_ETH_CH_COUNT => G_GTCH_COUNT,
+G_ETH_DWIDTH => G_AXI_DWIDTH,
+G_FGBUFI_DWIDTH => G_AXI_DWIDTH,
+G_HOST_DWIDTH => CI_HOST_DWIDTH
+)
 port map(
-din       => std_logic_vector(i_fifo_di),
-wr_en     => i_fifo_wr,
+-------------------------------
+--CFG
+-------------------------------
+p_in_cfg_clk     => '0',
 
-dout      => i_fifo_do,
-rd_en     => i_fifo_rd,
+p_in_cfg_adr     => (others => '0'),
+p_in_cfg_adr_ld  => '0',
 
-empty     => i_fifo_empty,
-full      => open,
-prog_full => i_fifo_full,
+p_in_cfg_txdata  => (others => '0'),
+p_in_cfg_wr      => '0',
 
-wr_rst_busy => open,
-rd_rst_busy => open,
+p_out_cfg_rxdata => open,
+p_in_cfg_rd      => '0',
 
-clk       => i_ethio_clk(0),
-srst      => i_ethio_rst(0)
+-------------------------------
+--HOST
+-------------------------------
+--host -> dev
+p_in_eth_htxd_rdy      => sr_eth_hirq_dly(sr_eth_hirq_dly'high),--: in   std_logic;
+p_in_eth_htxbuf_di     => i_eth_hrxbuf_do,--: in   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+p_in_eth_htxbuf_wr     => i_eth_htxbuf_wr,--: in   std_logic;
+p_out_eth_htxbuf_full  => open,--: out  std_logic;
+p_out_eth_htxbuf_empty => open,--: out  std_logic;
+
+--host <- dev
+p_out_eth_hrxbuf_do    => i_eth_hrxbuf_do,--: out  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+p_in_eth_hrxbuf_rd     => '1', --: in   std_logic;
+p_out_eth_hrxbuf_full  => open,--: out  std_logic;
+p_out_eth_hrxbuf_empty => i_eth_hrxbuf_empty,--: out  std_logic;
+
+p_out_eth_hirq         => i_eth_hirq,--: out  std_logic;
+
+p_in_hclk              => i_hclk,--: in   std_logic;
+
+-------------------------------
+--ETH
+-------------------------------
+p_in_eth_tmr_irq       => '0',--: in   std_logic;
+p_in_eth_tmr_en        => '0',--: in   std_logic;
+
+--rxbuf <- eth
+p_out_ethio_rx_axi_tready => i_ethio_rx_axi_tready,
+p_in_ethio_rx_axi_tdata   => i_ethio_rx_axi_tdata ,
+p_in_ethio_rx_axi_tkeep   => i_ethio_rx_axi_tkeep ,
+p_in_ethio_rx_axi_tvalid  => i_ethio_rx_axi_tvalid,
+p_in_ethio_rx_axi_tuser   => i_ethio_rx_axi_tuser ,
+
+--txbuf -> eth
+p_out_ethio_tx_axi_tdata  => i_ethio_tx_axi_tdata ,
+p_in_ethio_tx_axi_tready  => i_ethio_tx_axi_tready,
+p_out_ethio_tx_axi_tvalid => i_ethio_tx_axi_tvalid,
+p_in_ethio_tx_axi_done    => i_ethio_tx_axi_done  ,
+
+p_in_ethio_clk            => i_ethio_clk,
+p_in_ethio_rst            => i_ethio_rst,
+
+-------------------------------
+--FG_BUFI
+-------------------------------
+p_out_fgbufi_do    => open,
+p_in_fgbufi_rd     => (others => '0'),
+p_in_fgbufi_rdclk  => '0',
+p_out_fgbufi_empty => open,
+p_out_fgbufi_full  => open,
+p_out_fgbufi_pfull => open,
+
+-------------------------------
+--DBG
+-------------------------------
+p_in_tst  => (others => '0'),---: in   std_logic_vector(31 downto 0);
+p_out_tst => open,--: out  std_logic_vector(31 downto 0);
+
+-------------------------------
+--System
+-------------------------------
+p_in_rst => i_ethio_rst(0) -- : in    std_logic
 );
+
+
+process(i_hclk)
+begin
+if rising_edge(i_hclk) then
+  sr_eth_hirq <= i_eth_hirq;
+  sr_eth_hirq_dly <= (not i_eth_hirq and sr_eth_hirq) & sr_eth_hirq_dly(0 to sr_eth_hirq_dly'high - 1);
+end if;
+end process;
 
 
 m_eth : eth_main

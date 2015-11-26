@@ -69,7 +69,7 @@ module eth_core_shared_clocking_wrapper   #(
    input [G_GTCH_COUNT - 1: 0]   qpll0reset,
    input          dclk,
    input [G_GTCH_COUNT - 1: 0]   txoutclk,
-   output         txoutclk_out,
+//   output         txoutclk_out,
    output         coreclk,
    input [G_GTCH_COUNT - 1: 0]   reset_tx_bufg_gt,
    output wire areset_coreclk,

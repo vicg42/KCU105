@@ -53,6 +53,7 @@ p_in_eth_axi_tlast   : in   std_logic;
 --------------------------------------
 p_in_tst  : in    std_logic_vector(31 downto 0);
 p_out_tst : out   std_logic_vector(31 downto 0);
+p_out_dbg : out   TEthDBG_MacRx;
 
 --------------------------------------
 --SYSTEM
@@ -93,12 +94,16 @@ signal i_ethrx_wren      : std_logic;
 signal i_usr_axi_de      : std_logic;
 
 signal i_eth_axi_tready  : std_logic;
+signal i_eth_axi_tready_out: std_logic;
+
+signal tst_fsm : unsigned(2 downto 0);
+
 
 
 begin --architecture behavioral of eth_mac_rx is
 
-
-p_out_eth_axi_tready <= i_eth_axi_tready and (p_in_usr_axi_tready);
+p_out_eth_axi_tready <= i_eth_axi_tready_out;
+i_eth_axi_tready_out <= i_eth_axi_tready and (p_in_usr_axi_tready);
 
 gen : for i in 0 to (G_AXI_DWIDTH / i_eth_axi_data(0)'length) - 1 generate begin
 i_eth_axi_data(i) <= p_in_eth_axi_tdata((i_eth_axi_data(i)'length * (i + 1)) - 1 downto (i_eth_axi_data(i)'length * i));
@@ -152,9 +157,19 @@ if rising_edge(p_in_clk) then
           if (p_in_eth_axi_tvalid = '1') then
 
             for i in 0 to i_ethrx_mac_valid'length - 1 loop
+            if strcmp(G_DBG, "LOOPBACK") then
+
+              if (p_in_cfg.mac.dst(i) = i_eth_axi_data(i)) then
+                i_ethrx_mac_valid(i) <= '1';
+              end if;
+
+            else
+
               if (p_in_cfg.mac.src(i) = i_eth_axi_data(i)) then
                 i_ethrx_mac_valid(i) <= '1';
               end if;
+
+            end if;
             end loop;
 
             i_fsm_eth_rx <= S_RX_CHK;
@@ -312,6 +327,23 @@ p_out_usr_axi_tuser(1) <= i_rx_eof;
 --gen_dbg_on : if strcmp(G_DBG,"ON") generate
 p_out_tst(31 downto 0) <= (others => '0');
 --end generate gen_dbg_on;
+
+p_out_dbg.eth_axi_tdata  <= p_in_eth_axi_tdata;
+p_out_dbg.eth_axi_tkeep  <= p_in_eth_axi_tkeep;
+
+p_out_dbg.eth_axi_tvalid <= p_in_eth_axi_tvalid;
+p_out_dbg.eth_axi_tlast  <= p_in_eth_axi_tlast;
+
+p_out_dbg.usr_axi_tvalid <= i_rx_wr;
+p_out_dbg.usr_axi_tuser  <= i_rx_eof & i_rx_sof;
+
+p_out_dbg.fsm <= std_logic_vector(tst_fsm);
+
+tst_fsm <= TO_UNSIGNED(16#01#, tst_fsm'length) when i_fsm_eth_rx = S_RX_WAIT   else
+           TO_UNSIGNED(16#02#, tst_fsm'length) when i_fsm_eth_rx = S_RX_END   else
+           TO_UNSIGNED(16#03#, tst_fsm'length) when i_fsm_eth_rx = S_RX_D   else
+           TO_UNSIGNED(16#04#, tst_fsm'length) when i_fsm_eth_rx = S_RX_CHK   else
+           TO_UNSIGNED(16#00#, tst_fsm'length);-- when i_fsm_eth_rx = S_RX_IDLE   else
 
 
 end architecture behavioral;

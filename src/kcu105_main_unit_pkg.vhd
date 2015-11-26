@@ -381,7 +381,7 @@ p_out_buf_rst  : out   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 --
 -------------------------------
 p_out_status_rdy      : out std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-p_out_status_carier   : out std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+--p_out_status_carier   : out std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 p_out_status_qplllock : out std_logic;
 
 p_in_sfp_signal_detect : in std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
@@ -403,6 +403,7 @@ p_in_ethphy_refclk_n: in  std_logic;
 p_in_sim_speedup_control : in  std_logic;
 p_in_tst  : in  std_logic_vector(31 downto 0);
 p_out_tst : out std_logic_vector(31 downto 0);
+p_out_dbg : out TEthDBG;
 
 -------------------------------
 --System

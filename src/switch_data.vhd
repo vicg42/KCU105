@@ -201,7 +201,7 @@ p_in_upp_sof    : in    std_logic;
 p_out_dwnp_data : out   std_logic_vector(G_DWIDTH - 1 downto 0);
 p_out_dwnp_wr   : out   std_logic;
 p_out_dwnp_eof  : out   std_logic;
-p_out_dwnp_sof  : out   std_logic;
+--p_out_dwnp_sof  : out   std_logic;
 
 -------------------------------
 --DBG
@@ -264,6 +264,7 @@ signal i_eth2h_di             : std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 signal i_fgbuf_fltr_do        : TEthCH_d;
 signal i_fgbuf_fltr_den       : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
+signal i_eth_htxbuf_di_swp    : std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 signal i_h2eth_buf_rst        : std_logic;
 
 
@@ -391,7 +392,7 @@ end process;
 process(p_in_ethio_clk(0))
 begin
 if rising_edge(p_in_ethio_clk(0)) then
-b_rst_eth_bufs <= p_in_rst or h_reg_ctrl(C_SWT_REG_CTRL_RST_ETH_BUFS_BIT);
+b_rst_eth_bufs <= p_in_ethio_rst(0);-- or h_reg_ctrl(C_SWT_REG_CTRL_RST_ETH_BUFS_BIT);
 end if;
 end process;
 
@@ -422,8 +423,8 @@ if rising_edge(p_in_ethio_clk(eth_ch)) then
 
   else
 
-    if (p_in_ethio_rx_axi_tuser((2 * eth_ch) + 1) = '1') then
-    --eof
+--    if (p_in_ethio_rx_axi_tuser((2 * eth_ch) + 1) = '1') then
+--    --eof
 
       for i in 0 to C_SWT_GET_FRR_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT) - 1 loop
         syn_eth2h_frr(eth_ch)(2 * i) <= h_reg_eth2h_frr(2 * i);
@@ -434,8 +435,8 @@ if rising_edge(p_in_ethio_clk(eth_ch)) then
         syn_eth2fg_frr(eth_ch)(2 * i) <= h_reg_eth2fg_frr(2 * i);
         syn_eth2fg_frr(eth_ch)((2 * i) + 1) <= h_reg_eth2fg_frr((2 * i) + 1);
       end loop;
-
-    end if;
+--
+--    end if;
 
     syn_eth_rxd(eth_ch) <= p_in_ethio_rx_axi_tdata((G_ETH_DWIDTH * (eth_ch + 1)) - 1 downto (G_ETH_DWIDTH * eth_ch));
     syn_eth_rxd_wr(eth_ch) <= p_in_ethio_rx_axi_tvalid(eth_ch);
@@ -456,9 +457,9 @@ end generate gen_frr_syn;
 p_out_eth_htxbuf_empty <= not i_eth_htxd_rdy;
 p_out_eth_htxbuf_full <= i_eth_txbuf_full;
 
-process(p_in_ethio_tx_axi_done(0), p_in_hclk)
+process(p_in_ethio_tx_axi_done(0), p_in_hclk, p_in_rst)
 begin
-if (p_in_ethio_tx_axi_done(0) = '1') then
+if (p_in_ethio_tx_axi_done(0) = '1' or p_in_rst = '1') then
   i_eth_htxd_rdy <= '0';
 
 elsif rising_edge(p_in_hclk) then
@@ -470,8 +471,8 @@ elsif rising_edge(p_in_hclk) then
 end if;
 end process;
 
-p_out_ethio_tx_axi_tvalid(0) <= not (not i_eth_txbuf_empty and i_eth_txbuf_empty_en)
-                            when i_eth_tmr_en = '1' else i_eth_txbuf_empty;
+p_out_ethio_tx_axi_tvalid(0) <= (not i_eth_txbuf_empty and i_eth_txbuf_empty_en)
+                            when i_eth_tmr_en = '1' else (not i_eth_txbuf_empty and i_eth_htxd_rdy);
 
 process(p_in_ethio_clk(0))
 begin
@@ -495,9 +496,17 @@ if rising_edge(p_in_ethio_clk(0)) then
 end if;
 end process;
 
+--swap data of port p_in_eth_htxbuf_di
+gen_h2eth_di_swp : for i in 0 to (G_HOST_DWIDTH / G_ETH_DWIDTH) - 1 generate
+begin
+i_eth_htxbuf_di_swp((G_HOST_DWIDTH - (G_ETH_DWIDTH * i)) - 1 downto
+                                        (G_HOST_DWIDTH - (G_ETH_DWIDTH * (i + 1)) ))
+                                                     <= p_in_eth_htxbuf_di((G_ETH_DWIDTH * (i + 1)) - 1 downto (G_ETH_DWIDTH * i));
+end generate gen_h2eth_di_swp;
+
 m_h2eth_buf : fifo_host2eth
 port map(
-din     => p_in_eth_htxbuf_di,
+din     => i_eth_htxbuf_di_swp,
 wr_en   => p_in_eth_htxbuf_wr,
 wr_clk  => p_in_hclk,
 
@@ -549,7 +558,7 @@ p_in_upp_sof    => syn_eth_rxd_sof(0),
 p_out_dwnp_data => i_eth_fltr_do ,
 p_out_dwnp_wr   => i_eth_fltr_den,
 p_out_dwnp_eof  => i_eth_fltr_eof,
-p_out_dwnp_sof  => open,
+--p_out_dwnp_sof  => open,
 
 -------------------------------
 --DBG
@@ -706,7 +715,7 @@ p_in_upp_sof    => syn_eth_rxd_sof(eth_ch),
 p_out_dwnp_data => i_fgbuf_fltr_do (eth_ch),
 p_out_dwnp_wr   => i_fgbuf_fltr_den(eth_ch),
 p_out_dwnp_eof  => open,
-p_out_dwnp_sof  => open,
+--p_out_dwnp_sof  => open,
 
 -------------------------------
 --DBG
@@ -751,15 +760,21 @@ end generate gen_fgbuf;
 --##################################
 --DBG
 --##################################
-p_out_tst(0) <= b_rst_eth_bufs;
-p_out_tst(1) <= '0';
-p_out_tst(2) <= '0';
+p_out_tst(0) <= i_h2eth_buf_rst;
+p_out_tst(1) <= i_eth_txbuf_empty;
+p_out_tst(2) <= i_eth_htxd_rdy;
 p_out_tst(3) <= '0';
 p_out_tst(4) <= OR_reduce(h_reg_eth2fg_frr(0));
 p_out_tst(5) <= h_reg_dbg(C_SWT_REG_DBG_HOST2FG_BIT);
-p_out_tst(6) <= '0';
-p_out_tst(7) <= '0';
-p_out_tst(31 downto 8) <= (others => '0');
+p_out_tst(6) <= syn_eth_rxd_wr(0);
+p_out_tst(7) <= syn_eth_rxd_sof(0);
+p_out_tst(8) <= syn_eth_rxd_eof(0);
+p_out_tst(9) <= i_fgbuf_fltr_den(0);
+p_out_tst(31 downto 10) <= (others => '0');
+
+
+
+
 
 
 end architecture behavioral;

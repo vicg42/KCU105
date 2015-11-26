@@ -231,7 +231,7 @@ elsif rising_edge(p_in_tmr_clk) then
       i_tmr_irq_exp(i) <= '0';
     end if;
 
-    sr_tmr_irq(i) <= i_tmr_irq(i) & sr_tmr_irq(i)(0 to sr_tmr_irq'high - 1);
+    sr_tmr_irq(i) <= i_tmr_irq(i) & sr_tmr_irq(i)(0 to sr_tmr_irq(i)'high - 1);
 
 end if;
 end process;

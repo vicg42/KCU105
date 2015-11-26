@@ -270,7 +270,7 @@ constant C_SWT_FRR_COUNT_MAX                  : integer := 8;
 
 --
 constant C_SWT_ETH_HOST_FRR_COUNT             : integer := 3; --Кол-во правил машрутизации пакетов ETH-HOST
-constant C_SWT_ETH_FG_FRR_COUNT               : integer := C_PCFG_FG_VCH_COUNT;--Кол-во правил машрутизации пакетов ETH-VCTRL
+constant C_SWT_ETH_FG_FRR_COUNT               : integer := C_PCFG_FG_VCH_COUNT; --Кол-во правил машрутизации пакетов ETH-VCTRL
 
 Type TEthFRRGet is array (0 to C_SWT_FRR_COUNT_MAX - 1) of integer;
 ----------------------------------------------------------------------------------------

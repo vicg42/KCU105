@@ -60,7 +60,7 @@ p_out_buf_rst  : out   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 --
 -------------------------------
 p_out_status_rdy      : out std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-p_out_status_carier   : out std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+--p_out_status_carier   : out std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 p_out_status_qplllock : out std_logic;
 
 p_in_sfp_signal_detect : in std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
@@ -82,6 +82,7 @@ p_in_ethphy_refclk_n: in  std_logic;
 p_in_sim_speedup_control : in  std_logic;
 p_in_tst  : in  std_logic_vector(31 downto 0);
 p_out_tst : out std_logic_vector(31 downto 0);
+p_out_dbg : out TEthDBG;
 
 -------------------------------
 --System
@@ -128,6 +129,7 @@ p_in_eth_axi_tlast   : in   std_logic;
 --------------------------------------
 p_in_tst  : in    std_logic_vector(31 downto 0);
 p_out_tst : out   std_logic_vector(31 downto 0);
+p_out_dbg : out   TEthDBG_MacRx;
 
 --------------------------------------
 --SYSTEM
@@ -170,6 +172,7 @@ p_out_eth_axi_tlast  : out  std_logic;
 --------------------------------------
 p_in_tst  : in   std_logic_vector(31 downto 0);
 p_out_tst : out  std_logic_vector(31 downto 0);
+p_out_dbg : out  TEthDBG_MacTx;
 
 --------------------------------------
 --SYSTEM
@@ -182,6 +185,7 @@ end component eth_mac_tx;
 
 component eth_app is
 generic (
+G_FIFO_SIZE : integer := 1024; -- Set FIFO memory size
 G_AXI_DWIDTH : integer := 64;
 G_GTCH_COUNT : integer := 1
 );
@@ -294,19 +298,19 @@ if rising_edge(p_in_cfg_clk) then
 --    h_reg_ethcfg.mac.src(i) <= (others => '0');
 --    end loop;
 
-    h_reg_ethcfg.mac.dst(0) <= std_logic_vector(TO_UNSIGNED(16#B1#, 8));
-    h_reg_ethcfg.mac.dst(1) <= std_logic_vector(TO_UNSIGNED(16#B2#, 8));
-    h_reg_ethcfg.mac.dst(2) <= std_logic_vector(TO_UNSIGNED(16#B3#, 8));
-    h_reg_ethcfg.mac.dst(3) <= std_logic_vector(TO_UNSIGNED(16#B4#, 8));
-    h_reg_ethcfg.mac.dst(4) <= std_logic_vector(TO_UNSIGNED(16#B5#, 8));
-    h_reg_ethcfg.mac.dst(5) <= std_logic_vector(TO_UNSIGNED(16#B6#, 8));
+    h_reg_ethcfg.mac.dst(0) <= std_logic_vector(TO_UNSIGNED(16#D1#, 8));
+    h_reg_ethcfg.mac.dst(1) <= std_logic_vector(TO_UNSIGNED(16#D2#, 8));
+    h_reg_ethcfg.mac.dst(2) <= std_logic_vector(TO_UNSIGNED(16#D3#, 8));
+    h_reg_ethcfg.mac.dst(3) <= std_logic_vector(TO_UNSIGNED(16#D4#, 8));
+    h_reg_ethcfg.mac.dst(4) <= std_logic_vector(TO_UNSIGNED(16#D5#, 8));
+    h_reg_ethcfg.mac.dst(5) <= std_logic_vector(TO_UNSIGNED(16#D6#, 8));
 
-    h_reg_ethcfg.mac.src(0) <= std_logic_vector(TO_UNSIGNED(16#A1#, 8));
-    h_reg_ethcfg.mac.src(1) <= std_logic_vector(TO_UNSIGNED(16#A2#, 8));
-    h_reg_ethcfg.mac.src(2) <= std_logic_vector(TO_UNSIGNED(16#A3#, 8));
-    h_reg_ethcfg.mac.src(3) <= std_logic_vector(TO_UNSIGNED(16#A4#, 8));
-    h_reg_ethcfg.mac.src(4) <= std_logic_vector(TO_UNSIGNED(16#A5#, 8));
-    h_reg_ethcfg.mac.src(5) <= std_logic_vector(TO_UNSIGNED(16#A6#, 8));
+    h_reg_ethcfg.mac.src(0) <= std_logic_vector(TO_UNSIGNED(16#C1#, 8));
+    h_reg_ethcfg.mac.src(1) <= std_logic_vector(TO_UNSIGNED(16#C2#, 8));
+    h_reg_ethcfg.mac.src(2) <= std_logic_vector(TO_UNSIGNED(16#C3#, 8));
+    h_reg_ethcfg.mac.src(3) <= std_logic_vector(TO_UNSIGNED(16#C4#, 8));
+    h_reg_ethcfg.mac.src(4) <= std_logic_vector(TO_UNSIGNED(16#C5#, 8));
+    h_reg_ethcfg.mac.src(5) <= std_logic_vector(TO_UNSIGNED(16#C6#, 8));
 
   else
     if p_in_cfg_wr = '1' then
@@ -425,6 +429,7 @@ p_out_eth_axi_tlast  => i_tx_fifo_tlast(i),
 --------------------------------------------------
 p_in_tst  => (others => '0'),
 p_out_tst => open,
+p_out_dbg => p_out_dbg.tx(i),
 
 --------------------------------------
 --SYSTEM
@@ -437,7 +442,7 @@ p_in_rst => i_txuserrdy_out(i) --p_in_rst
 m_mac_rx : eth_mac_rx
 generic map(
 G_AXI_DWIDTH => G_ETH_DWIDTH,
-G_DBG => "OFF"
+G_DBG => G_DBG
 )
 port map(
 --------------------------------------
@@ -468,6 +473,7 @@ p_in_eth_axi_tlast   => i_rx_fifo_tlast(i),
 --------------------------------------------------
 p_in_tst  => (others => '0'),
 p_out_tst => open,
+p_out_dbg => p_out_dbg.rx(i),
 
 --------------------------------------
 --SYSTEM
@@ -484,6 +490,7 @@ end generate gen_mac_ch;
 
 m_eth_app : eth_app
 generic map(
+G_FIFO_SIZE => 2048, -- Set FIFO memory size
 G_AXI_DWIDTH => G_ETH_DWIDTH,
 G_GTCH_COUNT => G_ETH_CH_COUNT
 )
