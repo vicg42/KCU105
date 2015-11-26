@@ -136,8 +136,8 @@ c0_init_calib_complete => p_out_status.rdy(i),--: out STD_LOGIC;
 c0_ddr4_aresetn         => i_aresetn(i)      ,--: in STD_LOGIC;
 c0_ddr4_ui_clk_sync_rst => i_rst(i)          ,--: out STD_LOGIC;
 c0_ddr4_ui_clk          => i_clk(i)          ,--: out STD_LOGIC;
-addn_ui_clkout1         => open              ,--: out STD_LOGIC; --200MHz
-addn_ui_clkout2         => open              ,--: out STD_LOGIC; --150MHz
+--addn_ui_clkout1         => open              ,--: out STD_LOGIC; --200MHz
+--addn_ui_clkout2         => open              ,--: out STD_LOGIC; --150MHz
 dbg_clk                 => open              ,--: out STD_LOGIC;
 dbg_bus                 => open              ,--: out std_logic_vector(511 downto 0);
 
