@@ -91,7 +91,7 @@ p_out_buf_rst  : out   std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 --
 -------------------------------
 p_out_status_rdy      : out std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-p_out_status_carier   : out std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+--p_out_status_carier   : out std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 p_out_status_qplllock : out std_logic;
 
 p_in_sfp_signal_detect : in std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
@@ -262,6 +262,8 @@ signal i_fifo_full       : std_logic;
 constant CI_HCLK_PERIOD : TIME := 2.5 ns; --400MHz
 constant CI_HOST_DWIDTH : natural := 128;
 
+signal i_eth_hrxbuf_di_rdy : std_logic;
+signal i_eth_hrxbuf_di   : unsigned(CI_HOST_DWIDTH - 1 downto 0);
 signal i_eth_hrxbuf_do   : std_logic_vector(CI_HOST_DWIDTH - 1 downto 0);
 signal i_eth_htxbuf_wr   : std_logic;
 signal i_eth_hrxbuf_empty: std_logic;
@@ -317,7 +319,8 @@ coreclk_out <= i_ethio_clk;
 --);
 
 
-i_eth_htxbuf_wr <= not i_eth_hrxbuf_empty;
+--i_eth_htxbuf_wr <= not i_eth_hrxbuf_empty;
+
 
 gen_hclk : process
 begin
@@ -325,6 +328,44 @@ i_hclk <= '0';
 wait for (CI_HCLK_PERIOD / 2);
 i_hclk <= '1';
 wait for (CI_HCLK_PERIOD / 2);
+end process;
+
+
+process
+begin
+
+i_eth_hrxbuf_di <= (others => '0');
+i_eth_htxbuf_wr <= '0';
+i_eth_hrxbuf_di_rdy <= '0';
+
+wait for 20 us;
+
+wait until rising_edge(i_hclk); i_eth_htxbuf_wr <= '1';
+i_eth_hrxbuf_di(63 downto 0) <=  TO_UNSIGNED(16#0504#, 16) & TO_UNSIGNED(16#0302#, 16) & TO_UNSIGNED(16#0100#, 16) & TO_UNSIGNED(16#004E#, 16);
+i_eth_hrxbuf_di(127 downto 64) <=  TO_UNSIGNED(16#0D0C#, 16) & TO_UNSIGNED(16#0B0A#, 16) & TO_UNSIGNED(16#0908#, 16) & TO_UNSIGNED(16#0706#, 16);
+
+wait until rising_edge(i_hclk); i_eth_htxbuf_wr <= '1';
+i_eth_hrxbuf_di(63 downto 0) <=  TO_UNSIGNED(16#1514#, 16) & TO_UNSIGNED(16#1312#, 16) & TO_UNSIGNED(16#1110#, 16) & TO_UNSIGNED(16#0F0E#, 16);
+i_eth_hrxbuf_di(127 downto 64) <=  TO_UNSIGNED(16#1D1C#, 16) & TO_UNSIGNED(16#1B1A#, 16) & TO_UNSIGNED(16#1918#, 16) & TO_UNSIGNED(16#1716#, 16);
+
+wait until rising_edge(i_hclk); i_eth_htxbuf_wr <= '1';
+i_eth_hrxbuf_di(63 downto 0) <=  TO_UNSIGNED(16#2524#, 16) & TO_UNSIGNED(16#2322#, 16) & TO_UNSIGNED(16#2120#, 16) & TO_UNSIGNED(16#1F1E#, 16);
+i_eth_hrxbuf_di(127 downto 64) <=  TO_UNSIGNED(16#2D2C#, 16) & TO_UNSIGNED(16#2B2A#, 16) & TO_UNSIGNED(16#2928#, 16) & TO_UNSIGNED(16#2726#, 16);
+
+wait until rising_edge(i_hclk); i_eth_htxbuf_wr <= '1';
+i_eth_hrxbuf_di(63 downto 0) <=  TO_UNSIGNED(16#3534#, 16) & TO_UNSIGNED(16#3332#, 16) & TO_UNSIGNED(16#3130#, 16) & TO_UNSIGNED(16#2F2E#, 16);
+i_eth_hrxbuf_di(127 downto 64) <=  TO_UNSIGNED(16#3D3C#, 16) & TO_UNSIGNED(16#3B3A#, 16) & TO_UNSIGNED(16#3938#, 16) & TO_UNSIGNED(16#3736#, 16);
+
+wait until rising_edge(i_hclk); i_eth_htxbuf_wr <= '1';
+i_eth_hrxbuf_di(63 downto 0) <=  TO_UNSIGNED(16#0000#, 16) & TO_UNSIGNED(16#0000#, 16) & TO_UNSIGNED(16#0000#, 16) & TO_UNSIGNED(16#3F3E#, 16);
+i_eth_hrxbuf_di(127 downto 64) <=  (others => '0');
+
+wait until rising_edge(i_hclk); i_eth_htxbuf_wr <= '0';
+i_eth_hrxbuf_di_rdy <= '1';
+
+wait until rising_edge(i_hclk);
+i_eth_hrxbuf_di_rdy <= '0';
+
 end process;
 
 m_swt : switch_data
@@ -353,8 +394,8 @@ p_in_cfg_rd      => '0',
 --HOST
 -------------------------------
 --host -> dev
-p_in_eth_htxd_rdy      => sr_eth_hirq_dly(sr_eth_hirq_dly'high),--: in   std_logic;
-p_in_eth_htxbuf_di     => i_eth_hrxbuf_do,--: in   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+p_in_eth_htxd_rdy      => i_eth_hrxbuf_di_rdy,--sr_eth_hirq_dly(sr_eth_hirq_dly'high),--: in   std_logic;
+p_in_eth_htxbuf_di     => std_logic_vector(i_eth_hrxbuf_di),--i_eth_hrxbuf_do,--: in   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 p_in_eth_htxbuf_wr     => i_eth_htxbuf_wr,--: in   std_logic;
 p_out_eth_htxbuf_full  => open,--: out  std_logic;
 p_out_eth_htxbuf_empty => open,--: out  std_logic;
@@ -465,7 +506,7 @@ p_out_buf_clk => i_ethio_clk,
 p_out_buf_rst => i_ethio_rst,
 
 p_out_status_rdy      => core_ready,
-p_out_status_carier   => open,
+--p_out_status_carier   => open,
 p_out_status_qplllock => qplllock_out,
 
 p_in_sfp_signal_detect => i_sfp_signal_detect,

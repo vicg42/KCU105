@@ -176,8 +176,8 @@ module eth_core_tb;
 parameter G_AXI_DWIDTH = 64;
 parameter G_GTCH_COUNT = 1;
 
-parameter TB_MODE = "DEMO_TB";
-// parameter TB_MODE = "BIST";
+//parameter TB_MODE = "DEMO_TB";
+ parameter TB_MODE = "BIST";
 
     // Frame data....
     frame_typ_eth_core frame0();

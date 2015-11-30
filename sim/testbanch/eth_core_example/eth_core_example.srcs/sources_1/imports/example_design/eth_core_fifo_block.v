@@ -260,7 +260,7 @@ parameter                              FIFO_SIZE = 1024
       .tx_axis_mac_tlast               (tx_axis_mac_tlast),
       .tx_axis_mac_tready              (tx_axis_mac_tready),
       .rx_axis_mac_aresetn             (rx_axis_mac_aresetn_i),
-      .rx_axis_mac_aclk                (rxrecclk_out),
+      .rx_axis_mac_aclk                (coreclk),
       .rx_axis_mac_tdata               (rx_axis_mac_tdata),
       .rx_axis_mac_tkeep               (rx_axis_mac_tkeep),
       .rx_axis_mac_tvalid              (rx_axis_mac_tvalid),

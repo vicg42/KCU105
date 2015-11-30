@@ -150,7 +150,6 @@ module eth_core_example_design
    wire      [7:0]   pcspma_status;
 
    wire              pcs_loopback_sync;
-   wire              enable_custom_preamble_rxrecclk_sync;
    wire              enable_custom_preamble_coreclk_sync;
    wire              insert_error_sync;
 
@@ -174,12 +173,6 @@ module eth_core_example_design
    );
 
 
-   eth_core_sync_block sync_rxrecclk_enable_custom_preamble (
-      .data_in                         (enable_custom_preamble),
-      .clk                             (rxrecclk),
-      .data_out                        (enable_custom_preamble_rxrecclk_sync)
-   );
-
    eth_core_sync_block sync_pcs_loopback (
       .data_in                         (pcs_loopback),
       .clk                             (coreclk),
@@ -187,7 +180,7 @@ module eth_core_example_design
    );
 
    // Assign the configuration settings to the configuration vectors
-   assign mac_rx_configuration_vector = {72'd0,enable_custom_preamble_rxrecclk_sync,4'd0,enable_vlan,2'b10};
+   assign mac_rx_configuration_vector = {72'd0,enable_custom_preamble_coreclk_sync,4'd0,enable_vlan,2'b10};
    assign mac_tx_configuration_vector = {72'd0,enable_custom_preamble_coreclk_sync,4'd0,enable_vlan,2'b10};
 
    assign pcs_pma_configuration_vector = {425'd0,pcs_loopback_sync,110'd0};
@@ -345,7 +338,7 @@ module eth_core_example_design
 
    assign tx_statistics_vector         = tx_statistics_shift[27];
 
-   always @(posedge rxrecclk)
+   always @(posedge coreclk)
    begin
      rx_statistics_valid               <= rx_statistics_valid_int;
      if (rx_statistics_valid_int & !rx_statistics_valid) begin

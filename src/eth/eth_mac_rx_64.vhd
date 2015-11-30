@@ -53,7 +53,7 @@ p_in_eth_axi_tlast   : in   std_logic;
 --------------------------------------
 p_in_tst  : in    std_logic_vector(31 downto 0);
 p_out_tst : out   std_logic_vector(31 downto 0);
-p_out_dbg : out   TEthDBG_MacRx;
+--p_out_dbg : out   TEthDBG_MacRx;
 
 --------------------------------------
 --SYSTEM
@@ -325,23 +325,26 @@ p_out_usr_axi_tuser(1) <= i_rx_eof;
 --DBG
 --##################################
 --gen_dbg_on : if strcmp(G_DBG,"ON") generate
-p_out_tst(31 downto 0) <= (others => '0');
+--p_out_tst(31 downto 0) <= (others => '0');
 --end generate gen_dbg_on;
 
-p_out_dbg.eth_axi_tdata  <= p_in_eth_axi_tdata;
-p_out_dbg.eth_axi_tkeep  <= p_in_eth_axi_tkeep;
+p_out_tst(2 downto 0) <= std_logic_vector(tst_fsm);
+p_out_tst(31 downto 3) <= (others => '0');
 
-p_out_dbg.eth_axi_tvalid <= p_in_eth_axi_tvalid;
-p_out_dbg.eth_axi_tlast  <= p_in_eth_axi_tlast;
+--p_out_dbg.eth_axi_tdata  <= p_in_eth_axi_tdata;
+--p_out_dbg.eth_axi_tkeep  <= p_in_eth_axi_tkeep;
+--
+--p_out_dbg.eth_axi_tvalid <= p_in_eth_axi_tvalid;
+--p_out_dbg.eth_axi_tlast  <= p_in_eth_axi_tlast;
+--
+--p_out_dbg.usr_axi_tvalid <= i_rx_wr;
+--p_out_dbg.usr_axi_tuser  <= i_rx_eof & i_rx_sof;
+--
+--p_out_dbg.fsm <= std_logic_vector(tst_fsm);
 
-p_out_dbg.usr_axi_tvalid <= i_rx_wr;
-p_out_dbg.usr_axi_tuser  <= i_rx_eof & i_rx_sof;
-
-p_out_dbg.fsm <= std_logic_vector(tst_fsm);
-
-tst_fsm <= TO_UNSIGNED(16#01#, tst_fsm'length) when i_fsm_eth_rx = S_RX_WAIT   else
+tst_fsm <= TO_UNSIGNED(16#01#, tst_fsm'length) when i_fsm_eth_rx = S_RX_WAIT  else
            TO_UNSIGNED(16#02#, tst_fsm'length) when i_fsm_eth_rx = S_RX_END   else
-           TO_UNSIGNED(16#03#, tst_fsm'length) when i_fsm_eth_rx = S_RX_D   else
+           TO_UNSIGNED(16#03#, tst_fsm'length) when i_fsm_eth_rx = S_RX_D     else
            TO_UNSIGNED(16#04#, tst_fsm'length) when i_fsm_eth_rx = S_RX_CHK   else
            TO_UNSIGNED(16#00#, tst_fsm'length);-- when i_fsm_eth_rx = S_RX_IDLE   else
 

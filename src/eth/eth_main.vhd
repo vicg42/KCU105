@@ -129,7 +129,7 @@ p_in_eth_axi_tlast   : in   std_logic;
 --------------------------------------
 p_in_tst  : in    std_logic_vector(31 downto 0);
 p_out_tst : out   std_logic_vector(31 downto 0);
-p_out_dbg : out   TEthDBG_MacRx;
+--p_out_dbg : out   TEthDBG_MacRx;
 
 --------------------------------------
 --SYSTEM
@@ -172,7 +172,7 @@ p_out_eth_axi_tlast  : out  std_logic;
 --------------------------------------
 p_in_tst  : in   std_logic_vector(31 downto 0);
 p_out_tst : out  std_logic_vector(31 downto 0);
-p_out_dbg : out  TEthDBG_MacTx;
+--p_out_dbg : out  TEthDBG_MacTx;
 
 --------------------------------------
 --SYSTEM
@@ -224,6 +224,26 @@ rx_axis_tvalid  : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 rx_axis_tlast   : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 rx_axis_tready  : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 
+
+
+tst_rx_axis_mac_tdata   : out std_logic_vector((G_AXI_DWIDTH * G_GTCH_COUNT) - 1 downto 0)      ;
+tst_rx_axis_mac_tkeep   : out std_logic_vector(((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 downto 0);
+tst_rx_axis_mac_tvalid  : out std_logic_vector(G_GTCH_COUNT - 1 downto 0)                       ;
+tst_rx_axis_mac_tlast   : out std_logic_vector(G_GTCH_COUNT - 1 downto 0)                       ;
+tst_rx_axis_mac_tuser   : out std_logic_vector(G_GTCH_COUNT - 1 downto 0)                       ;
+
+tst_tx_axis_mac_tdata   : out std_logic_vector((G_AXI_DWIDTH * G_GTCH_COUNT) - 1 downto 0)      ;
+tst_tx_axis_mac_tkeep   : out std_logic_vector(((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 downto 0);
+tst_tx_axis_mac_tvalid  : out std_logic_vector(G_GTCH_COUNT - 1 downto 0)                       ;
+tst_tx_axis_mac_tlast   : out std_logic_vector(G_GTCH_COUNT - 1 downto 0)                       ;
+tst_tx_axis_mac_tready  : out std_logic_vector(G_GTCH_COUNT - 1 downto 0)                       ;
+
+tst_tx_axis_fifo_tdata   : out std_logic_vector((G_AXI_DWIDTH * G_GTCH_COUNT) - 1 downto 0)      ;
+tst_tx_axis_fifo_tkeep   : out std_logic_vector(((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 downto 0);
+tst_tx_axis_fifo_tvalid  : out std_logic_vector(G_GTCH_COUNT - 1 downto 0)                       ;
+tst_tx_axis_fifo_tlast   : out std_logic_vector(G_GTCH_COUNT - 1 downto 0)                       ;
+tst_tx_axis_fifo_tready  : out std_logic_vector(G_GTCH_COUNT - 1 downto 0)                       ;
+
 --Serial I/O from/to transceiver
 txp  : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 txn  : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
@@ -259,8 +279,28 @@ signal i_coreclk_out     : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
 signal i_txuserrdy_out   : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
---signal i_dbg_out         : TEthDBG;
+signal tst_rx_axis_mac_tdata   : std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0)      ;
+signal tst_rx_axis_mac_tkeep   : std_logic_vector(((G_ETH_DWIDTH / 8) * G_ETH_CH_COUNT) - 1 downto 0);
+signal tst_rx_axis_mac_tvalid  : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0)                       ;
+signal tst_rx_axis_mac_tlast   : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0)                       ;
+signal tst_rx_axis_mac_tuser   : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0)                       ;
 
+signal tst_tx_axis_mac_tdata   : std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0)      ;
+signal tst_tx_axis_mac_tkeep   : std_logic_vector(((G_ETH_DWIDTH / 8) * G_ETH_CH_COUNT) - 1 downto 0);
+signal tst_tx_axis_mac_tvalid  : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0)                       ;
+signal tst_tx_axis_mac_tlast   : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0)                       ;
+signal tst_tx_axis_mac_tready  : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0)                       ;
+
+signal tst_tx_axis_fifo_tdata   : std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0)      ;
+signal tst_tx_axis_fifo_tkeep   : std_logic_vector(((G_ETH_DWIDTH / 8) * G_ETH_CH_COUNT) - 1 downto 0);
+signal tst_tx_axis_fifo_tvalid  : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0)                       ;
+signal tst_tx_axis_fifo_tlast   : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0)                       ;
+signal tst_tx_axis_fifo_tready  : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0)                       ;
+
+signal i_eth_mac_tx_tst_out : std_logic_vector((32 * G_ETH_CH_COUNT) - 1 downto 0);
+signal i_eth_mac_rx_tst_out : std_logic_vector((32 * G_ETH_CH_COUNT) - 1 downto 0);
+
+--signal i_dbg_out         : TEthDBG;
 
 
 
@@ -428,8 +468,8 @@ p_out_eth_axi_tlast  => i_tx_fifo_tlast(i),
 --DBG
 --------------------------------------------------
 p_in_tst  => (others => '0'),
-p_out_tst => open,
-p_out_dbg => p_out_dbg.tx(i),
+p_out_tst => i_eth_mac_tx_tst_out((32 * (i + 1)) - 1 downto (32 * i)),
+--p_out_dbg => p_out_dbg.tx(i),
 
 --------------------------------------
 --SYSTEM
@@ -472,8 +512,8 @@ p_in_eth_axi_tlast   => i_rx_fifo_tlast(i),
 --DBG
 --------------------------------------------------
 p_in_tst  => (others => '0'),
-p_out_tst => open,
-p_out_dbg => p_out_dbg.rx(i),
+p_out_tst => i_eth_mac_rx_tst_out((32 * (i + 1)) - 1 downto (32 * i)),
+--p_out_dbg => p_out_dbg.rx(i),
 
 --------------------------------------
 --SYSTEM
@@ -484,6 +524,31 @@ p_in_rst => i_txuserrdy_out(i) --p_in_rst
 
 p_out_buf_clk(i) <= i_coreclk_out(i);
 p_out_buf_rst(i) <= not i_txuserrdy_out(i);
+
+
+
+p_out_dbg.rx(i).fsm <= i_eth_mac_rx_tst_out((32 * i) + 2 downto (32 * i) + 0);
+
+p_out_dbg.rx(i).mac_tdata  <= tst_rx_axis_mac_tdata ((G_ETH_DWIDTH * (i + 1)) - 1 downto (G_ETH_DWIDTH * i))            ;
+p_out_dbg.rx(i).mac_tkeep  <= tst_rx_axis_mac_tkeep (((G_ETH_DWIDTH / 8) * (i + 1)) - 1 downto ((G_ETH_DWIDTH / 8) * i));
+p_out_dbg.rx(i).mac_tvalid <= tst_rx_axis_mac_tvalid(i)                                                                 ;
+p_out_dbg.rx(i).mac_tlast  <= tst_rx_axis_mac_tlast (i)                                                                 ;
+p_out_dbg.rx(i).mac_tuser  <= tst_rx_axis_mac_tuser (i)                                                                 ;
+
+
+p_out_dbg.tx(i).fsm          <= i_eth_mac_tx_tst_out((32 * i) + 2 downto (32 * i) + 0);
+
+p_out_dbg.tx(i).mac_tdata  <= tst_tx_axis_mac_tdata ((G_ETH_DWIDTH * (i + 1)) - 1 downto (G_ETH_DWIDTH * i))            ;
+p_out_dbg.tx(i).mac_tkeep  <= tst_tx_axis_mac_tkeep (((G_ETH_DWIDTH / 8) * (i + 1)) - 1 downto ((G_ETH_DWIDTH / 8) * i));
+p_out_dbg.tx(i).mac_tvalid <= tst_tx_axis_mac_tvalid(i)                                                                 ;
+p_out_dbg.tx(i).mac_tlast  <= tst_tx_axis_mac_tlast (i)                                                                 ;
+p_out_dbg.tx(i).mac_tready <= tst_tx_axis_mac_tready(i)                                                                 ;
+
+p_out_dbg.tx(i).fifo_tdata  <= tst_tx_axis_fifo_tdata ((G_ETH_DWIDTH * (i + 1)) - 1 downto (G_ETH_DWIDTH * i))            ;
+p_out_dbg.tx(i).fifo_tkeep  <= tst_tx_axis_fifo_tkeep (((G_ETH_DWIDTH / 8) * (i + 1)) - 1 downto ((G_ETH_DWIDTH / 8) * i));
+p_out_dbg.tx(i).fifo_tvalid <= tst_tx_axis_fifo_tvalid(i)                                                                 ;
+p_out_dbg.tx(i).fifo_tlast  <= tst_tx_axis_fifo_tlast (i)                                                                 ;
+p_out_dbg.tx(i).fifo_tready <= tst_tx_axis_fifo_tready(i)                                                                 ;
 
 end generate gen_mac_ch;
 
@@ -529,6 +594,27 @@ rx_axis_tkeep   => i_rx_fifo_tkeep,
 rx_axis_tvalid  => i_rx_fifo_tvalid,
 rx_axis_tlast   => i_rx_fifo_tlast,
 rx_axis_tready  => i_rx_fifo_tready,
+
+
+
+tst_rx_axis_mac_tdata   => tst_rx_axis_mac_tdata , --: out std_logic_vector((G_AXI_DWIDTH * G_GTCH_COUNT) - 1 downto 0)      ;
+tst_rx_axis_mac_tkeep   => tst_rx_axis_mac_tkeep , --: out std_logic_vector(((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 downto 0);
+tst_rx_axis_mac_tvalid  => tst_rx_axis_mac_tvalid, --: out std_logic_vector(G_GTCH_COUNT - 1 downto 0)                       ;
+tst_rx_axis_mac_tlast   => tst_rx_axis_mac_tlast , --: out std_logic_vector(G_GTCH_COUNT - 1 downto 0)                       ;
+tst_rx_axis_mac_tuser   => tst_rx_axis_mac_tuser , --: out std_logic_vector(G_GTCH_COUNT - 1 downto 0)                       ;
+
+tst_tx_axis_mac_tdata   => tst_tx_axis_mac_tdata , --: out std_logic_vector((G_AXI_DWIDTH * G_GTCH_COUNT) - 1 downto 0)      ;
+tst_tx_axis_mac_tkeep   => tst_tx_axis_mac_tkeep , --: out std_logic_vector(((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 downto 0);
+tst_tx_axis_mac_tvalid  => tst_tx_axis_mac_tvalid, --: out std_logic_vector(G_GTCH_COUNT - 1 downto 0)                       ;
+tst_tx_axis_mac_tlast   => tst_tx_axis_mac_tlast , --: out std_logic_vector(G_GTCH_COUNT - 1 downto 0)                       ;
+tst_tx_axis_mac_tready  => tst_tx_axis_mac_tready, --: out std_logic_vector(G_GTCH_COUNT - 1 downto 0)                       ;
+
+tst_tx_axis_fifo_tdata   => tst_tx_axis_fifo_tdata , --: out std_logic_vector((G_AXI_DWIDTH * G_GTCH_COUNT) - 1 downto 0)      ;
+tst_tx_axis_fifo_tkeep   => tst_tx_axis_fifo_tkeep , --: out std_logic_vector(((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 downto 0);
+tst_tx_axis_fifo_tvalid  => tst_tx_axis_fifo_tvalid, --: out std_logic_vector(G_GTCH_COUNT - 1 downto 0)                       ;
+tst_tx_axis_fifo_tlast   => tst_tx_axis_fifo_tlast , --: out std_logic_vector(G_GTCH_COUNT - 1 downto 0)                       ;
+tst_tx_axis_fifo_tready  => tst_tx_axis_fifo_tready, --: out std_logic_vector(G_GTCH_COUNT - 1 downto 0)                       ;
+
 
 --Serial I/O from/to transceiver
 txp => p_out_ethphy_txp,

@@ -81,6 +81,25 @@ parameter   G_GTCH_COUNT = 1
    // Example design status outputs
    output            frame_error,
 
+   output      [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]         tst_rx_axis_mac_tdata ,
+   output      [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]   tst_rx_axis_mac_tkeep ,
+   output      [G_GTCH_COUNT - 1 : 0]                          tst_rx_axis_mac_tvalid,
+   output      [G_GTCH_COUNT - 1 : 0]                          tst_rx_axis_mac_tlast ,
+   output      [G_GTCH_COUNT - 1 : 0]                          tst_rx_axis_mac_tuser ,
+
+   output      [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]         tst_tx_axis_mac_tdata ,
+   output      [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]   tst_tx_axis_mac_tkeep ,
+   output      [G_GTCH_COUNT - 1 : 0]                          tst_tx_axis_mac_tvalid,
+   output      [G_GTCH_COUNT - 1 : 0]                          tst_tx_axis_mac_tlast ,
+   output      [G_GTCH_COUNT - 1 : 0]                          tst_tx_axis_mac_tready,
+
+   output      [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]         tst_tx_axis_fifo_tdata ,
+   output      [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]   tst_tx_axis_fifo_tkeep ,
+   output      [G_GTCH_COUNT - 1 : 0]                          tst_tx_axis_fifo_tvalid,
+   output      [G_GTCH_COUNT - 1 : 0]                          tst_tx_axis_fifo_tlast ,
+   output      [G_GTCH_COUNT - 1 : 0]                          tst_tx_axis_fifo_tready,
+
+
    output  [G_GTCH_COUNT - 1 : 0]   txuserrdy_out,
    output  [G_GTCH_COUNT - 1 : 0]   core_ready,
    output            qplllock_out,
@@ -205,6 +224,25 @@ endgenerate
       .tx_statistics_valid             (),
       .rx_statistics_vector            (),
       .rx_statistics_valid             (),
+
+
+      .tst_rx_axis_mac_tdata   (tst_rx_axis_mac_tdata ),
+      .tst_rx_axis_mac_tkeep   (tst_rx_axis_mac_tkeep ),
+      .tst_rx_axis_mac_tvalid  (tst_rx_axis_mac_tvalid),
+      .tst_rx_axis_mac_tlast   (tst_rx_axis_mac_tlast ),
+      .tst_rx_axis_mac_tuser   (tst_rx_axis_mac_tuser ),
+
+      .tst_tx_axis_mac_tdata   (tst_tx_axis_mac_tdata ),
+      .tst_tx_axis_mac_tkeep   (tst_tx_axis_mac_tkeep ),
+      .tst_tx_axis_mac_tvalid  (tst_tx_axis_mac_tvalid),
+      .tst_tx_axis_mac_tlast   (tst_tx_axis_mac_tlast ),
+      .tst_tx_axis_mac_tready  (tst_tx_axis_mac_tready),
+
+      .tst_tx_axis_fifo_tdata   (tst_tx_axis_fifo_tdata ),
+      .tst_tx_axis_fifo_tkeep   (tst_tx_axis_fifo_tkeep ),
+      .tst_tx_axis_fifo_tvalid  (tst_tx_axis_fifo_tvalid),
+      .tst_tx_axis_fifo_tlast   (tst_tx_axis_fifo_tlast ),
+      .tst_tx_axis_fifo_tready  (tst_tx_axis_fifo_tready),
 
       .pause_val                       (16'b0),
       .pause_req                       (1'b0),
