@@ -24,7 +24,7 @@ port(
 clk_in       : in  std_logic;       --// Freerunning clock source
 refclk_p     : in  std_logic;       --// Transceiver reference clock source
 refclk_n     : in  std_logic;
-coreclk_out  : out std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+coreclk_out  : out std_logic;
 
 --// Example design control inputs
 reset                  : in  std_logic;
@@ -288,7 +288,7 @@ i_sfp_tx_fault(i) <= '0';
 end generate gen_ch;
 
 
-coreclk_out <= i_ethio_clk;
+coreclk_out <= i_ethio_clk(0);
 
 --i_fifo_di <= RESIZE(UNSIGNED(i_ethio_rx_axi_tdata((G_AXI_DWIDTH * (0 + 1)) - 1 downto (G_AXI_DWIDTH * 0))), i_fifo_di'length);
 --i_fifo_wr <= i_ethio_rx_axi_tvalid(0);

@@ -15,7 +15,7 @@ use work.vicg_common_pkg.all;
 
 package prj_cfg is
 
-constant C_PCFG_FIRMWARE_VERSION       : integer := 16#0038#;
+constant C_PCFG_FIRMWARE_VERSION       : integer := 16#0044#;
 
 constant C_PCFG_BOARD                  : string := "KCU105";
 constant C_PCFG_MAIN_DBGCS             : string := "ON";

@@ -71,7 +71,7 @@ parameter   G_GTCH_COUNT = 1
 
    input             refclk_p,       // Transceiver reference clock source
    input             refclk_n,
-   output  [G_GTCH_COUNT - 1 : 0]   coreclk_out,
+   output            coreclk_out,
 
    // Example design control inputs
    input             reset,
@@ -81,26 +81,26 @@ parameter   G_GTCH_COUNT = 1
    // Example design status outputs
    output            frame_error,
 
-   output      [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]         tst_rx_axis_mac_tdata ,
-   output      [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]   tst_rx_axis_mac_tkeep ,
-   output      [G_GTCH_COUNT - 1 : 0]                          tst_rx_axis_mac_tvalid,
-   output      [G_GTCH_COUNT - 1 : 0]                          tst_rx_axis_mac_tlast ,
-   output      [G_GTCH_COUNT - 1 : 0]                          tst_rx_axis_mac_tuser ,
+   output      [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]         dbg_rx_axis_mac_tdata ,
+   output      [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]   dbg_rx_axis_mac_tkeep ,
+   output      [G_GTCH_COUNT - 1 : 0]                          dbg_rx_axis_mac_tvalid,
+   output      [G_GTCH_COUNT - 1 : 0]                          dbg_rx_axis_mac_tlast ,
+   output      [G_GTCH_COUNT - 1 : 0]                          dbg_rx_axis_mac_tuser ,
 
-   output      [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]         tst_tx_axis_mac_tdata ,
-   output      [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]   tst_tx_axis_mac_tkeep ,
-   output      [G_GTCH_COUNT - 1 : 0]                          tst_tx_axis_mac_tvalid,
-   output      [G_GTCH_COUNT - 1 : 0]                          tst_tx_axis_mac_tlast ,
-   output      [G_GTCH_COUNT - 1 : 0]                          tst_tx_axis_mac_tready,
+   output      [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]         dbg_tx_axis_mac_tdata ,
+   output      [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]   dbg_tx_axis_mac_tkeep ,
+   output      [G_GTCH_COUNT - 1 : 0]                          dbg_tx_axis_mac_tvalid,
+   output      [G_GTCH_COUNT - 1 : 0]                          dbg_tx_axis_mac_tlast ,
+   output      [G_GTCH_COUNT - 1 : 0]                          dbg_tx_axis_mac_tready,
 
-   output      [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]         tst_tx_axis_fifo_tdata ,
-   output      [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]   tst_tx_axis_fifo_tkeep ,
-   output      [G_GTCH_COUNT - 1 : 0]                          tst_tx_axis_fifo_tvalid,
-   output      [G_GTCH_COUNT - 1 : 0]                          tst_tx_axis_fifo_tlast ,
-   output      [G_GTCH_COUNT - 1 : 0]                          tst_tx_axis_fifo_tready,
+   output      [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]         dbg_tx_axis_fifo_tdata ,
+   output      [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]   dbg_tx_axis_fifo_tkeep ,
+   output      [G_GTCH_COUNT - 1 : 0]                          dbg_tx_axis_fifo_tvalid,
+   output      [G_GTCH_COUNT - 1 : 0]                          dbg_tx_axis_fifo_tlast ,
+   output      [G_GTCH_COUNT - 1 : 0]                          dbg_tx_axis_fifo_tready,
 
 
-   output  [G_GTCH_COUNT - 1 : 0]   txuserrdy_out,
+   output  [G_GTCH_COUNT - 1 : 0]   block_lock,
    output  [G_GTCH_COUNT - 1 : 0]   core_ready,
    output            qplllock_out,
 
@@ -128,7 +128,7 @@ parameter   G_GTCH_COUNT = 1
 /*-------------------------------------------------------------------------*/
 
    // Signal declarations
-   wire   [G_GTCH_COUNT - 1 : 0]          block_lock;
+//   wire   [G_GTCH_COUNT - 1 : 0]          block_lock;
    wire   [G_GTCH_COUNT - 1 : 0]          no_remote_and_local_faults;
 
    wire   [79 : 0]   i_mac_tx_configuration_vector  [G_GTCH_COUNT - 1 : 0];
@@ -214,8 +214,7 @@ endgenerate
       .coreclk_out                     (coreclk_out),
       .rxrecclk_out                    (),
       .dclk                            (clk_in),
-      .txuserrdy_out                   (txuserrdy_out),
-
+      .resetdone_out                   (),
       .reset                           (reset),
 
       .tx_ifg_delay                    (8'd0),
@@ -226,23 +225,23 @@ endgenerate
       .rx_statistics_valid             (),
 
 
-      .tst_rx_axis_mac_tdata   (tst_rx_axis_mac_tdata ),
-      .tst_rx_axis_mac_tkeep   (tst_rx_axis_mac_tkeep ),
-      .tst_rx_axis_mac_tvalid  (tst_rx_axis_mac_tvalid),
-      .tst_rx_axis_mac_tlast   (tst_rx_axis_mac_tlast ),
-      .tst_rx_axis_mac_tuser   (tst_rx_axis_mac_tuser ),
+      .dbg_rx_axis_mac_tdata   (dbg_rx_axis_mac_tdata ),
+      .dbg_rx_axis_mac_tkeep   (dbg_rx_axis_mac_tkeep ),
+      .dbg_rx_axis_mac_tvalid  (dbg_rx_axis_mac_tvalid),
+      .dbg_rx_axis_mac_tlast   (dbg_rx_axis_mac_tlast ),
+      .dbg_rx_axis_mac_tuser   (dbg_rx_axis_mac_tuser ),
 
-      .tst_tx_axis_mac_tdata   (tst_tx_axis_mac_tdata ),
-      .tst_tx_axis_mac_tkeep   (tst_tx_axis_mac_tkeep ),
-      .tst_tx_axis_mac_tvalid  (tst_tx_axis_mac_tvalid),
-      .tst_tx_axis_mac_tlast   (tst_tx_axis_mac_tlast ),
-      .tst_tx_axis_mac_tready  (tst_tx_axis_mac_tready),
+      .dbg_tx_axis_mac_tdata   (dbg_tx_axis_mac_tdata ),
+      .dbg_tx_axis_mac_tkeep   (dbg_tx_axis_mac_tkeep ),
+      .dbg_tx_axis_mac_tvalid  (dbg_tx_axis_mac_tvalid),
+      .dbg_tx_axis_mac_tlast   (dbg_tx_axis_mac_tlast ),
+      .dbg_tx_axis_mac_tready  (dbg_tx_axis_mac_tready),
 
-      .tst_tx_axis_fifo_tdata   (tst_tx_axis_fifo_tdata ),
-      .tst_tx_axis_fifo_tkeep   (tst_tx_axis_fifo_tkeep ),
-      .tst_tx_axis_fifo_tvalid  (tst_tx_axis_fifo_tvalid),
-      .tst_tx_axis_fifo_tlast   (tst_tx_axis_fifo_tlast ),
-      .tst_tx_axis_fifo_tready  (tst_tx_axis_fifo_tready),
+      .dbg_tx_axis_fifo_tdata  (dbg_tx_axis_fifo_tdata ),
+      .dbg_tx_axis_fifo_tkeep  (dbg_tx_axis_fifo_tkeep ),
+      .dbg_tx_axis_fifo_tvalid (dbg_tx_axis_fifo_tvalid),
+      .dbg_tx_axis_fifo_tlast  (dbg_tx_axis_fifo_tlast ),
+      .dbg_tx_axis_fifo_tready (dbg_tx_axis_fifo_tready),
 
       .pause_val                       (16'b0),
       .pause_req                       (1'b0),
@@ -278,7 +277,7 @@ endgenerate
       .tx_fault                        (tx_fault),
       .sim_speedup_control             (sim_speedup_control),
       .pcspma_status                   (pcspma_status),
-      .resetdone_out                   (),
+
       .qplllock_out                    (qplllock_out)
       );
 

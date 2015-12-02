@@ -71,9 +71,8 @@ parameter                              FIFO_SIZE = 1024
    input                               reset,
    output                              resetdone_out,
    output                              qplllock_out,
-   output      [G_GTCH_COUNT - 1 : 0]  coreclk_out,
-   output      [G_GTCH_COUNT - 1 : 0]  rxrecclk_out,
-   output      [G_GTCH_COUNT - 1 : 0]  txuserrdy_out,
+   output                              coreclk_out,
+   output                              rxrecclk_out,
 
    input       [(80 * G_GTCH_COUNT) - 1 : 0]    mac_tx_configuration_vector,
    input       [(80 * G_GTCH_COUNT) - 1 : 0]    mac_rx_configuration_vector,
@@ -86,41 +85,41 @@ parameter                              FIFO_SIZE = 1024
    output      [(30 * G_GTCH_COUNT) - 1 : 0]  rx_statistics_vector,
    output      [G_GTCH_COUNT - 1 : 0]         tx_statistics_valid,
    output      [G_GTCH_COUNT - 1 : 0]         rx_statistics_valid,
-   input       [G_GTCH_COUNT - 1 : 0]         tx_axis_mac_aresetn,
-   input       [G_GTCH_COUNT - 1 : 0]         tx_axis_fifo_aresetn,
-   input       [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]         tx_axis_fifo_tdata,
-   input       [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]   tx_axis_fifo_tkeep,
-   input       [G_GTCH_COUNT - 1 : 0]         tx_axis_fifo_tvalid,
-   input       [G_GTCH_COUNT - 1 : 0]         tx_axis_fifo_tlast,
-   output      [G_GTCH_COUNT - 1 : 0]         tx_axis_fifo_tready,
 
-   input       [G_GTCH_COUNT - 1 : 0]         rx_axis_mac_aresetn,
-   input       [G_GTCH_COUNT - 1 : 0]         rx_axis_fifo_aresetn,
-   output      [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]         rx_axis_fifo_tdata,
-   output      [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]   rx_axis_fifo_tkeep,
-   output      [G_GTCH_COUNT - 1 : 0]         rx_axis_fifo_tvalid,
-   output      [G_GTCH_COUNT - 1 : 0]         rx_axis_fifo_tlast,
-   input       [G_GTCH_COUNT - 1 : 0]         rx_axis_fifo_tready,
+   input       [G_GTCH_COUNT - 1 : 0]                        tx_axis_mac_aresetn,
+   input       [G_GTCH_COUNT - 1 : 0]                        tx_axis_fifo_aresetn,
+   input       [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]       tx_axis_fifo_tdata,
+   input       [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0] tx_axis_fifo_tkeep,
+   input       [G_GTCH_COUNT - 1 : 0]                        tx_axis_fifo_tvalid,
+   input       [G_GTCH_COUNT - 1 : 0]                        tx_axis_fifo_tlast,
+   output      [G_GTCH_COUNT - 1 : 0]                        tx_axis_fifo_tready,
+
+   input       [G_GTCH_COUNT - 1 : 0]                        rx_axis_mac_aresetn,
+   input       [G_GTCH_COUNT - 1 : 0]                        rx_axis_fifo_aresetn,
+   output      [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]       rx_axis_fifo_tdata,
+   output      [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0] rx_axis_fifo_tkeep,
+   output      [G_GTCH_COUNT - 1 : 0]                        rx_axis_fifo_tvalid,
+   output      [G_GTCH_COUNT - 1 : 0]                        rx_axis_fifo_tlast,
+   input       [G_GTCH_COUNT - 1 : 0]                        rx_axis_fifo_tready,
 
 
+   output      [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]         dbg_rx_axis_mac_tdata ,
+   output      [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]   dbg_rx_axis_mac_tkeep ,
+   output      [G_GTCH_COUNT - 1 : 0]                          dbg_rx_axis_mac_tvalid,
+   output      [G_GTCH_COUNT - 1 : 0]                          dbg_rx_axis_mac_tlast ,
+   output      [G_GTCH_COUNT - 1 : 0]                          dbg_rx_axis_mac_tuser ,
 
-   output      [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]         tst_rx_axis_mac_tdata ,
-   output      [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]   tst_rx_axis_mac_tkeep ,
-   output      [G_GTCH_COUNT - 1 : 0]                          tst_rx_axis_mac_tvalid,
-   output      [G_GTCH_COUNT - 1 : 0]                          tst_rx_axis_mac_tlast ,
-   output      [G_GTCH_COUNT - 1 : 0]                          tst_rx_axis_mac_tuser ,
+   output      [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]         dbg_tx_axis_mac_tdata ,
+   output      [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]   dbg_tx_axis_mac_tkeep ,
+   output      [G_GTCH_COUNT - 1 : 0]                          dbg_tx_axis_mac_tvalid,
+   output      [G_GTCH_COUNT - 1 : 0]                          dbg_tx_axis_mac_tlast ,
+   output      [G_GTCH_COUNT - 1 : 0]                          dbg_tx_axis_mac_tready,
 
-   output      [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]         tst_tx_axis_mac_tdata ,
-   output      [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]   tst_tx_axis_mac_tkeep ,
-   output      [G_GTCH_COUNT - 1 : 0]                          tst_tx_axis_mac_tvalid,
-   output      [G_GTCH_COUNT - 1 : 0]                          tst_tx_axis_mac_tlast ,
-   output      [G_GTCH_COUNT - 1 : 0]                          tst_tx_axis_mac_tready,
-
-   output      [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]         tst_tx_axis_fifo_tdata ,
-   output      [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]   tst_tx_axis_fifo_tkeep ,
-   output      [G_GTCH_COUNT - 1 : 0]                          tst_tx_axis_fifo_tvalid,
-   output      [G_GTCH_COUNT - 1 : 0]                          tst_tx_axis_fifo_tlast ,
-   output      [G_GTCH_COUNT - 1 : 0]                          tst_tx_axis_fifo_tready,
+   output      [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]         dbg_tx_axis_fifo_tdata ,
+   output      [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]   dbg_tx_axis_fifo_tkeep ,
+   output      [G_GTCH_COUNT - 1 : 0]                          dbg_tx_axis_fifo_tvalid,
+   output      [G_GTCH_COUNT - 1 : 0]                          dbg_tx_axis_fifo_tlast ,
+   output      [G_GTCH_COUNT - 1 : 0]                          dbg_tx_axis_fifo_tready,
 
 
    //Pause axis
@@ -142,41 +141,35 @@ parameter                              FIFO_SIZE = 1024
 
    // Signal declarations
 
-   reg [G_GTCH_COUNT - 1 : 0]         rx_axis_mac_aresetn_i;
-   reg [G_GTCH_COUNT - 1 : 0]         rx_axis_fifo_aresetn_i;
-   reg [G_GTCH_COUNT - 1 : 0]         tx_axis_mac_aresetn_i;
-   reg [G_GTCH_COUNT - 1 : 0]         tx_axis_fifo_aresetn_i;
+   wire  [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]       tx_axis_mac_tdata;
+   wire  [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0] tx_axis_mac_tkeep;
+   wire  [G_GTCH_COUNT - 1 : 0]                        tx_axis_mac_tvalid;
+   wire  [G_GTCH_COUNT - 1 : 0]                        tx_axis_mac_tlast;
+   wire  [G_GTCH_COUNT - 1 : 0]                        tx_axis_mac_tready;
 
-   wire         [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]  tx_axis_mac_tdata;
-   wire         [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]   tx_axis_mac_tkeep;
-   wire         [G_GTCH_COUNT - 1 : 0]         tx_axis_mac_tvalid;
-   wire         [G_GTCH_COUNT - 1 : 0]         tx_axis_mac_tlast;
-   wire         [G_GTCH_COUNT - 1 : 0]         tx_axis_mac_tready;
+   wire  [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]       rx_axis_mac_tdata;
+   wire  [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0] rx_axis_mac_tkeep;
+   wire  [G_GTCH_COUNT - 1 : 0]                        rx_axis_mac_tvalid;
+   wire  [G_GTCH_COUNT - 1 : 0]                        rx_axis_mac_tuser;
+   wire  [G_GTCH_COUNT - 1 : 0]                        rx_axis_mac_tlast;
 
-   wire         [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]  rx_axis_mac_tdata;
-   wire         [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0]   rx_axis_mac_tkeep;
-   wire         [G_GTCH_COUNT - 1 : 0]         rx_axis_mac_tvalid;
-   wire         [G_GTCH_COUNT - 1 : 0]         rx_axis_mac_tuser;
-   wire         [G_GTCH_COUNT - 1 : 0]         rx_axis_mac_tlast;
+   wire                                 coreclk;
+   wire                                 tx_disable;
 
-   wire         [G_GTCH_COUNT - 1 : 0]         coreclk;
-   wire         [G_GTCH_COUNT - 1 : 0]         tx_disable;
-
-   wire         [127:0]  zero_i;
-   assign zero_i = 128'b0;
+   wire  [G_GTCH_COUNT - 1 : 0]   rx_axis_mac_aresetn_i ;
+   wire  [G_GTCH_COUNT - 1 : 0]   rx_axis_fifo_aresetn_i;
+   wire  [G_GTCH_COUNT - 1 : 0]   tx_axis_mac_aresetn_i ;
+   wire  [G_GTCH_COUNT - 1 : 0]   tx_axis_fifo_aresetn_i;
 
    assign coreclk_out = coreclk;
 
 
    //----------------------------------------------------------------------------
-   // Instantiate the Ethernet Core Support level
+   // Instantiate the Ethernet core
    //----------------------------------------------------------------------------
-   eth_core_support #(
-      .G_AXI_DWIDTH (G_AXI_DWIDTH),
-      .G_GTCH_COUNT (G_GTCH_COUNT)
-   )  support_layer_i(
+   eth_core ethernet_core_i (
       .coreclk_out                     (),
-      .qpll0reset_out                  (),
+      .areset_datapathclk_out          (),
       .refclk_p                        (refclk_p),
       .refclk_n                        (refclk_n),
       .dclk                            (dclk),
@@ -190,72 +183,48 @@ parameter                              FIFO_SIZE = 1024
       .txusrclk2_out                   (coreclk),
       .gttxreset_out                   (),
       .gtrxreset_out                   (),
-      .txuserrdy_out                   (txuserrdy_out),
+      .txuserrdy_out                   (),
       .rxrecclk_out                    (rxrecclk_out),
       .tx_ifg_delay                    (tx_ifg_delay),
-      .tx_statistics_vector            (tx_statistics_vector),
-      .tx_statistics_valid             (tx_statistics_valid),
-      .rx_statistics_vector            (rx_statistics_vector),
-      .rx_statistics_valid             (rx_statistics_valid),
+      .tx_statistics_vector            (tx_statistics_vector[(26 * (0 + 1)) - 1 : (26 * 0)]),
+      .tx_statistics_valid             (tx_statistics_valid[0]),
+      .rx_statistics_vector            (rx_statistics_vector[(30 * (0 + 1)) - 1 : (30 * 0)]),
+      .rx_statistics_valid             (rx_statistics_valid[0]),
       .s_axis_pause_tdata              (pause_val),
       .s_axis_pause_tvalid             (pause_req),
 
-      .tx_axis_aresetn                 (tx_axis_mac_aresetn),
-      .s_axis_tx_tdata                 (tx_axis_mac_tdata),
-      .s_axis_tx_tvalid                (tx_axis_mac_tvalid),
-      .s_axis_tx_tlast                 (tx_axis_mac_tlast),
-      .s_axis_tx_tuser                 (zero_i[G_GTCH_COUNT - 1 : 0]), //(1'b0),
-      .s_axis_tx_tkeep                 (tx_axis_mac_tkeep),
-      .s_axis_tx_tready                (tx_axis_mac_tready),
+      .tx_axis_aresetn                 (tx_axis_mac_aresetn[0]),
+      .s_axis_tx_tdata                 (tx_axis_mac_tdata[(G_AXI_DWIDTH * (0 + 1)) - 1 : (G_AXI_DWIDTH * 0)]),
+      .s_axis_tx_tvalid                (tx_axis_mac_tvalid[0]),
+      .s_axis_tx_tlast                 (tx_axis_mac_tlast[0]),
+      .s_axis_tx_tuser                 (1'b0),
+      .s_axis_tx_tkeep                 (tx_axis_mac_tkeep[((G_AXI_DWIDTH / 8) * (0 + 1)) - 1 : ((G_AXI_DWIDTH / 8) * 0)]),
+      .s_axis_tx_tready                (tx_axis_mac_tready[0]),
 
-      .rx_axis_aresetn                 (rx_axis_mac_aresetn),
-      .m_axis_rx_tdata                 (rx_axis_mac_tdata),
-      .m_axis_rx_tkeep                 (rx_axis_mac_tkeep),
-      .m_axis_rx_tvalid                (rx_axis_mac_tvalid),
-      .m_axis_rx_tuser                 (rx_axis_mac_tuser),
-      .m_axis_rx_tlast                 (rx_axis_mac_tlast),
-      .mac_tx_configuration_vector     (mac_tx_configuration_vector),
-      .mac_rx_configuration_vector     (mac_rx_configuration_vector),
-      .mac_status_vector               (mac_status_vector),
-      .pcs_pma_configuration_vector    (pcs_pma_configuration_vector),
-      .pcs_pma_status_vector           (pcs_pma_status_vector),
+      .rx_axis_aresetn                 (rx_axis_mac_aresetn[0]),
+      .m_axis_rx_tdata                 (rx_axis_mac_tdata[(G_AXI_DWIDTH * (0 + 1)) - 1 : (G_AXI_DWIDTH * 0)]),
+      .m_axis_rx_tkeep                 (rx_axis_mac_tkeep[((G_AXI_DWIDTH / 8) * (0 + 1)) - 1 : ((G_AXI_DWIDTH / 8) * 0)]),
+      .m_axis_rx_tvalid                (rx_axis_mac_tvalid[0]),
+      .m_axis_rx_tuser                 (rx_axis_mac_tuser[0]),
+      .m_axis_rx_tlast                 (rx_axis_mac_tlast[0]),
+      .mac_tx_configuration_vector     (mac_tx_configuration_vector[(80 * (0 + 1)) - 1 : (80 * 0)]),
+      .mac_rx_configuration_vector     (mac_rx_configuration_vector[(80 * (0 + 1)) - 1 : (80 * 0)]),
+      .mac_status_vector               (mac_status_vector[(2 * (0 + 1)) - 1 : (2 * 0)]),
+      .pcs_pma_configuration_vector    (pcs_pma_configuration_vector[(536 * (0 + 1)) - 1 : (536 * 0)]),
+      .pcs_pma_status_vector           (pcs_pma_status_vector[(448 * (0 + 1)) - 1 : (448 * 0)]),
 
       // Serial links
-      .txp                             (txp),
-      .txn                             (txn),
-      .rxp                             (rxp),
-      .rxn                             (rxn),
-      .transceiver_debug_gt_eyescanreset     (zero_i[G_GTCH_COUNT - 1 : 0]), //(1'b0),
-      .transceiver_debug_gt_eyescantrigger   (zero_i[G_GTCH_COUNT - 1 : 0]), //(1'b0),
-      .transceiver_debug_gt_rxcdrhold        (zero_i[G_GTCH_COUNT - 1 : 0]), //(1'b0),
-      .transceiver_debug_gt_txprbsforceerr   (zero_i[G_GTCH_COUNT - 1 : 0]), //(1'b0),
-      .transceiver_debug_gt_txpolarity       (zero_i[G_GTCH_COUNT - 1 : 0]), //(1'b0),
-      .transceiver_debug_gt_rxpolarity       (zero_i[G_GTCH_COUNT - 1 : 0]), //(1'b0),
-      .transceiver_debug_gt_rxrate           (zero_i[(3 * G_GTCH_COUNT) - 1 : 0]), //(3'b0),
-      .transceiver_debug_gt_txpmareset       (zero_i[G_GTCH_COUNT - 1 : 0]), //(1'b0),
-      .transceiver_debug_gt_rxpmareset       (zero_i[G_GTCH_COUNT - 1 : 0]), //(1'b0),
-      .transceiver_debug_gt_rxdfelpmreset    (zero_i[G_GTCH_COUNT - 1 : 0]), //(1'b0),
-      .transceiver_debug_gt_rxpmaresetdone   (),
-      .transceiver_debug_gt_txresetdone      (),
-      .transceiver_debug_gt_rxresetdone      (),
-      .transceiver_debug_gt_txoutclksel      (3'b101),
-      .transceiver_debug_gt_txpcsreset       (zero_i[G_GTCH_COUNT - 1 : 0]), //(1'b0),
-      .transceiver_debug_gt_txprecursor      (zero_i[(5 * G_GTCH_COUNT) - 1 : 0]), //(5'b0),
-      .transceiver_debug_gt_txpostcursor     (zero_i[(5 * G_GTCH_COUNT) - 1 : 0]), //(5'b0),
-      .transceiver_debug_gt_txdiffctrl       (zero_i[(4 * G_GTCH_COUNT) - 1 : 0]), //(4'b0),
-      .transceiver_debug_gt_rxlpmen          (zero_i[G_GTCH_COUNT - 1 : 0]), //(1'b0),
-      .transceiver_debug_gt_eyescandataerror (),
-      .transceiver_debug_gt_txbufstatus      (),
-      .transceiver_debug_gt_rxbufstatus      (),
-      .transceiver_debug_gt_rxprbserr        (),
-      .transceiver_debug_gt_dmonitorout      (),
-      .transceiver_debug_gt_pcsrsvdin        (zero_i[(16 * G_GTCH_COUNT) - 1 : 0]), //(16'b0),
+      .txp                             (txp[0]),
+      .txn                             (txn[0]),
+      .rxp                             (rxp[0]),
+      .rxn                             (rxn[0]),
       .sim_speedup_control             (sim_speedup_control),
-      .signal_detect                   (signal_detect),
-      .tx_fault                        (tx_fault),
+      .signal_detect                   (signal_detect[0]),
+      .tx_fault                        (tx_fault[0]),
       .tx_disable                      (tx_disable),
-      .pcspma_status                   (pcspma_status)
+      .pcspma_status                   (pcspma_status[(8 * (0 + 1)) - 1 : (8 * 0)])
    );
+
 
 genvar i;
 generate
@@ -267,13 +236,10 @@ begin : ch
 //   assign tx_axis_mac_aresetn_i[i]  = ~reset;// | tx_axis_mac_aresetn[i];
 //   assign tx_axis_fifo_aresetn_i[i] = ~reset;// | tx_axis_fifo_aresetn[i];
 
-   always @(coreclk[i], reset)
-   begin
-    rx_axis_mac_aresetn_i[i]  <= ~reset;
-    rx_axis_fifo_aresetn_i[i] <= ~reset;
-    tx_axis_mac_aresetn_i[i]  <= ~reset;
-    tx_axis_fifo_aresetn_i[i] <= ~reset;
-   end
+    assign rx_axis_mac_aresetn_i[i]  = ~reset;
+    assign rx_axis_fifo_aresetn_i[i] = ~reset;
+    assign tx_axis_mac_aresetn_i[i]  = ~reset;
+    assign tx_axis_fifo_aresetn_i[i] = ~reset;
 
    //----------------------------------------------------------------------------
    // Instantiate the example design FIFO
@@ -283,7 +249,7 @@ begin : ch
       .RX_FIFO_SIZE                    (FIFO_SIZE)
    ) ethernet_mac_fifo_i  (
       .tx_axis_fifo_aresetn            (tx_axis_fifo_aresetn_i[i]),
-      .tx_axis_fifo_aclk               (coreclk[i]),
+      .tx_axis_fifo_aclk               (coreclk),
       .tx_axis_fifo_tdata              (tx_axis_fifo_tdata[(G_AXI_DWIDTH * (i + 1)) - 1 : (G_AXI_DWIDTH * i)]),
       .tx_axis_fifo_tkeep              (tx_axis_fifo_tkeep[((G_AXI_DWIDTH / 8) * (i + 1)) - 1 : ((G_AXI_DWIDTH / 8) * i)]),
       .tx_axis_fifo_tvalid             (tx_axis_fifo_tvalid[i]),
@@ -292,7 +258,7 @@ begin : ch
       .tx_fifo_full                    (),
       .tx_fifo_status                  (),
       .rx_axis_fifo_aresetn            (rx_axis_fifo_aresetn_i[i]),
-      .rx_axis_fifo_aclk               (coreclk[i]),
+      .rx_axis_fifo_aclk               (coreclk),
       .rx_axis_fifo_tdata              (rx_axis_fifo_tdata[(G_AXI_DWIDTH * (i + 1)) - 1 : (G_AXI_DWIDTH * i)]),
       .rx_axis_fifo_tkeep              (rx_axis_fifo_tkeep[((G_AXI_DWIDTH / 8) * (i + 1)) - 1 : ((G_AXI_DWIDTH / 8) * i)]),
       .rx_axis_fifo_tvalid             (rx_axis_fifo_tvalid[i]),
@@ -300,14 +266,14 @@ begin : ch
       .rx_axis_fifo_tready             (rx_axis_fifo_tready[i]),
       .rx_fifo_status                  (),
       .tx_axis_mac_aresetn             (tx_axis_mac_aresetn_i[i]),
-      .tx_axis_mac_aclk                (coreclk[i]),
+      .tx_axis_mac_aclk                (coreclk),
       .tx_axis_mac_tdata               (tx_axis_mac_tdata[(G_AXI_DWIDTH * (i + 1)) - 1 : (G_AXI_DWIDTH * i)]),
       .tx_axis_mac_tkeep               (tx_axis_mac_tkeep[((G_AXI_DWIDTH / 8) * (i + 1)) - 1 : ((G_AXI_DWIDTH / 8) * i)]),
       .tx_axis_mac_tvalid              (tx_axis_mac_tvalid[i]),
       .tx_axis_mac_tlast               (tx_axis_mac_tlast[i]),
       .tx_axis_mac_tready              (tx_axis_mac_tready[i]),
       .rx_axis_mac_aresetn             (rx_axis_mac_aresetn_i[i]),
-      .rx_axis_mac_aclk                (coreclk[i]),
+      .rx_axis_mac_aclk                (coreclk),
       .rx_axis_mac_tdata               (rx_axis_mac_tdata[(G_AXI_DWIDTH * (i + 1)) - 1 : (G_AXI_DWIDTH * i)]),
       .rx_axis_mac_tkeep               (rx_axis_mac_tkeep[((G_AXI_DWIDTH / 8) * (i + 1)) - 1 : ((G_AXI_DWIDTH / 8) * i)]),
       .rx_axis_mac_tvalid              (rx_axis_mac_tvalid[i]),
@@ -316,26 +282,23 @@ begin : ch
       .rx_fifo_full                    ()
    );
 
+   assign dbg_rx_axis_mac_tdata[(G_AXI_DWIDTH * (i + 1)) - 1 : (G_AXI_DWIDTH * i)]              = rx_axis_mac_tdata[(G_AXI_DWIDTH * (i + 1)) - 1 : (G_AXI_DWIDTH * i)]            ;
+   assign dbg_rx_axis_mac_tkeep[((G_AXI_DWIDTH / 8) * (i + 1)) - 1 : ((G_AXI_DWIDTH / 8) * i)]  = rx_axis_mac_tkeep[((G_AXI_DWIDTH / 8) * (i + 1)) - 1 : ((G_AXI_DWIDTH / 8) * i)];
+   assign dbg_rx_axis_mac_tvalid[i]                                                             = rx_axis_mac_tvalid[i]                                                           ;
+   assign dbg_rx_axis_mac_tlast[i]                                                              = rx_axis_mac_tlast[i]                                                            ;
+   assign dbg_rx_axis_mac_tuser[i]                                                              = rx_axis_mac_tuser[i]                                                            ;
 
+   assign dbg_tx_axis_mac_tdata[(G_AXI_DWIDTH * (i + 1)) - 1 : (G_AXI_DWIDTH * i)]              = tx_axis_mac_tdata[(G_AXI_DWIDTH * (i + 1)) - 1 : (G_AXI_DWIDTH * i)]            ;
+   assign dbg_tx_axis_mac_tkeep[((G_AXI_DWIDTH / 8) * (i + 1)) - 1 : ((G_AXI_DWIDTH / 8) * i)]  = tx_axis_mac_tkeep[((G_AXI_DWIDTH / 8) * (i + 1)) - 1 : ((G_AXI_DWIDTH / 8) * i)];
+   assign dbg_tx_axis_mac_tvalid[i]                                                             = tx_axis_mac_tvalid[i]                                                           ;
+   assign dbg_tx_axis_mac_tlast[i]                                                              = tx_axis_mac_tlast[i]                                                            ;
+   assign dbg_tx_axis_mac_tready[i]                                                             = tx_axis_mac_tready[i]                                                           ;
 
-   assign tst_rx_axis_mac_tdata[(G_AXI_DWIDTH * (i + 1)) - 1 : (G_AXI_DWIDTH * i)]              = rx_axis_mac_tdata[(G_AXI_DWIDTH * (i + 1)) - 1 : (G_AXI_DWIDTH * i)]            ;
-   assign tst_rx_axis_mac_tkeep[((G_AXI_DWIDTH / 8) * (i + 1)) - 1 : ((G_AXI_DWIDTH / 8) * i)]  = rx_axis_mac_tkeep[((G_AXI_DWIDTH / 8) * (i + 1)) - 1 : ((G_AXI_DWIDTH / 8) * i)];
-   assign tst_rx_axis_mac_tvalid[i]                                                             = rx_axis_mac_tvalid[i]                                                           ;
-   assign tst_rx_axis_mac_tlast[i]                                                              = rx_axis_mac_tlast[i]                                                            ;
-   assign tst_rx_axis_mac_tuser[i]                                                              = rx_axis_mac_tuser[i]                                                            ;
-
-
-   assign tst_tx_axis_mac_tdata[(G_AXI_DWIDTH * (i + 1)) - 1 : (G_AXI_DWIDTH * i)]              = tx_axis_mac_tdata[(G_AXI_DWIDTH * (i + 1)) - 1 : (G_AXI_DWIDTH * i)]            ;
-   assign tst_tx_axis_mac_tkeep[((G_AXI_DWIDTH / 8) * (i + 1)) - 1 : ((G_AXI_DWIDTH / 8) * i)]  = tx_axis_mac_tkeep[((G_AXI_DWIDTH / 8) * (i + 1)) - 1 : ((G_AXI_DWIDTH / 8) * i)];
-   assign tst_tx_axis_mac_tvalid[i]                                                             = tx_axis_mac_tvalid[i]                                                           ;
-   assign tst_tx_axis_mac_tlast[i]                                                              = tx_axis_mac_tlast[i]                                                            ;
-   assign tst_tx_axis_mac_tready[i]                                                             = tx_axis_mac_tready[i]                                                           ;
-
-   assign tst_tx_axis_fifo_tdata[(G_AXI_DWIDTH * (i + 1)) - 1 : (G_AXI_DWIDTH * i)]              = tx_axis_fifo_tdata[(G_AXI_DWIDTH * (i + 1)) - 1 : (G_AXI_DWIDTH * i)]            ;
-   assign tst_tx_axis_fifo_tkeep[((G_AXI_DWIDTH / 8) * (i + 1)) - 1 : ((G_AXI_DWIDTH / 8) * i)]  = tx_axis_fifo_tkeep[((G_AXI_DWIDTH / 8) * (i + 1)) - 1 : ((G_AXI_DWIDTH / 8) * i)];
-   assign tst_tx_axis_fifo_tvalid[i]                                                             = tx_axis_fifo_tvalid[i]                                                           ;
-   assign tst_tx_axis_fifo_tlast[i]                                                              = tx_axis_fifo_tlast[i]                                                            ;
-   assign tst_tx_axis_fifo_tready[i]                                                             = tx_axis_fifo_tready[i]                                                           ;
+   assign dbg_tx_axis_fifo_tdata[(G_AXI_DWIDTH * (i + 1)) - 1 : (G_AXI_DWIDTH * i)]              = tx_axis_fifo_tdata[(G_AXI_DWIDTH * (i + 1)) - 1 : (G_AXI_DWIDTH * i)]            ;
+   assign dbg_tx_axis_fifo_tkeep[((G_AXI_DWIDTH / 8) * (i + 1)) - 1 : ((G_AXI_DWIDTH / 8) * i)]  = tx_axis_fifo_tkeep[((G_AXI_DWIDTH / 8) * (i + 1)) - 1 : ((G_AXI_DWIDTH / 8) * i)];
+   assign dbg_tx_axis_fifo_tvalid[i]                                                             = tx_axis_fifo_tvalid[i]                                                           ;
+   assign dbg_tx_axis_fifo_tlast[i]                                                              = tx_axis_fifo_tlast[i]                                                            ;
+   assign dbg_tx_axis_fifo_tready[i]                                                             = tx_axis_fifo_tready[i]                                                           ;
 
 end
 endgenerate

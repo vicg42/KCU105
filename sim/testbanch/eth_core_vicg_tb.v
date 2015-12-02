@@ -540,7 +540,7 @@ parameter G_GTCH_COUNT = 1;
   reg         sysclk;
   reg         sim_speedup_control_pulse;
   reg         refclk;
-  wire  [G_GTCH_COUNT - 1 : 0]   coreclk_out;
+  wire        coreclk_out;
   reg         sampleclk;
   reg         bitclk;
 
@@ -764,7 +764,7 @@ parameter G_GTCH_COUNT = 1;
     input [31:0] d1;
     input [ 3:0] c1;
     begin : rx_stimulus_send_column
-        @(posedge coreclk_out[0] or negedge coreclk_out[0]);
+        @(posedge coreclk_out or negedge coreclk_out);
         d0 <= d1;
         c0 <= c1;
 
@@ -772,9 +772,9 @@ parameter G_GTCH_COUNT = 1;
         assign c = {c1, c0};
 
         // Need to know when to apply the encoded data to the scrambler
-        if(!decided_clk_edge && |c0 && (coreclk_out[0] !== 1'bx)) // Found first full 64 bit word
+        if(!decided_clk_edge && |c0 && (coreclk_out !== 1'bx)) // Found first full 64 bit word
         begin
-          clk_edge <= !coreclk_out[0];
+          clk_edge <= !coreclk_out;
           decided_clk_edge <= 1;
         end
 
@@ -976,7 +976,7 @@ parameter G_GTCH_COUNT = 1;
     reg [65:0] TxEnc_Data = 66'h79;
     wire TxEnc_clock;
 
-    assign TxEnc_clock = clk_edge ? coreclk_out[0] : !coreclk_out[0];
+    assign TxEnc_clock = clk_edge ? coreclk_out : !coreclk_out;
     always @(posedge TxEnc_clock) begin
         TxEnc_Data <= TxEnc;
     end
@@ -1286,7 +1286,7 @@ endgenerate
     assign  DeScr_wire[63] = RXD_input[63]^RXD_input[24]^RXD_input[5];
 
     // Synchronous part of descrambler
-    always @(posedge coreclk_out[0]) begin
+    always @(posedge coreclk_out) begin
         RXD_input[63:0] <= RxD_aligned[65:2];
         RX_Sync_header <= RxD_aligned[1:0];
         DeScr_RXD[65:0] <= {DeScr_wire[63:0],RX_Sync_header[1:0]};
@@ -1298,7 +1298,7 @@ endgenerate
     // Decode and check the Descrambled TX data...
     // This is not a complete decoder: It only decodes the
     // block words we expect to see.
-    always @(posedge coreclk_out[0]) begin : check_tx
+    always @(posedge coreclk_out) begin : check_tx
         integer frame_no;
         integer word_no;
 

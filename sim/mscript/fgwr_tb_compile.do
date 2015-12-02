@@ -14,13 +14,12 @@ vlib work
 #### Vivado ####
 vlib msim
 vlib msim/xil_defaultlib
-vlib msim/fifo_generator_v12_0
-vmap fifo_generator_v12_0 msim/fifo_generator_v12_0
+vlib msim/fifo_generator_v13_0_0
+vmap fifo_generator_v13_0_0 msim/fifo_generator_v13_0_0
 
-vcom -64 -93 -work fifo_generator_v12_0 "../testbanch/fifo_eth2fg_example/fifo_eth2fg_example.srcs/sources_1/ip/fifo_eth2fg/fifo_generator_v12_0/simulation/fifo_generator_vhdl_beh.vhd"
-vcom -64 -93 -work fifo_generator_v12_0 "../testbanch/fifo_eth2fg_example/fifo_eth2fg_example.srcs/sources_1/ip/fifo_eth2fg/fifo_generator_v12_0/hdl/fifo_generator_v12_0_vh_rfs.vhd"
-
-vcom -64 -93 -work xil_defaultlib "../testbanch/fifo_eth2fg_example/fifo_eth2fg_example.srcs/sources_1/ip/fifo_eth2fg/sim/fifo_eth2fg.vhd"
+vcom -64 -93 -work fifo_generator_v13_0_0 "../testbanch/fifo_host2eth_example/fifo_host2eth_example.ip_user_files/ipstatic/fifo_generator_v13_0_0/simulation/fifo_generator_vhdl_beh.vhd"
+vcom -64 -93 -work fifo_generator_v13_0_0 "../testbanch/fifo_host2eth_example/fifo_host2eth_example.ip_user_files/ipstatic/fifo_generator_v13_0_0/hdl/fifo_generator_v13_0_rfs.vhd"
+vcom -64 -93 -work xil_defaultlib         "../testbanch/fifo_eth2fg_example/fifo_eth2fg_example.srcs/sources_1/ip/fifo_eth2fg/sim/fifo_eth2fg.vhd"
 
 
 vcom -64 -93 -work xil_defaultlib "../../../../../lib/common/hw/lib/vicg/vicg_common_pkg.vhd"
@@ -41,7 +40,7 @@ vcom -64 -93 -work xil_defaultlib "../../src/fg/fg.vhd"
 
 vcom -64 -93 -work xil_defaultlib "../testbanch/fgwr_tb.vhd"
 
-vsim -t 1ps -L xil_defaultlib -L fifo_generator_v12_0 -lib xil_defaultlib xil_defaultlib.fgwr_tb
+vsim -t 1ps -L xil_defaultlib -L fifo_generator_v13_0_0 -lib xil_defaultlib xil_defaultlib.fgwr_tb
 
 
 do fgwr_tb_wave.do

@@ -142,11 +142,11 @@ parameter                              FIFO_SIZE = 1024
 
 
    //----------------------------------------------------------------------------
-   // Instantiate the Ethernet Core Support level
+   // Instantiate the Ethernet core
    //----------------------------------------------------------------------------
-   eth_core_support support_layer_i(
+   eth_core ethernet_core_i (
       .coreclk_out                     (),
-      .qpll0reset_out                  (),
+      .areset_datapathclk_out          (),
       .refclk_p                        (refclk_p),
       .refclk_n                        (refclk_n),
       .dclk                            (dclk),
@@ -195,31 +195,6 @@ parameter                              FIFO_SIZE = 1024
       .txn                             (txn),
       .rxp                             (rxp),
       .rxn                             (rxn),
-      .transceiver_debug_gt_eyescanreset     (1'b0),
-      .transceiver_debug_gt_eyescantrigger   (1'b0),
-      .transceiver_debug_gt_rxcdrhold        (1'b0),
-      .transceiver_debug_gt_txprbsforceerr   (1'b0),
-      .transceiver_debug_gt_txpolarity       (1'b0),
-      .transceiver_debug_gt_rxpolarity       (1'b0),
-      .transceiver_debug_gt_rxrate           (3'b0),
-      .transceiver_debug_gt_txpmareset       (1'b0),
-      .transceiver_debug_gt_rxpmareset       (1'b0),
-      .transceiver_debug_gt_rxdfelpmreset    (1'b0),
-      .transceiver_debug_gt_rxpmaresetdone   (),
-      .transceiver_debug_gt_txresetdone      (),
-      .transceiver_debug_gt_rxresetdone      (),
-      .transceiver_debug_gt_txoutclksel     (3'b101),
-      .transceiver_debug_gt_txpcsreset      (1'b0),
-      .transceiver_debug_gt_txprecursor      (5'b0),
-      .transceiver_debug_gt_txpostcursor     (5'b0),
-      .transceiver_debug_gt_txdiffctrl       (4'b0),
-      .transceiver_debug_gt_rxlpmen          (1'b0),
-      .transceiver_debug_gt_eyescandataerror (),
-      .transceiver_debug_gt_txbufstatus      (),
-      .transceiver_debug_gt_rxbufstatus      (),
-      .transceiver_debug_gt_rxprbserr        (),
-      .transceiver_debug_gt_dmonitorout      (),
-      .transceiver_debug_gt_pcsrsvdin        (16'b0),
       .sim_speedup_control             (sim_speedup_control),
       .signal_detect                   (signal_detect),
       .tx_fault                        (tx_fault),

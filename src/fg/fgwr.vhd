@@ -6,7 +6,19 @@
 --
 -- Description : Video source -> MEM(VBUF)
 --
+-- Video Packet Header:
 -------------------------------------------------------------------------
+-- |31....28|27....24|23....20|19....16 | 15....12|11....8|7....4|3....0|
+-------------------------------------------------------------------------
+-- |        | Fr.Num |   VCH  | PktType |         Length                |
+-------------------------------------------------------------------------
+-- |         Fr. LineCount              |         Fr. PixCount          |
+-------------------------------------------------------------------------
+-- |         Fr. LineNum                |         Fr. PixNum            |
+-------------------------------------------------------------------------
+-- |         TimeStump_MSB              |         TimeStump_LSB         |
+-------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -96,6 +108,7 @@ signal i_fsm_fgwr         : TFsm_state;
 --signal i_pkth_cnt         : unsigned(3 downto 0);
 signal i_pkt_size_byte    : unsigned(15 downto 0);
 
+--signal i_vbufi_sel        : std_logic;
 signal i_vbufi_rden       : std_logic;
 signal i_vbufi_rd         : std_logic;
 signal i_vbufi_do         : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
@@ -149,13 +162,17 @@ p_out_frmrk <= i_fr_rowmrk when p_in_tst(C_FG_REG_DBG_TIMESTUMP_BIT) = '0'
 ------------------------------------------------
 --Read VPKT
 ------------------------------------------------
-p_out_vbufi_rd(0) <= i_vbufi_rd;
-i_vbufi_rd <= ((i_vbufi_rden or i_skp_en) and (not p_in_vbufi_empty(0)))
+p_out_vbufi_rd(0) <= i_vbufi_rd;-- when i_vbufi_sel = '0' else '0';
+--p_out_vbufi_rd(1) <= i_vbufi_rd when i_vbufi_sel = '1' else '0';
+
+i_vbufi_rd <= ((i_vbufi_rden or i_skp_en) and (not i_vbufi_empty))
             or (i_memwr_rden and i_memwr_rd);
 
-i_vbufi_do <= p_in_vbufi_do((G_MEM_DWIDTH * (0 + 1)) - 1 downto (G_MEM_DWIDTH * 0));
 
-i_vbufi_empty <= p_in_vbufi_empty(0);
+i_vbufi_do <= p_in_vbufi_do((G_MEM_DWIDTH * (0 + 1)) - 1 downto (G_MEM_DWIDTH * 0)); -- when i_vbufi_sel = '0' else
+--              p_in_vbufi_do((G_MEM_DWIDTH * (1 + 1)) - 1 downto (G_MEM_DWIDTH * 1));
+
+i_vbufi_empty <= p_in_vbufi_empty(0);-- when i_vbufi_sel = '0' else p_in_vbufi_empty(1);
 
 ------------------------------------------------
 --FSM
@@ -164,6 +181,7 @@ process(p_in_clk)
 Type TTimestump_test is array (0 to G_VCH_COUNT - 1) of unsigned(31 downto 0);
 variable timestump_cnt : TTimestump_test;
 variable fr_rownum : unsigned(i_fr_rownum'range);
+variable vch_num : unsigned(3 downto 0);
 begin
 if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
@@ -172,6 +190,7 @@ if rising_edge(p_in_clk) then
 
 --    i_pkth_cnt <= (others => '0');
     i_vbufi_rden <= '0';
+--    i_vbufi_sel <= '0';
     i_memwr_rden <= '0';
     i_pkt_size_byte <= (others => '0');
 
@@ -224,11 +243,15 @@ if rising_edge(p_in_clk) then
 
             i_pkt_size_byte <= UNSIGNED(i_vbufi_do(15 downto 0)) + CI_ADD;
 
-            i_vbufi_rden <= '0';
+            i_vbufi_rden <= '1';
 
             i_fsm_fgwr <= S_PKTH_RD;
 
           end if;
+
+--        else
+--
+--          i_vbufi_sel <= not i_vbufi_sel;
 
         end if;
 
@@ -236,8 +259,6 @@ if rising_edge(p_in_clk) then
       --Pkt Header
       --------------------------------------
       when S_PKTH_RD =>
-
-        i_vbufi_rden <= '1';
 
         --Calculate pixcount
         i_pixcount_byte <= i_pkt_size_byte
@@ -247,10 +268,11 @@ if rising_edge(p_in_clk) then
             and UNSIGNED(i_vbufi_do((32 * 0) + 23 downto (32 * 0) + 20)) < TO_UNSIGNED(G_VCH_COUNT, 4) then
 
           --video channel number:
-          i_vch_num <= UNSIGNED(i_vbufi_do((32 * 0) + 23 downto (32 * 0) + 20));
+          vch_num := UNSIGNED(i_vbufi_do((32 * 0) + 23 downto (32 * 0) + 20));
+          i_vch_num <= vch_num;
 
           for i in 0 to G_VCH_COUNT - 1 loop
-            if (i_vch_num = i) then
+            if (vch_num = i) then
               --frame number :
               i_fr_num(i) <= i_vbufi_do((32 * 0) + 27 downto (32 * 0) + 24);
               i_fr_bufnum <= p_in_frbuf(i);
@@ -275,6 +297,8 @@ if rising_edge(p_in_clk) then
       when S_PKTH_RD1 =>
 
         if (i_vbufi_empty = '0') then
+
+          i_vbufi_rden <= '0';
 
           --current number of row and pixel
           i_fr_pixnum <= UNSIGNED(i_vbufi_do((32 * 0) + 15 downto (32 * 0) +  0));
@@ -343,6 +367,8 @@ if rising_edge(p_in_clk) then
             end if;
           end if;
 
+--          i_vbufi_sel <= not i_vbufi_sel;
+
           i_fsm_fgwr <= S_IDLE;
         end if;
 
@@ -357,6 +383,7 @@ if rising_edge(p_in_clk) then
 
           if (i_skp_dcnt = (i_mem_rqlen - 1)) then
             i_skp_en <= '0';
+--            i_vbufi_sel <= not i_vbufi_sel;
             i_fsm_fgwr <= S_IDLE;
           end if;
 

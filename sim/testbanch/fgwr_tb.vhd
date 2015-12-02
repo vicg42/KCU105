@@ -22,7 +22,7 @@ entity fgwr_tb is
 generic(
 G_FG_VCH_COUNT : integer := 1;
 G_MEM_AWIDTH : integer := 31;
-G_MEM_DWIDTH : integer := 128
+G_MEM_DWIDTH : integer := 64
 );
 port(
 p_in_ram_rd : in  std_logic := '0';
@@ -39,7 +39,7 @@ constant CI_VBUFI_RDCLK_PERIOD : TIME := 2.5 ns; --400MHz
 constant CI_FR_PIXCOUNT : integer := 128;
 constant CI_FR_ROWCOUNT : integer := 8;
 constant CI_FR_PIXNUM   : integer := 0;
-constant CI_FR_ROWNUM   : integer := 0;
+constant CI_FR_ROWNUM   : integer := 1;
 
 constant CI_RAM_DEPTH   : integer := 1024;
 
@@ -56,20 +56,22 @@ rd_clk    : in  std_logic;
 empty     : out std_logic;
 full      : out std_logic;
 prog_full : out std_logic;
---
---wr_rst_busy : out std_logic;
---rd_rst_busy : out std_logic;
---
+
+--rst       : in  std_logic
+
+wr_rst_busy : out std_logic;
+rd_rst_busy : out std_logic;
+
 --clk       : in  std_logic;
---srst      : in  std_logic
-rst       : in  std_logic
+srst      : in  std_logic
 );
-end component;
+end component fifo_eth2fg;
 
 component fgwr
 generic(
 G_DBGCS : string := "OFF";
 
+G_VBUFI_COUNT : integer := 1;
 G_VCH_COUNT : integer := 1;
 
 G_MEM_VCH_M_BIT   : integer := 25;
@@ -99,10 +101,10 @@ p_out_frmrk    : out   std_logic_vector(31 downto 0);
 --DataIN
 -------------------------------
 p_in_vbufi_do     : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-p_out_vbufi_rd    : out   std_logic;
-p_in_vbufi_empty  : in    std_logic;
-p_in_vbufi_full   : in    std_logic;
-p_in_vbufi_pfull  : in    std_logic;
+p_out_vbufi_rd    : out   std_logic_vector(0 downto 0);
+p_in_vbufi_empty  : in    std_logic_vector(0 downto 0);
+p_in_vbufi_full   : in    std_logic_vector(0 downto 0);
+p_in_vbufi_pfull  : in    std_logic_vector(0 downto 0);
 
 -------------------------------
 --MEM_CTRL Port
@@ -140,9 +142,9 @@ type TDIsim is array (0 to (i_vbufi_di'length / 32) - 1) of unsigned(31 downto 0
 signal i_vbufi_di_tsim     : TDIsim;
 signal i_vbufi_do         : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 signal i_vbufi_wr         : std_logic;
-signal i_vbufi_rd         : std_logic;
-signal i_vbufi_empty      : std_logic;
-signal i_vbufi_pfull      : std_logic;
+signal i_vbufi_rd         : std_logic_vector(0 downto 0);
+signal i_vbufi_empty      : std_logic_vector(0 downto 0);
+signal i_vbufi_pfull      : std_logic_vector(0 downto 0);
 signal i_vbufi_wrclk      : std_logic;
 
 signal i_out_memwr        : TMemIN;
@@ -198,6 +200,7 @@ m_fgwr : fgwr
 generic map(
 G_DBGCS => "ON",
 
+G_VBUFI_COUNT => 1,
 G_VCH_COUNT => G_FG_VCH_COUNT,
 
 G_MEM_VCH_M_BIT   => C_FG_MEM_VCH_M_BIT,
@@ -229,7 +232,7 @@ p_out_frmrk => open,
 p_in_vbufi_do     => i_vbufi_do   ,
 p_out_vbufi_rd    => i_vbufi_rd   ,
 p_in_vbufi_empty  => i_vbufi_empty,
-p_in_vbufi_full   => '0',
+p_in_vbufi_full   => (others => '0'),
 p_in_vbufi_pfull  => i_vbufi_pfull,
 
 -------------------------------
@@ -282,20 +285,31 @@ rownum : for rownum in 0 to CI_FR_ROWCOUNT - 1 loop
 
 wait until rising_edge(i_vbufi_wrclk);
 i_header(0) <= TO_UNSIGNED((CI_FR_PIXCOUNT + C_FG_PKT_HD_SIZE_BYTE - 2), 16);--Length
+if rownum = 3 then
+i_header(1) <= "0000" & TO_UNSIGNED(0,  4) & TO_UNSIGNED(ch,  4) & TO_UNSIGNED(16#00#,  4);--FrNum & VCH_NUM & PktType
+else
 i_header(1) <= "0000" & TO_UNSIGNED(0,  4) & TO_UNSIGNED(ch,  4) & TO_UNSIGNED(16#01#,  4);--FrNum & VCH_NUM & PktType
+end if;
 i_header(2) <= TO_UNSIGNED(CI_FR_PIXCOUNT, 16);--Fr.PixCount
 i_header(3) <= TO_UNSIGNED(CI_FR_ROWCOUNT, 16);--Fr.RowCount
 i_header(4) <= TO_UNSIGNED(CI_FR_PIXNUM, 16);--Fr.PixNum
 i_header(5) <= TO_UNSIGNED(rownum, 16);--Fr.RowNum
-i_header(6) <= TO_UNSIGNED(0, 16);--TimeStump_LSB
-i_header(7) <= TO_UNSIGNED(0, 16);--TimeStump_MSB
+i_header(6) <= TO_UNSIGNED(16#AA#, 16);--TimeStump_LSB
+i_header(7) <= TO_UNSIGNED(16#BB#, 16);--TimeStump_MSB
 
 --Write PktHeader
+--wait until rising_edge(i_vbufi_wrclk);
+--i_vbufi_wr <= '1';
+--for i in 0 to (i_vbufi_di'length / i_header(0)'length) - 1 loop
+--i_vbufi_di((i_header(0)'length * (i + 1)) - 1 downto (i_header(0)'length * i)) <= i_header(i);
+--end loop;
 wait until rising_edge(i_vbufi_wrclk);
 i_vbufi_wr <= '1';
-for i in 0 to (i_vbufi_di'length / i_header(0)'length) - 1 loop
-i_vbufi_di((i_header(0)'length * (i + 1)) - 1 downto (i_header(0)'length * i)) <= i_header(i);
-end loop;
+i_vbufi_di <= i_header(3) & i_header(2)& i_header(1) & i_header(0);
+
+wait until rising_edge(i_vbufi_wrclk);
+i_vbufi_wr <= '1';
+i_vbufi_di <= i_header(7) & i_header(6)& i_header(5) & i_header(4);
 
 
 --Write Data
@@ -303,7 +317,7 @@ wait until rising_edge(i_vbufi_wrclk);
 i_vbufi_wr <= '1';
 i_vbufi_di <= TO_UNSIGNED(1, i_vbufi_di'length);
 
-for i in 1 to ((CI_FR_PIXCOUNT + C_FG_PKT_HD_SIZE_BYTE) / (G_MEM_DWIDTH / 8)) - 2 loop
+for i in 2 to ((CI_FR_PIXCOUNT + C_FG_PKT_HD_SIZE_BYTE) / (G_MEM_DWIDTH / 8)) - 2 loop
   wait until rising_edge(i_vbufi_wrclk);
   i_vbufi_di <= i_vbufi_di + 1;
 end loop;
@@ -331,19 +345,19 @@ wr_en     => i_vbufi_wr,
 wr_clk    => i_vbufi_wrclk,
 
 dout      => i_vbufi_do,
-rd_en     => i_vbufi_rd,
+rd_en     => i_vbufi_rd(0),
 rd_clk    => p_in_clk,
 
-empty     => i_vbufi_empty,
+empty     => i_vbufi_empty(0),
 full      => open,
-prog_full => i_vbufi_pfull,
---
---wr_rst_busy : out std_logic;
---rd_rst_busy : out std_logic;
---
+prog_full => i_vbufi_pfull(0),
+
+wr_rst_busy => open,--
+rd_rst_busy => open,--
+
 --clk       : in  std_logic;
---srst      : in  std_logic
-rst => p_in_rst
+srst => p_in_rst
+--rst => p_in_rst
 );
 
 
