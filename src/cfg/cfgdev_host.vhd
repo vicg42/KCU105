@@ -207,8 +207,7 @@ tst_fsm_cs <= TO_UNSIGNED(16#01#, tst_fsm_cs'length) when i_fsm_cs = S_H2D_BUF_C
               TO_UNSIGNED(16#07#, tst_fsm_cs'length) when i_fsm_cs = S_CFG_WAIT_TXRDY  else
               TO_UNSIGNED(16#08#, tst_fsm_cs'length) when i_fsm_cs = S_CFG_TXD         else
               TO_UNSIGNED(16#09#, tst_fsm_cs'length) when i_fsm_cs = S_CFG_WAIT_RXRDY  else
-              TO_UNSIGNED(16#00#, tst_fsm_cs'length);
---              TO_UNSIGNED(16#00#, tst_fsm_cs'length) when i_fsm_cs = S_CFG_RXD       else
+              TO_UNSIGNED(16#00#, tst_fsm_cs'length); --S_CFG_RXD
 
 end generate gen_dbg_on;
 
