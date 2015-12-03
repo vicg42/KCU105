@@ -641,7 +641,6 @@ srst    => b_rst_eth_bufs
 p_out_eth_hrxbuf_empty <= i_eth_rxbuf_empty;
 p_out_eth_hrxbuf_full <= i_eth_rxbuf_full;
 
-p_out_ethio_rx_axi_tready(0) <= '1';
 
 --expand IRQ strobe
 process(p_in_ethio_clk(0))
@@ -682,6 +681,8 @@ p_out_eth_hirq <= i_eth_rx_irq_out;
 --XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 gen_fgbuf : for eth_ch in 0 to (G_ETH_CH_COUNT - 1) generate
 begin
+
+p_out_ethio_rx_axi_tready(eth_ch) <= '1';
 
 process(p_in_ethio_clk(eth_ch))
 begin
