@@ -120,7 +120,7 @@ i_ethrx_len(7  downto 0) <= i_eth_axi_data(5);
 process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
-  if (p_in_rst = '0') then
+  if (p_in_rst = '1') then
 
     i_fsm_eth_rx <= S_RX_IDLE;
 

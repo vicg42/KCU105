@@ -275,6 +275,7 @@ signal i_rx_fifo_tready  : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
 signal i_coreclk_out     : std_logic;
 signal i_block_lock      : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+signal i_buf_rst         : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
 signal dbg_rx_axis_mac_tdata   : std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0)      ;
 signal dbg_rx_axis_mac_tkeep   : std_logic_vector(((G_ETH_DWIDTH / 8) * G_ETH_CH_COUNT) - 1 downto 0);
@@ -472,7 +473,7 @@ p_out_tst => i_eth_mac_tx_tst_out((32 * (i + 1)) - 1 downto (32 * i)),
 --SYSTEM
 --------------------------------------
 p_in_clk => i_coreclk_out,
-p_in_rst => i_block_lock(i) --p_in_rst
+p_in_rst => i_buf_rst(i) --p_in_rst
 );
 
 
@@ -516,11 +517,12 @@ p_out_tst => i_eth_mac_rx_tst_out((32 * (i + 1)) - 1 downto (32 * i)),
 --SYSTEM
 --------------------------------------
 p_in_clk => i_coreclk_out,
-p_in_rst => i_block_lock(i) --p_in_rst
+p_in_rst => i_buf_rst(i) --p_in_rst
 );
 
 p_out_buf_clk(i) <= i_coreclk_out;
-p_out_buf_rst(i) <= not i_block_lock(i);
+i_buf_rst(i) <= not i_block_lock(i);
+p_out_buf_rst(i) <= i_buf_rst(i);
 
 p_out_dbg.rx(i).fsm <= i_eth_mac_rx_tst_out((32 * i) + 2 downto (32 * i) + 0);
 

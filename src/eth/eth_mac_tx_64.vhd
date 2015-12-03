@@ -119,7 +119,7 @@ i_rd_chunk_rem <= i_rd_chunk_count((i_total_count_byte'length - log2(G_AXI_DWIDT
 process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
-  if p_in_rst = '0' then
+  if p_in_rst = '1' then
     i_fsm_eth_tx <= S_TX_IDLE;
 
     i_eth_axi_tdata <= (others => '0');
