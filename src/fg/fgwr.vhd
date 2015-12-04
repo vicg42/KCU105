@@ -35,6 +35,7 @@ generic(
 G_DBGCS : string := "OFF";
 
 G_VBUFI_COUNT : integer := 1;
+G_VBUFI_COUNT_MAX : integer := 1;
 G_VCH_COUNT : integer := 1;
 
 G_MEM_VCH_M_BIT   : integer := 25;
@@ -61,11 +62,11 @@ p_out_frmrk : out std_logic_vector(31 downto 0);
 -------------------------------
 --DataIN
 -------------------------------
-p_in_vbufi_do    : in  std_logic_vector((G_MEM_DWIDTH * G_VBUFI_COUNT) - 1 downto 0);
-p_out_vbufi_rd   : out std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
-p_in_vbufi_empty : in  std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
-p_in_vbufi_full  : in  std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
-p_in_vbufi_pfull : in  std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
+p_in_vbufi_do    : in  std_logic_vector((G_MEM_DWIDTH * G_VBUFI_COUNT_MAX) - 1 downto 0);
+p_out_vbufi_rd   : out std_logic_vector(G_VBUFI_COUNT_MAX - 1 downto 0);
+p_in_vbufi_empty : in  std_logic_vector(G_VBUFI_COUNT_MAX - 1 downto 0);
+p_in_vbufi_full  : in  std_logic_vector(G_VBUFI_COUNT_MAX - 1 downto 0);
+p_in_vbufi_pfull : in  std_logic_vector(G_VBUFI_COUNT_MAX - 1 downto 0);
 
 -------------------------------
 --MEM_CTRL Port
@@ -105,10 +106,9 @@ S_PKTSKIP
 );
 signal i_fsm_fgwr         : TFsm_state;
 
---signal i_pkth_cnt         : unsigned(3 downto 0);
 signal i_pkt_size_byte    : unsigned(15 downto 0);
 
---signal i_vbufi_sel        : std_logic;
+signal i_vbufi_sel        : std_logic;
 signal i_vbufi_rden       : std_logic;
 signal i_vbufi_rd         : std_logic;
 signal i_vbufi_do         : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
@@ -125,11 +125,8 @@ Type TVfrNum is array (0 to G_VCH_COUNT - 1) of std_logic_vector(3 downto 0);
 signal i_fr_num           : TVfrNum;
 signal i_vch_num          : unsigned(3 downto 0);
 
-signal i_mem_adr_base     : unsigned(31 downto 0);
-signal i_mem_adr_out      : unsigned(31 downto 0);
-signal i_mem_adr          : unsigned(31 downto 0);
-signal i_mem_trnlen       : unsigned(p_in_memtrn'range);
-signal i_mem_trnlen_out   : unsigned(15 downto 0);
+signal i_mem_adr          : unsigned(G_MEM_AWIDTH - 1 downto 0);
+signal i_mem_trnlen       : unsigned(15 downto 0);
 signal i_mem_rqlen        : unsigned(15 downto 0);
 signal i_mem_start        : std_logic;
 signal i_mem_dir          : std_logic;
@@ -160,19 +157,39 @@ p_out_frmrk <= i_fr_rowmrk when p_in_tst(C_FG_REG_DBG_TIMESTUMP_BIT) = '0'
 
 
 ------------------------------------------------
+--Select Count VBUFI
+------------------------------------------------
+gen_vbuf_count_1 : if (G_VBUFI_COUNT = 1) generate
+begin
+p_out_vbufi_rd(0) <= i_vbufi_rd;
+p_out_vbufi_rd(p_out_vbufi_rd'high downto 1) <= (others => '0');
+
+i_vbufi_do <= p_in_vbufi_do((G_MEM_DWIDTH * (0 + 1)) - 1 downto (G_MEM_DWIDTH * 0));
+
+i_vbufi_empty <= p_in_vbufi_empty(0);
+
+end generate gen_vbuf_count_1;
+
+
+gen_vbuf_count_2 : if (G_VBUFI_COUNT = 2) generate
+begin
+p_out_vbufi_rd(0) <= i_vbufi_rd when i_vbufi_sel = '0' else '0';
+p_out_vbufi_rd(1) <= i_vbufi_rd when i_vbufi_sel = '1' else '0';
+
+i_vbufi_do <= p_in_vbufi_do((G_MEM_DWIDTH * (0 + 1)) - 1 downto (G_MEM_DWIDTH * 0)) when i_vbufi_sel = '0' else
+              p_in_vbufi_do((G_MEM_DWIDTH * (1 + 1)) - 1 downto (G_MEM_DWIDTH * 1));
+
+i_vbufi_empty <= p_in_vbufi_empty(0) when i_vbufi_sel = '0' else p_in_vbufi_empty(1);
+
+end generate gen_vbuf_count_2;
+
+
+------------------------------------------------
 --Read VPKT
 ------------------------------------------------
-p_out_vbufi_rd(0) <= i_vbufi_rd;-- when i_vbufi_sel = '0' else '0';
---p_out_vbufi_rd(1) <= i_vbufi_rd when i_vbufi_sel = '1' else '0';
-
 i_vbufi_rd <= ((i_vbufi_rden or i_skp_en) and (not i_vbufi_empty))
             or (i_memwr_rden and i_memwr_rd);
 
-
-i_vbufi_do <= p_in_vbufi_do((G_MEM_DWIDTH * (0 + 1)) - 1 downto (G_MEM_DWIDTH * 0)); -- when i_vbufi_sel = '0' else
---              p_in_vbufi_do((G_MEM_DWIDTH * (1 + 1)) - 1 downto (G_MEM_DWIDTH * 1));
-
-i_vbufi_empty <= p_in_vbufi_empty(0);-- when i_vbufi_sel = '0' else p_in_vbufi_empty(1);
 
 ------------------------------------------------
 --FSM
@@ -181,6 +198,7 @@ process(p_in_clk)
 Type TTimestump_test is array (0 to G_VCH_COUNT - 1) of unsigned(31 downto 0);
 variable timestump_cnt : TTimestump_test;
 variable fr_rownum : unsigned(i_fr_rownum'range);
+variable fr_pixnum : unsigned(i_fr_pixnum'range);
 variable vch_num : unsigned(3 downto 0);
 begin
 if rising_edge(p_in_clk) then
@@ -188,9 +206,8 @@ if rising_edge(p_in_clk) then
 
     i_fsm_fgwr <= S_IDLE;
 
---    i_pkth_cnt <= (others => '0');
     i_vbufi_rden <= '0';
---    i_vbufi_sel <= '0';
+    i_vbufi_sel <= '0';
     i_memwr_rden <= '0';
     i_pkt_size_byte <= (others => '0');
 
@@ -205,6 +222,7 @@ if rising_edge(p_in_clk) then
     end loop;
 
     fr_rownum   := (others => '0');
+    fr_pixnum   := (others => '0');
 
     i_fr_bufnum <= (others => '0');
     i_fr_pixnum <= (others => '0');
@@ -214,10 +232,8 @@ if rising_edge(p_in_clk) then
     i_fr_rowmrk <= (others => '0');
     i_fr_rdy <= (others => '0');
 
-    i_mem_adr_base <= (others => '0');
     i_mem_adr <= (others => '0');
     i_mem_rqlen <= (others => '0');
-    i_mem_trnlen <= (others => '0');
     i_mem_dir <= '0';
     i_mem_start <= '0';
 
@@ -249,9 +265,9 @@ if rising_edge(p_in_clk) then
 
           end if;
 
---        else
---
---          i_vbufi_sel <= not i_vbufi_sel;
+        else
+
+          i_vbufi_sel <= not i_vbufi_sel;
 
         end if;
 
@@ -302,13 +318,10 @@ if rising_edge(p_in_clk) then
 
           --current number of row and pixel
           i_fr_pixnum <= UNSIGNED(i_vbufi_do((32 * 0) + 15 downto (32 * 0) +  0));
-          fr_rownum := UNSIGNED(i_vbufi_do((32 * 0) + 31 downto (32 * 0) + 16));
-          i_fr_rownum <= fr_rownum;
+          i_fr_rownum <= UNSIGNED(i_vbufi_do((32 * 0) + 31 downto (32 * 0) + 16));
 
           --timestump:
           i_fr_rowmrk <= i_vbufi_do((32 * 1) + 31 downto (32 * 1) + 0);
-
-          i_mem_adr_base <= i_fr_pixcount * fr_rownum;
 
           i_fsm_fgwr <= S_MEM_START;
 
@@ -321,14 +334,18 @@ if rising_edge(p_in_clk) then
 
         i_vbufi_rden <= '0';
 
-        i_mem_adr <= i_mem_adr_base + RESIZE(i_fr_pixnum, i_mem_adr'length);
+        i_mem_adr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT) <= i_vch_num(G_MEM_VCH_M_BIT - G_MEM_VCH_L_BIT
+                                                                                                   downto 0);
+        i_mem_adr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT) <= i_fr_bufnum;
+        i_mem_adr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT) <= i_fr_rownum(G_MEM_VLINE_M_BIT - G_MEM_VLINE_L_BIT
+                                                                                                            downto 0);
+        i_mem_adr(G_MEM_VLINE_L_BIT - 1 downto 0) <= i_fr_pixnum(G_MEM_VLINE_L_BIT - 1 downto 0);
 
         i_mem_rqlen <= RESIZE(i_pixcount_byte(i_pixcount_byte'high downto log2(G_MEM_DWIDTH / 8))
                                                                               , i_mem_rqlen'length)
                          + (TO_UNSIGNED(0, i_mem_rqlen'length - 2)
                             & OR_reduce(i_pixcount_byte(log2(G_MEM_DWIDTH / 8) - 1 downto 0)));
 
-        i_mem_trnlen <= UNSIGNED(p_in_memtrn);
         i_mem_dir <= C_MEMWR_WRITE;
 
         if (i_err = '0') then
@@ -367,7 +384,7 @@ if rising_edge(p_in_clk) then
             end if;
           end if;
 
---          i_vbufi_sel <= not i_vbufi_sel;
+          i_vbufi_sel <= not i_vbufi_sel;
 
           i_fsm_fgwr <= S_IDLE;
         end if;
@@ -383,7 +400,7 @@ if rising_edge(p_in_clk) then
 
           if (i_skp_dcnt = (i_mem_rqlen - 1)) then
             i_skp_en <= '0';
---            i_vbufi_sel <= not i_vbufi_sel;
+            i_vbufi_sel <= not i_vbufi_sel;
             i_fsm_fgwr <= S_IDLE;
           end if;
 
@@ -396,12 +413,7 @@ end if;
 end process;
 
 
-i_mem_adr_out(i_mem_adr_out'high downto G_MEM_VCH_M_BIT + 1) <= (others => '0');
-i_mem_adr_out(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT) <= i_vch_num(G_MEM_VCH_M_BIT - G_MEM_VCH_L_BIT downto 0);
-i_mem_adr_out(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT) <= i_fr_bufnum;
-i_mem_adr_out(G_MEM_VLINE_M_BIT downto 0) <= i_mem_adr(G_MEM_VLINE_M_BIT downto 0);
-
-i_mem_trnlen_out <= RESIZE(i_mem_trnlen, i_mem_trnlen_out'length);
+i_mem_trnlen <= RESIZE(UNSIGNED(p_in_memtrn), i_mem_trnlen'length);
 
 m_mem_wr : mem_wr
 generic map(
@@ -413,8 +425,8 @@ port map(
 -------------------------------
 --CFG
 -------------------------------
-p_in_cfg_mem_adr     => std_logic_vector(i_mem_adr_out),
-p_in_cfg_mem_trn_len => std_logic_vector(i_mem_trnlen_out),
+p_in_cfg_mem_adr     => std_logic_vector(i_mem_adr),
+p_in_cfg_mem_trn_len => std_logic_vector(i_mem_trnlen),
 p_in_cfg_mem_dlen_rq => std_logic_vector(i_mem_rqlen),
 p_in_cfg_mem_wr      => i_mem_dir,
 p_in_cfg_mem_start   => i_mem_start,
@@ -483,9 +495,9 @@ begin
 end process;
 
 tst_fgwr_fsm <= TO_UNSIGNED(16#01#, tst_fgwr_fsm'length) when i_fsm_fgwr = S_PKTH_RD   else
-                   TO_UNSIGNED(16#02#, tst_fgwr_fsm'length) when i_fsm_fgwr = S_MEM_START else
-                   TO_UNSIGNED(16#03#, tst_fgwr_fsm'length) when i_fsm_fgwr = S_MEM_WR    else
-                   TO_UNSIGNED(16#00#, tst_fgwr_fsm'length); --i_fsm_fgwr = S_IDLE        else
+                TO_UNSIGNED(16#02#, tst_fgwr_fsm'length) when i_fsm_fgwr = S_MEM_START else
+                TO_UNSIGNED(16#03#, tst_fgwr_fsm'length) when i_fsm_fgwr = S_MEM_WR    else
+                TO_UNSIGNED(16#00#, tst_fgwr_fsm'length); --i_fsm_fgwr = S_IDLE        else
 end generate gen_dbgcs_on;
 
 end architecture behavioral;

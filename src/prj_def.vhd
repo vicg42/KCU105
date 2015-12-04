@@ -104,7 +104,7 @@ constant C_HREG_DEV_STATUS_FG_VCH2_RDY_BIT    : integer := 10;
 constant C_HREG_DEV_STATUS_FG_VCH3_RDY_BIT    : integer := 11;
 
 constant C_HREG_DEV_STATUS_FST_BIT            : integer := 1;
-constant C_HREG_DEV_STATUS_LAST_BIT           : integer := C_HREG_DEV_STATUS_FG_VCH0_RDY_BIT;
+constant C_HREG_DEV_STATUS_LAST_BIT           : integer := C_HREG_DEV_STATUS_FG_VCH0_RDY_BIT + C_PCFG_FG_VCH_COUNT - 1;
 
 
 --Register C_HREG_IRQ / Bit Map:
@@ -127,7 +127,7 @@ constant C_HIRQ_FG_VCH0                       : integer := 3;
 constant C_HIRQ_FG_VCH1                       : integer := 4;
 constant C_HIRQ_FG_VCH2                       : integer := 5;
 constant C_HIRQ_FG_VCH3                       : integer := 6;
-constant C_HIRQ_COUNT                         : integer := C_HIRQ_FG_VCH0 + 1;
+constant C_HIRQ_COUNT                         : integer := C_HIRQ_FG_VCH0 + C_PCFG_FG_VCH_COUNT + 1;
 constant C_HIRQ_FST_BIT                       : integer := selval(0, 1, (C_HIRQ_COUNT = 1));
 --constant C_HIRQ_COUNT_MAX                     : integer := pwr(2, (C_HREG_IRQ_NUM_M_WBIT - C_HREG_IRQ_NUM_L_WBIT + 1));
 
@@ -312,7 +312,7 @@ constant C_FG_PRM_MEM_ADR_RD               : integer := 1;
 constant C_FG_PRM_FR_ZONE_SKIP             : integer := 2;
 constant C_FG_PRM_FR_ZONE_ACTIVE           : integer := 3;
 constant C_FG_PRM_FR_OPTIONS               : integer := 4;
-constant C_FG_PRM_FR_STEP_RD               : integer := 5;
+constant C_FG_PRM_FR_STEP_RD_LINE          : integer := 5;
 
 constant C_FG_PRM_COUNT_MAX                : integer := pwr(2, (C_FG_REG_CTRL_PRM_M_BIT - C_FG_REG_CTRL_PRM_L_BIT + 1));
 
@@ -322,17 +322,16 @@ constant C_FG_VCH_COUNT                    : integer := C_PCFG_FG_VCH_COUNT;
 constant C_FG_VCH_COUNT_MAX                : integer := 2;
 
 --Video memory map:
-constant C_FG_MEM_VLINE_M_BIT              : integer := log2(C_PCFG_FG_MEM_VBUF_SIZE) - 1;
-constant C_FG_MEM_VFR_L_BIT                : integer := log2(C_PCFG_FG_MEM_VBUF_SIZE);--Index of frame buffer (MSB...LSB)
-constant C_FG_MEM_VFR_M_BIT                : integer := log2(C_PCFG_FG_MEM_VBUF_SIZE)
-+ selval(1, log2(C_FG_VBUF_COUNT), ((log2(C_FG_VBUF_COUNT) = 0) or (log2(C_FG_VBUF_COUNT) = 1))) - 1;
+constant C_FG_MEM_VLINE_L_BIT              : integer := log2(C_PCFG_FG_FR_PIX_COUNT_MAX);
+constant C_FG_MEM_VLINE_M_BIT              : integer := C_FG_MEM_VLINE_L_BIT + log2(C_PCFG_FG_FR_ROW_COUNT_MAX) - 1;
 
-constant C_FG_MEM_VCH_L_BIT                : integer := log2(C_PCFG_FG_MEM_VBUF_SIZE)
-+ selval(1, log2(C_FG_VBUF_COUNT), ((log2(C_FG_VBUF_COUNT) = 0) or (log2(C_FG_VBUF_COUNT) = 1)));
+constant C_FG_MEM_VFR_L_BIT                : integer := (C_FG_MEM_VLINE_M_BIT + 1);
+constant C_FG_MEM_VFR_M_BIT                : integer := C_FG_MEM_VFR_L_BIT + selval(1, log2(C_FG_VBUF_COUNT), ((log2(C_FG_VBUF_COUNT) = 0)
+                                                                                                                    or (log2(C_FG_VBUF_COUNT) = 1))) - 1;
 
-constant C_FG_MEM_VCH_M_BIT                : integer := log2(C_PCFG_FG_MEM_VBUF_SIZE)
-+ selval(1, log2(C_FG_VBUF_COUNT), ((log2(C_FG_VBUF_COUNT) = 0) or (log2(C_FG_VBUF_COUNT) = 1)))
-+ selval(1, log2(C_FG_VCH_COUNT), ((log2(C_FG_VCH_COUNT) = 0) or (log2(C_FG_VCH_COUNT) = 1))) - 1;
+constant C_FG_MEM_VCH_L_BIT                : integer := (C_FG_MEM_VFR_M_BIT + 1);
+constant C_FG_MEM_VCH_M_BIT                : integer := C_FG_MEM_VCH_L_BIT + selval(1, log2(C_FG_VCH_COUNT), ((log2(C_FG_VCH_COUNT) = 0)
+                                                                                                                 or (log2(C_FG_VCH_COUNT) = 1))) - 1;
 
 --Register C_FG_REG_DBG / Bit Map:
 --constant C_FG_REG_DBG_L_BIT               : integer := 0;

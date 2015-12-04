@@ -146,9 +146,19 @@ end component pcie2mem_ctrl;
 
 component fg is
 generic(
-G_VSYN_ACTIVE : std_logic := '1';
-G_DBGCS  : string := "OFF";
+G_DBGCS : string := "OFF";
+
 G_VBUFI_COUNT : integer := 1;
+G_VBUFI_COUNT_MAX : integer := 1;
+G_VCH_COUNT : integer := 1;
+
+G_MEM_VCH_M_BIT   : integer := 25;
+G_MEM_VCH_L_BIT   : integer := 24;
+G_MEM_VFR_M_BIT   : integer := 23;
+G_MEM_VFR_L_BIT   : integer := 23;
+G_MEM_VLINE_M_BIT : integer := 22;
+G_MEM_VLINE_L_BIT : integer := 0;
+
 G_MEM_AWIDTH : integer := 32;
 G_MEMWR_DWIDTH : integer := 32;
 G_MEMRD_DWIDTH : integer := 32
@@ -187,11 +197,11 @@ p_out_vbufo_empty : out   std_logic;
 -------------------------------
 --VBUFI -> MEM(VBUF)
 -------------------------------
-p_in_vbufi_do     : in    std_logic_vector((G_MEMWR_DWIDTH * G_VBUFI_COUNT) - 1 downto 0);
-p_out_vbufi_rd    : out   std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
-p_in_vbufi_empty  : in    std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
-p_in_vbufi_full   : in    std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
-p_in_vbufi_pfull  : in    std_logic_vector(G_VBUFI_COUNT - 1 downto 0);
+p_in_vbufi_do     : in    std_logic_vector((G_MEMWR_DWIDTH * G_VBUFI_COUNT_MAX) - 1 downto 0);
+p_out_vbufi_rd    : out   std_logic_vector(G_VBUFI_COUNT_MAX - 1 downto 0);
+p_in_vbufi_empty  : in    std_logic_vector(G_VBUFI_COUNT_MAX - 1 downto 0);
+p_in_vbufi_full   : in    std_logic_vector(G_VBUFI_COUNT_MAX - 1 downto 0);
+p_in_vbufi_pfull  : in    std_logic_vector(G_VBUFI_COUNT_MAX - 1 downto 0);
 
 ---------------------------------
 --MEM

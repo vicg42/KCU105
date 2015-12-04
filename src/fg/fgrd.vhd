@@ -19,8 +19,9 @@ use work.mem_wr_pkg.all;
 
 entity fgrd is
 generic(
-G_USR_OPT : std_logic_vector(3 downto 0) := (others => '0');
-G_DBGCS   : string := "OFF";
+G_DBGCS : string := "OFF";
+
+G_VCH_COUNT : integer := 1;
 
 G_MEM_VCH_M_BIT   : integer := 25;
 G_MEM_VCH_L_BIT   : integer := 24;
@@ -30,32 +31,27 @@ G_MEM_VLINE_M_BIT : integer := 22;
 G_MEM_VLINE_L_BIT : integer := 0;
 
 G_MEM_AWIDTH : integer := 32;
-G_MEM_DWIDTH : integer := 32;
-
-G_VCH_COUNT : integer := 1
+G_MEM_DWIDTH : integer := 32
 );
 port(
 -------------------------------
 --CFG
 -------------------------------
-p_in_usrprm          : in    TFGRD_Prms;
+p_in_usrprm          : in    TFG_VCHPrms;
 p_in_memtrn          : in    std_logic_vector(7 downto 0);
---p_in_work_en         : in    std_logic;
 
 p_in_hrd_chsel       : in    std_logic_vector(2 downto 0);--Host: Channel number for read
 p_in_hrd_start       : in    std_logic;                   --Host: Start read data
 p_in_hrd_done        : in    std_logic;                   --Host: ACK read done
 
 p_in_frbuf           : in    TFG_FrBufs;                  --number framebuffer(vbuf) for read
-p_in_frline_n        : in    std_logic;                   --Enable read next line (acitve '0')
+p_in_frline_nxt      : in    std_logic;                   --Enable read next line
 
-p_out_chnum          : out   std_logic_vector(2 downto 0);
+p_out_vchnum         : out   std_logic_vector(2 downto 0);
 p_out_pixcount       : out   std_logic_vector(15 downto 0);
 p_out_linecount      : out   std_logic_vector(15 downto 0);
 p_out_mirx           : out   std_logic;
-p_out_sof            : out   std_logic;
-p_out_eof            : out   std_logic;
-p_out_fr_rddone      : out   std_logic;
+p_out_fr_rddone      : out   std_logic; --Read of frame is done
 
 ----------------------------
 --Upstream Port
@@ -87,48 +83,41 @@ end entity fgrd;
 
 architecture behavioral of fgrd is
 
---Small delay for simulation purposes.
-constant dly : time := 1 ps;
-
-type TFsm_state is (
+type fsm_state is (
 S_IDLE,
+S_SET_PRMS,
+S_MEM_SET_ADR,
 S_MEM_START,
 S_MEM_RD,
-S_HOST_ACK
+S_ROW_NXT,
+S_WAIT_HOST_ACK
 );
-signal i_fsm_fgrd          : TFsm_state;
+signal i_fsm_fgrd: fsm_state;
 
-signal i_data_null         : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+signal i_mem_adr              : unsigned(G_MEM_AWIDTH - 1 downto 0);
+signal i_mem_trnlen           : unsigned(15 downto 0);
+signal i_mem_rqlen            : unsigned(15 downto 0);
+signal i_mem_start            : std_logic;
+signal i_mem_dir              : std_logic;
+signal i_mem_done             : std_logic;
 
-signal i_prm               : TFGRD_Prm;
+signal i_vch_prm              : TFG_VCHPrm;
+signal i_vch_num              : unsigned(p_in_hrd_chsel'range);
+signal i_vfr_row_cnt          : unsigned(G_MEM_VLINE_M_BIT - G_MEM_VLINE_L_BIT downto 0);
+signal i_vfr_done             : std_logic;
+signal i_vfr_new              : unsigned(G_VCH_COUNT - 1 downto 0) := (others => '1');
+signal i_vfr_buf              : unsigned(G_MEM_VFR_M_BIT - G_MEM_VFR_L_BIT downto 0);
 
-signal i_mem_adr_out       : unsigned(31 downto 0) := (others => '0');
-signal i_mem_adr_t         : unsigned(31 downto 0) := (others => '0');
-signal i_mem_adr           : unsigned(31 downto 0) := (others => '0');
-signal i_mem_rqlen         : unsigned(15 downto 0) := (others => '0');
-signal i_mem_trnlen        : unsigned(p_in_memtrn'range);
-signal i_mem_trnlen_out    : unsigned(15 downto 0);
-signal i_mem_start         : std_logic;
-signal i_mem_dir           : std_logic;
-signal i_mem_done          : std_logic;
-signal i_frbuf             : unsigned(G_MEM_VFR_M_BIT - G_MEM_VFR_L_BIT downto 0);
-signal i_chnum             : unsigned(p_in_hrd_chsel'range);
-signal i_fr_rowcnt         : unsigned(15 downto 0) := (others => '0');
-signal i_fr_rowcnt_t       : unsigned(15 downto 0) := (others => '0');
-signal i_sof               : std_logic;
-signal i_eof               : std_logic;
+signal i_vfr_cur              : std_logic;
+signal i_vfr_row_cnt_cur      : unsigned(i_vfr_row_cnt'range);
+Type TVCH_row_cnt is array (0 to G_VCH_COUNT - 1) of unsigned(i_vfr_row_cnt'range);
+signal sv_vfr_row_cnt         : TVCH_row_cnt;
+signal i_steprd_count         : unsigned(15 downto 0);
+signal i_steprd_cnt           : unsigned(15 downto 0);
 
-signal i_host_ack          : std_logic;
+signal i_data_null            : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
-signal i_steprd_count      : unsigned(15 downto 0);
-signal i_steprd_cnt        : unsigned(15 downto 0);
-signal i_fr_new            : std_logic_vector(G_VCH_COUNT - 1 downto 0);
-signal i_fr_new_c          : std_logic;
-Type TFGRD_linecnt is array (0 to G_VCH_COUNT - 1) of unsigned(i_fr_rowcnt'range);
-signal i_fr_rowcnt_save    : TFGRD_linecnt;
-signal i_fr_rowcnt_save_c  : unsigned(i_fr_rowcnt'range);
-
-signal tst_mem_wr_out              : std_logic_vector(31 downto 0);
+signal tst_mem_wr_out         : std_logic_vector(31 downto 0);
 signal tst_fsmstate,tst_fsm_cs_dly : unsigned(3 downto 0) := (others => '0');
 
 
@@ -137,46 +126,50 @@ begin --architecture behavioral
 
 i_data_null <= (others => '0');
 
-p_out_chnum <= std_logic_vector(i_chnum);
-p_out_pixcount <= std_logic_vector(i_prm.frrd.act.pixcount);
-p_out_linecount <= std_logic_vector(i_prm.frrd.act.rowcount);
-p_out_mirx <= i_prm.mirror.x;
-p_out_sof <= i_sof;
-p_out_eof <= i_eof;
-p_out_fr_rddone <= i_host_ack;
+p_out_vchnum <= std_logic_vector(i_vch_num);
+p_out_pixcount <= std_logic_vector(i_vch_prm.fr.act.pixcount);
+p_out_linecount <= std_logic_vector(i_vch_prm.fr.act.rowcount);
+p_out_mirx <= i_vch_prm.mirror.pix;
+p_out_fr_rddone <= i_vfr_done;
 
 
+------------------------------------------------
+--FSM
+------------------------------------------------
 process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
 
     i_fsm_fgrd <= S_IDLE;
+
     i_mem_adr <= (others => '0');
     i_mem_rqlen <= (others => '0');
-
     i_mem_dir <= '0';
     i_mem_start <= '0';
-    i_fr_rowcnt <= (others => '0');
 
---    i_prm.mem_trnlen <= std_logic_vector(TO_UNSIGNED(16#4040#, i_prm.mem_trnlen'length));
---    i_prm.frwr.pixcount <= (others => '0');
---    i_prm.frwr.rowcount <= (others => '0');
+    i_vfr_buf <= (others => '0');
+    i_vfr_row_cnt <= (others => '0');
 
-    i_prm.frrd.skp.pixcount <= (others => '0');
-    i_prm.frrd.skp.rowcount <= (others => '0');
-    i_prm.frrd.act.pixcount <= (others => '0');
-    i_prm.frrd.act.rowcount <= (others => '0');
+    i_vch_num <= (others => '0');
+    i_vfr_done <= '0';
+    i_vfr_new <= (others => '1');
 
-    i_prm.mirror.x <= '0';
-    i_prm.mirror.y <= '0';
+    for ch in 0 to G_VCH_COUNT - 1 loop
+    sv_vfr_row_cnt(ch) <= (others => '0');
+    end loop;
+    i_steprd_count <= (others => '0');
+    i_steprd_cnt <= (others => '0');
+    i_vfr_cur <= '0';
+    i_vfr_row_cnt_cur <= (others => '0');
 
-    i_sof <= '0'; i_eof <= '0';
-
-    i_frbuf <= (others => '0');
-    i_chnum <= (others => '0');
-
-    i_host_ack <= '0';
+    i_vch_prm.fr.skp.pixcount <= (others => '0');
+    i_vch_prm.fr.skp.rowcount <= (others => '0');
+    i_vch_prm.fr.act.pixcount <= (others => '0');
+    i_vch_prm.fr.act.rowcount <= (others => '0');
+    i_vch_prm.mirror.pix <= '0';
+    i_vch_prm.mirror.row <= '0';
+    i_vch_prm.steprd <= (others => '0');
 
   else
 
@@ -187,42 +180,89 @@ if rising_edge(p_in_clk) then
       --------------------------------------
       when S_IDLE =>
 
-        i_host_ack <= '0';
-        i_fr_rowcnt <= (others => '0');
+        i_vfr_done <= '0';
+        i_steprd_cnt <= (others => '0');
 
-        if p_in_hrd_start = '1' then
+        if (p_in_hrd_start = '1') then
 
-          i_chnum <= UNSIGNED(p_in_hrd_chsel);
+          i_vch_num <= UNSIGNED(p_in_hrd_chsel);
 
-          --Load param channel
           for ch in 0 to G_VCH_COUNT - 1 loop
-            if UNSIGNED(p_in_hrd_chsel) = ch then
-              i_prm <= p_in_usrprm(ch);
-              i_frbuf <= p_in_frbuf(ch);
+            if (UNSIGNED(p_in_hrd_chsel) = ch) then
+              i_vch_prm <= p_in_usrprm(ch);
+              i_vfr_buf <= p_in_frbuf(ch);
+
+              if (i_vfr_new(ch) = '1') then
+                i_vfr_new(ch) <= '0';
+              end if;
+
+              i_vfr_cur <= i_vfr_new(ch);
+              i_vfr_row_cnt_cur <= sv_vfr_row_cnt(ch);
             end if;
           end loop;
 
-          i_fsm_fgrd <= S_MEM_START;
+          i_fsm_fgrd <= S_SET_PRMS;
 
         end if;
 
+      --------------------------------------
+      --
+      --------------------------------------
+      when S_SET_PRMS =>
+
+        --Set step read line of frame
+        if (i_vch_prm.steprd = (i_vch_prm.steprd'range => '0')) then
+        i_steprd_count <= i_vch_prm.fr.act.rowcount;
+        else
+        i_steprd_count <= i_vch_prm.steprd;
+        end if;
+
+        --Set counter read line of frame
+        if (i_vfr_cur = '1') then
+
+            if (i_vch_prm.mirror.row = '0') then
+              i_vfr_row_cnt <= (others => '0');
+            else
+              i_vfr_row_cnt <= i_vch_prm.fr.act.rowcount(i_vfr_row_cnt'range) - 1;
+            end if;
+
+        else
+
+          i_vfr_row_cnt <= i_vfr_row_cnt_cur;
+
+        end if;
+
+        i_fsm_fgrd <= S_MEM_SET_ADR;
+
+      --------------------------------------
+      --
+      --------------------------------------
+      when S_MEM_SET_ADR =>
+
+        i_mem_adr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT) <= i_vch_num(G_MEM_VCH_M_BIT - G_MEM_VCH_L_BIT
+                                                                                                  downto 0);
+        i_mem_adr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT) <= i_vfr_buf;
+        i_mem_adr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT) <= i_vch_prm.fr.skp.rowcount(i_vfr_row_cnt'range)
+                                                                                                    + i_vfr_row_cnt;
+        i_mem_adr(G_MEM_VLINE_L_BIT - 1 downto 0) <= i_vch_prm.fr.skp.pixcount(G_MEM_VLINE_L_BIT - 1 downto 0);
+
+        i_fsm_fgrd <= S_MEM_START;
 
       --------------------------------------
       --
       --------------------------------------
       when S_MEM_START =>
 
-        i_mem_adr <= i_prm.frrd.act.pixcount * i_fr_rowcnt;
+--        i_mem_adr <= i_vch_prm.mem_base + i_mem_adr;
 
-        i_mem_rqlen <= RESIZE(i_prm.frrd.act.pixcount(i_prm.frrd.act.pixcount'high downto log2(G_MEM_DWIDTH / 8))
-                                                                              , i_mem_rqlen'length)
+        i_mem_rqlen <= RESIZE(i_vch_prm.fr.act.pixcount(i_vch_prm.fr.act.pixcount'high downto log2(G_MEM_DWIDTH / 8))
+                                                                                                   , i_mem_rqlen'length)
                          + (TO_UNSIGNED(0, i_mem_rqlen'length - 2)
-                            & OR_reduce(i_prm.frrd.act.pixcount(log2(G_MEM_DWIDTH / 8) - 1 downto 0)));
+                            & OR_reduce(i_vch_prm.fr.act.pixcount(log2(G_MEM_DWIDTH / 8) - 1 downto 0)));
 
-        i_mem_trnlen <= UNSIGNED(p_in_memtrn);
         i_mem_dir <= C_MEMWR_READ;
         i_mem_start <= '1';
-        i_fsm_fgrd <= S_MEM_RD; i_eof <= '0';
+        i_fsm_fgrd <= S_MEM_RD;
 
       ------------------------------------------------
       --
@@ -231,29 +271,70 @@ if rising_edge(p_in_clk) then
 
         i_mem_start <= '0';
 
-        if i_mem_done = '1' then
-          if i_fr_rowcnt = (i_prm.frrd.act.rowcount - 1) then
+        if (i_mem_done = '1') then
+          i_fsm_fgrd <= S_ROW_NXT;
+        end if;
 
-            i_fsm_fgrd <= S_HOST_ACK;
+      ------------------------------------------------
+      --
+      ------------------------------------------------
+      when S_ROW_NXT =>
+
+        if (p_in_frline_nxt = '1') then
+
+          if (i_vch_prm.mirror.row = '0' and i_vfr_row_cnt = (i_vch_prm.fr.act.rowcount(i_vfr_row_cnt'range) - 1)) or
+             (i_vch_prm.mirror.row = '1' and i_vfr_row_cnt = (i_vfr_row_cnt'range => '0')) then
+
+              for ch in 0 to G_VCH_COUNT - 1 loop
+                if (i_vch_num = ch) then
+                  i_vfr_new(ch) <= '1';
+                end if;
+              end loop;
+
+              i_fsm_fgrd <= S_WAIT_HOST_ACK;
 
           else
-              i_fr_rowcnt <= i_fr_rowcnt + 1; i_eof <= '1';
-              i_fsm_fgrd <= S_MEM_START;
+
+              if (i_steprd_cnt = i_steprd_count - 1) then
+
+                  for ch in 0 to G_VCH_COUNT - 1 loop
+                    if (i_vch_num = ch) then
+                      if (i_vch_prm.mirror.row = '1') then
+                        sv_vfr_row_cnt(ch) <= i_vfr_row_cnt - 1;
+                      else
+                        sv_vfr_row_cnt(ch) <= i_vfr_row_cnt + 1;
+                      end if;
+                    end if;
+                  end loop;
+
+                  i_fsm_fgrd <= S_IDLE;
+
+              else
+                  if (i_vch_prm.mirror.row = '1') then
+                    i_vfr_row_cnt <= i_vfr_row_cnt - 1;
+                  else
+                    i_vfr_row_cnt <= i_vfr_row_cnt + 1;
+                  end if;
+
+                  i_steprd_cnt <= i_steprd_cnt + 1;
+
+                  i_fsm_fgrd <= S_MEM_SET_ADR;
+              end if;
+
           end if;
         end if;
 
       ------------------------------------------------
       --
       ------------------------------------------------
-      when S_HOST_ACK =>
+      when S_WAIT_HOST_ACK =>
 
-        if p_in_hrd_done = '1' then
-          i_host_ack <= '1';
+        if (p_in_hrd_done = '1') then
+          i_vfr_done <= '1';
           i_fsm_fgrd <= S_IDLE;
         end if;
 
     end case;
-
   end if;
 end if;
 end process;
@@ -262,12 +343,7 @@ end process;
 --------------------------------------------------------
 --
 --------------------------------------------------------
-i_mem_adr_out(i_mem_adr_out'high downto G_MEM_VCH_M_BIT + 1) <= (others => '0');
-i_mem_adr_out(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT) <= i_chnum(G_MEM_VCH_M_BIT - G_MEM_VCH_L_BIT downto 0);
-i_mem_adr_out(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT) <= i_frbuf;
-i_mem_adr_out(G_MEM_VLINE_M_BIT downto 0) <= i_mem_adr(G_MEM_VLINE_M_BIT downto 0);
-
-i_mem_trnlen_out <= RESIZE(i_mem_trnlen, i_mem_trnlen_out'length);
+i_mem_trnlen <= RESIZE(UNSIGNED(p_in_memtrn), i_mem_trnlen'length);
 
 m_mem_wr : mem_wr
 generic map(
@@ -280,8 +356,8 @@ port map
 -------------------------------
 --CFG
 -------------------------------
-p_in_cfg_mem_adr     => std_logic_vector(i_mem_adr_out),
-p_in_cfg_mem_trn_len => std_logic_vector(i_mem_trnlen_out),--RESIZE(UNSIGNED(p_in_memtrn), 16)),
+p_in_cfg_mem_adr     => std_logic_vector(i_mem_adr),
+p_in_cfg_mem_trn_len => std_logic_vector(i_mem_trnlen),
 p_in_cfg_mem_dlen_rq => std_logic_vector(i_mem_rqlen),
 p_in_cfg_mem_wr      => i_mem_dir,
 p_in_cfg_mem_start   => i_mem_start,

@@ -161,11 +161,11 @@ signal i_fg_rd_start       : std_logic;
 signal i_fg_tst_in         : std_logic_vector(31 downto 0);
 signal i_fg_tst_out        : std_logic_vector(31 downto 0);
 
-signal i_fg_bufi_do        : std_logic_vector((C_PCFG_ETH_DWIDTH * C_PCFG_ETH_CH_COUNT) - 1 downto 0);
-signal i_fg_bufi_rd        : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
-signal i_fg_bufi_empty     : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
-signal i_fg_bufi_full      : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
-signal i_fg_bufi_pfull     : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
+signal i_fg_bufi_do        : std_logic_vector((C_PCFG_ETH_DWIDTH * C_PCFG_ETH_CH_COUNT_MAX) - 1 downto 0);
+signal i_fg_bufi_rd        : std_logic_vector(C_PCFG_ETH_CH_COUNT_MAX - 1 downto 0);
+signal i_fg_bufi_empty     : std_logic_vector(C_PCFG_ETH_CH_COUNT_MAX - 1 downto 0);
+signal i_fg_bufi_full      : std_logic_vector(C_PCFG_ETH_CH_COUNT_MAX - 1 downto 0);
+signal i_fg_bufi_pfull     : std_logic_vector(C_PCFG_ETH_CH_COUNT_MAX - 1 downto 0);
 
 signal i_ethio_rx_axi_tready : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 signal i_ethio_rx_axi_tdata  : std_logic_vector((C_PCFG_ETH_DWIDTH * C_PCFG_ETH_CH_COUNT) - 1 downto 0);
@@ -623,11 +623,11 @@ p_in_ethio_rst            => i_ethio_rst,
 --FG_BUFI
 -------------------------------
 p_in_fgbufi_rdclk  => g_usr_highclk  ,
-p_out_fgbufi_do    => i_fg_bufi_do   ,
-p_in_fgbufi_rd     => i_fg_bufi_rd   ,
-p_out_fgbufi_empty => i_fg_bufi_empty,
-p_out_fgbufi_full  => i_fg_bufi_full,
-p_out_fgbufi_pfull => i_fg_bufi_pfull,
+p_out_fgbufi_do    => i_fg_bufi_do   ((C_PCFG_ETH_DWIDTH * C_PCFG_ETH_CH_COUNT) - 1 downto 0),
+p_in_fgbufi_rd     => i_fg_bufi_rd   (C_PCFG_ETH_CH_COUNT - 1 downto 0),
+p_out_fgbufi_empty => i_fg_bufi_empty(C_PCFG_ETH_CH_COUNT - 1 downto 0),
+p_out_fgbufi_full  => i_fg_bufi_full (C_PCFG_ETH_CH_COUNT - 1 downto 0),
+p_out_fgbufi_pfull => i_fg_bufi_pfull(C_PCFG_ETH_CH_COUNT - 1 downto 0),
 
 -------------------------------
 --DBG
@@ -651,7 +651,18 @@ i_fg_rd_start <= i_host_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)
 m_fg : fg
 generic map(
 G_DBGCS => "ON",
+
 G_VBUFI_COUNT => C_PCFG_ETH_CH_COUNT,
+G_VBUFI_COUNT_MAX => C_PCFG_ETH_CH_COUNT_MAX,
+G_VCH_COUNT => C_FG_VCH_COUNT,
+
+G_MEM_VCH_M_BIT   => C_FG_MEM_VCH_M_BIT  ,
+G_MEM_VCH_L_BIT   => C_FG_MEM_VCH_L_BIT  ,
+G_MEM_VFR_M_BIT   => C_FG_MEM_VFR_M_BIT  ,
+G_MEM_VFR_L_BIT   => C_FG_MEM_VFR_L_BIT  ,
+G_MEM_VLINE_M_BIT => C_FG_MEM_VLINE_M_BIT,
+G_MEM_VLINE_L_BIT => C_FG_MEM_VLINE_L_BIT,
+
 G_MEM_AWIDTH => C_AXI_AWIDTH,
 G_MEMWR_DWIDTH => C_PCFG_ETH_DWIDTH,
 G_MEMRD_DWIDTH => C_HDEV_DWIDTH

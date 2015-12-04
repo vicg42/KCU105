@@ -260,8 +260,8 @@ signal i_dbg_probe             : std_logic_vector(269 downto 0);
 signal tst_timeout_cnt         : unsigned(15 downto 0);
 signal tst_timeout             : std_logic;
 
-attribute keep : string;
-attribute keep of i_trn_clk : signal is "true";
+--attribute keep : string;
+--attribute keep of i_trn_clk : signal is "true";
 
 
 

@@ -97,20 +97,18 @@ constant C_MEMWR_READ    : std_logic:='0';
 
 component mem_wr
 generic(
-G_DBG            : string := "OFF";
-G_USR_OPT        : std_logic_vector(3 downto 0):=(others=>'0');
-G_MEM_IDW_NUM    : integer:=0;
-G_MEM_IDR_NUM    : integer:=1;
-G_MEM_BANK_M_BIT : integer:=29;
-G_MEM_BANK_L_BIT : integer:=28;
-G_MEM_AWIDTH     : integer:=32;
-G_MEM_DWIDTH     : integer:=32
+G_DBG         : string := "OFF";
+G_USR_OPT     : std_logic_vector(3 downto 0) := (others => '0');
+G_MEM_IDW_NUM : integer := 0;
+G_MEM_IDR_NUM : integer := 1;
+G_MEM_AWIDTH  : integer := 32;
+G_MEM_DWIDTH  : integer := 32
 );
 port(
 -------------------------------
 --CFG
 -------------------------------
-p_in_cfg_mem_adr     : in    std_logic_vector(31 downto 0);
+p_in_cfg_mem_adr     : in    std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
 p_in_cfg_mem_trn_len : in    std_logic_vector(15 downto 0);
 p_in_cfg_mem_dlen_rq : in    std_logic_vector(15 downto 0);
 p_in_cfg_mem_wr      : in    std_logic;
