@@ -251,6 +251,48 @@ p_in_rst           : in    std_logic
 );
 end component;
 
+component vmirx_main is
+generic(
+G_BRAM_AWIDTH : integer := 8;
+G_DWIDTH : integer := 8
+);
+port(
+-------------------------------
+--CFG
+-------------------------------
+p_in_cfg_mirx       : in    std_logic;
+p_in_cfg_pix_count  : in    std_logic_vector(15 downto 0);
+p_out_cfg_mirx_done : out   std_logic;
+
+----------------------------
+--Upstream Port (IN)
+----------------------------
+p_in_upp_data       : in    std_logic_vector(G_DWIDTH - 1 downto 0);
+p_in_upp_wr         : in    std_logic;
+p_out_upp_rdy_n     : out   std_logic;
+
+----------------------------
+--Downstream Port (OUT)
+----------------------------
+p_out_dwnp_data     : out   std_logic_vector(G_DWIDTH - 1 downto 0);
+p_out_dwnp_wd       : out   std_logic;
+p_in_dwnp_rdy_n     : in    std_logic;
+
+-------------------------------
+--DBG
+-------------------------------
+p_in_tst            : in    std_logic_vector(31 downto 0);
+p_out_tst           : out   std_logic_vector(31 downto 0);
+
+-------------------------------
+--System
+-------------------------------
+p_in_clk            : in    std_logic;
+p_in_rst            : in    std_logic
+);
+end component vmirx_main;
+
+
 constant CI_EXP_VALUE : integer := 7;
 
 signal i_reg_adr               : unsigned(p_in_cfg_adr'range);
@@ -297,6 +339,7 @@ signal i_fgrd_rddone           : std_logic;
 signal i_fgrd_vch              : std_logic_vector(p_in_hrdchsel'range);
 signal i_fgrd_do               : std_logic_vector(G_MEMRD_DWIDTH - 1 downto 0);
 signal i_fgrd_den              : std_logic;
+signal i_fgrd_pixcount         : std_logic_vector(15 downto 0);
 
 signal i_vbufo_full            : std_logic;
 signal i_vbufo_rst             : std_logic;
@@ -308,6 +351,12 @@ signal i_hchsel                : std_logic_vector(p_in_hrdchsel'range);
 signal sr_hrddone              : unsigned(0 to CI_EXP_VALUE);
 signal i_hrddone_exp           : std_logic;
 signal i_hrddone               : std_logic;
+
+signal i_mirx                  : std_logic;
+signal i_mirx_done             : std_logic;
+signal i_mirx_rdy_n            : std_logic;
+signal i_mirx_den              : std_logic;
+signal i_mirx_do               : std_logic_vector(G_MEMRD_DWIDTH - 1 downto 0);
 
 signal tst_fgrd_out            : std_logic_vector(31 downto 0);
 signal tst_ctrl                : std_logic_vector(31 downto 0);
@@ -870,12 +919,12 @@ p_in_hrd_start       => i_hrdstart,
 p_in_hrd_done        => i_hrddone,
 
 p_in_frbuf           => i_vbuf_rd,
-p_in_frline_nxt      => '1',
+p_in_frline_nxt      => i_mirx_done,
 
 p_out_vchnum          => i_fgrd_vch,
-p_out_pixcount       => open,
+p_out_pixcount       => i_fgrd_pixcount,
 p_out_linecount      => open,
-p_out_mirx           => open,
+p_out_mirx           => i_mirx,
 p_out_fr_rddone      => i_fgrd_rddone,
 
 ----------------------------
@@ -884,7 +933,7 @@ p_out_fr_rddone      => i_fgrd_rddone,
 p_out_upp_data        => i_fgrd_do,
 p_out_upp_data_wd     => i_fgrd_den,
 p_in_upp_buf_empty    => '0',
-p_in_upp_buf_full     => i_vbufo_full,
+p_in_upp_buf_full     => i_mirx_rdy_n,
 
 ---------------------------------
 --Port MEM_CTRL
@@ -906,14 +955,54 @@ p_in_rst              => p_in_rst
 );
 
 
+m_mirx : vmirx_main
+generic map(
+G_BRAM_AWIDTH => log2(C_PCFG_FG_FR_PIX_COUNT_MAX / (G_MEMRD_DWIDTH/ 8)),
+G_DWIDTH => G_MEMRD_DWIDTH
+)
+port map(
+-------------------------------
+--CFG
+-------------------------------
+p_in_cfg_mirx       => i_mirx,
+p_in_cfg_pix_count  => i_fgrd_pixcount,
+p_out_cfg_mirx_done => i_mirx_done,
+
+----------------------------
+--Upstream Port (IN)
+----------------------------
+p_in_upp_data       => i_fgrd_do,
+p_in_upp_wr         => i_fgrd_den,
+p_out_upp_rdy_n     => i_mirx_rdy_n,
+
+----------------------------
+--Downstream Port (OUT)
+----------------------------
+p_out_dwnp_data     => i_mirx_do,
+p_out_dwnp_wd       => i_mirx_den,
+p_in_dwnp_rdy_n     => i_vbufo_full,
+
+-------------------------------
+--DBG
+-------------------------------
+p_in_tst            => (others => '0'),
+p_out_tst           => open,
+
+-------------------------------
+--System
+-------------------------------
+p_in_clk            => p_in_clk,
+p_in_rst            => i_vbufo_rst
+);
+
 
 ----------------------------------------------------
 --Output VideoBuffer
 ----------------------------------------------------
 m_buf_mem2host : fg_bufo
 port map(
-din       => i_fgrd_do,
-wr_en     => i_fgrd_den,
+din       => i_mirx_do ,
+wr_en     => i_mirx_den,
 wr_clk    => p_in_clk,
 
 dout      => p_out_vbufo_do,

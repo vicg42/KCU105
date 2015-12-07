@@ -977,11 +977,20 @@ p_in_rst   => i_usrclk_rst
 pin_out_led(0) <= i_test_led(0);
 pin_out_led(1) <= i_host_tst2_out(0);--i_user_lnk_up
 pin_out_led(2) <= OR_reduce(i_mem_ctrl_status.rdy);
-pin_out_led(3) <= not pin_in_sfp_los(0);
-pin_out_led(4) <= not pin_in_sfp_los(1);
-pin_out_led(5) <= i_eth_status_rdy(0);
-pin_out_led(6) <= i_eth_status_rdy(1);
-pin_out_led(7) <= i_eth_status_qplllock;
+pin_out_led(3) <= i_eth_status_qplllock;
+
+gen_eth_status : for i in 0 to C_PCFG_ETH_CH_COUNT - 1 generate
+begin
+pin_out_led(4 + i) <= not pin_in_sfp_los(i);
+pin_out_led(6 + i) <= i_eth_status_rdy(1);
+end generate gen_eth_status;
+
+gen_eth_count1 : if (C_PCFG_ETH_CH_COUNT = 1) generate
+begin
+pin_out_led(5) <= '0';
+pin_out_led(7) <= '0';
+end generate gen_eth_count1;
+
 
 --pin_out_sfp_tx_disble(0) <= '0';
 
