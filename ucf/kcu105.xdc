@@ -58,7 +58,9 @@ set_property IOSTANDARD   LVCMOS18 [get_ports {pin_out_led_lpc[*]}];
 ###############################################################################
 set_property PACKAGE_PIN P6 [get_ports pin_in_ethphy_refclk_p]
 set_property PACKAGE_PIN K21 [get_ports {pin_in_sfp_los[0]}]
+set_property PACKAGE_PIN AM9 [get_ports {pin_in_sfp_los[1]}]
 set_property IOSTANDARD LVCMOS18 [get_ports {pin_in_sfp_los[0]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {pin_in_sfp_los[1]}]
 
 
 ###############################################################################
