@@ -134,6 +134,7 @@ parameter                              FIFO_SIZE = 1024
    input       [G_GTCH_COUNT - 1 : 0]         signal_detect,
    input                                      sim_speedup_control,
    input       [G_GTCH_COUNT - 1 : 0]         tx_fault,
+   output      [G_GTCH_COUNT - 1 : 0]         tx_disable,
    output      [(8 * G_GTCH_COUNT) - 1 : 0]   pcspma_status
    );
 
@@ -154,7 +155,7 @@ parameter                              FIFO_SIZE = 1024
    wire  [G_GTCH_COUNT - 1 : 0]                        rx_axis_mac_tlast;
 
    wire                                 txusrclk2;
-   wire  [G_GTCH_COUNT - 1 : 0]         tx_disable;
+
    wire                                 reset_counter_done;
    wire                                 qpll0lock;
    wire                                 qpll0outclk;

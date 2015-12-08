@@ -396,6 +396,7 @@ p_out_status_qplllock : out std_logic;
 
 p_in_sfp_signal_detect : in std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 p_in_sfp_tx_fault      : in std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_sfp_tx_disable   : out std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
 -------------------------------
 --PHY pin

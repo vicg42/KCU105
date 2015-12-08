@@ -32,7 +32,7 @@ end entity clocks;
 architecture synth of clocks is
 
 signal g_clk         : std_logic_vector(2 downto 0);
-signal i_pll_rst_cnt : unsigned(4 downto 0) := "11111";
+signal i_pll_rst_cnt : unsigned(15 downto 0) := (others => '1');
 signal i_pll_rst     : std_logic := '1';
 
 

@@ -106,6 +106,7 @@ parameter   G_GTCH_COUNT = 1
 
    input   [G_GTCH_COUNT - 1 : 0]   signal_detect,
    input   [G_GTCH_COUNT - 1 : 0]   tx_fault,
+   output  [G_GTCH_COUNT - 1 : 0]   tx_disable,
 
    input   [(G_AXI_DWIDTH * G_GTCH_COUNT) - 1 : 0]       tx_axis_tdata,
    input   [((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 : 0] tx_axis_tkeep,
@@ -275,6 +276,7 @@ endgenerate
 
       .signal_detect                   (signal_detect),
       .tx_fault                        (tx_fault),
+      .tx_disable                      (tx_disable),
       .sim_speedup_control             (sim_speedup_control),
       .pcspma_status                   (pcspma_status),
 

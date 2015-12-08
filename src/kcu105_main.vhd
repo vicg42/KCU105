@@ -51,7 +51,7 @@ pin_in_ethphy_refclk_p : in  std_logic;
 pin_in_ethphy_refclk_n : in  std_logic;
 
 pin_in_sfp_los         : in  std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
---pin_out_sfp_tx_disble  : out std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
+pin_out_sfp_tx_dis     : out std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 
 --------------------------------------------------
 --RAM
@@ -342,7 +342,7 @@ begin --architecture struct
 --***********************************************************
 i_mem_ctrl_rst <= i_host_gctrl(C_HREG_CTRL_RST_MEM_BIT);--or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT) not i_host_rst_n or
 i_arb_mem_rst <= not OR_reduce(i_mem_ctrl_status.rdy);
-i_eth_rst <= i_host_gctrl(C_HREG_CTRL_RST_ETH_BIT);
+i_eth_rst <= i_host_gctrl(C_HREG_CTRL_RST_ETH_BIT) or i_usrclk_rst;
 i_cfg_rst <= i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT) or i_host_tst_out(0);
 i_swt_rst <= i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT);
 i_fg_rst <= i_arb_mem_rst;
@@ -523,8 +523,9 @@ p_out_status_rdy      => i_eth_status_rdy,
 --p_out_status_carier   => i_eth_status_carier,
 p_out_status_qplllock => i_eth_status_qplllock,
 
-p_in_sfp_signal_detect => (others => '1'),--i_sfp_signal_detect,
+p_in_sfp_signal_detect => i_sfp_signal_detect,
 p_in_sfp_tx_fault      => (others => '0'),--i_sfp_tx_fault,
+p_out_sfp_tx_disable   => pin_out_sfp_tx_dis,
 
 -------------------------------
 --PHY pin
@@ -809,11 +810,13 @@ i_host_dev_rxd <= i_host_rxd(C_HDEV_CFG) when i_host_devadr = TO_UNSIGNED(C_HDEV
 
 --Flags (Host <- User Devices)
 --i_host_dev_opt_in(C_HDEV_OPTIN_TXFIFO_FULL_BIT) <= i_host_txbuf_full(C_HDEV_MEM) when i_host_devadr = TO_UNSIGNED(C_HDEV_MEM, i_host_devadr'length) else
-i_host_dev_opt_in(C_HDEV_OPTIN_TXFIFO_FULL_BIT) <= '0';
+i_host_dev_opt_in(C_HDEV_OPTIN_TXFIFO_FULL_BIT) <= i_host_txbuf_full(C_HDEV_CFG) when i_host_devadr = TO_UNSIGNED(C_HDEV_CFG, i_host_devadr'length) else
+                                                   '0';
 
 --i_host_dev_opt_in(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) <= i_host_rxbuf_empty(C_HDEV_MEM) when i_host_devadr = TO_UNSIGNED(C_HDEV_MEM, i_host_devadr'length) else
 i_host_dev_opt_in(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) <= i_host_rxbuf_empty(C_HDEV_ETH) when i_host_devadr = TO_UNSIGNED(C_HDEV_ETH, i_host_devadr'length) else
                                                     i_host_rxbuf_empty(C_HDEV_FG)  when i_host_devadr = TO_UNSIGNED(C_HDEV_FG , i_host_devadr'length) else
+                                                    i_host_rxbuf_empty(C_HDEV_CFG) when i_host_devadr = TO_UNSIGNED(C_HDEV_CFG , i_host_devadr'length) else
                                                     '0';
 
 i_host_dev_opt_in(C_HDEV_OPTIN_ETH_HEADER_M_BIT
@@ -981,8 +984,11 @@ pin_out_led(3) <= i_eth_status_qplllock;
 
 gen_eth_status : for i in 0 to C_PCFG_ETH_CH_COUNT - 1 generate
 begin
-pin_out_led(4 + i) <= not pin_in_sfp_los(i);
+pin_out_led(4 + i) <= i_sfp_signal_detect(i);
 pin_out_led(6 + i) <= i_eth_status_rdy(1);
+
+i_sfp_signal_detect(i) <= not pin_in_sfp_los(i);
+
 end generate gen_eth_status;
 
 gen_eth_count1 : if (C_PCFG_ETH_CH_COUNT = 1) generate
@@ -991,8 +997,6 @@ pin_out_led(5) <= '0';
 pin_out_led(7) <= '0';
 end generate gen_eth_count1;
 
-
---pin_out_sfp_tx_disble(0) <= '0';
 
 pin_out_led_hpc(0) <= i_swt_tst_out(4);-- <= OR_reduce(h_reg_eth2fg_frr(0))
 pin_out_led_hpc(1) <= i_swt_tst_out(5);-- <= h_reg_ctrl(C_SWT_REG_CTRL_DBG_HOST2FG_BIT);

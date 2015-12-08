@@ -65,6 +65,7 @@ p_out_status_qplllock : out std_logic;
 
 p_in_sfp_signal_detect : in std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 p_in_sfp_tx_fault      : in std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+p_out_sfp_tx_disable   : out std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
 -------------------------------
 --PHY pin
@@ -211,6 +212,7 @@ qplllock_out    : out  std_logic;
 
 signal_detect   : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
 tx_fault        : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0);
+tx_disable      : out std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
 tx_axis_tdata   : in  std_logic_vector((G_AXI_DWIDTH * G_GTCH_COUNT) - 1 downto 0);
 tx_axis_tkeep   : in  std_logic_vector(((G_AXI_DWIDTH / 8) * G_GTCH_COUNT) - 1 downto 0);
@@ -579,6 +581,7 @@ qplllock_out => p_out_status_qplllock,
 
 signal_detect => p_in_sfp_signal_detect,
 tx_fault      => p_in_sfp_tx_fault,
+tx_disable    => p_out_sfp_tx_disable,
 
 tx_axis_tdata   => i_tx_fifo_tdata,
 tx_axis_tkeep   => i_tx_fifo_tkeep,

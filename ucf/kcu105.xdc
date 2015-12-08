@@ -62,6 +62,11 @@ set_property PACKAGE_PIN AM9 [get_ports {pin_in_sfp_los[1]}]
 set_property IOSTANDARD LVCMOS18 [get_ports {pin_in_sfp_los[0]}]
 set_property IOSTANDARD LVCMOS18 [get_ports {pin_in_sfp_los[1]}]
 
+set_property PACKAGE_PIN AL8 [get_ports {pin_out_sfp_tx_dis[0]}]
+set_property PACKAGE_PIN D28 [get_ports {pin_out_sfp_tx_dis[1]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {pin_out_sfp_tx_dis[0]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {pin_out_sfp_tx_dis[1]}]
+
 
 ###############################################################################
 #PCI-Express
