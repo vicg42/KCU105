@@ -21,16 +21,16 @@ pin_out_led         : out   std_logic_vector(0 downto 0);
 --------------------------------------------------
 --RS232(PC)
 --------------------------------------------------
-pin_in_rs232_rx  : in  std_logic;
-pin_out_rs232_tx : out std_logic;
+p_in_rs232_rx  : in  std_logic;
+p_out_rs232_tx : out std_logic;
 
 --------------------------------------------------
 --CameraLink
 --------------------------------------------------
-pin_in_cl_tfg_n : in  std_logic;
-pin_in_cl_tfg_p : in  std_logic;
-pin_out_cl_tc_n : out std_logic;
-pin_out_cl_tc_p : out std_logic;
+p_in_cl_tfg_n : in  std_logic;
+p_in_cl_tfg_p : in  std_logic;
+p_out_cl_tc_n : out std_logic;
+p_out_cl_tc_p : out std_logic;
 
 
 );
