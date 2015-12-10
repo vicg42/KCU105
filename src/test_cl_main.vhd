@@ -13,11 +13,12 @@ use ieee.numeric_std.all;
 
 library work;
 use work.clocks_pkg.all;
-
-library unisim;
-use unisim.vcomponents.all;
+use work.reduce_pack.all;
 
 entity test_cl_main is
+generic(
+G_CLIN_WIDTH : natural := 1
+);
 port(
 --------------------------------------------------
 --DBG
@@ -39,6 +40,11 @@ pin_in_cl_tfg_n : in  std_logic;
 pin_in_cl_tfg_p : in  std_logic;
 pin_out_cl_tc_n : out std_logic;
 pin_out_cl_tc_p : out std_logic;
+
+pin_in_cl_xclk_p : in  std_logic;
+pin_in_cl_xclk_n : in  std_logic;
+pin_in_cl_x_p    : in  std_logic_vector(G_CLIN_WIDTH - 1 downto 0);
+pin_in_cl_x_n    : in  std_logic_vector(G_CLIN_WIDTH - 1 downto 0);
 
 --------------------------------------------------
 --Reference clock
@@ -82,10 +88,45 @@ p_in_rst       : in    std_logic
 );
 end component fpga_test_01;
 
+component cl_main is
+generic(
+G_CLIN_WIDTH : natural := 1
+);
+port(
+--------------------------------------------------
+--RS232(PC)
+--------------------------------------------------
+p_in_rs232_rx  : in  std_logic;
+p_out_rs232_tx : out std_logic;
+
+--------------------------------------------------
+--CameraLink
+--------------------------------------------------
+p_in_cl_tfg_n : in  std_logic; --Camera -> FG
+p_in_cl_tfg_p : in  std_logic;
+p_out_cl_tc_n : out std_logic; --Camera <- FG
+p_out_cl_tc_p : out std_logic;
+
+p_in_cl_xclk_p : in  std_logic;
+p_in_cl_xclk_n : in  std_logic;
+p_in_cl_x_p : in  std_logic_vector(G_CLIN_WIDTH - 1 downto 0);
+p_in_cl_x_n : in  std_logic_vector(G_CLIN_WIDTH - 1 downto 0);
+
+--------------------------------------------------
+--DBG
+--------------------------------------------------
+p_out_tst : out  std_logic_vector(31 downto 0);
+p_in_tst  : in   std_logic_vector(31 downto 0);
+
+p_in_clk : in std_logic;
+p_in_rst : in std_logic
+);
+end component cl_main;
 
 signal i_usrclk_rst        : std_logic;
 signal g_usrclk            : std_logic_vector(7 downto 0);
 signal i_test_led          : std_logic_vector(0 downto 0);
+signal i_cl_tst_out        : std_logic_vector(31 downto 0);
 
 
 begin --architecture struct
@@ -105,23 +146,41 @@ p_in_clk   => pin_in_refclk
 );
 
 
-m_IBUFDS_cl_tfg : IBUFDS
---generic map (
---DQS_BIAS => "FALSE" -- (FALSE, TRUE)
---)
-port map (
-O  => pin_out_rs232_tx, -- 1-bit output: Buffer output
-I  => pin_in_cl_tfg_p , -- 1-bit input: Diff_p buffer input (connect directly to top-level port)
-IB => pin_in_cl_tfg_n   -- 1-bit input: Diff_n buffer input (connect directly to top-level port)
+
+m_cl : cl_main
+generic map(
+G_CLIN_WIDTH => G_CLIN_WIDTH
+)
+port map(
+--------------------------------------------------
+--RS232(PC)
+--------------------------------------------------
+p_in_rs232_rx  => pin_in_rs232_rx ,
+p_out_rs232_tx => pin_out_rs232_tx,
+
+--------------------------------------------------
+--CameraLink
+--------------------------------------------------
+p_in_cl_tfg_n => pin_in_cl_tfg_n, --Camera -> FG
+p_in_cl_tfg_p => pin_in_cl_tfg_p,
+p_out_cl_tc_n => pin_out_cl_tc_n, --Camera <- FG
+p_out_cl_tc_p => pin_out_cl_tc_p,
+
+p_in_cl_xclk_p => pin_in_cl_xclk_p,
+p_in_cl_xclk_n => pin_in_cl_xclk_n,
+p_in_cl_x_p    => pin_in_cl_x_p,
+p_in_cl_x_n    => pin_in_cl_x_n,
+
+--------------------------------------------------
+--DBG
+--------------------------------------------------
+p_out_tst => i_cl_tst_out,
+p_in_tst  => (others => '0'),
+
+p_in_clk => '0',
+p_in_rst => '0'
 );
 
-
-m_OBUFDS_cl_tc : OBUFDS
-port map (
-O  => pin_out_cl_tc_p, -- 1-bit output: Diff_p output (connect directly to top-level port)
-OB => pin_out_cl_tc_n, -- 1-bit output: Diff_n output (connect directly to top-level port)
-I  => pin_in_rs232_rx  -- 1-bit input: Buffer input
-);
 
 
 --#########################################
@@ -150,7 +209,7 @@ p_in_rst   => i_usrclk_rst
 pin_out_led(0) <= i_test_led(0);
 
 
-pin_out_led_hpc(0) <= i_test_led(0);
+pin_out_led_hpc(0) <= OR_reduce(i_cl_tst_out(6 downto 0));
 --pin_out_led_hpc(1) <= '0';
 --pin_out_led_hpc(2) <= '0';
 --pin_out_led_hpc(3) <= i_test_led(0);
