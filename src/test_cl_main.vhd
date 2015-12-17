@@ -23,9 +23,10 @@ port(
 --------------------------------------------------
 --DBG
 --------------------------------------------------
-pin_out_led         : out   std_logic_vector(0 downto 0);
-
+pin_out_led         : out   std_logic_vector(4 downto 0);
+pin_in_btn          : in    std_logic;
 pin_out_led_hpc     : out   std_logic_vector(0 downto 0);
+pin_out_TP          : out   std_logic_vector(0 downto 0);
 
 --------------------------------------------------
 --RS232(PC)
@@ -43,8 +44,8 @@ pin_out_cl_tc_p : out std_logic;
 
 pin_in_cl_xclk_p : in  std_logic;
 pin_in_cl_xclk_n : in  std_logic;
-pin_in_cl_x_p    : in  std_logic_vector(G_CLIN_WIDTH - 1 downto 0);
-pin_in_cl_x_n    : in  std_logic_vector(G_CLIN_WIDTH - 1 downto 0);
+--pin_in_cl_x_p    : in  std_logic_vector(G_CLIN_WIDTH - 1 downto 0);
+--pin_in_cl_x_n    : in  std_logic_vector(G_CLIN_WIDTH - 1 downto 0);
 
 --------------------------------------------------
 --Reference clock
@@ -109,8 +110,8 @@ p_out_cl_tc_p : out std_logic;
 
 p_in_cl_xclk_p : in  std_logic;
 p_in_cl_xclk_n : in  std_logic;
-p_in_cl_x_p : in  std_logic_vector(G_CLIN_WIDTH - 1 downto 0);
-p_in_cl_x_n : in  std_logic_vector(G_CLIN_WIDTH - 1 downto 0);
+--p_in_cl_x_p : in  std_logic_vector(G_CLIN_WIDTH - 1 downto 0);
+--p_in_cl_x_n : in  std_logic_vector(G_CLIN_WIDTH - 1 downto 0);
 
 --------------------------------------------------
 --DBG
@@ -127,6 +128,8 @@ signal i_usrclk_rst        : std_logic;
 signal g_usrclk            : std_logic_vector(7 downto 0);
 signal i_test_led          : std_logic_vector(0 downto 0);
 signal i_cl_tst_out        : std_logic_vector(31 downto 0);
+signal i_cl_tst_in         : std_logic_vector(31 downto 0);
+signal i_usr_rst           : std_logic;
 
 
 begin --architecture struct
@@ -145,6 +148,8 @@ p_in_clkopt => (others => '0'),
 p_in_clk   => pin_in_refclk
 );
 
+
+i_usr_rst <= pin_in_btn;
 
 
 m_cl : cl_main
@@ -168,19 +173,18 @@ p_out_cl_tc_p => pin_out_cl_tc_p,
 
 p_in_cl_xclk_p => pin_in_cl_xclk_p,
 p_in_cl_xclk_n => pin_in_cl_xclk_n,
-p_in_cl_x_p    => pin_in_cl_x_p,
-p_in_cl_x_n    => pin_in_cl_x_n,
+--p_in_cl_x_p    => pin_in_cl_x_p,
+--p_in_cl_x_n    => pin_in_cl_x_n,
 
 --------------------------------------------------
 --DBG
 --------------------------------------------------
 p_out_tst => i_cl_tst_out,
-p_in_tst  => (others => '0'),
+p_in_tst  => i_cl_tst_in,
 
 p_in_clk => '0',
-p_in_rst => '0'
+p_in_rst => i_usr_rst
 );
-
 
 
 --#########################################
@@ -207,14 +211,17 @@ p_in_rst   => i_usrclk_rst
 );
 
 pin_out_led(0) <= i_test_led(0);
+pin_out_led(1) <= i_cl_tst_out(0); --xclk_7x_lock
+pin_out_led(2) <= i_cl_tst_out(1); --tst_sync
+pin_out_led(3) <= i_usr_rst;
+pin_out_led(4) <= i_cl_tst_out(9);
 
 
-pin_out_led_hpc(0) <= OR_reduce(i_cl_tst_out(6 downto 0));
+pin_out_led_hpc(0) <= OR_reduce(i_cl_tst_out(8 downto 2));
 --pin_out_led_hpc(1) <= '0';
 --pin_out_led_hpc(2) <= '0';
 --pin_out_led_hpc(3) <= i_test_led(0);
 
-
-
+pin_out_TP(0) <= i_cl_tst_out(9);--PMOD1_4
 
 end architecture struct;

@@ -22,19 +22,22 @@ create_clock -period 8.000 -name {pin_in_refclk[M125_p]} -waveform {0.000 4.000}
 #set_property PACKAGE_PIN     AE10  [get_ports {pin_in_btn[1]}]; #SW_C
 #set_property PACKAGE_PIN     AF8   [get_ports {pin_in_btn[2]}]; #SW_E
 #set_property PACKAGE_PIN     AF9   [get_ports {pin_in_btn[3]}]; #SW_W
-#set_property PACKAGE_PIN     AN8   [get_ports {pin_in_btn[4]}]; #CPU_RESET
-#set_property IOSTANDARD   LVCMOS18 [get_ports {pin_in_btn[*]}];
+set_property PACKAGE_PIN     AN8   [get_ports {pin_in_btn}]; #CPU_RESET
+set_property IOSTANDARD   LVCMOS18 [get_ports {pin_in_btn}];
 
 
 set_property PACKAGE_PIN     AP8   [get_ports {pin_out_led[0]}];
-#set_property PACKAGE_PIN     H23   [get_ports {pin_out_led[1]}];
-#set_property PACKAGE_PIN     P20   [get_ports {pin_out_led[2]}];
-#set_property PACKAGE_PIN     P21   [get_ports {pin_out_led[3]}];
-#set_property PACKAGE_PIN     N22   [get_ports {pin_out_led[4]}];
+set_property PACKAGE_PIN     H23   [get_ports {pin_out_led[1]}];
+set_property PACKAGE_PIN     P20   [get_ports {pin_out_led[2]}];
+set_property PACKAGE_PIN     P21   [get_ports {pin_out_led[3]}];
+set_property PACKAGE_PIN     N22   [get_ports {pin_out_led[4]}];
 #set_property PACKAGE_PIN     M22   [get_ports {pin_out_led[5]}];
 #set_property PACKAGE_PIN     R23   [get_ports {pin_out_led[6]}];
 #set_property PACKAGE_PIN     P23   [get_ports {pin_out_led[7]}];
 set_property IOSTANDARD   LVCMOS18 [get_ports {pin_out_led[*]}];
+
+set_property PACKAGE_PIN     AM16  [get_ports {pin_out_TP[0]}];#J53 (pin2)
+set_property IOSTANDARD   LVCMOS18 [get_ports {pin_out_TP[*]}];
 
 
 #RS232(PC)
@@ -59,10 +62,10 @@ set_property IOSTANDARD LVDS [get_ports {pin_in_cl_xclk_p}];#"FMC_HPC_LA00_CC_P"
 #set_property IOSTANDARD LVDS [get_ports {pin_in_cl_yclk_n}];#"FMC_HPC_LA01_CC_N"]
 #set_property PACKAGE_PIN G9  [get_ports {pin_in_cl_yclk_p}];#"FMC_HPC_LA01_CC_P"]
 #set_property IOSTANDARD LVDS [get_ports {pin_in_cl_yclk_p}];#"FMC_HPC_LA01_CC_P"]
-set_property PACKAGE_PIN J10 [get_ports {pin_in_cl_x_n[0]}];#"FMC_HPC_LA02_N"]
-set_property IOSTANDARD LVDS [get_ports {pin_in_cl_x_n[0]}];#"FMC_HPC_LA02_N"]
-set_property PACKAGE_PIN K10 [get_ports {pin_in_cl_x_p[0]}];#"FMC_HPC_LA02_P"]
-set_property IOSTANDARD LVDS [get_ports {pin_in_cl_x_p[0]}];#"FMC_HPC_LA02_P"]
+#set_property PACKAGE_PIN J10 [get_ports {pin_in_cl_x_n[0]}];#"FMC_HPC_LA02_N"]
+#set_property IOSTANDARD LVDS [get_ports {pin_in_cl_x_n[0]}];#"FMC_HPC_LA02_N"]
+#set_property PACKAGE_PIN K10 [get_ports {pin_in_cl_x_p[0]}];#"FMC_HPC_LA02_P"]
+#set_property IOSTANDARD LVDS [get_ports {pin_in_cl_x_p[0]}];#"FMC_HPC_LA02_P"]
 #set_property PACKAGE_PIN A12 [get_ports {pin_in_cl_x_n[1]}];#"FMC_HPC_LA03_N"]
 #set_property IOSTANDARD LVDS [get_ports {pin_in_cl_x_n[1]}];#"FMC_HPC_LA03_N"]
 #set_property PACKAGE_PIN A13 [get_ports {pin_in_cl_x_p[1]}];#"FMC_HPC_LA03_P"]
