@@ -47,6 +47,7 @@ p_in_xclk_n : in  std_logic;
 p_out_tst : out  std_logic_vector(31 downto 0);
 p_in_tst  : in   std_logic_vector(31 downto 0);
 
+p_in_refclk : in std_logic;
 p_in_clk : in std_logic;
 p_in_rst : in std_logic
 );
@@ -98,10 +99,18 @@ signal i_fsm_pll        : TFsm_pll_rst;
 type TFsm_des_rst is (
 S_DESRST_0   ,
 S_DESRST_1   ,
+S_DESRST_2   ,
 S_DESRST_DLY ,
 S_DESRST_DONE
 );
 signal i_fsm_desrst     : TFsm_des_rst;
+
+type TFsm_fsync is (
+S_SYNC_FIND,
+S_SYNC_CHK
+);
+signal i_fsm_sync     : TFsm_fsync;
+
 
 signal i_pll_dly_cnt    : unsigned(5 downto 0);
 signal i_pll_rst        : std_logic;
@@ -111,6 +120,9 @@ signal i_desrst_dly_cnt : unsigned(5 downto 0);
 signal i_idelay_rst     : std_logic;
 signal i_serdes_rst     : std_logic;
 signal i_desr_ctrl_rst  : std_logic;
+
+signal i_idelayctrl_rst : std_logic;
+signal i_idelayctrl_rdy : std_logic;
 
 signal i_xclk_in        : std_logic;
 signal g_xclk_in        : std_logic;
@@ -145,6 +157,10 @@ signal reg_det: TReg;
 
 signal i_sync_det: std_logic := '0';
 
+signal i_fsync_pcnt    : unsigned(2 downto 0);
+signal i_fsync_timeout : unsigned(5 downto 0);
+signal i_fsync_vldcnt  : unsigned(3 downto 0);
+signal i_fsync_vld     : std_logic;
 
 
 signal i_vio_cmp_count : std_logic_vector(3 downto 0);
@@ -230,6 +246,17 @@ CLR => i_div_rst
 );
 
 
+m_IDELAYCTRL : IDELAYCTRL
+generic map (
+SIM_DEVICE => "ULTRASCALE"  -- Set the device version (7SERIES, ULTRASCALE)
+)
+port map (
+RDY => i_idelayctrl_rdy, -- 1-bit output: Ready output
+REFCLK => p_in_refclk,   -- 1-bit input: Reference clock input
+RST => i_idelayctrl_rst  -- 1-bit input: Active high reset input. Asynchronous assert, synchronous deassert to
+                         -- REFCLK.
+);
+
 gen_deser_xch : for i in 0 to 0 generate --(p_in_x_p'length - 1) generate
 begin
 
@@ -243,7 +270,7 @@ CASCADE => "NONE",          -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_M
 DELAY_FORMAT => "COUNT",    -- Units of the DELAY_VALUE (COUNT, TIME)
 DELAY_SRC => "IDATAIN",     -- Delay input (DATAIN, IDATAIN)
 DELAY_TYPE => "VARIABLE",   -- Set the type of tap delay line (FIXED, VARIABLE, VAR_LOAD)
-DELAY_VALUE => 80,          -- Input delay value setting
+DELAY_VALUE => 448,          -- Input delay value setting
 IS_CLK_INVERTED => '0',     -- Optional inversion for CLK
 IS_RST_INVERTED => '1',     -- Optional inversion for RST
 REFCLK_FREQUENCY => 300.0,  -- IDELAYCTRL clock input frequency in MHz (200.0-2400.0)
@@ -427,6 +454,7 @@ if (i_desrst_start = '0') then
   i_desrst_dly_cnt <= (others => '0');
   i_idelay_rst <= '0';
   i_serdes_rst <= '0';
+  i_idelayctrl_rst <= '1';
   i_desr_ctrl_rst <= '0';
 
 elsif rising_edge(g_xclk_7xdiv) then
@@ -447,6 +475,16 @@ elsif rising_edge(g_xclk_7xdiv) then
       if (i_desrst_dly_cnt = (i_desrst_dly_cnt'range => '1')) then
         i_desrst_dly_cnt <= (others => '0');
         i_serdes_rst <= '1';
+        i_fsm_desrst <= S_DESRST_2;
+      else
+        i_desrst_dly_cnt <= i_desrst_dly_cnt + 1;
+      end if;
+
+    when S_DESRST_2 =>
+
+      if (i_desrst_dly_cnt = (i_desrst_dly_cnt'range => '1')) then
+        i_desrst_dly_cnt <= (others => '0');
+        i_idelayctrl_rst <= '0';
         i_fsm_desrst <= S_DESRST_DLY;
       else
         i_desrst_dly_cnt <= i_desrst_dly_cnt + 1;
@@ -454,11 +492,15 @@ elsif rising_edge(g_xclk_7xdiv) then
 
     when S_DESRST_DLY =>
 
-      if (i_desrst_dly_cnt = (i_desrst_dly_cnt'range => '1')) then
-        i_desrst_dly_cnt <= (others => '0');
-        i_fsm_desrst <= S_DESRST_DONE;
-      else
-        i_desrst_dly_cnt <= i_desrst_dly_cnt + 1;
+      if (i_idelayctrl_rdy = '1') then
+
+        if (i_desrst_dly_cnt = (i_desrst_dly_cnt'range => '1')) then
+          i_desrst_dly_cnt <= (others => '0');
+          i_fsm_desrst <= S_DESRST_DONE;
+        else
+          i_desrst_dly_cnt <= i_desrst_dly_cnt + 1;
+        end if;
+
       end if;
 
     when S_DESRST_DONE =>
@@ -472,8 +514,6 @@ end if;
 end process;
 
 
-
-
 process(i_desr_ctrl_rst, g_xclk_7xdiv)
 begin
 if (i_desr_ctrl_rst = '0') then
@@ -483,7 +523,7 @@ if (i_desr_ctrl_rst = '0') then
 
 elsif rising_edge(g_xclk_7xdiv) then
   if (i_xclk_7x_lock = '1') then
-    if i_delay_cnt = TO_UNSIGNED(32, i_delay_cnt'length) then
+    if i_delay_cnt = TO_UNSIGNED(16, i_delay_cnt'length) then
       i_delay_cnt <= (others => '0');
       i_idelay_ce <= '1';
       if ((UNSIGNED(i_idelay_oval(0)) = TO_UNSIGNED(511, i_idelay_ce_cnt'length)) and i_idelay_inc = '1')
@@ -499,9 +539,6 @@ end if;
 end process;
 
 
-
-
-
 --#########################################
 --DBG
 --#########################################
@@ -511,6 +548,7 @@ p_out_tst(2) <= i_idelay_oval(0)(3) or sr_serdes_do(0)(0);
 
 
 --find synch
+
 process(g_xclk_7xdiv)
 begin
 if rising_edge(g_xclk_7xdiv) then
@@ -530,71 +568,96 @@ if rising_edge(g_xclk_7xdiv) then
       i_sync_det <= '0';
     end if;
 
-
---    if (UNSIGNED(i_vio_cmp_count) = TO_UNSIGNED(1, i_vio_cmp_count'length)) then
---
---        if (sr_reg(6) = UNSIGNED(i_vio_cmp_val(0)) )then
---            reg_det <= sr_reg;
---            i_sync_det <= '1';
---        else
---          i_sync_det <= '0';
---        end if;
---
---    elsif (UNSIGNED(i_vio_cmp_count) = TO_UNSIGNED(2, i_vio_cmp_count'length)) then
---
---        if (sr_reg(6) = UNSIGNED(i_vio_cmp_val(0))
---          and sr_reg(5) = UNSIGNED(i_vio_cmp_val(1)) )then
---            reg_det <= sr_reg;
---            i_sync_det <= '1';
---        else
---          i_sync_det <= '0';
---        end if;
---
---    elsif (UNSIGNED(i_vio_cmp_count) = TO_UNSIGNED(3, i_vio_cmp_count'length)) then
---
---        if (sr_reg(6) = UNSIGNED(i_vio_cmp_val(0))
---          and sr_reg(5) = UNSIGNED(i_vio_cmp_val(1))
---            and sr_reg(4) = UNSIGNED(i_vio_cmp_val(2)) )then
---            reg_det <= sr_reg;
---            i_sync_det <= '1';
---        else
---          i_sync_det <= '0';
---        end if;
---
---    elsif (UNSIGNED(i_vio_cmp_count) = TO_UNSIGNED(4, i_vio_cmp_count'length)) then
---
---        if (sr_reg(6) = UNSIGNED(i_vio_cmp_val(0))
---          and sr_reg(5) = UNSIGNED(i_vio_cmp_val(1))
---            and sr_reg(4) = UNSIGNED(i_vio_cmp_val(2))
---              and sr_reg(3) = UNSIGNED(i_vio_cmp_val(3)) )then
---            reg_det <= sr_reg;
---            i_sync_det <= '1';
---        else
---          i_sync_det <= '0';
---        end if;
---    else
---
---    reg_det <= sr_reg;
---
---    end if;
-
---  end if;
 end if;
 end process;
 
-process(g_xclk_7xdiv)
+
+process(i_desr_ctrl_rst, g_xclk_7xdiv)
 begin
-if rising_edge(g_xclk_7xdiv) then
-  if (i_xclk_7x_lock = '1') then
-    sr_idelay_inc <= i_idelay_inc & sr_idelay_inc(0 to 0);
-    tst_sync <= XOR_reduce(sr_idelay_inc);
-  end if;
+if (i_desr_ctrl_rst = '0') then
+  i_fsm_sync <= S_SYNC_FIND;
+
+--  i_idelay_ce <= '0';
+--  i_idelay_inc <= '0';
+
+  i_fsync_pcnt <= (others => '0');
+  i_fsync_timeout <= (others => '0');
+  i_fsync_vldcnt <= (others => '0');
+  i_fsync_vld <= '0';
+
+elsif rising_edge(g_xclk_7xdiv) then
+  case i_fsm_sync is
+
+    when S_SYNC_FIND =>
+
+      i_fsync_pcnt <= (others => '0');
+
+      if (i_fsync_timeout = (i_fsync_timeout'range => '1')) then
+        i_fsync_timeout <= (others => '0');
+
+--        i_idelay_ce <= '1';
+--        i_idelay_inc <= '1';
+
+      else
+--        i_idelay_ce <= '0';
+        i_fsync_timeout <= i_fsync_timeout + 1;
+      end if;
+
+      if (i_sync_det = '1') then
+        i_fsm_sync <= S_SYNC_CHK;
+      end if;
+
+
+    when S_SYNC_CHK =>
+
+--      i_idelay_ce <= '0';
+      i_fsync_timeout <= (others => '0');
+
+      --period sync strob (i_sync_det)
+      if (i_fsync_pcnt = (TO_UNSIGNED(6, i_fsync_pcnt'length))) then
+        i_fsync_pcnt <= (others => '0');
+
+        if (i_sync_det = '1') then
+
+            --count valid period
+          if (i_fsync_vld = '0') then
+            if (i_fsync_vldcnt = (TO_UNSIGNED(16, i_fsync_vldcnt'length))) then
+              i_fsync_vldcnt <= (others => '0');
+              i_fsync_vld <= '1';
+            else
+              i_fsync_vldcnt <= i_fsync_vldcnt + 1;
+            end if;
+          end if;
+
+        else
+          i_fsync_vld <= '0';
+          i_fsm_sync <= S_SYNC_FIND;
+        end if;
+
+      else
+        i_fsync_pcnt <= i_fsync_pcnt + 1;
+      end if;
+
+  end case;
+
 end if;
 end process;
+
+
+
+--process(g_xclk_7xdiv)
+--begin
+--if rising_edge(g_xclk_7xdiv) then
+--  if (i_xclk_7x_lock = '1') then
+--    sr_idelay_inc <= i_idelay_inc & sr_idelay_inc(0 to 0);
+--    tst_sync <= XOR_reduce(sr_idelay_inc);
+--  end if;
+--end if;
+--end process;
 
 
 i_dbg.det_sync <= i_sync_det;
-i_dbg.tst_sync <= tst_sync;
+i_dbg.tst_sync <= i_fsync_vld;
 i_dbg.idelay_inc <= i_idelay_inc;
 i_dbg.idelay_ce <= i_idelay_ce;
 i_dbg.idelay_oval <= i_idelay_oval(0);

@@ -103,15 +103,15 @@ p_out_rs232_tx : out std_logic;
 --------------------------------------------------
 --CameraLink
 --------------------------------------------------
-p_in_cl_tfg_n : in  std_logic; --Camera -> FG
-p_in_cl_tfg_p : in  std_logic;
-p_out_cl_tc_n : out std_logic; --Camera <- FG
-p_out_cl_tc_p : out std_logic;
+p_in_tfg_n : in  std_logic; --Camera -> FG
+p_in_tfg_p : in  std_logic;
+p_out_tc_n : out std_logic; --Camera <- FG
+p_out_tc_p : out std_logic;
 
-p_in_cl_xclk_p : in  std_logic;
-p_in_cl_xclk_n : in  std_logic;
---p_in_cl_x_p : in  std_logic_vector(G_CLIN_WIDTH - 1 downto 0);
---p_in_cl_x_n : in  std_logic_vector(G_CLIN_WIDTH - 1 downto 0);
+p_in_xclk_p : in  std_logic;
+p_in_xclk_n : in  std_logic;
+--p_in_x_p : in  std_logic_vector(G_CLIN_WIDTH - 1 downto 0);
+--p_in_x_n : in  std_logic_vector(G_CLIN_WIDTH - 1 downto 0);
 
 --------------------------------------------------
 --DBG
@@ -119,6 +119,7 @@ p_in_cl_xclk_n : in  std_logic;
 p_out_tst : out  std_logic_vector(31 downto 0);
 p_in_tst  : in   std_logic_vector(31 downto 0);
 
+p_in_refclk : in std_logic;
 p_in_clk : in std_logic;
 p_in_rst : in std_logic
 );
@@ -166,15 +167,15 @@ p_out_rs232_tx => pin_out_rs232_tx,
 --------------------------------------------------
 --CameraLink
 --------------------------------------------------
-p_in_cl_tfg_n => pin_in_cl_tfg_n, --Camera -> FG
-p_in_cl_tfg_p => pin_in_cl_tfg_p,
-p_out_cl_tc_n => pin_out_cl_tc_n, --Camera <- FG
-p_out_cl_tc_p => pin_out_cl_tc_p,
+p_in_tfg_n => pin_in_cl_tfg_n, --Camera -> FG
+p_in_tfg_p => pin_in_cl_tfg_p,
+p_out_tc_n => pin_out_cl_tc_n, --Camera <- FG
+p_out_tc_p => pin_out_cl_tc_p,
 
-p_in_cl_xclk_p => pin_in_cl_xclk_p,
-p_in_cl_xclk_n => pin_in_cl_xclk_n,
---p_in_cl_x_p    => pin_in_cl_x_p,
---p_in_cl_x_n    => pin_in_cl_x_n,
+p_in_xclk_p => pin_in_cl_xclk_p,
+p_in_xclk_n => pin_in_cl_xclk_n,
+--p_in_x_p    => pin_in_cl_x_p,
+--p_in_x_n    => pin_in_cl_x_n,
 
 --------------------------------------------------
 --DBG
@@ -182,7 +183,8 @@ p_in_cl_xclk_n => pin_in_cl_xclk_n,
 p_out_tst => i_cl_tst_out,
 p_in_tst  => i_cl_tst_in,
 
-p_in_clk => '0',
+p_in_refclk => g_usrclk(1),
+p_in_clk => g_usrclk(0),
 p_in_rst => i_usr_rst
 );
 
@@ -212,7 +214,7 @@ p_in_rst   => i_usrclk_rst
 
 pin_out_led(0) <= i_test_led(0);
 pin_out_led(1) <= i_cl_tst_out(0); --xclk_7x_lock
-pin_out_led(2) <= i_cl_tst_out(1); --tst_sync
+pin_out_led(2) <= i_cl_tst_out(1); --i_det
 pin_out_led(3) <= i_usr_rst;
 pin_out_led(4) <= i_cl_tst_out(9);
 
