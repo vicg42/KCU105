@@ -357,15 +357,15 @@ end if;
 end process;
 
 m_gearbox : gearbox_4_to_7
-generic map(D => 1)       -- Set the number of inputs
+generic map(D => 1)
 port map(
 datain       => sr_serdes_do(i),
-input_clock  => g_xclk_7xdiv4,   -- high speed clock input
+input_clock  => g_xclk_7xdiv4,
 
 dataout      => i_gearbox_do(i),
-output_clock => g_xclk_7xdiv7,   -- low speed clock input
+output_clock => g_xclk_7xdiv7,
 
-jog          => '0',       -- jog input, slips by 4 bits
+jog          => '0',
 reset        => i_gearbox_rst
 );
 
