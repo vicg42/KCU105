@@ -38,8 +38,8 @@ p_out_tc_p : out std_logic;
 
 p_in_xclk_p : in  std_logic;
 p_in_xclk_n : in  std_logic;
---p_in_x_p : in  std_logic_vector(G_CLIN_WIDTH - 1 downto 0);
---p_in_x_n : in  std_logic_vector(G_CLIN_WIDTH - 1 downto 0);
+p_in_x_p : in  std_logic_vector(3 downto 0);
+p_in_x_n : in  std_logic_vector(3 downto 0);
 
 --------------------------------------------------
 --DBG
@@ -108,12 +108,12 @@ signal g_xclk_7xdiv7    : std_logic;
 signal g_xclk_7x        : std_logic;
 signal i_xclk_7x_lock   : std_logic;
 
-type TSerDesVALOUT is array (0 to 0) of std_logic_vector(8 downto 0); --p_in_x_p'length - 1) of std_logic_vector(7 downto 0);
-type TSerDesDOUT is array (0 to 0) of std_logic_vector(7 downto 0); --p_in_x_p'length - 1) of std_logic_vector(7 downto 0);
-type TGearBoxDOUT is array (0 to 0) of std_logic_vector(6 downto 0); --p_in_x_p'length - 1) of std_logic_vector(6 downto 0);
-type TDesData is array (0 to 0) of std_logic_vector(3 downto 0); --p_in_x_p'length - 1) of std_logic_vector(3 downto 0);
-signal i_x              : std_logic_vector(0 downto 0);--(p_in_x_p'range);
-signal i_idelay_do      : std_logic_vector(0 downto 0);--(p_in_x_p'range);
+type TSerDesVALOUT is array (0 to (p_in_x_p'length - 1 + 1)) of std_logic_vector(8 downto 0); --(0 to 0)
+type TSerDesDOUT   is array (0 to (p_in_x_p'length - 1 + 1)) of std_logic_vector(7 downto 0); --(0 to 0)
+type TGearBoxDOUT  is array (0 to (p_in_x_p'length - 1 + 1)) of std_logic_vector(6 downto 0); --(0 to 0)
+type TDesData      is array (0 to (p_in_x_p'length - 1 + 1)) of std_logic_vector(3 downto 0); --(0 to 0)
+signal i_x              : std_logic_vector((p_in_x_p'length - 1 + 1) downto 0); --(0 downto 0);
+signal i_idelay_do      : std_logic_vector((p_in_x_p'length - 1 + 1) downto 0); --(0 downto 0);
 signal i_idelay_oval    : TSerDesVALOUT;
 signal i_idelay_ce      : std_logic := '0';
 signal i_idelay_inc     : std_logic := '0';
@@ -121,8 +121,8 @@ signal i_serdes_do      : TSerDesDOUT;
 signal sr_serdes_do     : TDesData;
 signal i_gearbox_do     : TGearBoxDOUT;
 
-type TReg is array (0 to 6) of unsigned(3 downto 0); --p_in_x_p'length - 1) of std_logic_vector(3 downto 0);
-signal sr_reg : TReg;
+type TReg is array (0 to 6) of unsigned(3 downto 0);
+signal sr_reg           : TReg;
 
 signal i_sync_det       : std_logic := '0';
 
@@ -133,10 +133,10 @@ signal i_fsync_vld      : std_logic;
 
 signal i_err            : std_logic := '0';
 
+type TCLRx is array (0 to (p_in_x_p'length - 1)) of std_logic_vector(6 downto 0);
+signal i_clx_rxch       : TCLRx;
+signal i_clx_sync_val   : std_logic_vector(6 downto 0);
 
-signal i_vio_cmp_count : std_logic_vector(3 downto 0);
-type TVIOcmpval is array (0 to 6) of std_logic_vector(3 downto 0);
-signal i_vio_cmp_val : TVIOcmpval;
 
 component ila_dbg_cl is
 port (
@@ -148,23 +148,11 @@ end component ila_dbg_cl;
 component ila_dbg2_cl is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(7 downto 0)
+probe0 : in std_logic_vector(33 downto 0)
 );
 end component ila_dbg2_cl;
 
-component vio_dbg_cl is
-Port (
-clk : in STD_LOGIC;
-probe_out0 : out STD_LOGIC_VECTOR ( 0 to 0 );
-probe_out1 : out STD_LOGIC_VECTOR ( 0 to 0 );
-probe_out2 : out STD_LOGIC_VECTOR ( 3 downto 0 );
-probe_out3 : out STD_LOGIC_VECTOR ( 3 downto 0 );
-probe_out4 : out STD_LOGIC_VECTOR ( 3 downto 0 );
-probe_out5 : out STD_LOGIC_VECTOR ( 3 downto 0 );
-probe_out6 : out STD_LOGIC_VECTOR ( 3 downto 0 );
-probe_out7 : out STD_LOGIC_VECTOR ( 3 downto 0 )
-);
-end component vio_dbg_cl;
+type TCLRxByte is array (0 to 2) of std_logic_vector(7 downto 0);
 
 type TMAIN_dbg is record
 det_sync : std_logic;
@@ -175,7 +163,10 @@ idelay_oval : std_logic_vector(8 downto 0);
 reg_det : TReg;
 sr_reg : TReg;
 sr_serdes_d : std_logic_vector(3 downto 0);
-gearbox_do : std_logic_vector(6 downto 0);
+clx_sync_val : std_logic_vector(6 downto 0);
+clx_byte : TCLRxByte;
+clx_lval : std_logic;
+clx_fval : std_logic;
 end record;
 
 signal i_dbg    : TMAIN_dbg;
@@ -224,7 +215,7 @@ reset    => p_in_rst,
 locked   => i_xclk_7x_lock
 );
 
-m_BUFGCE_DIV4 : BUFGCE_DIV
+m_clkx7div4 : BUFGCE_DIV
 generic map (
 IS_CLR_INVERTED => '1',
 BUFGCE_DIVIDE => 4
@@ -236,7 +227,7 @@ CE => '1',
 CLR => i_div_rst
 );
 
-m_BUFGCE_DIV7 : BUFGCE_DIV
+m_clkx7div7 : BUFGCE_DIV
 generic map (
 IS_CLR_INVERTED => '1',
 BUFGCE_DIVIDE => 7
@@ -249,7 +240,7 @@ CLR => i_div_rst
 );
 
 
---RESET CTRL
+--reset ctrl
 process(i_xclk_7x_lock, g_xclk_7x)
 begin
 if (i_xclk_7x_lock = '0') then
@@ -265,12 +256,17 @@ i_serdes_rst <= sr_rst(23);
 i_desr_ctrl_rst <= sr_rst(31);
 
 
-gen_deser_xch : for i in 0 to 0 generate --(p_in_x_p'length - 1) generate
+--Set signal for deserialization
+i_x(0) <= i_xclk_in;--!!!!!!!
+gen_xch : for i in 0 to (p_in_x_p'length - 1) generate
 begin
+m_ibufds : IBUFDS
+port map (I => p_in_x_p(i), IB => p_in_x_n(i), O => i_x(i + 1));
+end generate gen_xch;
 
---m_ibufds : IBUFDS
---port map (I => p_in_x_p(i), IB => p_in_x_n(i), O => i_x(i));
-i_x(i) <= i_xclk_in;
+
+gen_deser_xch : for i in 0 to (p_in_x_p'length - 1 + 1) generate
+begin
 
 m_idelay : IDELAYE3
 generic map (
@@ -299,8 +295,8 @@ EN_VTC      => '0'        , -- 1-bit input: Keep delay constant over VT
 
 CNTVALUEIN  => "000000000" , -- 9-bit input: Counter value input
 LOAD        => '0',          -- 1-bit input: Load DELAY_VALUE input
-CE          => i_idelay_ce,     -- 1-bit input: Active high enable increment/decrement input
-INC         => i_idelay_inc,    -- 1-bit input: Increment / Decrement tap delay input
+CE          => i_idelay_ce,   -- 1-bit input: Active high enable increment/decrement input
+INC         => i_idelay_inc,  -- 1-bit input: Increment / Decrement tap delay input
 CLK         => g_xclk_7xdiv4, -- 1-bit input: Clock input
 
 RST         => i_idelay_rst
@@ -322,7 +318,7 @@ D     => i_idelay_do(i), -- 1-bit input: Serial Data Input
 CLK   => g_xclk_7x  , -- 1-bit input: High-speed clock
 CLK_B => g_xclk_7x  , -- 1-bit input: Inversion of High-speed clock CLK
 
-Q      => i_serdes_do(i)  , -- 8-bit registered output
+Q      => i_serdes_do(i), -- 8-bit registered output
 CLKDIV => g_xclk_7xdiv4 , -- 1-bit input: Divided Clock
 
 FIFO_RD_EN  => '0' ,    -- 1-bit input: Enables reading the FIFO when asserted
@@ -343,6 +339,7 @@ sr_serdes_do(i)(3) <= i_serdes_do(i)(6);
 end if;
 end process;
 
+--4bit -> 7bit
 m_gearbox : gearbox_4_to_7
 generic map(D => 1)
 port map(
@@ -362,9 +359,11 @@ i_gearbox_rst <= not i_fsync_vld;
 
 
 --find synch
-process(g_xclk_7xdiv4)
+process(i_desr_ctrl_rst, g_xclk_7xdiv4)
 begin
-if rising_edge(g_xclk_7xdiv4) then
+if (i_desr_ctrl_rst = '0') then
+  i_sync_det <= '0';
+elsif rising_edge(g_xclk_7xdiv4) then
 
     sr_reg <= UNSIGNED(sr_serdes_do(0)) & sr_reg(0 to (sr_reg'high - 1));
 
@@ -463,6 +462,54 @@ end process;
 
 
 --#########################################
+--Data Out
+--#########################################
+process(g_xclk_7xdiv7)
+begin
+if rising_edge(g_xclk_7xdiv7) then
+--RxIN0
+i_clx_rxch(0)(0) <= i_gearbox_do(1)(6); --A0
+i_clx_rxch(0)(1) <= i_gearbox_do(1)(5); --A1
+i_clx_rxch(0)(2) <= i_gearbox_do(1)(4); --A2
+i_clx_rxch(0)(3) <= i_gearbox_do(1)(3); --A3
+i_clx_rxch(0)(4) <= i_gearbox_do(1)(2); --A4
+i_clx_rxch(0)(5) <= i_gearbox_do(1)(1); --A5
+i_clx_rxch(0)(6) <= i_gearbox_do(1)(0); --B0
+
+--RxIN1
+i_clx_rxch(1)(0) <= i_gearbox_do(2)(6); --B1
+i_clx_rxch(1)(1) <= i_gearbox_do(2)(5); --B2
+i_clx_rxch(1)(2) <= i_gearbox_do(2)(4); --B3
+i_clx_rxch(1)(3) <= i_gearbox_do(2)(3); --B4
+i_clx_rxch(1)(4) <= i_gearbox_do(2)(2); --B5
+i_clx_rxch(1)(5) <= i_gearbox_do(2)(1); --C0
+i_clx_rxch(1)(6) <= i_gearbox_do(2)(0); --C1
+
+--RxIN2
+i_clx_rxch(2)(0) <= i_gearbox_do(3)(6); --C2
+i_clx_rxch(2)(1) <= i_gearbox_do(3)(5); --C3
+i_clx_rxch(2)(2) <= i_gearbox_do(3)(4); --C4
+i_clx_rxch(2)(3) <= i_gearbox_do(3)(3); --C5
+i_clx_rxch(2)(4) <= i_gearbox_do(3)(2); --LVAL (Line Valid)
+i_clx_rxch(2)(5) <= i_gearbox_do(3)(1); --FVAL (Frame Valid)
+i_clx_rxch(2)(6) <= i_gearbox_do(3)(0); --DVAL (Data Valid)
+
+--RxIN3
+i_clx_rxch(3)(0) <= i_gearbox_do(3)(6); --A6
+i_clx_rxch(3)(1) <= i_gearbox_do(3)(5); --A7
+i_clx_rxch(3)(2) <= i_gearbox_do(3)(4); --B6
+i_clx_rxch(3)(3) <= i_gearbox_do(3)(3); --B7
+i_clx_rxch(3)(4) <= i_gearbox_do(3)(2); --C6
+i_clx_rxch(3)(5) <= i_gearbox_do(3)(1); --C7
+i_clx_rxch(3)(6) <= i_gearbox_do(3)(0); --Reserv
+
+end if;
+end process;
+
+
+
+
+--#########################################
 --DBG
 --#########################################
 p_out_tst(0) <= i_xclk_7x_lock;
@@ -470,6 +517,12 @@ p_out_tst(1) <= i_err;
 p_out_tst(2) <= i_idelay_oval(0)(3) or sr_serdes_do(0)(0);
 
 
+process(g_xclk_7xdiv7)
+begin
+if rising_edge(g_xclk_7xdiv7) then
+i_clx_sync_val <= i_gearbox_do(0);
+end if;
+end process;
 
 i_dbg.det_sync <= i_sync_det;
 i_dbg.tst_sync <= i_fsync_vld;
@@ -478,14 +531,6 @@ i_dbg.idelay_ce <= i_idelay_ce;
 i_dbg.idelay_oval <= i_idelay_oval(0);
 
 i_dbg.sr_serdes_d <= sr_serdes_do(0);
---i_dbg.reg_det(0) <= reg_det(0);
---i_dbg.reg_det(1) <= reg_det(1);
---i_dbg.reg_det(2) <= reg_det(2);
---i_dbg.reg_det(3) <= reg_det(3);
---i_dbg.reg_det(4) <= reg_det(4);
---i_dbg.reg_det(5) <= reg_det(5);
---i_dbg.reg_det(6) <= reg_det(6);
-
 i_dbg.sr_reg(0) <= sr_reg(0);
 i_dbg.sr_reg(1) <= sr_reg(1);
 i_dbg.sr_reg(2) <= sr_reg(2);
@@ -494,7 +539,38 @@ i_dbg.sr_reg(4) <= sr_reg(4);
 i_dbg.sr_reg(5) <= sr_reg(5);
 i_dbg.sr_reg(6) <= sr_reg(6);
 
-i_dbg.gearbox_do <= i_gearbox_do(0);
+i_dbg.clx_sync_val <= i_clx_sync_val;--i_gearbox_do(0);
+
+i_dbg.clx_lval <= i_clx_rxch(2)(4); --LVAL (Line Valid)
+i_dbg.clx_fval <= i_clx_rxch(2)(5); --FVAL (Frame Valid)
+
+i_dbg.clx_byte(0)(0) <= i_clx_rxch(0)(0); --A0
+i_dbg.clx_byte(0)(1) <= i_clx_rxch(0)(1); --A1
+i_dbg.clx_byte(0)(2) <= i_clx_rxch(0)(2); --A2
+i_dbg.clx_byte(0)(3) <= i_clx_rxch(0)(3); --A3
+i_dbg.clx_byte(0)(4) <= i_clx_rxch(0)(4); --A4
+i_dbg.clx_byte(0)(5) <= i_clx_rxch(0)(5); --A5
+i_dbg.clx_byte(0)(6) <= i_clx_rxch(3)(0); --A6
+i_dbg.clx_byte(0)(7) <= i_clx_rxch(3)(1); --A7
+
+i_dbg.clx_byte(1)(0) <= i_clx_rxch(0)(6); --B0
+i_dbg.clx_byte(1)(1) <= i_clx_rxch(1)(0); --B1
+i_dbg.clx_byte(1)(2) <= i_clx_rxch(1)(1); --B2
+i_dbg.clx_byte(1)(3) <= i_clx_rxch(1)(2); --B3
+i_dbg.clx_byte(1)(4) <= i_clx_rxch(1)(3); --B4
+i_dbg.clx_byte(1)(5) <= i_clx_rxch(1)(4); --B5
+i_dbg.clx_byte(1)(6) <= i_clx_rxch(3)(2); --B6
+i_dbg.clx_byte(1)(7) <= i_clx_rxch(3)(3); --B7
+
+i_dbg.clx_byte(2)(0) <= i_clx_rxch(1)(5); --C0
+i_dbg.clx_byte(2)(1) <= i_clx_rxch(1)(6); --C1
+i_dbg.clx_byte(2)(2) <= i_clx_rxch(2)(0); --C2
+i_dbg.clx_byte(2)(3) <= i_clx_rxch(2)(1); --C3
+i_dbg.clx_byte(2)(4) <= i_clx_rxch(2)(2); --C4
+i_dbg.clx_byte(2)(5) <= i_clx_rxch(2)(3); --C5
+i_dbg.clx_byte(2)(6) <= i_clx_rxch(3)(4); --C6
+i_dbg.clx_byte(2)(7) <= i_clx_rxch(3)(5); --C7
+
 
 dbg_cl : ila_dbg_cl
 port map(
@@ -504,13 +580,13 @@ probe0(4 downto 1) => sr_serdes_do(0),
 probe0(5) => i_dbg.idelay_inc,
 probe0(6) => i_dbg.idelay_ce,
 probe0(15 downto 7) => i_dbg.idelay_oval,
-probe0(19 downto 16) => std_logic_vector(i_dbg.sr_reg(0)),--(i_dbg.reg_det(0)),
-probe0(23 downto 20) => std_logic_vector(i_dbg.sr_reg(1)),--(i_dbg.reg_det(1)),
-probe0(27 downto 24) => std_logic_vector(i_dbg.sr_reg(2)),--(i_dbg.reg_det(2)),
-probe0(31 downto 28) => std_logic_vector(i_dbg.sr_reg(3)),--(i_dbg.reg_det(3)),
-probe0(35 downto 32) => std_logic_vector(i_dbg.sr_reg(4)),--(i_dbg.reg_det(4)),
-probe0(39 downto 36) => std_logic_vector(i_dbg.sr_reg(5)),--(i_dbg.reg_det(5)),
-probe0(43 downto 40) => std_logic_vector(i_dbg.sr_reg(6)),--(i_dbg.reg_det(6)),
+probe0(19 downto 16) => std_logic_vector(i_dbg.sr_reg(0)),
+probe0(23 downto 20) => std_logic_vector(i_dbg.sr_reg(1)),
+probe0(27 downto 24) => std_logic_vector(i_dbg.sr_reg(2)),
+probe0(31 downto 28) => std_logic_vector(i_dbg.sr_reg(3)),
+probe0(35 downto 32) => std_logic_vector(i_dbg.sr_reg(4)),
+probe0(39 downto 36) => std_logic_vector(i_dbg.sr_reg(5)),
+probe0(43 downto 40) => std_logic_vector(i_dbg.sr_reg(6)),
 
 probe0(44) => i_dbg.tst_sync
 );
@@ -520,21 +596,14 @@ dbg2_cl : ila_dbg2_cl
 port map(
 clk => g_xclk_7xdiv7,
 probe0(0) => i_dbg.tst_sync,
-probe0(7 downto 1) => i_dbg.gearbox_do
+probe0(7 downto 1) => i_dbg.clx_sync_val,
+probe0(8) => i_dbg.clx_lval,
+probe0(9) => i_dbg.clx_fval,
+probe0(17 downto 10) => i_dbg.clx_byte(0),
+probe0(25 downto 18) => i_dbg.clx_byte(1),
+probe0(33 downto 26) => i_dbg.clx_byte(2)
 );
 
---dbg_vio : vio_dbg_cl
---port map(
---clk => g_xclk_7xdiv4,
---probe_out0 => open,
---probe_out1 => open,
---probe_out2 => i_vio_cmp_count,
---probe_out3 => i_vio_cmp_val(0),
---probe_out4 => i_vio_cmp_val(1),
---probe_out5 => i_vio_cmp_val(2),
---probe_out6 => i_vio_cmp_val(3),
---probe_out7 => i_vio_cmp_val(4)
---);
 
 
 end architecture struct;
