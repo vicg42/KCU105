@@ -84,27 +84,6 @@ port (
   dataout     : out std_logic_vector(D*7-1 downto 0)) ;   -- data outputs
 end component ;
 
-type TFsm_pll_rst is (
-S_PLL_IDLE     ,
-S_PLL_RST      ,
-S_PLL_RST_1    ,
-S_PLL_DIV_RST  ,
-S_PLL_DIV_RST_1,
-S_PLL_DIV_RST_2,
-S_PLL_DONE     ,
-S_PLL_DONE_OUT
-);
-signal i_fsm_pll        : TFsm_pll_rst;
-
-type TFsm_des_rst is (
-S_DESRST_0   ,
-S_DESRST_1   ,
-S_DESRST_2   ,
-S_DESRST_DLY ,
-S_DESRST_DONE
-);
-signal i_fsm_desrst     : TFsm_des_rst;
-
 type TFsm_fsync is (
 S_SYNC_FIND,
 S_SYNC_CHK
@@ -112,14 +91,12 @@ S_SYNC_CHK
 signal i_fsm_sync     : TFsm_fsync;
 
 
-signal i_pll_dly_cnt    : unsigned(5 downto 0);
-signal i_pll_rst        : std_logic;
 signal i_div_rst        : std_logic;
-signal i_desrst_start   : std_logic;
-signal i_desrst_dly_cnt : unsigned(5 downto 0);
 signal i_idelay_rst     : std_logic;
 signal i_serdes_rst     : std_logic;
 signal i_desr_ctrl_rst  : std_logic;
+signal i_gearbox_rst    : std_logic;
+signal sr_rst           : std_logic_vector(0 to 31);
 
 signal i_idelayctrl_rst : std_logic;
 signal i_idelayctrl_rdy : std_logic;
@@ -130,39 +107,31 @@ signal g_xclk_7xdiv4    : std_logic;
 signal g_xclk_7xdiv7    : std_logic;
 signal g_xclk_7x        : std_logic;
 signal i_xclk_7x_lock   : std_logic;
-signal sr1_xclk_7x_lock : std_logic;
-
 
 type TSerDesVALOUT is array (0 to 0) of std_logic_vector(8 downto 0); --p_in_x_p'length - 1) of std_logic_vector(7 downto 0);
 type TSerDesDOUT is array (0 to 0) of std_logic_vector(7 downto 0); --p_in_x_p'length - 1) of std_logic_vector(7 downto 0);
 type TGearBoxDOUT is array (0 to 0) of std_logic_vector(6 downto 0); --p_in_x_p'length - 1) of std_logic_vector(6 downto 0);
 type TDesData is array (0 to 0) of std_logic_vector(3 downto 0); --p_in_x_p'length - 1) of std_logic_vector(3 downto 0);
 signal i_x              : std_logic_vector(0 downto 0);--(p_in_x_p'range);
-signal i_idelay_do         : std_logic_vector(0 downto 0);--(p_in_x_p'range);
-signal i_idelay_oval       : TSerDesVALOUT;
-signal i_idelay_ce         : std_logic := '0';
-signal i_idelay_ce_cnt     : unsigned(8 downto 0) := (others => '0');
-signal i_idelay_inc        : std_logic := '0';
-signal i_serdes_do         : TSerDesDOUT;
-signal sr_serdes_do        : TDesData;
-signal i_gearbox_do        : TGearBoxDOUT;
-signal i_gearbox_rst       : std_logic;
-
-signal i_delay_cnt  : unsigned(31 downto 0) := (others => '0');
-
-signal sr_idelay_inc       : std_logic_vector(0 to 1);
-signal tst_sync : std_logic;
+signal i_idelay_do      : std_logic_vector(0 downto 0);--(p_in_x_p'range);
+signal i_idelay_oval    : TSerDesVALOUT;
+signal i_idelay_ce      : std_logic := '0';
+signal i_idelay_inc     : std_logic := '0';
+signal i_serdes_do      : TSerDesDOUT;
+signal sr_serdes_do     : TDesData;
+signal i_gearbox_do     : TGearBoxDOUT;
 
 type TReg is array (0 to 6) of unsigned(3 downto 0); --p_in_x_p'length - 1) of std_logic_vector(3 downto 0);
 signal sr_reg : TReg;
-signal reg_det: TReg;
 
-signal i_sync_det: std_logic := '0';
+signal i_sync_det       : std_logic := '0';
 
-signal i_fsync_pcnt    : unsigned(2 downto 0);
-signal i_fsync_timeout : unsigned(5 downto 0);
-signal i_fsync_vldcnt  : unsigned(12 downto 0);
-signal i_fsync_vld     : std_logic;
+signal i_fsync_pcnt     : unsigned(2 downto 0);
+signal i_fsync_timeout  : unsigned(7 downto 0);
+signal i_fsync_vldcnt   : unsigned(12 downto 0);
+signal i_fsync_vld      : std_logic;
+
+signal i_err            : std_logic := '0';
 
 
 signal i_vio_cmp_count : std_logic_vector(3 downto 0);
@@ -226,6 +195,18 @@ m_obufds_tc : OBUFDS
 port map (I => p_in_rs232_rx, O  => p_out_tc_p, OB => p_out_tc_n);
 
 
+--m_IDELAYCTRL : IDELAYCTRL
+--generic map (
+--SIM_DEVICE => "ULTRASCALE"  -- Set the device version (7SERIES, ULTRASCALE)
+--)
+--port map (
+--RDY    => i_idelayctrl_rdy, -- 1-bit output: Ready output
+--REFCLK => p_in_refclk     , -- 1-bit input: Reference clock input
+--RST    => i_idelayctrl_rst  -- 1-bit input: Active high reset input. Asynchronous assert, synchronous deassert to
+--                            -- REFCLK.
+--);
+
+
 --#########################################
 --CL XCH
 --#########################################
@@ -239,13 +220,13 @@ m_xclk : cl_clk_mmcd
 port map(
 clk_in1  => g_xclk_in,
 clk_out1 => g_xclk_7x,
-reset    => i_pll_rst,
+reset    => p_in_rst,
 locked   => i_xclk_7x_lock
 );
 
 m_BUFGCE_DIV4 : BUFGCE_DIV
 generic map (
-IS_CLR_INVERTED => '0',
+IS_CLR_INVERTED => '1',
 BUFGCE_DIVIDE => 4
 )
 port map (
@@ -257,7 +238,7 @@ CLR => i_div_rst
 
 m_BUFGCE_DIV7 : BUFGCE_DIV
 generic map (
-IS_CLR_INVERTED => '0',
+IS_CLR_INVERTED => '1',
 BUFGCE_DIVIDE => 7
 )
 port map (
@@ -267,16 +248,22 @@ CE => '1',
 CLR => i_div_rst
 );
 
-m_IDELAYCTRL : IDELAYCTRL
-generic map (
-SIM_DEVICE => "ULTRASCALE"  -- Set the device version (7SERIES, ULTRASCALE)
-)
-port map (
-RDY => i_idelayctrl_rdy, -- 1-bit output: Ready output
-REFCLK => p_in_refclk,   -- 1-bit input: Reference clock input
-RST => i_idelayctrl_rst  -- 1-bit input: Active high reset input. Asynchronous assert, synchronous deassert to
-                         -- REFCLK.
-);
+
+--RESET CTRL
+process(i_xclk_7x_lock, g_xclk_7x)
+begin
+if (i_xclk_7x_lock = '0') then
+  sr_rst <= (others => '0');
+elsif rising_edge(g_xclk_7x) then
+  sr_rst <= '1' & sr_rst(0 to (sr_rst'high - 1));
+end if;
+end process;
+
+i_div_rst <= sr_rst(7);
+i_idelay_rst <= sr_rst(15);
+i_serdes_rst <= sr_rst(23);
+i_desr_ctrl_rst <= sr_rst(31);
+
 
 gen_deser_xch : for i in 0 to 0 generate --(p_in_x_p'length - 1) generate
 begin
@@ -374,216 +361,7 @@ end generate gen_deser_xch;
 i_gearbox_rst <= not i_fsync_vld;
 
 
---RESET CTRL
-process(p_in_clk)
-begin
-if rising_edge(p_in_clk) then
-  sr1_xclk_7x_lock <= i_xclk_7x_lock;
-end if;
-end process;
-
-process(p_in_rst, p_in_clk)
-begin
-if (p_in_rst = '1') then
-  i_fsm_pll <= S_PLL_IDLE;
-  i_pll_dly_cnt <= (others => '0');
-  i_pll_rst <= '0';
-  i_div_rst <= '0';
-  i_desrst_start <= '0';
-
-elsif rising_edge(p_in_clk) then
-  case i_fsm_pll is
-
-    --------------------------------------
-    --
-    --------------------------------------
-    when S_PLL_IDLE =>
-
-      if (i_pll_dly_cnt = (i_pll_dly_cnt'range => '1')) then
-        i_pll_dly_cnt <= (others => '0');
-        i_pll_rst <= '1';
-        i_fsm_pll <= S_PLL_RST;
-      else
-        i_pll_dly_cnt <= i_pll_dly_cnt + 1;
-      end if;
-
-    --------------------------------------
-    --
-    --------------------------------------
-    when S_PLL_RST =>
-
-      if (i_pll_dly_cnt = (i_pll_dly_cnt'range => '1')) then
-        i_pll_dly_cnt <= (others => '0');
-        i_pll_rst <= '0';
-        i_fsm_pll <= S_PLL_RST_1;
-      else
-        i_pll_dly_cnt <= i_pll_dly_cnt + 1;
-      end if;
-
-    when S_PLL_RST_1 =>
-
-      if (sr1_xclk_7x_lock = '1') then
-        i_fsm_pll <= S_PLL_DIV_RST;
-      end if;
-
-    when S_PLL_DIV_RST =>
-
-      if (i_pll_dly_cnt = (i_pll_dly_cnt'range => '1')) then
-        i_pll_dly_cnt <= (others => '0');
-        i_div_rst <= '1';
-        i_fsm_pll <= S_PLL_DIV_RST_1;
-      else
-        i_pll_dly_cnt <= i_pll_dly_cnt + 1;
-      end if;
-
-    when S_PLL_DIV_RST_1 =>
-
-      if (i_pll_dly_cnt = (i_pll_dly_cnt'range => '1')) then
-        i_pll_dly_cnt <= (others => '0');
-        i_div_rst <= '0';
-        i_fsm_pll <= S_PLL_DIV_RST_2;
-      else
-        i_pll_dly_cnt <= i_pll_dly_cnt + 1;
-      end if;
-
-    when S_PLL_DIV_RST_2 =>
-
-      if (i_pll_dly_cnt = (i_pll_dly_cnt'range => '1')) then
-        i_pll_dly_cnt <= (others => '0');
-        i_fsm_pll <= S_PLL_DONE;
-      else
-        i_pll_dly_cnt <= i_pll_dly_cnt + 1;
-      end if;
-
-    --------------------------------------
-    --
-    --------------------------------------
-    when S_PLL_DONE =>
-
-      if (sr1_xclk_7x_lock = '0') then
-        i_desrst_start <= '0';
-        i_fsm_pll <= S_PLL_DONE_OUT;
-      else
-        i_desrst_start <= '1';
-      end if;
-
-    when S_PLL_DONE_OUT =>
-
-      if (i_pll_dly_cnt = (i_pll_dly_cnt'range => '1')) then
-        i_pll_dly_cnt <= (others => '0');
-        i_pll_rst <= '1';
-        i_fsm_pll <= S_PLL_RST;
-      else
-        i_pll_dly_cnt <= i_pll_dly_cnt + 1;
-      end if;
-
-  end case;
-
-end if;
-end process;
-
-
-process(i_desrst_start, g_xclk_7xdiv4)
-begin
-if (i_desrst_start = '0') then
-  i_desrst_dly_cnt <= (others => '0');
-  i_idelay_rst <= '0';
-  i_serdes_rst <= '0';
-  i_idelayctrl_rst <= '1';
-  i_desr_ctrl_rst <= '0';
-
-elsif rising_edge(g_xclk_7xdiv4) then
-  case i_fsm_desrst is
-
-    when S_DESRST_0 =>
-
-      if (i_desrst_dly_cnt = (i_desrst_dly_cnt'range => '1')) then
-        i_desrst_dly_cnt <= (others => '0');
-        i_idelay_rst <= '1';
-        i_fsm_desrst <= S_DESRST_1;
-      else
-        i_desrst_dly_cnt <= i_desrst_dly_cnt + 1;
-      end if;
-
-    when S_DESRST_1 =>
-
-      if (i_desrst_dly_cnt = (i_desrst_dly_cnt'range => '1')) then
-        i_desrst_dly_cnt <= (others => '0');
-        i_serdes_rst <= '1';
-        i_fsm_desrst <= S_DESRST_2;
-      else
-        i_desrst_dly_cnt <= i_desrst_dly_cnt + 1;
-      end if;
-
-    when S_DESRST_2 =>
-
-      if (i_desrst_dly_cnt = (i_desrst_dly_cnt'range => '1')) then
-        i_desrst_dly_cnt <= (others => '0');
-        i_idelayctrl_rst <= '0';
-        i_fsm_desrst <= S_DESRST_DLY;
-      else
-        i_desrst_dly_cnt <= i_desrst_dly_cnt + 1;
-      end if;
-
-    when S_DESRST_DLY =>
-
-      if (i_idelayctrl_rdy = '1') then
-
-        if (i_desrst_dly_cnt = (i_desrst_dly_cnt'range => '1')) then
-          i_desrst_dly_cnt <= (others => '0');
-          i_fsm_desrst <= S_DESRST_DONE;
-        else
-          i_desrst_dly_cnt <= i_desrst_dly_cnt + 1;
-        end if;
-
-      end if;
-
-    when S_DESRST_DONE =>
-        i_desrst_dly_cnt <= (others => '0');
-        i_idelay_rst <= '1';
-        i_serdes_rst <= '1';
-        i_desr_ctrl_rst <= '1';
-
-  end case;
-end if;
-end process;
-
---
---process(i_desr_ctrl_rst, g_xclk_7xdiv4)
---begin
---if (i_desr_ctrl_rst = '0') then
---  i_delay_cnt <= (others => '0');
---  i_idelay_ce <= '0';
---  i_idelay_inc <= '0';
---
---elsif rising_edge(g_xclk_7xdiv4) then
---  if (i_xclk_7x_lock = '1') then
---    if i_delay_cnt = TO_UNSIGNED(16, i_delay_cnt'length) then
---      i_delay_cnt <= (others => '0');
---      i_idelay_ce <= '1';
---      if ((UNSIGNED(i_idelay_oval(0)) = TO_UNSIGNED(511, i_idelay_ce_cnt'length)) and i_idelay_inc = '1')
---        or ((UNSIGNED(i_idelay_oval(0)) = TO_UNSIGNED(0, i_idelay_ce_cnt'length)) and i_idelay_inc = '0') then
---        i_idelay_inc <= not i_idelay_inc;
---      end if;
---    else
---      i_delay_cnt <= i_delay_cnt + 1;
---      i_idelay_ce <= '0';
---    end if;
---  end if;
---end if;
---end process;
-
-
---#########################################
---DBG
---#########################################
-p_out_tst(0) <= i_xclk_7x_lock;
-p_out_tst(1) <= i_sync_det;
-p_out_tst(2) <= i_idelay_oval(0)(3) or sr_serdes_do(0)(0);
-
-
 --find synch
-
 process(g_xclk_7xdiv4)
 begin
 if rising_edge(g_xclk_7xdiv4) then
@@ -667,9 +445,9 @@ elsif rising_edge(g_xclk_7xdiv4) then
         else
           i_fsync_vld <= '0';
 
---          if (i_fsync_vld = '1') then
---            i_err <= '1';
---          end if;
+          if (i_fsync_vld = '1') then
+            i_err <= '1';
+          end if;
 
           i_fsm_sync <= S_SYNC_FIND;
         end if;
@@ -684,25 +462,13 @@ end if;
 end process;
 
 
---process(g_xclk_7xdiv4)
---begin
---if rising_edge(g_xclk_7xdiv4) then
---  if (i_err = '0') then
---  end if;
---end if;
---end process;
+--#########################################
+--DBG
+--#########################################
+p_out_tst(0) <= i_xclk_7x_lock;
+p_out_tst(1) <= i_err;
+p_out_tst(2) <= i_idelay_oval(0)(3) or sr_serdes_do(0)(0);
 
-
-
---process(g_xclk_7xdiv4)
---begin
---if rising_edge(g_xclk_7xdiv4) then
---  if (i_xclk_7x_lock = '1') then
---    sr_idelay_inc <= i_idelay_inc & sr_idelay_inc(0 to 0);
---    tst_sync <= XOR_reduce(sr_idelay_inc);
---  end if;
---end if;
---end process;
 
 
 i_dbg.det_sync <= i_sync_det;
@@ -772,17 +538,3 @@ probe0(7 downto 1) => i_dbg.gearbox_do
 
 
 end architecture struct;
-
-----deser4:7
---m_gearbox_4_to_7 : gearbox_4_to_7
---generic map(D => 1)
---port map(
---input_clock  => g_xclk_4x,-- :  in std_logic ;       -- high speed clock input
---datain       => sr_serdes_do(i)  ,-- :  in std_logic_vector(D*4-1 downto 0) ;  -- data inputs
---
---output_clock => g_xclk_in,-- :  in std_logic ;       -- low speed clock input
---dataout      => i_gearbox_do(i),-- : out std_logic_vector(D*7-1 downto 0);
---
---jog          => '0',-- :  in std_logic ;       -- jog input, slips by 4 bits
---reset        => i_rst -- :  in std_logic ;       -- Reset line
---);
