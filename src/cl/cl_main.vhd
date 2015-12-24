@@ -16,9 +16,11 @@ use unisim.vcomponents.all;
 
 library work;
 use work.reduce_pack.all;
+use work.vicg_common_pkg.all;
 
 entity cl_main is
 generic(
+G_PLL_TYPE : string := "MMCM"; --"PLL"; --
 G_CL_CHCOUNT : natural := 1
 );
 port(
@@ -133,9 +135,13 @@ signal i_fsync_vld      : std_logic;
 
 signal i_err            : std_logic := '0';
 
+signal i_cl_sync_val    : std_logic_vector(6 downto 0);
 signal i_cl_rxd         : std_logic_vector(27 downto 0);
-signal i_clx_sync_val   : std_logic_vector(6 downto 0);
 
+type TCL_rxbyte is array (0 to 2) of std_logic_vector(7 downto 0);
+signal i_cl_rxbyte      : TCL_rxbyte;
+signal i_cl_fval        : std_logic;
+signal i_cl_lval        : std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 
 component ila_dbg_cl is
 port (
@@ -163,9 +169,9 @@ reg_det : TReg;
 sr_reg : TReg;
 sr_serdes_d : std_logic_vector(3 downto 0);
 clx_sync_val : std_logic_vector(6 downto 0);
-rxbyte : TCL_rxbyte_dbg;
 clx_lval : std_logic;
-clx_fval : std_logic;
+cl_fval : std_logic;
+rxbyte : TCL_rxbyte_dbg;
 end record;
 
 signal i_dbg    : TMAIN_dbg;
@@ -206,6 +212,19 @@ port map (I => p_in_cl_clk_p(0), IB => p_in_cl_clk_n(0), O => i_cl_clkin);
 m_bufg_xclk : BUFG
 port map (I => i_cl_clkin, O => g_cl_clkin);
 
+gen_pll : if strcmp(G_PLL_TYPE, "PLL") generate
+begin
+m_pllclk : cl_clk_pll
+port map(
+clk_in1  => g_cl_clkin,
+clk_out1 => g_cl_clkin_7x,
+reset    => p_in_rst,
+locked   => i_cl_clkin_7x_lock
+);
+end generate gen_pll;
+
+gen_mmcm : if strcmp(G_PLL_TYPE, "MMCM") generate
+begin
 m_pllclk : cl_clk_mmcd
 port map(
 clk_in1  => g_cl_clkin,
@@ -213,6 +232,7 @@ clk_out1 => g_cl_clkin_7x,
 reset    => p_in_rst,
 locked   => i_cl_clkin_7x_lock
 );
+end generate gen_mmcm;
 
 m_clkx7div4 : BUFGCE_DIV
 generic map (
@@ -460,9 +480,7 @@ end if;
 end process;
 
 
---#########################################
---Data Out
---#########################################
+--dout Register
 process(g_cl_clkin_7xdiv7)
 begin
 if rising_edge(g_cl_clkin_7xdiv7) then
@@ -506,6 +524,38 @@ end if;
 end process;
 
 
+i_cl_fval    <= i_cl_rxd((7 * 2) + 5); --FVAL(Frame value)
+i_cl_lval(0) <= i_cl_rxd((7 * 2) + 4); --LVAL(Line value)
+
+--cl A(byte)
+i_cl_rxbyte(0)(0) <= i_cl_rxd((7 * 0) + 0); --A0
+i_cl_rxbyte(0)(1) <= i_cl_rxd((7 * 0) + 1); --A1
+i_cl_rxbyte(0)(2) <= i_cl_rxd((7 * 0) + 2); --A2
+i_cl_rxbyte(0)(3) <= i_cl_rxd((7 * 0) + 3); --A3
+i_cl_rxbyte(0)(4) <= i_cl_rxd((7 * 0) + 4); --A4
+i_cl_rxbyte(0)(5) <= i_cl_rxd((7 * 3) + 1); --A5
+i_cl_rxbyte(0)(6) <= i_cl_rxd((7 * 0) + 5); --A6
+i_cl_rxbyte(0)(7) <= i_cl_rxd((7 * 0) + 6); --A7
+
+--cl B(byte)
+i_cl_rxbyte(1)(0) <= i_cl_rxd((7 * 1) + 0); --B0
+i_cl_rxbyte(1)(1) <= i_cl_rxd((7 * 1) + 1); --B1
+i_cl_rxbyte(1)(2) <= i_cl_rxd((7 * 3) + 2); --B2
+i_cl_rxbyte(1)(3) <= i_cl_rxd((7 * 3) + 3); --B3
+i_cl_rxbyte(1)(4) <= i_cl_rxd((7 * 1) + 2); --B4
+i_cl_rxbyte(1)(5) <= i_cl_rxd((7 * 1) + 3); --B5
+i_cl_rxbyte(1)(6) <= i_cl_rxd((7 * 1) + 4); --B6
+i_cl_rxbyte(1)(7) <= i_cl_rxd((7 * 1) + 5); --B7
+
+--cl C(byte)
+i_cl_rxbyte(2)(0) <= i_cl_rxd((7 * 3) + 4); --C0
+i_cl_rxbyte(2)(1) <= i_cl_rxd((7 * 3) + 5); --C1
+i_cl_rxbyte(2)(2) <= i_cl_rxd((7 * 1) + 6); --C2
+i_cl_rxbyte(2)(3) <= i_cl_rxd((7 * 2) + 0); --C3
+i_cl_rxbyte(2)(4) <= i_cl_rxd((7 * 2) + 1); --C4
+i_cl_rxbyte(2)(5) <= i_cl_rxd((7 * 2) + 2); --C5
+i_cl_rxbyte(2)(6) <= i_cl_rxd((7 * 2) + 3); --C6
+i_cl_rxbyte(2)(7) <= i_cl_rxd((7 * 3) + 6); --C7
 
 
 --#########################################
@@ -519,7 +569,7 @@ p_out_tst(2) <= i_idelay_oval(0)(3) or sr_serdes_do(0)(0);
 process(g_cl_clkin_7xdiv7)
 begin
 if rising_edge(g_cl_clkin_7xdiv7) then
-i_clx_sync_val <= i_gearbox_do(0);
+i_cl_sync_val <= i_gearbox_do(0);
 end if;
 end process;
 
@@ -538,37 +588,44 @@ i_dbg.sr_reg(4) <= sr_reg(4);
 i_dbg.sr_reg(5) <= sr_reg(5);
 i_dbg.sr_reg(6) <= sr_reg(6);
 
-i_dbg.clx_sync_val <= i_clx_sync_val;--i_gearbox_do(0);
+i_dbg.clx_sync_val <= i_cl_sync_val;--i_gearbox_do(0);
 
-i_dbg.clx_lval <= i_cl_rxd((7 * 2) + 4); --LVAL (Line Valid)
-i_dbg.clx_fval <= i_cl_rxd((7 * 2) + 5); --FVAL (Frame Valid)
+i_dbg.clx_lval <= i_cl_lval(0);
+i_dbg.cl_fval <= i_cl_fval   ;
 
-i_dbg.rxbyte(0)(0) <= i_cl_rxd((7 * 0) + 0); --A0
-i_dbg.rxbyte(0)(1) <= i_cl_rxd((7 * 0) + 1); --A1
-i_dbg.rxbyte(0)(2) <= i_cl_rxd((7 * 0) + 2); --A2
-i_dbg.rxbyte(0)(3) <= i_cl_rxd((7 * 0) + 3); --A3
-i_dbg.rxbyte(0)(4) <= i_cl_rxd((7 * 0) + 4); --A4
-i_dbg.rxbyte(0)(5) <= i_cl_rxd((7 * 3) + 1); --A5
-i_dbg.rxbyte(0)(6) <= i_cl_rxd((7 * 0) + 5); --A6
-i_dbg.rxbyte(0)(7) <= i_cl_rxd((7 * 0) + 6); --A7
+i_dbg.rxbyte(0) <= i_cl_rxbyte(0);
+i_dbg.rxbyte(1) <= i_cl_rxbyte(1);
+i_dbg.rxbyte(2) <= i_cl_rxbyte(2);
 
-i_dbg.rxbyte(1)(0) <= i_cl_rxd((7 * 1) + 0); --B0
-i_dbg.rxbyte(1)(1) <= i_cl_rxd((7 * 1) + 1); --B1
-i_dbg.rxbyte(1)(2) <= i_cl_rxd((7 * 3) + 2); --B2
-i_dbg.rxbyte(1)(3) <= i_cl_rxd((7 * 3) + 3); --B3
-i_dbg.rxbyte(1)(4) <= i_cl_rxd((7 * 1) + 2); --B4
-i_dbg.rxbyte(1)(5) <= i_cl_rxd((7 * 1) + 3); --B5
-i_dbg.rxbyte(1)(6) <= i_cl_rxd((7 * 1) + 4); --B6
-i_dbg.rxbyte(1)(7) <= i_cl_rxd((7 * 1) + 5); --B7
+--i_dbg.clx_lval <= i_cl_rxd((7 * 2) + 4); --LVAL (Line Valid)
+--i_dbg.cl_fval  <= i_cl_rxd((7 * 2) + 5); --FVAL (Frame Valid)
 
-i_dbg.rxbyte(2)(0) <= i_cl_rxd((7 * 3) + 4); --C0
-i_dbg.rxbyte(2)(1) <= i_cl_rxd((7 * 3) + 5); --C1
-i_dbg.rxbyte(2)(2) <= i_cl_rxd((7 * 1) + 6); --C2
-i_dbg.rxbyte(2)(3) <= i_cl_rxd((7 * 2) + 0); --C3
-i_dbg.rxbyte(2)(4) <= i_cl_rxd((7 * 2) + 1); --C4
-i_dbg.rxbyte(2)(5) <= i_cl_rxd((7 * 2) + 2); --C5
-i_dbg.rxbyte(2)(6) <= i_cl_rxd((7 * 2) + 3); --C6
-i_dbg.rxbyte(2)(7) <= i_cl_rxd((7 * 3) + 6); --C7
+--i_dbg.rxbyte(0)(0) <= i_cl_rxd((7 * 0) + 0); --A0
+--i_dbg.rxbyte(0)(1) <= i_cl_rxd((7 * 0) + 1); --A1
+--i_dbg.rxbyte(0)(2) <= i_cl_rxd((7 * 0) + 2); --A2
+--i_dbg.rxbyte(0)(3) <= i_cl_rxd((7 * 0) + 3); --A3
+--i_dbg.rxbyte(0)(4) <= i_cl_rxd((7 * 0) + 4); --A4
+--i_dbg.rxbyte(0)(5) <= i_cl_rxd((7 * 3) + 1); --A5
+--i_dbg.rxbyte(0)(6) <= i_cl_rxd((7 * 0) + 5); --A6
+--i_dbg.rxbyte(0)(7) <= i_cl_rxd((7 * 0) + 6); --A7
+--
+--i_dbg.rxbyte(1)(0) <= i_cl_rxd((7 * 1) + 0); --B0
+--i_dbg.rxbyte(1)(1) <= i_cl_rxd((7 * 1) + 1); --B1
+--i_dbg.rxbyte(1)(2) <= i_cl_rxd((7 * 3) + 2); --B2
+--i_dbg.rxbyte(1)(3) <= i_cl_rxd((7 * 3) + 3); --B3
+--i_dbg.rxbyte(1)(4) <= i_cl_rxd((7 * 1) + 2); --B4
+--i_dbg.rxbyte(1)(5) <= i_cl_rxd((7 * 1) + 3); --B5
+--i_dbg.rxbyte(1)(6) <= i_cl_rxd((7 * 1) + 4); --B6
+--i_dbg.rxbyte(1)(7) <= i_cl_rxd((7 * 1) + 5); --B7
+--
+--i_dbg.rxbyte(2)(0) <= i_cl_rxd((7 * 3) + 4); --C0
+--i_dbg.rxbyte(2)(1) <= i_cl_rxd((7 * 3) + 5); --C1
+--i_dbg.rxbyte(2)(2) <= i_cl_rxd((7 * 1) + 6); --C2
+--i_dbg.rxbyte(2)(3) <= i_cl_rxd((7 * 2) + 0); --C3
+--i_dbg.rxbyte(2)(4) <= i_cl_rxd((7 * 2) + 1); --C4
+--i_dbg.rxbyte(2)(5) <= i_cl_rxd((7 * 2) + 2); --C5
+--i_dbg.rxbyte(2)(6) <= i_cl_rxd((7 * 2) + 3); --C6
+--i_dbg.rxbyte(2)(7) <= i_cl_rxd((7 * 3) + 6); --C7
 
 
 dbg_cl : ila_dbg_cl
@@ -597,7 +654,7 @@ clk => g_cl_clkin_7xdiv7,
 probe0(0) => i_dbg.tst_sync,
 probe0(7 downto 1) => i_dbg.clx_sync_val,
 probe0(8) => i_dbg.clx_lval,
-probe0(9) => i_dbg.clx_fval,
+probe0(9) => i_dbg.cl_fval,
 probe0(17 downto 10) => i_dbg.rxbyte(0),
 probe0(25 downto 18) => i_dbg.rxbyte(1),
 probe0(33 downto 26) => i_dbg.rxbyte(2)
