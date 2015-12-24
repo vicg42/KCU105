@@ -11,18 +11,21 @@ use ieee.numeric_std.all;
 
 package cl_pkg is
 
-type TCLRxByte is array (0 to 2) of std_logic_vector(7 downto 0);
-type TCLRegSync is array (0 to 6) of unsigned(3 downto 0);
+type TCL_RegSync is array (0 to 6) of unsigned(3 downto 0);
 
 type TCL_core_dbg is record
-det_sync : std_logic;
-tst_sync : std_logic;
+fsm_sync : std_logic_vector(2 downto 0);
+usr_sync : std_logic;
+usr_2sync : std_logic;
+sync : std_logic;
+sync_find : std_logic;
+sync_find_ok : std_logic;
 idelay_inc : std_logic;
 idelay_ce : std_logic;
 idelay_oval : std_logic_vector(8 downto 0);
-sr_reg : TCLRegSync;
-sr_serdes_d : std_logic_vector(3 downto 0);
-rx_sync_val : std_logic_vector(6 downto 0);
+des_d : std_logic_vector(3 downto 0);
+sr_des_d : TCL_RegSync;
+gearbox_do_sync_val : std_logic_vector(6 downto 0);
 end record;
 
 

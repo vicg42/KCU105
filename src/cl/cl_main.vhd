@@ -113,14 +113,14 @@ signal i_cl_core_dbg   : TCL_core_dbgs;
 component ila_dbg_cl is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(44 downto 0)
+probe0 : in std_logic_vector(49 downto 0)
 );
 end component ila_dbg_cl;
 
 component ila_dbg2_cl is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(33 downto 0)
+probe0 : in std_logic_vector(34 downto 0)
 );
 end component ila_dbg2_cl;
 
@@ -183,7 +183,7 @@ p_out_sync    => i_cl_sync(i),
 --DBG
 -----------------------------
 p_out_tst => i_cl_tstout(i),
-p_in_tst  => (others => '0'),
+p_in_tst  => p_in_tst,
 p_out_dbg => i_cl_core_dbg(i),
 
 p_in_refclk => p_in_refclk,
@@ -320,9 +320,8 @@ i_cl_rxbyte(2)(7) <= i_cl_rxd(0)((7 * 3) + 6); --C7
 --DBG
 --#########################################
 p_out_tst(0) <= i_cl_tstout(0)(0);
-p_out_tst(1) <= '0';
-p_out_tst(2) <= '0';
-
+p_out_tst(1) <= i_cl_fval;
+p_out_tst(2) <= i_cl_lval(0);
 
 
 i_dbg.clx.core <= i_cl_core_dbg(0);
@@ -336,33 +335,37 @@ i_dbg.rxbyte(2) <= i_cl_rxbyte(2);
 dbg_cl : ila_dbg_cl
 port map(
 clk => i_cl_tstout(0)(1), --g_cl_clkin_7xdiv4
-probe0(0) => i_dbg.clx.core.det_sync,
-probe0(4 downto 1) => i_dbg.clx.core.sr_serdes_d,
+probe0(0) => i_dbg.clx.core.sync,
+probe0(4 downto 1) => i_dbg.clx.core.des_d,
 probe0(5) => i_dbg.clx.core.idelay_inc,
 probe0(6) => i_dbg.clx.core.idelay_ce,
 probe0(15 downto 7) => i_dbg.clx.core.idelay_oval,
-probe0(19 downto 16) => std_logic_vector(i_dbg.clx.core.sr_reg(0)),
-probe0(23 downto 20) => std_logic_vector(i_dbg.clx.core.sr_reg(1)),
-probe0(27 downto 24) => std_logic_vector(i_dbg.clx.core.sr_reg(2)),
-probe0(31 downto 28) => std_logic_vector(i_dbg.clx.core.sr_reg(3)),
-probe0(35 downto 32) => std_logic_vector(i_dbg.clx.core.sr_reg(4)),
-probe0(39 downto 36) => std_logic_vector(i_dbg.clx.core.sr_reg(5)),
-probe0(43 downto 40) => std_logic_vector(i_dbg.clx.core.sr_reg(6)),
+probe0(19 downto 16) => std_logic_vector(i_dbg.clx.core.sr_des_d(0)),
+probe0(23 downto 20) => std_logic_vector(i_dbg.clx.core.sr_des_d(1)),
+probe0(27 downto 24) => std_logic_vector(i_dbg.clx.core.sr_des_d(2)),
+probe0(31 downto 28) => std_logic_vector(i_dbg.clx.core.sr_des_d(3)),
+probe0(35 downto 32) => std_logic_vector(i_dbg.clx.core.sr_des_d(4)),
+probe0(39 downto 36) => std_logic_vector(i_dbg.clx.core.sr_des_d(5)),
+probe0(43 downto 40) => std_logic_vector(i_dbg.clx.core.sr_des_d(6)),
 
-probe0(44) => i_dbg.clx.core.tst_sync
+probe0(44) => i_dbg.clx.core.sync_find_ok,
+probe0(45) => i_dbg.clx.core.sync_find,
+probe0(46) => i_dbg.clx.core.usr_sync,
+probe0(49 downto 47) => i_dbg.clx.core.fsm_sync
 );
 
 
 dbg2_cl : ila_dbg2_cl
 port map(
 clk => i_cl_rxclk(0),
-probe0(0) => i_dbg.clx.core.tst_sync,
-probe0(7 downto 1) => i_dbg.clx.core.rx_sync_val,
+probe0(0) => i_dbg.clx.core.sync_find_ok,
+probe0(7 downto 1) => i_dbg.clx.core.gearbox_do_sync_val,
 probe0(8) => i_dbg.clx.lval,
 probe0(9) => i_dbg.clx.fval,
 probe0(17 downto 10) => i_dbg.rxbyte(0),
 probe0(25 downto 18) => i_dbg.rxbyte(1),
-probe0(33 downto 26) => i_dbg.rxbyte(2)
+probe0(33 downto 26) => i_dbg.rxbyte(2),
+probe0(34) => i_dbg.clx.core.usr_2sync
 );
 
 

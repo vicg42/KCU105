@@ -24,9 +24,9 @@ port(
 --DBG
 --------------------------------------------------
 pin_out_led         : out   std_logic_vector(4 downto 0);
-pin_in_btn          : in    std_logic;
+pin_in_btn          : in    std_logic_vector(1 downto 0);
 pin_out_led_hpc     : out   std_logic_vector(0 downto 0);
-pin_out_TP          : out   std_logic_vector(0 downto 0);
+pin_out_TP          : out   std_logic_vector(1 downto 0);
 
 --------------------------------------------------
 --RS232(PC)
@@ -44,8 +44,8 @@ pin_out_cl_tc_p : out std_logic;
 
 pin_in_cl_xclk_p : in  std_logic;
 pin_in_cl_xclk_n : in  std_logic;
---pin_in_cl_x_p    : in  std_logic_vector(G_CLIN_WIDTH - 1 downto 0);
---pin_in_cl_x_n    : in  std_logic_vector(G_CLIN_WIDTH - 1 downto 0);
+pin_in_cl_x_p    : in  std_logic_vector(3 downto 0);
+pin_in_cl_x_n    : in  std_logic_vector(3 downto 0);
 
 --------------------------------------------------
 --Reference clock
@@ -91,7 +91,7 @@ end component fpga_test_01;
 
 component cl_main is
 generic(
-G_CLIN_WIDTH : natural := 1
+G_CL_CHCOUNT : natural := 1
 );
 port(
 --------------------------------------------------
@@ -108,10 +108,15 @@ p_in_tfg_p : in  std_logic;
 p_out_tc_n : out std_logic; --Camera <- FG
 p_out_tc_p : out std_logic;
 
-p_in_xclk_p : in  std_logic;
-p_in_xclk_n : in  std_logic;
---p_in_x_p : in  std_logic_vector(G_CLIN_WIDTH - 1 downto 0);
---p_in_x_n : in  std_logic_vector(G_CLIN_WIDTH - 1 downto 0);
+p_in_cl_clk_p : in  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
+p_in_cl_clk_n : in  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
+p_in_cl_di_p  : in  std_logic_vector((4 * G_CL_CHCOUNT) - 1 downto 0);
+p_in_cl_di_n  : in  std_logic_vector((4 * G_CL_CHCOUNT) - 1 downto 0);
+
+--p_in_xclk_p : in  std_logic;
+--p_in_xclk_n : in  std_logic;
+--p_in_x_p : in  std_logic_vector(3 downto 0);
+--p_in_x_n : in  std_logic_vector(3 downto 0);
 
 --------------------------------------------------
 --DBG
@@ -125,12 +130,35 @@ p_in_rst : in std_logic
 );
 end component cl_main;
 
+component debounce is
+generic(
+G_PUSH_LEVEL : std_logic := '0'; --Лог. уровень когда кнопка нажата
+G_DEBVAL : integer := 4
+);
+port(
+p_in_btn  : in    std_logic;
+p_out_btn : out   std_logic;
+
+p_in_clk_en : in    std_logic;
+p_in_clk    : in    std_logic
+);
+end component debounce;
+
+signal i_btn               : std_logic;
+signal i_1ms               : std_logic;
+
 signal i_usrclk_rst        : std_logic;
 signal g_usrclk            : std_logic_vector(7 downto 0);
 signal i_test_led          : std_logic_vector(0 downto 0);
 signal i_cl_tst_out        : std_logic_vector(31 downto 0);
 signal i_cl_tst_in         : std_logic_vector(31 downto 0);
 signal i_usr_rst           : std_logic;
+
+constant CI_CL_CHCOUNT : natural := 1;
+signal i_cl_chclk_p        : std_logic_vector(CI_CL_CHCOUNT - 1 downto 0);
+signal i_cl_chclk_n        : std_logic_vector(CI_CL_CHCOUNT - 1 downto 0);
+signal i_cl_chdi_p         : std_logic_vector((4 * CI_CL_CHCOUNT) - 1 downto 0);
+signal i_cl_chdi_n         : std_logic_vector((4 * CI_CL_CHCOUNT) - 1 downto 0);
 
 
 begin --architecture struct
@@ -150,12 +178,17 @@ p_in_clk   => pin_in_refclk
 );
 
 
-i_usr_rst <= pin_in_btn;
+i_usr_rst <= pin_in_btn(0);
 
+
+i_cl_chclk_p(0) <= pin_in_cl_xclk_p;
+i_cl_chclk_n(0) <= pin_in_cl_xclk_n;
+i_cl_chdi_p(3 downto 0) <= pin_in_cl_x_p;
+i_cl_chdi_n(3 downto 0) <= pin_in_cl_x_n;
 
 m_cl : cl_main
 generic map(
-G_CLIN_WIDTH => G_CLIN_WIDTH
+G_CL_CHCOUNT => CI_CL_CHCOUNT
 )
 port map(
 --------------------------------------------------
@@ -172,10 +205,15 @@ p_in_tfg_p => pin_in_cl_tfg_p,
 p_out_tc_n => pin_out_cl_tc_n, --Camera <- FG
 p_out_tc_p => pin_out_cl_tc_p,
 
-p_in_xclk_p => pin_in_cl_xclk_p,
-p_in_xclk_n => pin_in_cl_xclk_n,
---p_in_x_p    => pin_in_cl_x_p,
---p_in_x_n    => pin_in_cl_x_n,
+p_in_cl_clk_p => i_cl_chclk_p(CI_CL_CHCOUNT - 1 downto 0),
+p_in_cl_clk_n => i_cl_chclk_n(CI_CL_CHCOUNT - 1 downto 0),
+p_in_cl_di_p  => i_cl_chdi_p((4 * CI_CL_CHCOUNT) - 1 downto 0),
+p_in_cl_di_n  => i_cl_chdi_n((4 * CI_CL_CHCOUNT) - 1 downto 0),
+
+--p_in_xclk_p => pin_in_cl_xclk_p,
+--p_in_xclk_n => pin_in_cl_xclk_n,
+--p_in_x_p => pin_in_cl_x_p,
+--p_in_x_n => pin_in_cl_x_n,
 
 --------------------------------------------------
 --DBG
@@ -187,6 +225,9 @@ p_in_refclk => g_usrclk(1),
 p_in_clk => g_usrclk(0),
 p_in_rst => i_usr_rst
 );
+
+
+i_cl_tst_in(0) <= i_btn;
 
 
 --#########################################
@@ -202,7 +243,7 @@ p_out_test_led  => i_test_led(0),
 p_out_test_done => open,
 
 p_out_1us  => open,
-p_out_1ms  => open,
+p_out_1ms  => i_1ms,
 p_out_1s   => open,
 -------------------------------
 --System
@@ -214,9 +255,9 @@ p_in_rst   => i_usrclk_rst
 
 pin_out_led(0) <= i_test_led(0);
 pin_out_led(1) <= i_cl_tst_out(0); --xclk_7x_lock
-pin_out_led(2) <= i_cl_tst_out(1); --i_det
+pin_out_led(2) <= '0'; --i_det
 pin_out_led(3) <= i_usr_rst;
-pin_out_led(4) <= i_cl_tst_out(9);
+pin_out_led(4) <= '0';
 
 
 pin_out_led_hpc(0) <= OR_reduce(i_cl_tst_out(8 downto 2));
@@ -224,6 +265,22 @@ pin_out_led_hpc(0) <= OR_reduce(i_cl_tst_out(8 downto 2));
 --pin_out_led_hpc(2) <= '0';
 --pin_out_led_hpc(3) <= i_test_led(0);
 
-pin_out_TP(0) <= i_cl_tst_out(9);--PMOD1_4
+pin_out_TP(0) <= i_cl_tst_out(1);--PMOD1_4  (CSI)
+pin_out_TP(1) <= i_cl_tst_out(2);--PMOD1_6  (SSI)
+
+
+m_btn : debounce
+generic map(
+G_PUSH_LEVEL => '1', --Лог. уровень когда кнопка нажата
+G_DEBVAL => 250
+)
+port map(
+p_in_btn  => pin_in_btn(1),
+p_out_btn => i_btn,
+
+p_in_clk_en => i_1ms,
+p_in_clk    => g_usrclk(0)
+);
+
 
 end architecture struct;

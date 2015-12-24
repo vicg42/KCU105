@@ -89,7 +89,12 @@ end component;
 
 type TFsm_fsync is (
 S_SYNC_FIND,
-S_SYNC_CHK
+S_SYNC_CHK,
+S_SYNC_STABLE,
+S_SYNC_MEASURE_1,
+S_SYNC_MEASURE_2,
+S_SYNC_SET,
+S_SYNC_DONE
 );
 signal i_fsm_sync     : TFsm_fsync;
 
@@ -119,25 +124,38 @@ signal i_idelay_do      : std_logic_vector(4 downto 0); --(0 downto 0);
 signal i_idelay_oval    : TCL_SerDesVALOUT;
 signal i_idelay_ce      : std_logic := '0';
 signal i_idelay_inc     : std_logic := '0';
+signal i_idelay_adj     : std_logic := '0';
+signal i_idelay_adj_cnt : unsigned(4 downto 0);
 signal i_serdes_do      : TCL_SerDesDOUT;
-signal sr_serdes_do     : TCL_DesData;
+signal i_des_d          : TCL_DesData;
+type TCL_SrDesData is array (0 to 6) of unsigned(3 downto 0);
+signal sr_des_d         : TCL_SrDesData;
 signal i_gearbox_do     : TCL_GearBoxDOUT;
+signal i_gearbox_2rst    : std_logic;
 
-type TReg is array (0 to 6) of unsigned(3 downto 0);
-signal sr_reg           : TReg;
+signal i_sync           : std_logic := '0';
+signal sr_sync          : std_logic := '0';
+signal i_sync_find      : std_logic := '0';
+signal i_sync_cnt       : unsigned(2 downto 0) := (others => '0');
 
-signal i_sync_det       : std_logic := '0';
+signal i_sync_pcnt      : unsigned(2 downto 0) := (others => '0');
+signal i_sync_stable_cnt: unsigned(5 downto 0);
+signal i_sync_stable    : std_logic;
 
-signal i_fsync_pcnt     : unsigned(2 downto 0);
-signal i_fsync_timeout  : unsigned(7 downto 0);
-signal i_fsync_vldcnt   : unsigned(12 downto 0);
-signal i_fsync_vld      : std_logic;
-
-signal i_err            : std_logic := '0';
+signal i_mesure_cnt     : unsigned(31 downto 0);
 
 signal i_cl_rxd        : std_logic_vector(27 downto 0);
 signal i_cl_sync_val   : std_logic_vector(6 downto 0);
 
+
+
+signal i_btn           : std_logic;
+signal sr_btn          : std_logic_vector(0 to 2);
+signal i_btn_det       : std_logic;
+signal i_2btn          : std_logic;
+signal sr_2btn         : std_logic_vector(0 to 2);
+
+signal tst_fsm_sync    : unsigned(2 downto 0);
 signal i_dbg           : TCL_core_dbg;
 
 
@@ -303,10 +321,10 @@ RST => i_serdes_rst
 process(g_cl_clkin_7xdiv4)
 begin
 if rising_edge(g_cl_clkin_7xdiv4) then
-sr_serdes_do(i)(0) <= i_serdes_do(i)(0);
-sr_serdes_do(i)(1) <= i_serdes_do(i)(2);
-sr_serdes_do(i)(2) <= i_serdes_do(i)(4);
-sr_serdes_do(i)(3) <= i_serdes_do(i)(6);
+i_des_d(i)(0) <= i_serdes_do(i)(0);
+i_des_d(i)(1) <= i_serdes_do(i)(2);
+i_des_d(i)(2) <= i_serdes_do(i)(4);
+i_des_d(i)(3) <= i_serdes_do(i)(6);
 end if;
 end process;
 
@@ -314,7 +332,7 @@ end process;
 m_gearbox : gearbox_4_to_7
 generic map(D => 1)
 port map(
-datain       => sr_serdes_do(i),
+datain       => i_des_d(i),
 input_clock  => g_cl_clkin_7xdiv4,
 
 dataout      => i_gearbox_do(i),
@@ -326,29 +344,56 @@ reset        => i_gearbox_rst
 
 end generate gen_deser;
 
-i_gearbox_rst <= not i_fsync_vld;
+i_gearbox_rst <= (not i_sync_stable);-- or i_gearbox_2rst;
+
+
+--input delay Adjustment
+process(i_desr_ctrl_rst, g_cl_clkin_7xdiv4)
+begin
+if (i_desr_ctrl_rst = '0') then
+  i_idelay_ce <= '0';
+  i_idelay_adj_cnt <= (others => '0');
+
+elsif rising_edge(g_cl_clkin_7xdiv4) then
+
+  if (i_idelay_adj = '0') then
+    i_idelay_adj_cnt <= (others => '0');
+    i_idelay_ce <= '0';
+  else
+    if (i_idelay_adj_cnt = (i_idelay_adj_cnt'range => '1')) then
+      i_idelay_adj_cnt <= (others => '0');
+      i_idelay_ce <= '1';
+    else
+      i_idelay_ce <= '0';
+      i_idelay_adj_cnt <= i_idelay_adj_cnt + 1;
+    end if;
+  end if;
+
+end if;
+end process;
 
 
 --find synch
 process(i_desr_ctrl_rst, g_cl_clkin_7xdiv4)
 begin
 if (i_desr_ctrl_rst = '0') then
-  i_sync_det <= '0';
+  i_sync <= '0';
+  i_sync_find <= '0';
 elsif rising_edge(g_cl_clkin_7xdiv4) then
 
-    sr_reg <= UNSIGNED(sr_serdes_do(0)) & sr_reg(0 to (sr_reg'high - 1));
+    sr_des_d <= UNSIGNED(i_des_d(0)) & sr_des_d(0 to (sr_des_d'high - 1));
 
-    if (  (sr_reg(0) = (TO_UNSIGNED(16#F#, sr_reg(0)'length)))
-        and (sr_reg(1) = (TO_UNSIGNED(16#1#, sr_reg(0)'length)))
-          and (sr_reg(2) = (TO_UNSIGNED(16#E#, sr_reg(0)'length)))
-            and (sr_reg(3) = (TO_UNSIGNED(16#3#, sr_reg(0)'length)))
-              and (sr_reg(4) = (TO_UNSIGNED(16#C#, sr_reg(0)'length)))
-                and (sr_reg(5) = (TO_UNSIGNED(16#7#, sr_reg(0)'length)))
-                  and (sr_reg(6) = (TO_UNSIGNED(16#8#, sr_reg(0)'length))) ) then
+    if (  (sr_des_d(0) = (TO_UNSIGNED(16#F#, sr_des_d(0)'length)))
+        and (sr_des_d(1) = (TO_UNSIGNED(16#1#, sr_des_d(0)'length)))
+          and (sr_des_d(2) = (TO_UNSIGNED(16#E#, sr_des_d(0)'length)))
+            and (sr_des_d(3) = (TO_UNSIGNED(16#3#, sr_des_d(0)'length)))
+              and (sr_des_d(4) = (TO_UNSIGNED(16#C#, sr_des_d(0)'length)))
+                and (sr_des_d(5) = (TO_UNSIGNED(16#7#, sr_des_d(0)'length)))
+                  and (sr_des_d(6) = (TO_UNSIGNED(16#8#, sr_des_d(0)'length))) ) then
 
-      i_sync_det <= '1';
+      i_sync_find <= '1';
     else
-      i_sync_det <= '0';
+      i_sync_find <= '0';
     end if;
 
 end if;
@@ -360,74 +405,176 @@ begin
 if (i_desr_ctrl_rst = '0') then
   i_fsm_sync <= S_SYNC_FIND;
 
-  i_idelay_ce <= '0';
-  i_idelay_inc <= '0';
+  i_idelay_adj <= '0';
+  i_idelay_inc <= '1';
 
-  i_fsync_pcnt <= (others => '0');
-  i_fsync_timeout <= (others => '0');
-  i_fsync_vldcnt <= (others => '0');
-  i_fsync_vld <= '0';
+  i_sync_pcnt <= (others => '0');
+
+  i_sync_stable_cnt <= (others => '0');
+  i_sync_stable <= '0';
+
+  i_btn_det <= '0';
+
+  i_mesure_cnt <= (others => '0');
+  i_gearbox_2rst <= '0';
 
 elsif rising_edge(g_cl_clkin_7xdiv4) then
   case i_fsm_sync is
 
     when S_SYNC_FIND =>
 
-      i_fsync_pcnt <= (others => '0');
-
-      if (i_fsync_timeout = (i_fsync_timeout'range => '1')) then
-        i_fsync_timeout <= (others => '0');
-
-        i_idelay_ce <= '1';
-        i_idelay_inc <= '1';
-
-      else
-        i_idelay_ce <= '0';
-        i_fsync_timeout <= i_fsync_timeout + 1;
-      end if;
-
-      if (i_sync_det = '1') then
+      if (i_sync_find = '1') then
+        i_idelay_adj <= '0';
         i_fsm_sync <= S_SYNC_CHK;
+      else
+        i_idelay_adj <= '1';
+        i_idelay_inc <= '1';
       end if;
 
 
     when S_SYNC_CHK =>
 
-      i_idelay_ce <= '0';
-      i_fsync_timeout <= (others => '0');
+      if (i_sync_pcnt = (TO_UNSIGNED(6, i_sync_pcnt'length))) then
+        i_sync_pcnt <= (others => '0');
 
-      --period sync strob (i_sync_det)
-      if (i_fsync_pcnt = (TO_UNSIGNED(6, i_fsync_pcnt'length))) then
-        i_fsync_pcnt <= (others => '0');
+        if (i_sync_find = '1') then
 
-        if (i_sync_det = '1') then
-
-          --count valid period
-          if (i_fsync_vld = '0') then
-            if (i_fsync_vldcnt = (TO_UNSIGNED(4096, i_fsync_vldcnt'length))) then
-              i_fsync_vldcnt <= (others => '0');
-              i_fsync_vld <= '1';
+--          if (i_sync_stable = '0') then
+            if (i_sync_stable_cnt = (TO_UNSIGNED(30, i_sync_stable_cnt'length))) then
+              i_sync_stable_cnt <= (others => '0');
+              i_sync_stable <= '1';
+              i_fsm_sync <= S_SYNC_STABLE;
             else
-              i_fsync_vldcnt <= i_fsync_vldcnt + 1;
+              i_sync_stable_cnt <= i_sync_stable_cnt + 1;
             end if;
-          end if;
+--          end if;
 
         else
-          i_fsync_vld <= '0';
-
-          if (i_fsync_vld = '1') then
-            i_err <= '1';
-          end if;
-
           i_fsm_sync <= S_SYNC_FIND;
         end if;
 
       else
-        i_fsync_pcnt <= i_fsync_pcnt + 1;
+        i_sync_pcnt <= i_sync_pcnt + 1;
+      end if;
+
+
+    when S_SYNC_STABLE =>
+
+      if (i_btn = '1') then
+        i_btn_det <= '1';
+      end if;
+
+      if (i_sync_pcnt = (TO_UNSIGNED(6, i_sync_pcnt'length))) then
+        i_sync_pcnt <= (others => '0');
+
+        if (i_sync_find = '0') then
+          i_sync_stable <= '0';
+          i_fsm_sync <= S_SYNC_FIND;
+
+        else
+
+          if (i_btn_det = '1') then
+          i_idelay_adj <= '1';
+          i_idelay_inc <= '1';
+          i_fsm_sync <= S_SYNC_MEASURE_1;
+          end if;
+        end if;
+
+      else
+        i_sync_pcnt <= i_sync_pcnt + 1;
+      end if;
+
+
+    when S_SYNC_MEASURE_1 =>
+
+      i_btn_det <= '0';
+
+      if (i_sync_pcnt = (TO_UNSIGNED(6, i_sync_pcnt'length))) then
+        i_sync_pcnt <= (others => '0');
+
+        if (i_sync_find = '0') then
+
+            if (i_sync_stable_cnt = (TO_UNSIGNED(4, i_sync_stable_cnt'length))) then
+              i_sync_stable_cnt <= (others => '0');
+              i_idelay_inc <= '0';
+              i_fsm_sync <= S_SYNC_MEASURE_2;
+            else
+              i_sync_stable_cnt <= i_sync_stable_cnt + 1;
+            end if;
+
+        else
+          i_sync_stable_cnt <= (others => '0');
+        end if;
+
+      else
+        i_sync_pcnt <= i_sync_pcnt + 1;
+      end if;
+
+    when S_SYNC_MEASURE_2 =>
+
+      i_btn_det <= '0';
+
+      if (i_sync_pcnt = (TO_UNSIGNED(6, i_sync_pcnt'length))) then
+        i_sync_pcnt <= (others => '0');
+
+        if (i_sync_find = '0') then
+
+            if (i_sync_stable_cnt = (TO_UNSIGNED(16, i_sync_stable_cnt'length))) then
+              i_sync_stable_cnt <= (others => '0');
+              i_idelay_inc <= '1';
+              i_mesure_cnt <= ('0' & i_mesure_cnt(i_mesure_cnt'high downto 1)); --div2
+              i_fsm_sync <= S_SYNC_SET;
+            else
+              i_sync_stable_cnt <= i_sync_stable_cnt + 1;
+            end if;
+
+        else
+          i_mesure_cnt <= i_mesure_cnt + 1; --do measure!!!!
+          i_sync_stable_cnt <= (others => '0');
+        end if;
+
+      else
+        i_sync_pcnt <= i_sync_pcnt + 1;
+      end if;
+
+
+    when S_SYNC_SET =>
+
+      if (i_sync_pcnt = (TO_UNSIGNED(6, i_sync_pcnt'length))) then
+        i_sync_pcnt <= (others => '0');
+
+        if (i_sync_find = '1') then
+
+            if (i_mesure_cnt = (TO_UNSIGNED(0, i_mesure_cnt'length))) then
+              i_idelay_adj <= '0';
+              i_gearbox_2rst <= '1';
+              i_fsm_sync <= S_SYNC_DONE;
+            else
+              i_mesure_cnt <= i_mesure_cnt - 1;
+            end if;
+
+        end if;
+
+      else
+        i_sync_pcnt <= i_sync_pcnt + 1;
+      end if;
+
+
+    when S_SYNC_DONE =>
+
+      if (i_sync_pcnt = (TO_UNSIGNED(6, i_sync_pcnt'length))) then
+        i_sync_pcnt <= (others => '0');
+        i_gearbox_2rst <= '0';
+
+        if (i_sync_find = '0') then
+          i_fsm_sync <= S_SYNC_FIND;
+        end if;
+
+      else
+        i_sync_pcnt <= i_sync_pcnt + 1;
       end if;
 
   end case;
-
 end if;
 end process;
 
@@ -478,7 +625,7 @@ end process;
 p_out_rxd <= i_cl_rxd;
 
 p_out_rxclk <= g_cl_clkin_7xdiv7;
-p_out_sync <= i_fsync_vld;
+p_out_sync <= i_sync_stable;
 
 
 
@@ -491,8 +638,29 @@ p_out_sync <= i_fsync_vld;
 --#########################################
 p_out_tst(0) <= i_cl_clkin_7x_lock;
 p_out_tst(1) <= g_cl_clkin_7xdiv4;
-p_out_tst(2) <= i_idelay_oval(0)(3) or sr_serdes_do(0)(0);
+p_out_tst(2) <= i_idelay_oval(0)(3) or i_des_d(0)(0);
 
+process(i_desr_ctrl_rst, g_cl_clkin_7xdiv4)
+begin
+if (i_desr_ctrl_rst = '0') then
+  sr_btn <= (others => '0');
+  i_btn <= '0';
+elsif rising_edge(g_cl_clkin_7xdiv4) then
+  sr_btn <= p_in_tst(0) & sr_btn(0 to 1);
+  i_btn <= sr_btn(1) and (not sr_btn(2));
+end if;
+end process;
+
+process(i_desr_ctrl_rst, g_cl_clkin_7xdiv7)
+begin
+if (i_desr_ctrl_rst = '0') then
+  sr_2btn <= (others => '0');
+  i_2btn <= '0';
+elsif rising_edge(g_cl_clkin_7xdiv7) then
+  sr_2btn <= p_in_tst(0) & sr_2btn(0 to 1);
+  i_2btn <= sr_2btn(1) and (not sr_2btn(2));
+end if;
+end process;
 
 process(g_cl_clkin_7xdiv7)
 begin
@@ -502,22 +670,36 @@ end if;
 end process;
 
 
-i_dbg.det_sync <= i_sync_det;
-i_dbg.tst_sync <= i_fsync_vld;
+tst_fsm_sync <= TO_UNSIGNED(16#01#, tst_fsm_sync'length) when i_fsm_sync = S_SYNC_CHK       else
+                TO_UNSIGNED(16#02#, tst_fsm_sync'length) when i_fsm_sync = S_SYNC_STABLE    else
+                TO_UNSIGNED(16#03#, tst_fsm_sync'length) when i_fsm_sync = S_SYNC_MEASURE_1 else
+                TO_UNSIGNED(16#04#, tst_fsm_sync'length) when i_fsm_sync = S_SYNC_MEASURE_2 else
+                TO_UNSIGNED(16#05#, tst_fsm_sync'length) when i_fsm_sync = S_SYNC_SET       else
+                TO_UNSIGNED(16#06#, tst_fsm_sync'length) when i_fsm_sync = S_SYNC_DONE      else
+                TO_UNSIGNED(16#00#, tst_fsm_sync'length); --i_fsm_fgwr = S_SYNC_FIND        else
+
+
+i_dbg.fsm_sync <= std_logic_vector(tst_fsm_sync);
+i_dbg.usr_2sync <= i_2btn;
+i_dbg.usr_sync <= i_btn;
+
+i_dbg.sync <= '1' when (i_sync_pcnt = (TO_UNSIGNED(6, i_sync_pcnt'length))) else '0';
+i_dbg.sync_find <= i_sync_find;
+i_dbg.sync_find_ok <= i_sync_stable;
 i_dbg.idelay_inc <= i_idelay_inc;
 i_dbg.idelay_ce <= i_idelay_ce;
 i_dbg.idelay_oval <= i_idelay_oval(0);
 
-i_dbg.sr_serdes_d <= sr_serdes_do(0);
-i_dbg.sr_reg(0) <= sr_reg(0);
-i_dbg.sr_reg(1) <= sr_reg(1);
-i_dbg.sr_reg(2) <= sr_reg(2);
-i_dbg.sr_reg(3) <= sr_reg(3);
-i_dbg.sr_reg(4) <= sr_reg(4);
-i_dbg.sr_reg(5) <= sr_reg(5);
-i_dbg.sr_reg(6) <= sr_reg(6);
+i_dbg.des_d <= i_des_d(0);
+i_dbg.sr_des_d(0) <= sr_des_d(0);
+i_dbg.sr_des_d(1) <= sr_des_d(1);
+i_dbg.sr_des_d(2) <= sr_des_d(2);
+i_dbg.sr_des_d(3) <= sr_des_d(3);
+i_dbg.sr_des_d(4) <= sr_des_d(4);
+i_dbg.sr_des_d(5) <= sr_des_d(5);
+i_dbg.sr_des_d(6) <= sr_des_d(6);
 
-i_dbg.rx_sync_val <= i_cl_sync_val;
+i_dbg.gearbox_do_sync_val <= i_cl_sync_val;
 
 p_out_dbg <= i_dbg;
 
