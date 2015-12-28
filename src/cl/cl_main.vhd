@@ -93,7 +93,7 @@ p_in_rst : in std_logic
 );
 end component cl_core;
 
-signal i_cl_fval       : std_logic;
+signal i_cl_fval       : std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 signal i_cl_lval       : std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 
 type TCL_rxd is array (0 to G_CL_CHCOUNT - 1) of std_logic_vector(27 downto 0);
@@ -194,9 +194,10 @@ end generate gen_ch;
 
 
 --#################################
---#########  cl X cahnnel #########
+--Full Configuration (64bit)
 --#################################
-i_cl_fval    <= i_cl_rxd(0)((7 * 2) + 5); --FVAL(Frame value)
+--!!!! cl X cahnnel !!!!
+i_cl_fval(0) <= i_cl_rxd(0)((7 * 2) + 5); --FVAL(Frame value)
 i_cl_lval(0) <= i_cl_rxd(0)((7 * 2) + 4); --LVAL(Line value)
 
 --cl A(byte)
@@ -205,38 +206,135 @@ i_cl_rxbyte(0)(1) <= i_cl_rxd(0)((7 * 0) + 1); --A1
 i_cl_rxbyte(0)(2) <= i_cl_rxd(0)((7 * 0) + 2); --A2
 i_cl_rxbyte(0)(3) <= i_cl_rxd(0)((7 * 0) + 3); --A3
 i_cl_rxbyte(0)(4) <= i_cl_rxd(0)((7 * 0) + 4); --A4
-i_cl_rxbyte(0)(5) <= i_cl_rxd(0)((7 * 3) + 1); --A5
-i_cl_rxbyte(0)(6) <= i_cl_rxd(0)((7 * 0) + 5); --A6
-i_cl_rxbyte(0)(7) <= i_cl_rxd(0)((7 * 0) + 6); --A7
+i_cl_rxbyte(0)(5) <= i_cl_rxd(0)((7 * 0) + 5); --A5
+i_cl_rxbyte(0)(6) <= i_cl_rxd(0)((7 * 3) + 0); --A6
+i_cl_rxbyte(0)(7) <= i_cl_rxd(0)((7 * 3) + 1); --A7
 
 --cl B(byte)
-i_cl_rxbyte(1)(0) <= i_cl_rxd(0)((7 * 1) + 0); --B0
-i_cl_rxbyte(1)(1) <= i_cl_rxd(0)((7 * 1) + 1); --B1
-i_cl_rxbyte(1)(2) <= i_cl_rxd(0)((7 * 3) + 2); --B2
-i_cl_rxbyte(1)(3) <= i_cl_rxd(0)((7 * 3) + 3); --B3
-i_cl_rxbyte(1)(4) <= i_cl_rxd(0)((7 * 1) + 2); --B4
-i_cl_rxbyte(1)(5) <= i_cl_rxd(0)((7 * 1) + 3); --B5
-i_cl_rxbyte(1)(6) <= i_cl_rxd(0)((7 * 1) + 4); --B6
-i_cl_rxbyte(1)(7) <= i_cl_rxd(0)((7 * 1) + 5); --B7
+i_cl_rxbyte(1)(0) <= i_cl_rxd(0)((7 * 0) + 6); --B0
+i_cl_rxbyte(1)(1) <= i_cl_rxd(0)((7 * 1) + 0); --B1
+i_cl_rxbyte(1)(2) <= i_cl_rxd(0)((7 * 1) + 1); --B2
+i_cl_rxbyte(1)(3) <= i_cl_rxd(0)((7 * 1) + 2); --B3
+i_cl_rxbyte(1)(4) <= i_cl_rxd(0)((7 * 1) + 3); --B4
+i_cl_rxbyte(1)(5) <= i_cl_rxd(0)((7 * 1) + 4); --B5
+i_cl_rxbyte(1)(6) <= i_cl_rxd(0)((7 * 3) + 2); --B6
+i_cl_rxbyte(1)(7) <= i_cl_rxd(0)((7 * 3) + 3); --B7
 
 --cl C(byte)
-i_cl_rxbyte(2)(0) <= i_cl_rxd(0)((7 * 3) + 4); --C0
-i_cl_rxbyte(2)(1) <= i_cl_rxd(0)((7 * 3) + 5); --C1
-i_cl_rxbyte(2)(2) <= i_cl_rxd(0)((7 * 1) + 6); --C2
-i_cl_rxbyte(2)(3) <= i_cl_rxd(0)((7 * 2) + 0); --C3
-i_cl_rxbyte(2)(4) <= i_cl_rxd(0)((7 * 2) + 1); --C4
-i_cl_rxbyte(2)(5) <= i_cl_rxd(0)((7 * 2) + 2); --C5
-i_cl_rxbyte(2)(6) <= i_cl_rxd(0)((7 * 2) + 3); --C6
-i_cl_rxbyte(2)(7) <= i_cl_rxd(0)((7 * 3) + 6); --C7
+i_cl_rxbyte(2)(0) <= i_cl_rxd(0)((7 * 1) + 5); --C0
+i_cl_rxbyte(2)(1) <= i_cl_rxd(0)((7 * 1) + 6); --C1
+i_cl_rxbyte(2)(2) <= i_cl_rxd(0)((7 * 2) + 0); --C2
+i_cl_rxbyte(2)(3) <= i_cl_rxd(0)((7 * 2) + 1); --C3
+i_cl_rxbyte(2)(4) <= i_cl_rxd(0)((7 * 2) + 2); --C4
+i_cl_rxbyte(2)(5) <= i_cl_rxd(0)((7 * 2) + 3); --C5
+i_cl_rxbyte(2)(6) <= i_cl_rxd(0)((7 * 3) + 4); --C6
+i_cl_rxbyte(2)(7) <= i_cl_rxd(0)((7 * 3) + 5); --C7
+
+
+--!!!! cl Y cahnnel !!!!
+i_cl_fval(1) <= i_cl_rxd(1)((7 * 2) + 5); --FVAL(Frame value)
+i_cl_lval(1) <= i_cl_rxd(1)((7 * 2) + 4); --LVAL(Line value)
+
+--cl D(byte)
+i_cl_rxbyte(3)(0) <= i_cl_rxd(1)((7 * 0) + 0); --D0
+i_cl_rxbyte(3)(1) <= i_cl_rxd(1)((7 * 0) + 1); --D1
+i_cl_rxbyte(3)(2) <= i_cl_rxd(1)((7 * 0) + 2); --D2
+i_cl_rxbyte(3)(3) <= i_cl_rxd(1)((7 * 0) + 3); --D3
+i_cl_rxbyte(3)(4) <= i_cl_rxd(1)((7 * 0) + 4); --D4
+i_cl_rxbyte(3)(5) <= i_cl_rxd(1)((7 * 0) + 5); --D5
+i_cl_rxbyte(3)(6) <= i_cl_rxd(1)((7 * 3) + 0); --D6
+i_cl_rxbyte(3)(7) <= i_cl_rxd(1)((7 * 3) + 1); --D7
+
+--cl E(byte)
+i_cl_rxbyte(4)(0) <= i_cl_rxd(1)((7 * 0) + 6); --E0
+i_cl_rxbyte(4)(1) <= i_cl_rxd(1)((7 * 1) + 0); --E1
+i_cl_rxbyte(4)(2) <= i_cl_rxd(1)((7 * 1) + 1); --E2
+i_cl_rxbyte(4)(3) <= i_cl_rxd(1)((7 * 1) + 2); --E3
+i_cl_rxbyte(4)(4) <= i_cl_rxd(1)((7 * 1) + 3); --E4
+i_cl_rxbyte(4)(5) <= i_cl_rxd(1)((7 * 1) + 4); --E5
+i_cl_rxbyte(4)(6) <= i_cl_rxd(1)((7 * 3) + 2); --E6
+i_cl_rxbyte(4)(7) <= i_cl_rxd(1)((7 * 3) + 3); --E7
+
+--cl F(byte)
+i_cl_rxbyte(5)(0) <= i_cl_rxd(1)((7 * 1) + 5); --F0
+i_cl_rxbyte(5)(1) <= i_cl_rxd(1)((7 * 1) + 6); --F1
+i_cl_rxbyte(5)(2) <= i_cl_rxd(1)((7 * 2) + 0); --F2
+i_cl_rxbyte(5)(3) <= i_cl_rxd(1)((7 * 2) + 1); --F3
+i_cl_rxbyte(5)(4) <= i_cl_rxd(1)((7 * 2) + 2); --F4
+i_cl_rxbyte(5)(5) <= i_cl_rxd(1)((7 * 2) + 3); --F5
+i_cl_rxbyte(5)(6) <= i_cl_rxd(1)((7 * 3) + 4); --F6
+i_cl_rxbyte(5)(7) <= i_cl_rxd(1)((7 * 3) + 5); --F7
+
+
+--!!!! cl Z cahnnel !!!!
+i_cl_fval(2) <= i_cl_rxd(2)((7 * 2) + 5); --FVAL(Frame value)
+i_cl_lval(2) <= i_cl_rxd(2)((7 * 2) + 4); --LVAL(Line value)
+
+--cl G(byte)
+i_cl_rxbyte(6)(0) <= i_cl_rxd(2)((7 * 0) + 0); --G0
+i_cl_rxbyte(6)(1) <= i_cl_rxd(2)((7 * 0) + 1); --G1
+i_cl_rxbyte(6)(2) <= i_cl_rxd(2)((7 * 0) + 2); --G2
+i_cl_rxbyte(6)(3) <= i_cl_rxd(2)((7 * 0) + 3); --G3
+i_cl_rxbyte(6)(4) <= i_cl_rxd(2)((7 * 0) + 4); --G4
+i_cl_rxbyte(6)(5) <= i_cl_rxd(2)((7 * 0) + 5); --G5
+i_cl_rxbyte(6)(6) <= i_cl_rxd(2)((7 * 3) + 0); --G6
+i_cl_rxbyte(6)(7) <= i_cl_rxd(2)((7 * 3) + 1); --G7
+
+--cl H(byte)
+i_cl_rxbyte(7)(0) <= i_cl_rxd(2)((7 * 0) + 6); --H0
+i_cl_rxbyte(7)(1) <= i_cl_rxd(2)((7 * 1) + 0); --H1
+i_cl_rxbyte(7)(2) <= i_cl_rxd(2)((7 * 1) + 1); --H2
+i_cl_rxbyte(7)(3) <= i_cl_rxd(2)((7 * 1) + 2); --H3
+i_cl_rxbyte(7)(4) <= i_cl_rxd(2)((7 * 1) + 3); --H4
+i_cl_rxbyte(7)(5) <= i_cl_rxd(2)((7 * 1) + 4); --H5
+i_cl_rxbyte(7)(6) <= i_cl_rxd(2)((7 * 3) + 2); --H6
+i_cl_rxbyte(7)(7) <= i_cl_rxd(2)((7 * 3) + 3); --H7
+
+
+
+----#################################
+----Full Configuration (80bit = 10Tap/8bit)
+----#################################
+----!!!! cl X cahnnel !!!!
+--i_cl_fval    <= i_cl_rxd(0)((7 * 2) + 5); --FVAL(Frame value)
+--i_cl_lval(0) <= i_cl_rxd(0)((7 * 2) + 4); --LVAL(Line value)
+--
+----cl A(byte)
+--i_cl_rxbyte(0)(0) <= i_cl_rxd(0)((7 * 0) + 0); --A0
+--i_cl_rxbyte(0)(1) <= i_cl_rxd(0)((7 * 0) + 1); --A1
+--i_cl_rxbyte(0)(2) <= i_cl_rxd(0)((7 * 0) + 2); --A2
+--i_cl_rxbyte(0)(3) <= i_cl_rxd(0)((7 * 0) + 3); --A3
+--i_cl_rxbyte(0)(4) <= i_cl_rxd(0)((7 * 0) + 4); --A4
+--i_cl_rxbyte(0)(5) <= i_cl_rxd(0)((7 * 3) + 1); --A5
+--i_cl_rxbyte(0)(6) <= i_cl_rxd(0)((7 * 0) + 5); --A6
+--i_cl_rxbyte(0)(7) <= i_cl_rxd(0)((7 * 0) + 6); --A7
+--
+----cl B(byte)
+--i_cl_rxbyte(1)(0) <= i_cl_rxd(0)((7 * 1) + 0); --B0
+--i_cl_rxbyte(1)(1) <= i_cl_rxd(0)((7 * 1) + 1); --B1
+--i_cl_rxbyte(1)(2) <= i_cl_rxd(0)((7 * 3) + 2); --B2
+--i_cl_rxbyte(1)(3) <= i_cl_rxd(0)((7 * 3) + 3); --B3
+--i_cl_rxbyte(1)(4) <= i_cl_rxd(0)((7 * 1) + 2); --B4
+--i_cl_rxbyte(1)(5) <= i_cl_rxd(0)((7 * 1) + 3); --B5
+--i_cl_rxbyte(1)(6) <= i_cl_rxd(0)((7 * 1) + 4); --B6
+--i_cl_rxbyte(1)(7) <= i_cl_rxd(0)((7 * 1) + 5); --B7
+--
+----cl C(byte)
+--i_cl_rxbyte(2)(0) <= i_cl_rxd(0)((7 * 3) + 4); --C0
+--i_cl_rxbyte(2)(1) <= i_cl_rxd(0)((7 * 3) + 5); --C1
+--i_cl_rxbyte(2)(2) <= i_cl_rxd(0)((7 * 1) + 6); --C2
+--i_cl_rxbyte(2)(3) <= i_cl_rxd(0)((7 * 2) + 0); --C3
+--i_cl_rxbyte(2)(4) <= i_cl_rxd(0)((7 * 2) + 1); --C4
+--i_cl_rxbyte(2)(5) <= i_cl_rxd(0)((7 * 2) + 2); --C5
+--i_cl_rxbyte(2)(6) <= i_cl_rxd(0)((7 * 2) + 3); --C6
+--i_cl_rxbyte(2)(7) <= i_cl_rxd(0)((7 * 3) + 6); --C7
 
 ----cl D(byte)
 --i_cl_rxbyte(3)(0) <= i_cl_rxd(0)((7 * 2) + 6); --D0
 --i_cl_rxbyte(3)(1) <= i_cl_rxd(0)((7 * 3) + 0); --D1
 --
 --
-----#################################
-----#########  cl Y cahnnel #########
-----#################################
+----!!!! cl Y cahnnel !!!!
 --i_cl_lval(1) <= i_cl_rxd(1)((7 * 3) + 0); --LVAL(Line value)
 --
 --i_cl_rxbyte(3)(2) <= i_cl_rxd(1)((7 * 0) + 0); --D2
@@ -247,8 +345,8 @@ i_cl_rxbyte(2)(7) <= i_cl_rxd(0)((7 * 3) + 6); --C7
 --i_cl_rxbyte(3)(7) <= i_cl_rxd(1)((7 * 3) + 1); --D7
 --
 ----cl E(byte)
---i_cl_rxbyte(4)(0) <= i_cl_rxd(0)((7 * 0) + 6); --E0
---i_cl_rxbyte(4)(1) <= i_cl_rxd(0)((7 * 0) + 7); --E1
+--i_cl_rxbyte(4)(0) <= i_cl_rxd(0)((7 * 0) + 5); --E0
+--i_cl_rxbyte(4)(1) <= i_cl_rxd(0)((7 * 0) + 6); --E1
 --i_cl_rxbyte(4)(2) <= i_cl_rxd(1)((7 * 1) + 0); --E2
 --i_cl_rxbyte(4)(3) <= i_cl_rxd(1)((7 * 1) + 1); --E3
 --i_cl_rxbyte(4)(4) <= i_cl_rxd(1)((7 * 3) + 2); --E4
@@ -263,8 +361,8 @@ i_cl_rxbyte(2)(7) <= i_cl_rxd(0)((7 * 3) + 6); --C7
 --i_cl_rxbyte(5)(3) <= i_cl_rxd(1)((7 * 3) + 5); --F3
 --i_cl_rxbyte(5)(4) <= i_cl_rxd(1)((7 * 1) + 6); --F4
 --i_cl_rxbyte(5)(5) <= i_cl_rxd(1)((7 * 2) + 0); --F5
---i_cl_rxbyte(5)(6) <= i_cl_rxd(1)((7 * 2) + 2); --F6
---i_cl_rxbyte(5)(7) <= i_cl_rxd(1)((7 * 2) + 3); --F7
+--i_cl_rxbyte(5)(6) <= i_cl_rxd(1)((7 * 2) + 1); --F6
+--i_cl_rxbyte(5)(7) <= i_cl_rxd(1)((7 * 2) + 2); --F7
 --
 ----cl G(byte)
 --i_cl_rxbyte(6)(0) <= i_cl_rxd(1)((7 * 2) + 3); --G0
@@ -274,18 +372,16 @@ i_cl_rxbyte(2)(7) <= i_cl_rxd(0)((7 * 3) + 6); --C7
 --i_cl_rxbyte(6)(4) <= i_cl_rxd(1)((7 * 2) + 6); --G4
 --
 --
-----#################################
-----#########  cl Z cahnnel #########
-----#################################
+----!!!! cl Y cahnnel !!!!
 --i_cl_lval(2) <= i_cl_rxd(2)((7 * 3) + 0); --LVAL(Line value)
 --
 --i_cl_rxbyte(6)(5) <= i_cl_rxd(2)((7 * 0) + 0); --G5
---i_cl_rxbyte(6)(6) <= i_cl_rxd(2)((7 * 0) + 2); --G6
---i_cl_rxbyte(6)(7) <= i_cl_rxd(2)((7 * 0) + 3); --G7
+--i_cl_rxbyte(6)(6) <= i_cl_rxd(2)((7 * 0) + 1); --G6
+--i_cl_rxbyte(6)(7) <= i_cl_rxd(2)((7 * 0) + 2); --G7
 --
 ----cl H(byte)
---i_cl_rxbyte(7)(0) <= i_cl_rxd(2)((7 * 0) + 0); --H0
---i_cl_rxbyte(7)(1) <= i_cl_rxd(2)((7 * 0) + 1); --H1
+--i_cl_rxbyte(7)(0) <= i_cl_rxd(2)((7 * 0) + 3); --H0
+--i_cl_rxbyte(7)(1) <= i_cl_rxd(2)((7 * 0) + 4); --H1
 --i_cl_rxbyte(7)(2) <= i_cl_rxd(2)((7 * 3) + 1); --H2
 --i_cl_rxbyte(7)(3) <= i_cl_rxd(2)((7 * 0) + 5); --H3
 --i_cl_rxbyte(7)(4) <= i_cl_rxd(2)((7 * 0) + 6); --H4
@@ -294,7 +390,7 @@ i_cl_rxbyte(2)(7) <= i_cl_rxd(0)((7 * 3) + 6); --C7
 --i_cl_rxbyte(7)(7) <= i_cl_rxd(2)((7 * 3) + 2); --H7
 --
 ----cl I(byte)
---i_cl_rxbyte(8)(0) <= i_cl_rxd(2)((7 * 3) + 0); --I0
+--i_cl_rxbyte(8)(0) <= i_cl_rxd(2)((7 * 3) + 3); --I0
 --i_cl_rxbyte(8)(1) <= i_cl_rxd(2)((7 * 1) + 2); --I1
 --i_cl_rxbyte(8)(2) <= i_cl_rxd(2)((7 * 1) + 3); --I2
 --i_cl_rxbyte(8)(3) <= i_cl_rxd(2)((7 * 1) + 4); --I3
@@ -320,13 +416,13 @@ i_cl_rxbyte(2)(7) <= i_cl_rxd(0)((7 * 3) + 6); --C7
 --DBG
 --#########################################
 p_out_tst(0) <= i_cl_tstout(0)(0);
-p_out_tst(1) <= i_cl_fval;
+p_out_tst(1) <= i_cl_fval(0);
 p_out_tst(2) <= i_cl_lval(0);
 
 
 i_dbg.clx.core <= i_cl_core_dbg(0);
 i_dbg.clx.lval <= i_cl_lval(0);
-i_dbg.clx.fval <= i_cl_fval;
+i_dbg.clx.fval <= i_cl_fval(0);
 i_dbg.rxbyte(0) <= i_cl_rxbyte(0);
 i_dbg.rxbyte(1) <= i_cl_rxbyte(1);
 i_dbg.rxbyte(2) <= i_cl_rxbyte(2);
