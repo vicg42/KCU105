@@ -113,7 +113,7 @@ signal i_cl_core_dbg   : TCL_core_dbgs;
 component ila_dbg_cl is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(49 downto 0)
+probe0 : in std_logic_vector(58 downto 0)
 );
 end component ila_dbg_cl;
 
@@ -435,7 +435,7 @@ probe0(0) => i_dbg.clx.core.sync,
 probe0(4 downto 1) => i_dbg.clx.core.des_d,
 probe0(5) => i_dbg.clx.core.idelay_inc,
 probe0(6) => i_dbg.clx.core.idelay_ce,
-probe0(15 downto 7) => i_dbg.clx.core.idelay_oval,
+probe0(15 downto 7) => i_dbg.clx.core.idelay_oval((9 * 1) - 1 downto (9 * 0)),
 probe0(19 downto 16) => std_logic_vector(i_dbg.clx.core.sr_des_d(0)),
 probe0(23 downto 20) => std_logic_vector(i_dbg.clx.core.sr_des_d(1)),
 probe0(27 downto 24) => std_logic_vector(i_dbg.clx.core.sr_des_d(2)),
@@ -447,7 +447,8 @@ probe0(43 downto 40) => std_logic_vector(i_dbg.clx.core.sr_des_d(6)),
 probe0(44) => i_dbg.clx.core.sync_find_ok,
 probe0(45) => i_dbg.clx.core.sync_find,
 probe0(46) => i_dbg.clx.core.usr_sync,
-probe0(49 downto 47) => i_dbg.clx.core.fsm_sync
+probe0(49 downto 47) => i_dbg.clx.core.fsm_sync,
+probe0(58 downto 50) => i_dbg.clx.core.idelay_oval((9 * 2) - 1 downto (9 * 1))
 );
 
 
