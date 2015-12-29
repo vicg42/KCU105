@@ -120,7 +120,7 @@ case i_fsm_sync is
         i_cnt <= i_cnt + 1;
         i_flag <= '1';
 
-      if (p_in_lval = '1' and i_flag = '1') then
+      elsif (p_in_lval = '1' and i_flag = '1') then
         i_flag <= '0';
 
       end if;
