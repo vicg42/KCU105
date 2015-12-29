@@ -37,7 +37,7 @@ p_in_cl_di_n  : in  std_logic_vector(3 downto 0);
 -----------------------------
 p_out_rxd     : out std_logic_vector(27 downto 0);
 p_out_rxclk   : out std_logic;
-p_out_sync    : out std_logic;
+p_out_link    : out std_logic;
 
 -----------------------------
 --DBG
@@ -123,7 +123,7 @@ signal i_cl_din         : std_logic_vector(4 downto 0); --(0 downto 0);
 signal i_idelay_do      : std_logic_vector(4 downto 0); --(0 downto 0);
 signal i_idelay_co      : std_logic_vector(4 downto 0); --(0 downto 0);
 signal i_idelay_oval    : TCL_SerDesVALOUT;
-signal i_idelay_ce      : std_logic_vector(1 downto 0);
+signal i_idelay_ce      : std_logic;
 signal i_idelay_inc     : std_logic := '0';
 signal i_idelay_adj     : std_logic := '0';
 signal i_idelay_adj_cnt : unsigned(4 downto 0);
@@ -143,7 +143,7 @@ signal i_sync_cnt       : unsigned(2 downto 0) := (others => '0');
 signal i_sync_pcnt      : unsigned(2 downto 0) := (others => '0');
 signal i_sync_stable_cnt: unsigned(5 downto 0);
 signal i_sync_stable    : std_logic;
-
+signal i_link_ok        : std_logic;
 signal i_mesure_cnt     : unsigned(31 downto 0);
 
 signal i_cl_rxd        : std_logic_vector(27 downto 0);
@@ -261,7 +261,7 @@ begin
 
 m_idelay : IDELAYE3
 generic map (
-CASCADE => "MASTER",          -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
+CASCADE => "NONE",          -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
 DELAY_FORMAT => "COUNT",    -- Units of the DELAY_VALUE (COUNT, TIME)
 DELAY_SRC => "IDATAIN",     -- Delay input (DATAIN, IDATAIN)
 DELAY_TYPE => "VARIABLE",   -- Set the type of tap delay line (FIXED, VARIABLE, VAR_LOAD)
@@ -286,43 +286,11 @@ EN_VTC      => '0'        , -- 1-bit input: Keep delay constant over VT
 
 CNTVALUEIN  => "000000000" , -- 9-bit input: Counter value input
 LOAD        => '0',          -- 1-bit input: Load DELAY_VALUE input
-CE          => i_idelay_ce(0),  -- 1-bit input: Active high enable increment/decrement input
+CE          => i_idelay_ce,  -- 1-bit input: Active high enable increment/decrement input
 INC         => i_idelay_inc, -- 1-bit input: Increment / Decrement tap delay input
 CLK         => g_cl_clkin_7xdiv4, -- 1-bit input: Clock input
 
 RST         => i_idelay_rst
-);
-
-m_odelay : ODELAYE3
-generic map (
-CASCADE => "SLAVE_END",     -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
-DELAY_FORMAT => "COUNT",    -- (COUNT, TIME)
-DELAY_TYPE => "VARIABLE",   -- Set the type of tap delay line (FIXED, VARIABLE, VAR_LOAD)
-DELAY_VALUE => 0,           -- Output delay tap setting
-IS_CLK_INVERTED => '0',     -- Optional inversion for CLK
-IS_RST_INVERTED => '1',     -- Optional inversion for RST
-REFCLK_FREQUENCY => 300.0,  -- IDELAYCTRL clock input frequency in MHz (200.0-2400.0).
-SIM_DEVICE => "ULTRASCALE", -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS_ES1)
-UPDATE_MODE => "ASYNC"      -- Determines when updates to the delay will take effect (ASYNC, MANUAL,
-                            -- SYNC)
-)
-port map (
-ODATAIN => '0',         -- 1-bit input: Data input
-DATAOUT => i_odelay_do(i),  -- 1-bit output: Delayed data from ODATAIN input port
-
-CASC_IN     => i_idelay_co(i), -- 1-bit input: Cascade delay input from slave IDELAY CASCADE_OUT
-CASC_RETURN => '0',            -- 1-bit input: Cascade delay returning from slave IDELAY DATAOUT
-CASC_OUT    => open,           -- 1-bit output: Cascade delay output to IDELAY input cascade
-CNTVALUEOUT => i_idelay_oval(i)((9 * 2) - 1 downto (9 * 1)),    -- 9-bit output: Counter value output
-EN_VTC      => '0'        ,    -- 1-bit input: Keep delay constant over VT
-
-CNTVALUEIN  => "000000000" , -- 9-bit input: Counter value input
-LOAD        => '0',          -- 1-bit input: Load DELAY_VALUE input
-CE          => i_idelay_ce(1),  -- 1-bit input: Active high enable increment/decrement input
-INC         => i_idelay_inc, -- 1-bit input: Increment/Decrement tap delay input
-CLK         => g_cl_clkin_7xdiv4, -- 1-bit input: Clock input
-
-RST         => i_idelay_rst                  -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
 );
 
 m_iserdes : ISERDESE3
@@ -385,70 +353,21 @@ i_gearbox_rst <= (not i_sync_stable);-- or i_gearbox_2rst;
 process(i_desr_ctrl_rst, g_cl_clkin_7xdiv4)
 begin
 if (i_desr_ctrl_rst = '0') then
-  i_idelay_ce <= (others => '0');
+  i_idelay_ce <= '0';
   i_idelay_adj_cnt <= (others => '0');
 
 elsif rising_edge(g_cl_clkin_7xdiv4) then
 
   if (i_idelay_adj = '0') then
     i_idelay_adj_cnt <= (others => '0');
-    i_idelay_ce <= (others => '0');
+    i_idelay_ce <= '0';
   else
     if (i_idelay_adj_cnt = (i_idelay_adj_cnt'range => '1')) then
       i_idelay_adj_cnt <= (others => '0');
-
---      i_idelay_ce <= (others => '1');
-
---      if ( (i_idelay_oval(0)((9 * 1) - 1 downto (9 * 0)) = "111111111") and (i_idelay_inc = '1') )
---        or ( (i_idelay_oval(0)((9 * 1) - 1 downto (9 * 0)) = "000000000") and (i_idelay_inc = '0') ) then
---
---         i_idelay_ce <= "11";
---
---      end if;
-
-
-      if (i_idelay_inc = '1') then
-
-          if ( (i_idelay_oval(0)((9 * 1) - 1 downto (9 * 0)) = "111111111")
-             and (i_idelay_oval(0)((9 * 2) - 1 downto (9 * 1)) = "111111111") ) then
-
-            i_idelay_ce <= "11";
-
-          elsif ( (i_idelay_oval(0)((9 * 1) - 1 downto (9 * 0)) >= "000000000") and (i_idelay_oval(0)((9 * 1) - 1 downto (9 * 0)) < "111111111")
-             and (i_idelay_oval(0)((9 * 2) - 1 downto (9 * 1)) = "000000000") )then
-
-            i_idelay_ce <= "01";
-
-          elsif ( (i_idelay_oval(0)((9 * 1) - 1 downto (9 * 0)) = "111111111")
-             and (i_idelay_oval(0)((9 * 2) - 1 downto (9 * 1)) >= "000000000") and (i_idelay_oval(0)((9 * 2) - 1 downto (9 * 1)) < "111111111") ) then
-
-            i_idelay_ce <= "10";
-
-          end if;
-
-      else
-
-          if ( (i_idelay_oval(0)((9 * 1) - 1 downto (9 * 0)) = "000000000")
-             and (i_idelay_oval(0)((9 * 2) - 1 downto (9 * 1)) = "000000000") ) then
-
-            i_idelay_ce <= "11";
-
-          elsif ( (i_idelay_oval(0)((9 * 1) - 1 downto (9 * 0)) > "000000000") and (i_idelay_oval(0)((9 * 1) - 1 downto (9 * 0)) <= "111111111")
-             and (i_idelay_oval(0)((9 * 2) - 1 downto (9 * 1)) = "000000000") )then
-
-            i_idelay_ce <= "01";
-
-          elsif ( (i_idelay_oval(0)((9 * 1) - 1 downto (9 * 0)) = "111111111")
-             and (i_idelay_oval(0)((9 * 2) - 1 downto (9 * 1)) > "000000000") and (i_idelay_oval(0)((9 * 2) - 1 downto (9 * 1)) <= "111111111") ) then
-
-            i_idelay_ce <= "10";
-
-          end if;
-
-      end if;
+      i_idelay_ce <= '1';
 
     else
-      i_idelay_ce <= (others => '0');
+      i_idelay_ce <= '0';
       i_idelay_adj_cnt <= i_idelay_adj_cnt + 1;
     end if;
   end if;
@@ -502,10 +421,14 @@ if (i_desr_ctrl_rst = '0') then
   i_mesure_cnt <= (others => '0');
   i_gearbox_2rst <= '0';
 
+  i_link_ok <= '0';
+
 elsif rising_edge(g_cl_clkin_7xdiv4) then
   case i_fsm_sync is
 
     when S_SYNC_FIND =>
+
+      i_link_ok <= '0';
 
       if (i_sync_find = '1') then
         i_idelay_adj <= '0';
@@ -544,9 +467,9 @@ elsif rising_edge(g_cl_clkin_7xdiv4) then
 
     when S_SYNC_STABLE =>
 
-      if (i_btn = '1') then
-        i_btn_det <= '1';
-      end if;
+--      if (i_btn = '1') then
+--        i_btn_det <= '1';
+--      end if;
 
       if (i_sync_pcnt = (TO_UNSIGNED(6, i_sync_pcnt'length))) then
         i_sync_pcnt <= (others => '0');
@@ -557,11 +480,11 @@ elsif rising_edge(g_cl_clkin_7xdiv4) then
 
         else
 
-          if (i_btn_det = '1') then
+--          if (i_btn_det = '1') then
           i_idelay_adj <= '1';
           i_idelay_inc <= '1';
           i_fsm_sync <= S_SYNC_MEASURE_1;
-          end if;
+--          end if;
         end if;
 
       else
@@ -652,6 +575,8 @@ elsif rising_edge(g_cl_clkin_7xdiv4) then
 
         if (i_sync_find = '0') then
           i_fsm_sync <= S_SYNC_FIND;
+        else
+          i_link_ok <= '1';
         end if;
 
       else
@@ -709,7 +634,7 @@ end process;
 p_out_rxd <= i_cl_rxd;
 
 p_out_rxclk <= g_cl_clkin_7xdiv7;
-p_out_sync <= i_sync_stable;
+p_out_link <= i_link_ok;
 
 
 
@@ -771,7 +696,7 @@ i_dbg.sync <= '1' when (i_sync_pcnt = (TO_UNSIGNED(6, i_sync_pcnt'length))) else
 i_dbg.sync_find <= i_sync_find;
 i_dbg.sync_find_ok <= i_sync_stable;
 i_dbg.idelay_inc <= i_idelay_inc;
-i_dbg.idelay_ce <= i_idelay_ce(0);
+i_dbg.idelay_ce <= i_idelay_ce;
 i_dbg.idelay_oval <= i_idelay_oval(0);
 
 i_dbg.des_d <= i_des_d(0);

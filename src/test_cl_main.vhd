@@ -25,7 +25,7 @@ port(
 --------------------------------------------------
 pin_out_led         : out   std_logic_vector(4 downto 0);
 pin_in_btn          : in    std_logic_vector(1 downto 0);
-pin_out_led_hpc     : out   std_logic_vector(0 downto 0);
+pin_out_led_hpc     : out   std_logic_vector(3 downto 0);
 pin_out_TP          : out   std_logic_vector(1 downto 0);
 
 --------------------------------------------------
@@ -254,16 +254,16 @@ p_in_rst   => i_usrclk_rst
 );
 
 pin_out_led(0) <= i_test_led(0);
-pin_out_led(1) <= i_cl_tst_out(0); --xclk_7x_lock
+pin_out_led(1) <= '0';
 pin_out_led(2) <= '0'; --i_det
 pin_out_led(3) <= i_usr_rst;
 pin_out_led(4) <= '0';
 
 
-pin_out_led_hpc(0) <= OR_reduce(i_cl_tst_out(8 downto 2));
---pin_out_led_hpc(1) <= '0';
---pin_out_led_hpc(2) <= '0';
---pin_out_led_hpc(3) <= i_test_led(0);
+pin_out_led_hpc(0) <= '0';
+pin_out_led_hpc(1) <= i_cl_tst_out(2); --i_clz_sync
+pin_out_led_hpc(2) <= i_cl_tst_out(1); --i_cly_sync
+pin_out_led_hpc(3) <= i_cl_tst_out(0); --i_clx_sync
 
 pin_out_TP(0) <= i_cl_tst_out(1);--PMOD1_4  (CSI)
 pin_out_TP(1) <= i_cl_tst_out(2);--PMOD1_6  (SSI)

@@ -20,6 +20,8 @@ use work.cl_pkg.all;
 
 entity cl_main is
 generic(
+G_PIXBIT : natural := 8, --Amount bit per 1 pi
+G_CL_TAP : natural := 8, --Amount pixel per 1 clk
 G_CL_CHCOUNT : natural := 1
 );
 port(
@@ -44,6 +46,16 @@ p_in_cl_di_p  : in  std_logic_vector((4 * G_CL_CHCOUNT) - 1 downto 0);
 p_in_cl_di_n  : in  std_logic_vector((4 * G_CL_CHCOUNT) - 1 downto 0);
 
 --------------------------------------------------
+--VideoOut
+--------------------------------------------------
+p_out_link   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
+p_out_fval   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --frame valid
+p_out_lval   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --line valid
+p_out_dval   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --data valid
+p_out_rxbyte : out  std_logic_vector((G_PIXBIT * G_CL_TAP) - 1 downto 0);
+p_out_rxclk  : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
+
+--------------------------------------------------
 --DBG
 --------------------------------------------------
 p_out_tst : out  std_logic_vector(31 downto 0);
@@ -56,6 +68,14 @@ p_in_rst : in std_logic
 end entity cl_main;
 
 architecture struct of cl_main is
+
+
+type TCL_PLL_TYPE is array of string;
+constant CI_PLL_TYPE : TCL_PLL_TYPE := {
+"MMCM",
+"PLL",
+"PLL"
+};
 
 component cl_core is
 generic(
@@ -75,7 +95,7 @@ p_in_cl_di_n  : in  std_logic_vector(3 downto 0);
 -----------------------------
 p_out_rxd     : out std_logic_vector(27 downto 0);
 p_out_rxclk   : out std_logic;
-p_out_sync    : out std_logic;
+p_out_link    : out std_logic;
 
 -----------------------------
 --DBG
@@ -99,11 +119,11 @@ signal i_cl_lval       : std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 type TCL_rxd is array (0 to G_CL_CHCOUNT - 1) of std_logic_vector(27 downto 0);
 signal i_cl_rxd        : TCL_rxd;
 signal i_cl_rxclk      : std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
-signal i_cl_sync       : std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
+signal i_cl_link       : std_logic_vector(2 downto 0) := (others => '0');
 type TCL_tstout is array (0 to G_CL_CHCOUNT - 1) of std_logic_vector(31 downto 0);
 signal i_cl_tstout     : TCL_tstout;
 
-type TCL_rxbyte is array (0 to 2) of std_logic_vector(7 downto 0);
+type TCL_rxbyte is array (0 to G_CL_TAP - 1) of std_logic_vector(G_PIXBIT - 1 downto 0);
 signal i_cl_rxbyte     : TCL_rxbyte;
 
 type TCL_core_dbgs is array (0 to G_CL_CHCOUNT - 1) of TCL_core_dbg;
@@ -113,7 +133,7 @@ signal i_cl_core_dbg   : TCL_core_dbgs;
 component ila_dbg_cl is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(58 downto 0)
+probe0 : in std_logic_vector(49 downto 0)
 );
 end component ila_dbg_cl;
 
@@ -155,13 +175,20 @@ port map (I => p_in_rs232_rx, O  => p_out_tc_p, OB => p_out_tc_n);
 
 
 
---#########################################
---CHANNEL X
---#########################################
+p_out_link  <= i_cl_link;
+p_out_fval <= i_cl_fval;
+p_out_lval <= i_cl_lval;
+p_out_dval <= (others => '1');
+p_out_rxclk   <= i_cl_rxclk;
+gen_dout : for i in 0 to (G_CL_TAP - 1) generate begin
+p_out_rxbyte((G_PIXBIT * (i + 1)) - 1 downto (G_PIXBIT * i)) <= i_cl_rxbyte(i)(G_PIXBIT - 1 downto 0);
+end generate gen_dout;
+
+
 gen_ch : for i in 0 to (G_CL_CHCOUNT - 1) generate begin
 m_ch : cl_core
 generic map(
-G_PLL_TYPE => "MMCM" -- "PLL" --
+G_PLL_TYPE => CI_PLL_TYPE(i) --"MMCM" -- "PLL" --
 )
 port map(
 -----------------------------
@@ -177,7 +204,7 @@ p_in_cl_di_n  => p_in_cl_di_n((4 * (i + 1)) - 1 downto 4 * i),
 -----------------------------
 p_out_rxd     => i_cl_rxd(i),
 p_out_rxclk   => i_cl_rxclk(i),
-p_out_sync    => i_cl_sync(i),
+p_out_link    => i_cl_link(i),
 
 -----------------------------
 --DBG
@@ -231,64 +258,64 @@ i_cl_rxbyte(2)(6) <= i_cl_rxd(0)((7 * 3) + 4); --C6
 i_cl_rxbyte(2)(7) <= i_cl_rxd(0)((7 * 3) + 5); --C7
 
 
-----!!!! cl Y cahnnel !!!!
---i_cl_fval(1) <= i_cl_rxd(1)((7 * 2) + 5); --FVAL(Frame value)
---i_cl_lval(1) <= i_cl_rxd(1)((7 * 2) + 4); --LVAL(Line value)
---
-----cl D(byte)
---i_cl_rxbyte(3)(0) <= i_cl_rxd(1)((7 * 0) + 0); --D0
---i_cl_rxbyte(3)(1) <= i_cl_rxd(1)((7 * 0) + 1); --D1
---i_cl_rxbyte(3)(2) <= i_cl_rxd(1)((7 * 0) + 2); --D2
---i_cl_rxbyte(3)(3) <= i_cl_rxd(1)((7 * 0) + 3); --D3
---i_cl_rxbyte(3)(4) <= i_cl_rxd(1)((7 * 0) + 4); --D4
---i_cl_rxbyte(3)(5) <= i_cl_rxd(1)((7 * 0) + 5); --D5
---i_cl_rxbyte(3)(6) <= i_cl_rxd(1)((7 * 3) + 0); --D6
---i_cl_rxbyte(3)(7) <= i_cl_rxd(1)((7 * 3) + 1); --D7
---
-----cl E(byte)
---i_cl_rxbyte(4)(0) <= i_cl_rxd(1)((7 * 0) + 6); --E0
---i_cl_rxbyte(4)(1) <= i_cl_rxd(1)((7 * 1) + 0); --E1
---i_cl_rxbyte(4)(2) <= i_cl_rxd(1)((7 * 1) + 1); --E2
---i_cl_rxbyte(4)(3) <= i_cl_rxd(1)((7 * 1) + 2); --E3
---i_cl_rxbyte(4)(4) <= i_cl_rxd(1)((7 * 1) + 3); --E4
---i_cl_rxbyte(4)(5) <= i_cl_rxd(1)((7 * 1) + 4); --E5
---i_cl_rxbyte(4)(6) <= i_cl_rxd(1)((7 * 3) + 2); --E6
---i_cl_rxbyte(4)(7) <= i_cl_rxd(1)((7 * 3) + 3); --E7
---
-----cl F(byte)
---i_cl_rxbyte(5)(0) <= i_cl_rxd(1)((7 * 1) + 5); --F0
---i_cl_rxbyte(5)(1) <= i_cl_rxd(1)((7 * 1) + 6); --F1
---i_cl_rxbyte(5)(2) <= i_cl_rxd(1)((7 * 2) + 0); --F2
---i_cl_rxbyte(5)(3) <= i_cl_rxd(1)((7 * 2) + 1); --F3
---i_cl_rxbyte(5)(4) <= i_cl_rxd(1)((7 * 2) + 2); --F4
---i_cl_rxbyte(5)(5) <= i_cl_rxd(1)((7 * 2) + 3); --F5
---i_cl_rxbyte(5)(6) <= i_cl_rxd(1)((7 * 3) + 4); --F6
---i_cl_rxbyte(5)(7) <= i_cl_rxd(1)((7 * 3) + 5); --F7
---
---
-----!!!! cl Z cahnnel !!!!
---i_cl_fval(2) <= i_cl_rxd(2)((7 * 2) + 5); --FVAL(Frame value)
---i_cl_lval(2) <= i_cl_rxd(2)((7 * 2) + 4); --LVAL(Line value)
---
-----cl G(byte)
---i_cl_rxbyte(6)(0) <= i_cl_rxd(2)((7 * 0) + 0); --G0
---i_cl_rxbyte(6)(1) <= i_cl_rxd(2)((7 * 0) + 1); --G1
---i_cl_rxbyte(6)(2) <= i_cl_rxd(2)((7 * 0) + 2); --G2
---i_cl_rxbyte(6)(3) <= i_cl_rxd(2)((7 * 0) + 3); --G3
---i_cl_rxbyte(6)(4) <= i_cl_rxd(2)((7 * 0) + 4); --G4
---i_cl_rxbyte(6)(5) <= i_cl_rxd(2)((7 * 0) + 5); --G5
---i_cl_rxbyte(6)(6) <= i_cl_rxd(2)((7 * 3) + 0); --G6
---i_cl_rxbyte(6)(7) <= i_cl_rxd(2)((7 * 3) + 1); --G7
---
-----cl H(byte)
---i_cl_rxbyte(7)(0) <= i_cl_rxd(2)((7 * 0) + 6); --H0
---i_cl_rxbyte(7)(1) <= i_cl_rxd(2)((7 * 1) + 0); --H1
---i_cl_rxbyte(7)(2) <= i_cl_rxd(2)((7 * 1) + 1); --H2
---i_cl_rxbyte(7)(3) <= i_cl_rxd(2)((7 * 1) + 2); --H3
---i_cl_rxbyte(7)(4) <= i_cl_rxd(2)((7 * 1) + 3); --H4
---i_cl_rxbyte(7)(5) <= i_cl_rxd(2)((7 * 1) + 4); --H5
---i_cl_rxbyte(7)(6) <= i_cl_rxd(2)((7 * 3) + 2); --H6
---i_cl_rxbyte(7)(7) <= i_cl_rxd(2)((7 * 3) + 3); --H7
+--!!!! cl Y cahnnel !!!!
+i_cl_fval(1) <= i_cl_rxd(1)((7 * 2) + 5); --FVAL(Frame value)
+i_cl_lval(1) <= i_cl_rxd(1)((7 * 2) + 4); --LVAL(Line value)
+
+--cl D(byte)
+i_cl_rxbyte(3)(0) <= i_cl_rxd(1)((7 * 0) + 0); --D0
+i_cl_rxbyte(3)(1) <= i_cl_rxd(1)((7 * 0) + 1); --D1
+i_cl_rxbyte(3)(2) <= i_cl_rxd(1)((7 * 0) + 2); --D2
+i_cl_rxbyte(3)(3) <= i_cl_rxd(1)((7 * 0) + 3); --D3
+i_cl_rxbyte(3)(4) <= i_cl_rxd(1)((7 * 0) + 4); --D4
+i_cl_rxbyte(3)(5) <= i_cl_rxd(1)((7 * 0) + 5); --D5
+i_cl_rxbyte(3)(6) <= i_cl_rxd(1)((7 * 3) + 0); --D6
+i_cl_rxbyte(3)(7) <= i_cl_rxd(1)((7 * 3) + 1); --D7
+
+--cl E(byte)
+i_cl_rxbyte(4)(0) <= i_cl_rxd(1)((7 * 0) + 6); --E0
+i_cl_rxbyte(4)(1) <= i_cl_rxd(1)((7 * 1) + 0); --E1
+i_cl_rxbyte(4)(2) <= i_cl_rxd(1)((7 * 1) + 1); --E2
+i_cl_rxbyte(4)(3) <= i_cl_rxd(1)((7 * 1) + 2); --E3
+i_cl_rxbyte(4)(4) <= i_cl_rxd(1)((7 * 1) + 3); --E4
+i_cl_rxbyte(4)(5) <= i_cl_rxd(1)((7 * 1) + 4); --E5
+i_cl_rxbyte(4)(6) <= i_cl_rxd(1)((7 * 3) + 2); --E6
+i_cl_rxbyte(4)(7) <= i_cl_rxd(1)((7 * 3) + 3); --E7
+
+--cl F(byte)
+i_cl_rxbyte(5)(0) <= i_cl_rxd(1)((7 * 1) + 5); --F0
+i_cl_rxbyte(5)(1) <= i_cl_rxd(1)((7 * 1) + 6); --F1
+i_cl_rxbyte(5)(2) <= i_cl_rxd(1)((7 * 2) + 0); --F2
+i_cl_rxbyte(5)(3) <= i_cl_rxd(1)((7 * 2) + 1); --F3
+i_cl_rxbyte(5)(4) <= i_cl_rxd(1)((7 * 2) + 2); --F4
+i_cl_rxbyte(5)(5) <= i_cl_rxd(1)((7 * 2) + 3); --F5
+i_cl_rxbyte(5)(6) <= i_cl_rxd(1)((7 * 3) + 4); --F6
+i_cl_rxbyte(5)(7) <= i_cl_rxd(1)((7 * 3) + 5); --F7
+
+
+--!!!! cl Z cahnnel !!!!
+i_cl_fval(2) <= i_cl_rxd(2)((7 * 2) + 5); --FVAL(Frame value)
+i_cl_lval(2) <= i_cl_rxd(2)((7 * 2) + 4); --LVAL(Line value)
+
+--cl G(byte)
+i_cl_rxbyte(6)(0) <= i_cl_rxd(2)((7 * 0) + 0); --G0
+i_cl_rxbyte(6)(1) <= i_cl_rxd(2)((7 * 0) + 1); --G1
+i_cl_rxbyte(6)(2) <= i_cl_rxd(2)((7 * 0) + 2); --G2
+i_cl_rxbyte(6)(3) <= i_cl_rxd(2)((7 * 0) + 3); --G3
+i_cl_rxbyte(6)(4) <= i_cl_rxd(2)((7 * 0) + 4); --G4
+i_cl_rxbyte(6)(5) <= i_cl_rxd(2)((7 * 0) + 5); --G5
+i_cl_rxbyte(6)(6) <= i_cl_rxd(2)((7 * 3) + 0); --G6
+i_cl_rxbyte(6)(7) <= i_cl_rxd(2)((7 * 3) + 1); --G7
+
+--cl H(byte)
+i_cl_rxbyte(7)(0) <= i_cl_rxd(2)((7 * 0) + 6); --H0
+i_cl_rxbyte(7)(1) <= i_cl_rxd(2)((7 * 1) + 0); --H1
+i_cl_rxbyte(7)(2) <= i_cl_rxd(2)((7 * 1) + 1); --H2
+i_cl_rxbyte(7)(3) <= i_cl_rxd(2)((7 * 1) + 2); --H3
+i_cl_rxbyte(7)(4) <= i_cl_rxd(2)((7 * 1) + 3); --H4
+i_cl_rxbyte(7)(5) <= i_cl_rxd(2)((7 * 1) + 4); --H5
+i_cl_rxbyte(7)(6) <= i_cl_rxd(2)((7 * 3) + 2); --H6
+i_cl_rxbyte(7)(7) <= i_cl_rxd(2)((7 * 3) + 3); --H7
 
 
 
@@ -415,9 +442,11 @@ i_cl_rxbyte(2)(7) <= i_cl_rxd(0)((7 * 3) + 5); --C7
 --#########################################
 --DBG
 --#########################################
-p_out_tst(0) <= i_cl_tstout(0)(0);
-p_out_tst(1) <= i_cl_fval(0);
-p_out_tst(2) <= i_cl_lval(0);
+gen_sync_ch : for i in 0 to (G_CL_CHCOUNT - 1) generate begin
+p_out_tst(i) <= i_cl_link(i);
+end generate gen_sync_ch;
+p_out_tst(3) <= i_cl_fval(0);
+p_out_tst(4) <= i_cl_lval(0);
 
 
 i_dbg.clx.core <= i_cl_core_dbg(0);
@@ -447,8 +476,8 @@ probe0(43 downto 40) => std_logic_vector(i_dbg.clx.core.sr_des_d(6)),
 probe0(44) => i_dbg.clx.core.sync_find_ok,
 probe0(45) => i_dbg.clx.core.sync_find,
 probe0(46) => i_dbg.clx.core.usr_sync,
-probe0(49 downto 47) => i_dbg.clx.core.fsm_sync,
-probe0(58 downto 50) => i_dbg.clx.core.idelay_oval((9 * 2) - 1 downto (9 * 1))
+probe0(49 downto 47) => i_dbg.clx.core.fsm_sync
+--probe0(58 downto 50) => i_dbg.clx.core.idelay_oval((9 * 2) - 1 downto (9 * 1))
 );
 
 
