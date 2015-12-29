@@ -2,7 +2,7 @@
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 29.12.2015 11:09:05
--- Module Name : cl_prm_detect
+-- Module Name : cl_detect_frprm
 --
 -- Description :
 --
@@ -11,7 +11,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity cl_prm_detect is
+entity cl_detect_frprm is
 port(
 --------------------------------------------------
 --usectrl
@@ -40,9 +40,9 @@ p_out_det_rdy   : out std_logic;
 p_out_tst : out  std_logic_vector(31 downto 0);
 p_in_tst  : in   std_logic_vector(31 downto 0)
 );
-end entity cl_prm_detect;
+end entity cl_detect_frprm;
 
-architecture behavioral of cl_prm_detect is
+architecture behavioral of cl_detect_frprm is
 
 type TFsm_vprm is (
 S_LINE_WAIT ,
