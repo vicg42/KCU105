@@ -17,6 +17,7 @@ use unisim.vcomponents.all;
 library work;
 use work.reduce_pack.all;
 use work.cl_pkg.all;
+use work.cam_cl_pkg.all;
 
 entity camera_cl_main is
 generic(
@@ -55,6 +56,8 @@ p_in_cl_di_n  : in  std_logic_vector((4 * G_CL_CHCOUNT) - 1 downto 0);
 --p_out_rxbyte : out  std_logic_vector((G_PIXBIT * G_CL_TAP) - 1 downto 0);
 --p_out_rxclk  : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 
+p_out_status   : out  std_logic_vector(C_CAM_STATUS_LASTBIT downto 0);
+
 --------------------------------------------------
 --DBG
 --------------------------------------------------
@@ -91,6 +94,7 @@ p_in_cl_di_n  : in  std_logic_vector((4 * G_CL_CHCOUNT) - 1 downto 0);
 --------------------------------------------------
 --VideoOut
 --------------------------------------------------
+p_out_plllock: out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 p_out_link   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 p_out_fval   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --frame valid
 p_out_lval   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --line valid
@@ -175,6 +179,7 @@ p_out_sync  : out  std_logic
 );
 end component cl_bufline;
 
+signal i_plllock : std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 signal i_link    : std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 signal i_fval    : std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --frame valid
 signal i_lval    : std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --line valid
@@ -183,8 +188,8 @@ signal i_rxbyte  : std_logic_vector((CI_CL_TAP * CI_PIXBIT) - 1 downto 0);
 signal i_rxclk   : std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 
 signal i_link_total : std_logic;
-signal i_pixcount   : std_logic_vector(15 downto 0);
-signal i_linecount  : std_logic_vector(15 downto 0);
+signal i_pixcount_measure   : std_logic_vector(15 downto 0);
+signal i_linecount_measure  : std_logic_vector(15 downto 0);
 signal i_frprm_det  : std_logic;
 
 
@@ -272,6 +277,7 @@ p_in_cl_di_n  => p_in_cl_di_n ,
 --------------------------------------------------
 --VideoOut
 --------------------------------------------------
+p_out_plllock => i_plllock,
 p_out_link   => i_link  ,
 p_out_fval   => i_fval  ,
 p_out_lval   => i_lval  ,
@@ -320,8 +326,8 @@ p_in_rxclk => i_rxclk(0),
 --------------------------------------------------
 --params video
 --------------------------------------------------
-p_out_pixcount  => i_pixcount,
-p_out_linecount => i_linecount,
+p_out_pixcount  => i_pixcount_measure,
+p_out_linecount => i_linecount_measure,
 p_out_det_rdy   => i_frprm_det
 );
 
@@ -365,23 +371,26 @@ p_out_det_rdy   => i_frprm_det
 --#########################################
 --DBG
 --#########################################
-p_out_tst(0) <= i_link_total;
 gen_tp1_link : for i in 0 to (G_CL_CHCOUNT - 1) generate begin
-p_out_tst(1 + i) <= i_link(i);
+p_out_status(C_CAM_STATUS_CLX_PLLLOCK_BIT + i) <= i_plllock(i);
+p_out_status(C_CAM_STATUS_CLX_LINK_BIT + i) <= i_link(i);
 end generate gen_tp1_link;
 
 gen_tp2_link : if (G_CL_CHCOUNT < C_CL_CHCOUNT_MAX) generate begin
 gen : for i in G_CL_CHCOUNT to (C_CL_CHCOUNT_MAX - 1) generate begin
-p_out_tst(1 + i) <= '0';
+p_out_status(C_CAM_STATUS_CLX_PLLLOCK_BIT + i) <= '0';
+p_out_status(C_CAM_STATUS_CLX_LINK_BIT + i) <= '0';
 end generate gen;
 end generate gen_tp2_link;
 
-p_out_tst(4) <= i_fval(0);
-p_out_tst(5) <= i_lval(0);
+p_out_status(C_CAM_STATUS_CL_LINKTOTAL_BIT) <= i_link_total;
+
+p_out_tst(7) <= i_fval(0);
+p_out_tst(8) <= i_lval(0);
 
 
-i_dbg.det.pixcount  <= i_pixcount;
-i_dbg.det.linecount <= i_linecount;
+i_dbg.det.pixcount  <= i_pixcount_measure;
+i_dbg.det.linecount <= i_linecount_measure;
 i_dbg.det.frprm_det <= i_frprm_det;
 i_dbg.det.restart <= i_btn;
 
