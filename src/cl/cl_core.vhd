@@ -21,7 +21,7 @@ use work.cl_pkg.all;
 
 entity cl_core is
 generic(
-G_PLL_TYPE : string := "PLL" --"MMCM"
+G_PLL_TYPE : natural := 0
 );
 port(
 -----------------------------
@@ -39,18 +39,18 @@ p_out_rxd     : out std_logic_vector(27 downto 0);
 p_out_rxclk   : out std_logic;
 p_out_link    : out std_logic;
 
------------------------------
---DBG
------------------------------
-p_out_tst : out  std_logic_vector(31 downto 0);
-p_in_tst  : in   std_logic_vector(31 downto 0);
-p_out_dbg : out  TCL_core_dbg;
+-------------------------------
+----DBG
+-------------------------------
+--p_out_tst : out  std_logic_vector(31 downto 0);
+--p_in_tst  : in   std_logic_vector(31 downto 0);
+--p_out_dbg : out  TCL_core_dbg;
 
 -----------------------------
 --System
 -----------------------------
-p_in_refclk : in std_logic;
-p_in_clk : in std_logic;
+--p_in_refclk : in std_logic;
+--p_in_clk : in std_logic;
 p_in_rst : in std_logic
 );
 end entity cl_core;
@@ -127,7 +127,7 @@ signal i_idelay_ce      : std_logic;
 signal i_idelay_inc     : std_logic := '0';
 signal i_idelay_adj     : std_logic := '0';
 signal i_idelay_adj_cnt : unsigned(4 downto 0);
-signal i_odelay_do      : std_logic_vector(4 downto 0); --(0 downto 0);
+--signal i_odelay_do      : std_logic_vector(4 downto 0); --(0 downto 0);
 signal i_serdes_do      : TCL_SerDesDOUT;
 signal i_des_d          : TCL_DesData;
 type TCL_SrDesData is array (0 to 6) of unsigned(3 downto 0);
@@ -177,13 +177,13 @@ begin --architecture struct
 
 
 --Set working clock
-m_ibufds_xclk : IBUFDS
+m_ibufds_clk : IBUFDS
 port map (I => p_in_cl_clk_p, IB => p_in_cl_clk_n, O => i_cl_clkin);
 
-m_bufg_xclk : BUFG
+m_bufg_clk : BUFG
 port map (I => i_cl_clkin, O => g_cl_clkin);
 
-gen_pll : if strcmp(G_PLL_TYPE, "PLL") generate
+gen_pll : if (G_PLL_TYPE = C_CL_PLL) generate
 begin
 m_pllclk : cl_clk_pll
 port map(
@@ -194,7 +194,7 @@ locked   => i_cl_clkin_7x_lock
 );
 end generate gen_pll;
 
-gen_mmcm : if strcmp(G_PLL_TYPE, "MMCM") generate
+gen_mmcm : if (G_PLL_TYPE = C_CL_MMCM) generate
 begin
 m_pllclk : cl_clk_mmcd
 port map(
@@ -248,11 +248,11 @@ i_desr_ctrl_rst <= sr_rst(31);
 
 --Set signal for deserialization
 i_cl_din(0) <= i_cl_clkin;--!!!!!!!
-gen_xch : for i in 0 to 3 generate
+gen_ch : for i in 0 to 3 generate
 begin
 m_ibufds : IBUFDS
 port map (I => p_in_cl_di_p(i), IB => p_in_cl_di_n(i), O => i_cl_din(i + 1));
-end generate gen_xch;
+end generate gen_ch;
 
 
 --Deserialization
@@ -279,7 +279,7 @@ IDATAIN     => i_cl_din(i),    -- 1-bit input: Data input from the IOBUF
 DATAOUT     => i_idelay_do(i), -- 1-bit output: Delayed data output
 
 CASC_IN     => '0'        , -- 1-bit input: Cascade delay input from slave ODELAY CASCADE_OUT
-CASC_RETURN => i_odelay_do(i), -- 1-bit input: Cascade delay returning from slave ODELAY DATAOUT
+CASC_RETURN => '0',--i_odelay_do(i), -- 1-bit input: Cascade delay returning from slave ODELAY DATAOUT
 CASC_OUT    => i_idelay_co(i), -- 1-bit output: Cascade delay output to ODELAY input cascade
 CNTVALUEOUT => i_idelay_oval(i)((9 * 1) - 1 downto (9 * 0)) , -- 9-bit output: Counter value output
 EN_VTC      => '0'        , -- 1-bit input: Keep delay constant over VT
@@ -589,9 +589,9 @@ end process;
 
 
 --dout Register
-process(g_cl_clkin_7xdiv7)
-begin
-if rising_edge(g_cl_clkin_7xdiv7) then
+--process(g_cl_clkin_7xdiv7)
+--begin
+--if rising_edge(g_cl_clkin_7xdiv7) then
 --RxIN0
 i_cl_rxd((7 * 0) + 0) <= i_gearbox_do(1)(6);
 i_cl_rxd((7 * 0) + 1) <= i_gearbox_do(1)(5);
@@ -628,8 +628,8 @@ i_cl_rxd((7 * 3) + 4) <= i_gearbox_do(4)(2);
 i_cl_rxd((7 * 3) + 5) <= i_gearbox_do(4)(1);
 i_cl_rxd((7 * 3) + 6) <= i_gearbox_do(4)(0);
 
-end if;
-end process;
+--end if;
+--end process;
 
 p_out_rxd <= i_cl_rxd;
 
@@ -645,71 +645,73 @@ p_out_link <= i_link_ok;
 --#########################################
 --DBG
 --#########################################
-p_out_tst(0) <= i_cl_clkin_7x_lock;
-p_out_tst(1) <= g_cl_clkin_7xdiv4;
-p_out_tst(2) <= i_idelay_oval(0)(3) or i_des_d(0)(0);
+--p_out_tst <= (others => '0');
 
-process(i_desr_ctrl_rst, g_cl_clkin_7xdiv4)
-begin
-if (i_desr_ctrl_rst = '0') then
-  sr_btn <= (others => '0');
-  i_btn <= '0';
-elsif rising_edge(g_cl_clkin_7xdiv4) then
-  sr_btn <= p_in_tst(0) & sr_btn(0 to 1);
-  i_btn <= sr_btn(1) and (not sr_btn(2));
-end if;
-end process;
+--p_out_tst(0) <= i_cl_clkin_7x_lock;
+--p_out_tst(1) <= g_cl_clkin_7xdiv4;
+--p_out_tst(2) <= i_idelay_oval(0)(3) or i_des_d(0)(0);
 
-process(i_desr_ctrl_rst, g_cl_clkin_7xdiv7)
-begin
-if (i_desr_ctrl_rst = '0') then
-  sr_2btn <= (others => '0');
-  i_2btn <= '0';
-elsif rising_edge(g_cl_clkin_7xdiv7) then
-  sr_2btn <= p_in_tst(0) & sr_2btn(0 to 1);
-  i_2btn <= sr_2btn(1) and (not sr_2btn(2));
-end if;
-end process;
-
-process(g_cl_clkin_7xdiv7)
-begin
-if rising_edge(g_cl_clkin_7xdiv7) then
-i_cl_sync_val <= i_gearbox_do(0);
-end if;
-end process;
-
-
-tst_fsm_sync <= TO_UNSIGNED(16#01#, tst_fsm_sync'length) when i_fsm_sync = S_SYNC_CHK       else
-                TO_UNSIGNED(16#02#, tst_fsm_sync'length) when i_fsm_sync = S_SYNC_STABLE    else
-                TO_UNSIGNED(16#03#, tst_fsm_sync'length) when i_fsm_sync = S_SYNC_MEASURE_1 else
-                TO_UNSIGNED(16#04#, tst_fsm_sync'length) when i_fsm_sync = S_SYNC_MEASURE_2 else
-                TO_UNSIGNED(16#05#, tst_fsm_sync'length) when i_fsm_sync = S_SYNC_SET       else
-                TO_UNSIGNED(16#06#, tst_fsm_sync'length) when i_fsm_sync = S_SYNC_DONE      else
-                TO_UNSIGNED(16#00#, tst_fsm_sync'length); --i_fsm_fgwr = S_SYNC_FIND        else
-
-
-i_dbg.fsm_sync <= std_logic_vector(tst_fsm_sync);
-i_dbg.usr_2sync <= i_2btn;
-i_dbg.usr_sync <= i_btn;
-
-i_dbg.sync <= '1' when (i_sync_pcnt = (TO_UNSIGNED(6, i_sync_pcnt'length))) else '0';
-i_dbg.sync_find <= i_sync_find;
-i_dbg.sync_find_ok <= i_sync_stable;
-i_dbg.idelay_inc <= i_idelay_inc;
-i_dbg.idelay_ce <= i_idelay_ce;
-i_dbg.idelay_oval <= i_idelay_oval(0);
-
-i_dbg.des_d <= i_des_d(0);
-i_dbg.sr_des_d(0) <= sr_des_d(0);
-i_dbg.sr_des_d(1) <= sr_des_d(1);
-i_dbg.sr_des_d(2) <= sr_des_d(2);
-i_dbg.sr_des_d(3) <= sr_des_d(3);
-i_dbg.sr_des_d(4) <= sr_des_d(4);
-i_dbg.sr_des_d(5) <= sr_des_d(5);
-i_dbg.sr_des_d(6) <= sr_des_d(6);
-
-i_dbg.gearbox_do_sync_val <= i_cl_sync_val;
-
-p_out_dbg <= i_dbg;
+--process(i_desr_ctrl_rst, g_cl_clkin_7xdiv4)
+--begin
+--if (i_desr_ctrl_rst = '0') then
+--  sr_btn <= (others => '0');
+--  i_btn <= '0';
+--elsif rising_edge(g_cl_clkin_7xdiv4) then
+--  sr_btn <= p_in_tst(0) & sr_btn(0 to 1);
+--  i_btn <= sr_btn(1) and (not sr_btn(2));
+--end if;
+--end process;
+--
+--process(i_desr_ctrl_rst, g_cl_clkin_7xdiv7)
+--begin
+--if (i_desr_ctrl_rst = '0') then
+--  sr_2btn <= (others => '0');
+--  i_2btn <= '0';
+--elsif rising_edge(g_cl_clkin_7xdiv7) then
+--  sr_2btn <= p_in_tst(0) & sr_2btn(0 to 1);
+--  i_2btn <= sr_2btn(1) and (not sr_2btn(2));
+--end if;
+--end process;
+--
+--process(g_cl_clkin_7xdiv7)
+--begin
+--if rising_edge(g_cl_clkin_7xdiv7) then
+--i_cl_sync_val <= i_gearbox_do(0);
+--end if;
+--end process;
+--
+--
+--tst_fsm_sync <= TO_UNSIGNED(16#01#, tst_fsm_sync'length) when i_fsm_sync = S_SYNC_CHK       else
+--                TO_UNSIGNED(16#02#, tst_fsm_sync'length) when i_fsm_sync = S_SYNC_STABLE    else
+--                TO_UNSIGNED(16#03#, tst_fsm_sync'length) when i_fsm_sync = S_SYNC_MEASURE_1 else
+--                TO_UNSIGNED(16#04#, tst_fsm_sync'length) when i_fsm_sync = S_SYNC_MEASURE_2 else
+--                TO_UNSIGNED(16#05#, tst_fsm_sync'length) when i_fsm_sync = S_SYNC_SET       else
+--                TO_UNSIGNED(16#06#, tst_fsm_sync'length) when i_fsm_sync = S_SYNC_DONE      else
+--                TO_UNSIGNED(16#00#, tst_fsm_sync'length); --i_fsm_fgwr = S_SYNC_FIND        else
+--
+--
+--i_dbg.fsm_sync <= std_logic_vector(tst_fsm_sync);
+--i_dbg.usr_2sync <= i_2btn;
+--i_dbg.usr_sync <= i_btn;
+--
+--i_dbg.sync <= '1' when (i_sync_pcnt = (TO_UNSIGNED(6, i_sync_pcnt'length))) else '0';
+--i_dbg.sync_find <= i_sync_find;
+--i_dbg.sync_find_ok <= i_sync_stable;
+--i_dbg.idelay_inc <= i_idelay_inc;
+--i_dbg.idelay_ce <= i_idelay_ce;
+--i_dbg.idelay_oval <= i_idelay_oval(0);
+--
+--i_dbg.des_d <= i_des_d(0);
+--i_dbg.sr_des_d(0) <= sr_des_d(0);
+--i_dbg.sr_des_d(1) <= sr_des_d(1);
+--i_dbg.sr_des_d(2) <= sr_des_d(2);
+--i_dbg.sr_des_d(3) <= sr_des_d(3);
+--i_dbg.sr_des_d(4) <= sr_des_d(4);
+--i_dbg.sr_des_d(5) <= sr_des_d(5);
+--i_dbg.sr_des_d(6) <= sr_des_d(6);
+--
+--i_dbg.gearbox_do_sync_val <= i_cl_sync_val;
+--
+--p_out_dbg <= i_dbg;
 
 end architecture struct;

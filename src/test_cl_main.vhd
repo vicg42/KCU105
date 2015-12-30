@@ -17,7 +17,7 @@ use work.reduce_pack.all;
 
 entity test_cl_main is
 generic(
-G_CLIN_WIDTH : natural := 1
+G_CL_CHCOUNT : natural := 3
 );
 port(
 --------------------------------------------------
@@ -42,10 +42,26 @@ pin_in_cl_tfg_p : in  std_logic;
 pin_out_cl_tc_n : out std_logic;
 pin_out_cl_tc_p : out std_logic;
 
-pin_in_cl_xclk_p : in  std_logic;
-pin_in_cl_xclk_n : in  std_logic;
-pin_in_cl_x_p    : in  std_logic_vector(3 downto 0);
-pin_in_cl_x_n    : in  std_logic_vector(3 downto 0);
+--X,Y,Z : 0,1,2
+pin_in_cl_clk_p : in  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
+pin_in_cl_clk_n : in  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
+pin_in_cl_di_p  : in  std_logic_vector((4 * G_CL_CHCOUNT) - 1 downto 0);
+pin_in_cl_di_n  : in  std_logic_vector((4 * G_CL_CHCOUNT) - 1 downto 0);
+
+--pin_in_cl_xclk_p : in  std_logic;
+--pin_in_cl_xclk_n : in  std_logic;
+--pin_in_cl_x_p    : in  std_logic_vector(3 downto 0);
+--pin_in_cl_x_n    : in  std_logic_vector(3 downto 0);
+--
+--pin_in_cl_yclk_p : in  std_logic;
+--pin_in_cl_yclk_n : in  std_logic;
+--pin_in_cl_y_p    : in  std_logic_vector(3 downto 0);
+--pin_in_cl_y_n    : in  std_logic_vector(3 downto 0);
+
+--pin_in_cl_zclk_p : in  std_logic;
+--pin_in_cl_zclk_n : in  std_logic;
+--pin_in_cl_z_p    : in  std_logic_vector(3 downto 0);
+--pin_in_cl_z_n    : in  std_logic_vector(3 downto 0);
 
 --------------------------------------------------
 --Reference clock
@@ -89,34 +105,42 @@ p_in_rst       : in    std_logic
 );
 end component fpga_test_01;
 
-component cl_main is
+component camera_cl_main is
 generic(
+--G_PIXBIT : natural := 1
+--G_CL_TAP : natural := 1
 G_CL_CHCOUNT : natural := 1
 );
 port(
 --------------------------------------------------
---RS232(PC)
+--
 --------------------------------------------------
-p_in_rs232_rx  : in  std_logic;
-p_out_rs232_tx : out std_logic;
+p_in_cam_ctrl_rx  : in  std_logic;
+p_out_cam_ctrl_tx : out std_logic;
 
 --------------------------------------------------
---CameraLink
+--CameraLink Interface
 --------------------------------------------------
 p_in_tfg_n : in  std_logic; --Camera -> FG
 p_in_tfg_p : in  std_logic;
 p_out_tc_n : out std_logic; --Camera <- FG
 p_out_tc_p : out std_logic;
 
+--X,Y,Z : 0,1,2
 p_in_cl_clk_p : in  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 p_in_cl_clk_n : in  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 p_in_cl_di_p  : in  std_logic_vector((4 * G_CL_CHCOUNT) - 1 downto 0);
 p_in_cl_di_n  : in  std_logic_vector((4 * G_CL_CHCOUNT) - 1 downto 0);
 
---p_in_xclk_p : in  std_logic;
---p_in_xclk_n : in  std_logic;
---p_in_x_p : in  std_logic_vector(3 downto 0);
---p_in_x_n : in  std_logic_vector(3 downto 0);
+----------------------------------------------------
+----VideoOut
+----------------------------------------------------
+--p_out_link   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
+--p_out_fval   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --frame valid
+--p_out_lval   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --line valid
+--p_out_dval   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --data valid
+--p_out_rxbyte : out  std_logic_vector((G_PIXBIT * G_CL_TAP) - 1 downto 0);
+--p_out_rxclk  : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 
 --------------------------------------------------
 --DBG
@@ -124,11 +148,11 @@ p_in_cl_di_n  : in  std_logic_vector((4 * G_CL_CHCOUNT) - 1 downto 0);
 p_out_tst : out  std_logic_vector(31 downto 0);
 p_in_tst  : in   std_logic_vector(31 downto 0);
 
-p_in_refclk : in std_logic;
-p_in_clk : in std_logic;
+--p_in_refclk : in std_logic;
+--p_in_clk : in std_logic;
 p_in_rst : in std_logic
 );
-end component cl_main;
+end component camera_cl_main;
 
 component debounce is
 generic(
@@ -154,12 +178,6 @@ signal i_cl_tst_out        : std_logic_vector(31 downto 0);
 signal i_cl_tst_in         : std_logic_vector(31 downto 0);
 signal i_usr_rst           : std_logic;
 
-constant CI_CL_CHCOUNT : natural := 1;
-signal i_cl_chclk_p        : std_logic_vector(CI_CL_CHCOUNT - 1 downto 0);
-signal i_cl_chclk_n        : std_logic_vector(CI_CL_CHCOUNT - 1 downto 0);
-signal i_cl_chdi_p         : std_logic_vector((4 * CI_CL_CHCOUNT) - 1 downto 0);
-signal i_cl_chdi_n         : std_logic_vector((4 * CI_CL_CHCOUNT) - 1 downto 0);
-
 
 begin --architecture struct
 
@@ -181,39 +199,42 @@ p_in_clk   => pin_in_refclk
 i_usr_rst <= pin_in_btn(0);
 
 
-i_cl_chclk_p(0) <= pin_in_cl_xclk_p;
-i_cl_chclk_n(0) <= pin_in_cl_xclk_n;
-i_cl_chdi_p(3 downto 0) <= pin_in_cl_x_p;
-i_cl_chdi_n(3 downto 0) <= pin_in_cl_x_n;
-
-m_cl : cl_main
+m_cam : camera_cl_main
 generic map(
-G_CL_CHCOUNT => CI_CL_CHCOUNT
+--G_PIXBIT : natural := 1
+--G_CL_TAP : natural := 1
+G_CL_CHCOUNT => G_CL_CHCOUNT
 )
 port map(
 --------------------------------------------------
---RS232(PC)
+--
 --------------------------------------------------
-p_in_rs232_rx  => pin_in_rs232_rx ,
-p_out_rs232_tx => pin_out_rs232_tx,
+p_in_cam_ctrl_rx  => pin_in_rs232_rx ,
+p_out_cam_ctrl_tx => pin_out_rs232_tx,
 
 --------------------------------------------------
---CameraLink
+--CameraLink Interface
 --------------------------------------------------
 p_in_tfg_n => pin_in_cl_tfg_n, --Camera -> FG
 p_in_tfg_p => pin_in_cl_tfg_p,
 p_out_tc_n => pin_out_cl_tc_n, --Camera <- FG
 p_out_tc_p => pin_out_cl_tc_p,
 
-p_in_cl_clk_p => i_cl_chclk_p(CI_CL_CHCOUNT - 1 downto 0),
-p_in_cl_clk_n => i_cl_chclk_n(CI_CL_CHCOUNT - 1 downto 0),
-p_in_cl_di_p  => i_cl_chdi_p((4 * CI_CL_CHCOUNT) - 1 downto 0),
-p_in_cl_di_n  => i_cl_chdi_n((4 * CI_CL_CHCOUNT) - 1 downto 0),
+--X,Y,Z : 0,1,2
+p_in_cl_clk_p => pin_in_cl_clk_p,
+p_in_cl_clk_n => pin_in_cl_clk_n,
+p_in_cl_di_p  => pin_in_cl_di_p ,
+p_in_cl_di_n  => pin_in_cl_di_n ,
 
---p_in_xclk_p => pin_in_cl_xclk_p,
---p_in_xclk_n => pin_in_cl_xclk_n,
---p_in_x_p => pin_in_cl_x_p,
---p_in_x_n => pin_in_cl_x_n,
+----------------------------------------------------
+----VideoOut
+----------------------------------------------------
+--p_out_link   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
+--p_out_fval   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --frame valid
+--p_out_lval   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --line valid
+--p_out_dval   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --data valid
+--p_out_rxbyte : out  std_logic_vector((G_PIXBIT * G_CL_TAP) - 1 downto 0);
+--p_out_rxclk  : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 
 --------------------------------------------------
 --DBG
@@ -221,11 +242,10 @@ p_in_cl_di_n  => i_cl_chdi_n((4 * CI_CL_CHCOUNT) - 1 downto 0),
 p_out_tst => i_cl_tst_out,
 p_in_tst  => i_cl_tst_in,
 
-p_in_refclk => g_usrclk(1),
-p_in_clk => g_usrclk(0),
+--p_in_refclk => g_usrclk(1),
+--p_in_clk => g_usrclk(0),
 p_in_rst => i_usr_rst
 );
-
 
 i_cl_tst_in(0) <= i_btn;
 
@@ -260,10 +280,10 @@ pin_out_led(3) <= i_usr_rst;
 pin_out_led(4) <= '0';
 
 
-pin_out_led_hpc(0) <= '0';
-pin_out_led_hpc(1) <= i_cl_tst_out(2); --i_clz_sync
-pin_out_led_hpc(2) <= i_cl_tst_out(1); --i_cly_sync
-pin_out_led_hpc(3) <= i_cl_tst_out(0); --i_clx_sync
+pin_out_led_hpc(0) <= i_cl_tst_out(0);
+pin_out_led_hpc(1) <= i_cl_tst_out(1);
+pin_out_led_hpc(2) <= i_cl_tst_out(2);
+pin_out_led_hpc(3) <= i_cl_tst_out(3);
 
 pin_out_TP(0) <= i_cl_tst_out(1);--PMOD1_4  (CSI)
 pin_out_TP(1) <= i_cl_tst_out(2);--PMOD1_6  (SSI)

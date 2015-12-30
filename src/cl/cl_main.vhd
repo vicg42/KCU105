@@ -20,25 +20,14 @@ use work.cl_pkg.all;
 
 entity cl_main is
 generic(
-G_PIXBIT : natural := 8, --Amount bit per 1 pi
-G_CL_TAP : natural := 8, --Amount pixel per 1 clk
+G_PIXBIT : natural := 8; --Amount bit per 1 pi
+G_CL_TAP : natural := 8; --Amount pixel per 1 clk
 G_CL_CHCOUNT : natural := 1
 );
 port(
 --------------------------------------------------
---RS232(PC)
---------------------------------------------------
-p_in_rs232_rx  : in  std_logic;
-p_out_rs232_tx : out std_logic;
-
---------------------------------------------------
 --CameraLink
 --------------------------------------------------
-p_in_tfg_n : in  std_logic; --Camera -> FG
-p_in_tfg_p : in  std_logic;
-p_out_tc_n : out std_logic; --Camera <- FG
-p_out_tc_p : out std_logic;
-
 --X,Y,Z : 0,1,2
 p_in_cl_clk_p : in  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 p_in_cl_clk_n : in  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
@@ -58,11 +47,11 @@ p_out_rxclk  : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 --------------------------------------------------
 --DBG
 --------------------------------------------------
-p_out_tst : out  std_logic_vector(31 downto 0);
-p_in_tst  : in   std_logic_vector(31 downto 0);
+--p_out_tst : out  std_logic_vector(31 downto 0);
+--p_in_tst  : in   std_logic_vector(31 downto 0);
 
-p_in_refclk : in std_logic;
-p_in_clk : in std_logic;
+--p_in_refclk : in std_logic;
+--p_in_clk : in std_logic;
 p_in_rst : in std_logic
 );
 end entity cl_main;
@@ -70,16 +59,12 @@ end entity cl_main;
 architecture struct of cl_main is
 
 
-type TCL_PLL_TYPE is array of string;
-constant CI_PLL_TYPE : TCL_PLL_TYPE := {
-"MMCM",
-"PLL",
-"PLL"
-};
+type TCL_PLL_TYPE is array(0 to 2) of natural;
+constant CI_PLL_TYPE : TCL_PLL_TYPE := (C_CL_MMCM, C_CL_PLL, C_CL_PLL);
 
 component cl_core is
 generic(
-G_PLL_TYPE : string := "MMCM" --"PLL"
+G_PLL_TYPE : natural := 0
 );
 port(
 -----------------------------
@@ -97,18 +82,18 @@ p_out_rxd     : out std_logic_vector(27 downto 0);
 p_out_rxclk   : out std_logic;
 p_out_link    : out std_logic;
 
------------------------------
---DBG
------------------------------
-p_out_tst : out  std_logic_vector(31 downto 0);
-p_in_tst  : in   std_logic_vector(31 downto 0);
-p_out_dbg : out  TCL_core_dbg;
+-------------------------------
+----DBG
+-------------------------------
+--p_out_tst : out  std_logic_vector(31 downto 0);
+--p_in_tst  : in   std_logic_vector(31 downto 0);
+--p_out_dbg : out  TCL_core_dbg;
 
 -----------------------------
 --System
 -----------------------------
-p_in_refclk : in std_logic;
-p_in_clk : in std_logic;
+--p_in_refclk : in std_logic;
+--p_in_clk : in std_logic;
 p_in_rst : in std_logic
 );
 end component cl_core;
@@ -119,76 +104,69 @@ signal i_cl_lval       : std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 type TCL_rxd is array (0 to G_CL_CHCOUNT - 1) of std_logic_vector(27 downto 0);
 signal i_cl_rxd        : TCL_rxd;
 signal i_cl_rxclk      : std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
-signal i_cl_link       : std_logic_vector(2 downto 0) := (others => '0');
+signal i_cl_link       : std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 type TCL_tstout is array (0 to G_CL_CHCOUNT - 1) of std_logic_vector(31 downto 0);
 signal i_cl_tstout     : TCL_tstout;
 
 type TCL_rxbyte is array (0 to G_CL_TAP - 1) of std_logic_vector(G_PIXBIT - 1 downto 0);
 signal i_cl_rxbyte     : TCL_rxbyte;
 
-type TCL_core_dbgs is array (0 to G_CL_CHCOUNT - 1) of TCL_core_dbg;
-signal i_cl_core_dbg   : TCL_core_dbgs;
-
-
-component ila_dbg_cl is
-port (
-clk : in std_logic;
-probe0 : in std_logic_vector(49 downto 0)
-);
-end component ila_dbg_cl;
-
-component ila_dbg2_cl is
-port (
-clk : in std_logic;
-probe0 : in std_logic_vector(34 downto 0)
-);
-end component ila_dbg2_cl;
-
-type TCL_dbg is record
-core : TCL_core_dbg;
-lval : std_logic;
-fval : std_logic;
-end record;
-
-type TCL_rxbyte_dbg is array (0 to 2) of std_logic_vector(7 downto 0);
-
-type TCLmain_dbg is record
-clx : TCL_dbg;
-rxbyte : TCL_rxbyte_dbg;
-end record;
-
-signal i_dbg : TCLmain_dbg;
-
-attribute mark_debug : string;
-attribute mark_debug of i_dbg  : signal is "true";
+--type TCL_core_dbgs is array (0 to G_CL_CHCOUNT - 1) of TCL_core_dbg;
+--signal i_cl_core_dbg   : TCL_core_dbgs;
+--
+--
+--component ila_dbg_cl is
+--port (
+--clk : in std_logic;
+--probe0 : in std_logic_vector(49 downto 0)
+--);
+--end component ila_dbg_cl;
+--
+--component ila_dbg2_cl is
+--port (
+--clk : in std_logic;
+--probe0 : in std_logic_vector(34 downto 0)
+--);
+--end component ila_dbg2_cl;
+--
+--type TCL_dbg is record
+--core : TCL_core_dbg;
+--lval : std_logic;
+--fval : std_logic;
+--end record;
+--
+--type TCL_rxbyte_dbg is array (0 to 2) of std_logic_vector(7 downto 0);
+--
+--type TCLmain_dbg is record
+--clx : TCL_dbg;
+--rxbyte : TCL_rxbyte_dbg;
+--end record;
+--
+--signal i_dbg : TCLmain_dbg;
+--
+--attribute mark_debug : string;
+--attribute mark_debug of i_dbg  : signal is "true";
 
 
 
 begin --architecture struct
 
 
-m_ibufds_tfg : IBUFDS
-port map (I => p_in_tfg_p, IB => p_in_tfg_n, O => p_out_rs232_tx);
 
-m_obufds_tc : OBUFDS
-port map (I => p_in_rs232_rx, O  => p_out_tc_p, OB => p_out_tc_n);
-
-
-
-p_out_link  <= i_cl_link;
+p_out_link <= i_cl_link;
 p_out_fval <= i_cl_fval;
 p_out_lval <= i_cl_lval;
 p_out_dval <= (others => '1');
-p_out_rxclk   <= i_cl_rxclk;
+p_out_rxclk <= i_cl_rxclk;
 gen_dout : for i in 0 to (G_CL_TAP - 1) generate begin
 p_out_rxbyte((G_PIXBIT * (i + 1)) - 1 downto (G_PIXBIT * i)) <= i_cl_rxbyte(i)(G_PIXBIT - 1 downto 0);
 end generate gen_dout;
 
 
 gen_ch : for i in 0 to (G_CL_CHCOUNT - 1) generate begin
-m_ch : cl_core
+m_core : cl_core
 generic map(
-G_PLL_TYPE => CI_PLL_TYPE(i) --"MMCM" -- "PLL" --
+G_PLL_TYPE => CI_PLL_TYPE(i)
 )
 port map(
 -----------------------------
@@ -209,12 +187,12 @@ p_out_link    => i_cl_link(i),
 -----------------------------
 --DBG
 -----------------------------
-p_out_tst => i_cl_tstout(i),
-p_in_tst  => p_in_tst,
-p_out_dbg => i_cl_core_dbg(i),
+--p_out_tst => i_cl_tstout(i),
+--p_in_tst  => p_in_tst,
+--p_out_dbg => open,--i_cl_core_dbg(i),
 
-p_in_refclk => p_in_refclk,
-p_in_clk => p_in_clk,
+--p_in_refclk => p_in_refclk,
+--p_in_clk => p_in_clk,
 p_in_rst => p_in_rst
 );
 end generate gen_ch;
@@ -224,6 +202,9 @@ end generate gen_ch;
 --Full Configuration (64bit = 8Tap/8bit)
 --#################################
 --!!!! cl X cahnnel !!!!
+process(i_cl_rxclk(0))
+begin
+if rising_edge(i_cl_rxclk(0)) then
 i_cl_fval(0) <= i_cl_rxd(0)((7 * 2) + 5); --FVAL(Frame value)
 i_cl_lval(0) <= i_cl_rxd(0)((7 * 2) + 4); --LVAL(Line value)
 
@@ -256,9 +237,14 @@ i_cl_rxbyte(2)(4) <= i_cl_rxd(0)((7 * 2) + 2); --C4
 i_cl_rxbyte(2)(5) <= i_cl_rxd(0)((7 * 2) + 3); --C5
 i_cl_rxbyte(2)(6) <= i_cl_rxd(0)((7 * 3) + 4); --C6
 i_cl_rxbyte(2)(7) <= i_cl_rxd(0)((7 * 3) + 5); --C7
+end if;
+end process;
 
 
 --!!!! cl Y cahnnel !!!!
+process(i_cl_rxclk(1))
+begin
+if rising_edge(i_cl_rxclk(1)) then
 i_cl_fval(1) <= i_cl_rxd(1)((7 * 2) + 5); --FVAL(Frame value)
 i_cl_lval(1) <= i_cl_rxd(1)((7 * 2) + 4); --LVAL(Line value)
 
@@ -291,32 +277,38 @@ i_cl_rxbyte(5)(4) <= i_cl_rxd(1)((7 * 2) + 2); --F4
 i_cl_rxbyte(5)(5) <= i_cl_rxd(1)((7 * 2) + 3); --F5
 i_cl_rxbyte(5)(6) <= i_cl_rxd(1)((7 * 3) + 4); --F6
 i_cl_rxbyte(5)(7) <= i_cl_rxd(1)((7 * 3) + 5); --F7
+end if;
+end process;
 
 
---!!!! cl Z cahnnel !!!!
-i_cl_fval(2) <= i_cl_rxd(2)((7 * 2) + 5); --FVAL(Frame value)
-i_cl_lval(2) <= i_cl_rxd(2)((7 * 2) + 4); --LVAL(Line value)
-
---cl G(byte)
-i_cl_rxbyte(6)(0) <= i_cl_rxd(2)((7 * 0) + 0); --G0
-i_cl_rxbyte(6)(1) <= i_cl_rxd(2)((7 * 0) + 1); --G1
-i_cl_rxbyte(6)(2) <= i_cl_rxd(2)((7 * 0) + 2); --G2
-i_cl_rxbyte(6)(3) <= i_cl_rxd(2)((7 * 0) + 3); --G3
-i_cl_rxbyte(6)(4) <= i_cl_rxd(2)((7 * 0) + 4); --G4
-i_cl_rxbyte(6)(5) <= i_cl_rxd(2)((7 * 0) + 5); --G5
-i_cl_rxbyte(6)(6) <= i_cl_rxd(2)((7 * 3) + 0); --G6
-i_cl_rxbyte(6)(7) <= i_cl_rxd(2)((7 * 3) + 1); --G7
-
---cl H(byte)
-i_cl_rxbyte(7)(0) <= i_cl_rxd(2)((7 * 0) + 6); --H0
-i_cl_rxbyte(7)(1) <= i_cl_rxd(2)((7 * 1) + 0); --H1
-i_cl_rxbyte(7)(2) <= i_cl_rxd(2)((7 * 1) + 1); --H2
-i_cl_rxbyte(7)(3) <= i_cl_rxd(2)((7 * 1) + 2); --H3
-i_cl_rxbyte(7)(4) <= i_cl_rxd(2)((7 * 1) + 3); --H4
-i_cl_rxbyte(7)(5) <= i_cl_rxd(2)((7 * 1) + 4); --H5
-i_cl_rxbyte(7)(6) <= i_cl_rxd(2)((7 * 3) + 2); --H6
-i_cl_rxbyte(7)(7) <= i_cl_rxd(2)((7 * 3) + 3); --H7
-
+----!!!! cl Z cahnnel !!!!
+--process(i_cl_rxclk(2))
+--begin
+--if rising_edge(i_cl_rxclk(2)) then
+--i_cl_fval(2) <= i_cl_rxd(2)((7 * 2) + 5); --FVAL(Frame value)
+--i_cl_lval(2) <= i_cl_rxd(2)((7 * 2) + 4); --LVAL(Line value)
+--
+----cl G(byte)
+--i_cl_rxbyte(6)(0) <= i_cl_rxd(2)((7 * 0) + 0); --G0
+--i_cl_rxbyte(6)(1) <= i_cl_rxd(2)((7 * 0) + 1); --G1
+--i_cl_rxbyte(6)(2) <= i_cl_rxd(2)((7 * 0) + 2); --G2
+--i_cl_rxbyte(6)(3) <= i_cl_rxd(2)((7 * 0) + 3); --G3
+--i_cl_rxbyte(6)(4) <= i_cl_rxd(2)((7 * 0) + 4); --G4
+--i_cl_rxbyte(6)(5) <= i_cl_rxd(2)((7 * 0) + 5); --G5
+--i_cl_rxbyte(6)(6) <= i_cl_rxd(2)((7 * 3) + 0); --G6
+--i_cl_rxbyte(6)(7) <= i_cl_rxd(2)((7 * 3) + 1); --G7
+--
+----cl H(byte)
+--i_cl_rxbyte(7)(0) <= i_cl_rxd(2)((7 * 0) + 6); --H0
+--i_cl_rxbyte(7)(1) <= i_cl_rxd(2)((7 * 1) + 0); --H1
+--i_cl_rxbyte(7)(2) <= i_cl_rxd(2)((7 * 1) + 1); --H2
+--i_cl_rxbyte(7)(3) <= i_cl_rxd(2)((7 * 1) + 2); --H3
+--i_cl_rxbyte(7)(4) <= i_cl_rxd(2)((7 * 1) + 3); --H4
+--i_cl_rxbyte(7)(5) <= i_cl_rxd(2)((7 * 1) + 4); --H5
+--i_cl_rxbyte(7)(6) <= i_cl_rxd(2)((7 * 3) + 2); --H6
+--i_cl_rxbyte(7)(7) <= i_cl_rxd(2)((7 * 3) + 3); --H7
+--end if;
+--end process;
 
 
 ----#################################
@@ -442,57 +434,53 @@ i_cl_rxbyte(7)(7) <= i_cl_rxd(2)((7 * 3) + 3); --H7
 --#########################################
 --DBG
 --#########################################
-gen_sync_ch : for i in 0 to (G_CL_CHCOUNT - 1) generate begin
-p_out_tst(i) <= i_cl_link(i);
-end generate gen_sync_ch;
-p_out_tst(3) <= i_cl_fval(0);
-p_out_tst(4) <= i_cl_lval(0);
+--p_out_tst <= (others => '0');
 
 
-i_dbg.clx.core <= i_cl_core_dbg(0);
-i_dbg.clx.lval <= i_cl_lval(0);
-i_dbg.clx.fval <= i_cl_fval(0);
-i_dbg.rxbyte(0) <= i_cl_rxbyte(0);
-i_dbg.rxbyte(1) <= i_cl_rxbyte(1);
-i_dbg.rxbyte(2) <= i_cl_rxbyte(2);
-
-
-dbg_cl : ila_dbg_cl
-port map(
-clk => i_cl_tstout(0)(1), --g_cl_clkin_7xdiv4
-probe0(0) => i_dbg.clx.core.sync,
-probe0(4 downto 1) => i_dbg.clx.core.des_d,
-probe0(5) => i_dbg.clx.core.idelay_inc,
-probe0(6) => i_dbg.clx.core.idelay_ce,
-probe0(15 downto 7) => i_dbg.clx.core.idelay_oval((9 * 1) - 1 downto (9 * 0)),
-probe0(19 downto 16) => std_logic_vector(i_dbg.clx.core.sr_des_d(0)),
-probe0(23 downto 20) => std_logic_vector(i_dbg.clx.core.sr_des_d(1)),
-probe0(27 downto 24) => std_logic_vector(i_dbg.clx.core.sr_des_d(2)),
-probe0(31 downto 28) => std_logic_vector(i_dbg.clx.core.sr_des_d(3)),
-probe0(35 downto 32) => std_logic_vector(i_dbg.clx.core.sr_des_d(4)),
-probe0(39 downto 36) => std_logic_vector(i_dbg.clx.core.sr_des_d(5)),
-probe0(43 downto 40) => std_logic_vector(i_dbg.clx.core.sr_des_d(6)),
-
-probe0(44) => i_dbg.clx.core.sync_find_ok,
-probe0(45) => i_dbg.clx.core.sync_find,
-probe0(46) => i_dbg.clx.core.usr_sync,
-probe0(49 downto 47) => i_dbg.clx.core.fsm_sync
---probe0(58 downto 50) => i_dbg.clx.core.idelay_oval((9 * 2) - 1 downto (9 * 1))
-);
-
-
-dbg2_cl : ila_dbg2_cl
-port map(
-clk => i_cl_rxclk(0),
-probe0(0) => i_dbg.clx.core.sync_find_ok,
-probe0(7 downto 1) => i_dbg.clx.core.gearbox_do_sync_val,
-probe0(8) => i_dbg.clx.lval,
-probe0(9) => i_dbg.clx.fval,
-probe0(17 downto 10) => i_dbg.rxbyte(0),
-probe0(25 downto 18) => i_dbg.rxbyte(1),
-probe0(33 downto 26) => i_dbg.rxbyte(2),
-probe0(34) => i_dbg.clx.core.usr_2sync
-);
+--i_dbg.clx.core <= i_cl_core_dbg(0);
+--i_dbg.clx.lval <= i_cl_lval(0);
+--i_dbg.clx.fval <= i_cl_fval(0);
+--i_dbg.rxbyte(0) <= i_cl_rxbyte(0);
+--i_dbg.rxbyte(1) <= i_cl_rxbyte(1);
+--i_dbg.rxbyte(2) <= i_cl_rxbyte(2);
+--
+--
+--dbg_cl : ila_dbg_cl
+--port map(
+--clk => i_cl_tstout(0)(1), --g_cl_clkin_7xdiv4
+--probe0(0) => i_dbg.clx.core.sync,
+--probe0(4 downto 1) => i_dbg.clx.core.des_d,
+--probe0(5) => i_dbg.clx.core.idelay_inc,
+--probe0(6) => i_dbg.clx.core.idelay_ce,
+--probe0(15 downto 7) => i_dbg.clx.core.idelay_oval((9 * 1) - 1 downto (9 * 0)),
+--probe0(19 downto 16) => std_logic_vector(i_dbg.clx.core.sr_des_d(0)),
+--probe0(23 downto 20) => std_logic_vector(i_dbg.clx.core.sr_des_d(1)),
+--probe0(27 downto 24) => std_logic_vector(i_dbg.clx.core.sr_des_d(2)),
+--probe0(31 downto 28) => std_logic_vector(i_dbg.clx.core.sr_des_d(3)),
+--probe0(35 downto 32) => std_logic_vector(i_dbg.clx.core.sr_des_d(4)),
+--probe0(39 downto 36) => std_logic_vector(i_dbg.clx.core.sr_des_d(5)),
+--probe0(43 downto 40) => std_logic_vector(i_dbg.clx.core.sr_des_d(6)),
+--
+--probe0(44) => i_dbg.clx.core.sync_find_ok,
+--probe0(45) => i_dbg.clx.core.sync_find,
+--probe0(46) => i_dbg.clx.core.usr_sync,
+--probe0(49 downto 47) => i_dbg.clx.core.fsm_sync
+----probe0(58 downto 50) => i_dbg.clx.core.idelay_oval((9 * 2) - 1 downto (9 * 1))
+--);
+--
+--
+--dbg2_cl : ila_dbg2_cl
+--port map(
+--clk => i_cl_rxclk(0),
+--probe0(0) => i_dbg.clx.core.sync_find_ok,
+--probe0(7 downto 1) => i_dbg.clx.core.gearbox_do_sync_val,
+--probe0(8) => i_dbg.clx.lval,
+--probe0(9) => i_dbg.clx.fval,
+--probe0(17 downto 10) => i_dbg.rxbyte(0),
+--probe0(25 downto 18) => i_dbg.rxbyte(1),
+--probe0(33 downto 26) => i_dbg.rxbyte(2),
+--probe0(34) => i_dbg.clx.core.usr_2sync
+--);
 
 
 

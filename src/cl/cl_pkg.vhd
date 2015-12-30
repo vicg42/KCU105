@@ -11,6 +11,11 @@ use ieee.numeric_std.all;
 
 package cl_pkg is
 
+constant C_CL_CHCOUNT_MAX : natural := 3;
+
+constant C_CL_MMCM : natural := 0;
+constant C_CL_PLL  : natural := 1;
+
 type TCL_RegSync is array (0 to 6) of unsigned(3 downto 0);
 
 type TCL_core_dbg is record
