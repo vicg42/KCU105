@@ -38,6 +38,7 @@ p_in_cl_di_n  : in  std_logic_vector(3 downto 0);
 p_out_rxd     : out std_logic_vector(27 downto 0);
 p_out_rxclk   : out std_logic;
 p_out_link    : out std_logic;
+p_out_plllock : out std_logic;
 
 -------------------------------
 ----DBG
@@ -635,6 +636,7 @@ p_out_rxd <= i_cl_rxd;
 
 p_out_rxclk <= g_cl_clkin_7xdiv7;
 p_out_link <= i_link_ok;
+p_out_plllock <= i_cl_clkin_7x_lock;
 
 
 

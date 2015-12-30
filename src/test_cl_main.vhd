@@ -14,6 +14,7 @@ use ieee.numeric_std.all;
 library work;
 use work.clocks_pkg.all;
 use work.reduce_pack.all;
+use work.cam_cl_pkg.all;
 
 entity test_cl_main is
 generic(
@@ -105,7 +106,7 @@ p_in_rst       : in    std_logic
 );
 end component fpga_test_01;
 
-component camera_cl_main is
+component cam_cl_main is
 generic(
 --G_PIXBIT : natural := 1
 --G_CL_TAP : natural := 1
@@ -142,6 +143,8 @@ p_in_cl_di_n  : in  std_logic_vector((4 * G_CL_CHCOUNT) - 1 downto 0);
 --p_out_rxbyte : out  std_logic_vector((G_PIXBIT * G_CL_TAP) - 1 downto 0);
 --p_out_rxclk  : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 
+p_out_status   : out  std_logic_vector(C_CAM_STATUS_LASTBIT downto 0);
+
 --------------------------------------------------
 --DBG
 --------------------------------------------------
@@ -152,7 +155,7 @@ p_in_tst  : in   std_logic_vector(31 downto 0);
 --p_in_clk : in std_logic;
 p_in_rst : in std_logic
 );
-end component camera_cl_main;
+end component cam_cl_main;
 
 component debounce is
 generic(
@@ -178,6 +181,8 @@ signal i_cl_tst_out        : std_logic_vector(31 downto 0);
 signal i_cl_tst_in         : std_logic_vector(31 downto 0);
 signal i_usr_rst           : std_logic;
 
+signal i_cam_status        : std_logic_vector(C_CAM_STATUS_LASTBIT downto 0);
+
 
 begin --architecture struct
 
@@ -199,7 +204,7 @@ p_in_clk   => pin_in_refclk
 i_usr_rst <= pin_in_btn(0);
 
 
-m_cam : camera_cl_main
+m_cam : cam_cl_main
 generic map(
 --G_PIXBIT : natural := 1
 --G_CL_TAP : natural := 1
@@ -235,6 +240,8 @@ p_in_cl_di_n  => pin_in_cl_di_n ,
 --p_out_dval   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --data valid
 --p_out_rxbyte : out  std_logic_vector((G_PIXBIT * G_CL_TAP) - 1 downto 0);
 --p_out_rxclk  : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
+
+p_out_status   => i_cam_status,
 
 --------------------------------------------------
 --DBG
@@ -280,13 +287,13 @@ pin_out_led(3) <= i_usr_rst;
 pin_out_led(4) <= '0';
 
 
-pin_out_led_hpc(0) <= i_cl_tst_out(0);
-pin_out_led_hpc(1) <= i_cl_tst_out(1);
-pin_out_led_hpc(2) <= i_cl_tst_out(2);
-pin_out_led_hpc(3) <= i_cl_tst_out(3);
+pin_out_led_hpc(0) <= i_cam_status(C_CAM_STATUS_CL_LINKTOTAL_BIT);
+pin_out_led_hpc(1) <= i_cam_status(C_CAM_STATUS_CLX_LINK_BIT);
+pin_out_led_hpc(2) <= i_cam_status(C_CAM_STATUS_CLY_LINK_BIT);
+pin_out_led_hpc(3) <= i_cam_status(C_CAM_STATUS_CLZ_LINK_BIT);
 
-pin_out_TP(0) <= i_cl_tst_out(1);--PMOD1_4  (CSI)
-pin_out_TP(1) <= i_cl_tst_out(2);--PMOD1_6  (SSI)
+pin_out_TP(0) <= i_cl_tst_out(0);--PMOD1_4  (CSI)
+pin_out_TP(1) <= i_cl_tst_out(1);--PMOD1_6  (SSI)
 
 
 m_btn : debounce

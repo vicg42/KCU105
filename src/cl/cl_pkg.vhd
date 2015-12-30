@@ -12,6 +12,7 @@ use ieee.numeric_std.all;
 package cl_pkg is
 
 constant C_CL_CHCOUNT_MAX : natural := 3;
+constant C_CL_TAP_MAX : natural := 10;
 
 constant C_CL_MMCM : natural := 0;
 constant C_CL_PLL  : natural := 1;

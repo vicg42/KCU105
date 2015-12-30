@@ -2,7 +2,7 @@
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 04.06.2015 16:44:21
--- Module Name : camera_cl_main
+-- Module Name : cam_cl_main
 --
 -- Description :
 --
@@ -19,7 +19,7 @@ use work.reduce_pack.all;
 use work.cl_pkg.all;
 use work.cam_cl_pkg.all;
 
-entity camera_cl_main is
+entity cam_cl_main is
 generic(
 --G_PIXBIT : natural := 1
 --G_CL_TAP : natural := 1
@@ -68,9 +68,9 @@ p_in_tst  : in   std_logic_vector(31 downto 0);
 --p_in_clk : in std_logic;
 p_in_rst : in std_logic
 );
-end entity camera_cl_main;
+end entity cam_cl_main;
 
-architecture struct of camera_cl_main is
+architecture struct of cam_cl_main is
 
 constant CI_PIXBIT : natural := 8;
 constant CI_CL_TAP : natural := 8;
@@ -240,6 +240,22 @@ attribute mark_debug of i_dbg  : signal is "true";
 
 begin --architecture struct
 
+gen_status0 : for i in 0 to (G_CL_CHCOUNT - 1) generate begin
+p_out_status(C_CAM_STATUS_CLX_PLLLOCK_BIT + i) <= i_plllock(i);
+p_out_status(C_CAM_STATUS_CLX_LINK_BIT + i) <= i_link(i);
+end generate gen_status0;
+
+gen_status1 : if (G_CL_CHCOUNT < C_CL_CHCOUNT_MAX) generate begin
+gen : for i in G_CL_CHCOUNT to (C_CL_CHCOUNT_MAX - 1) generate begin
+p_out_status(C_CAM_STATUS_CLX_PLLLOCK_BIT + i) <= '0';
+p_out_status(C_CAM_STATUS_CLX_LINK_BIT + i) <= '0';
+end generate gen;
+end generate gen_status1;
+
+p_out_status(C_CAM_STATUS_CL_LINKTOTAL_BIT) <= i_link_total;
+
+
+
 m_ibufds_tfg : IBUFDS
 port map (I => p_in_tfg_p, IB => p_in_tfg_n, O => p_out_cam_ctrl_tx);
 
@@ -371,22 +387,8 @@ p_out_det_rdy   => i_frprm_det
 --#########################################
 --DBG
 --#########################################
-gen_tp1_link : for i in 0 to (G_CL_CHCOUNT - 1) generate begin
-p_out_status(C_CAM_STATUS_CLX_PLLLOCK_BIT + i) <= i_plllock(i);
-p_out_status(C_CAM_STATUS_CLX_LINK_BIT + i) <= i_link(i);
-end generate gen_tp1_link;
-
-gen_tp2_link : if (G_CL_CHCOUNT < C_CL_CHCOUNT_MAX) generate begin
-gen : for i in G_CL_CHCOUNT to (C_CL_CHCOUNT_MAX - 1) generate begin
-p_out_status(C_CAM_STATUS_CLX_PLLLOCK_BIT + i) <= '0';
-p_out_status(C_CAM_STATUS_CLX_LINK_BIT + i) <= '0';
-end generate gen;
-end generate gen_tp2_link;
-
-p_out_status(C_CAM_STATUS_CL_LINKTOTAL_BIT) <= i_link_total;
-
-p_out_tst(7) <= i_fval(0);
-p_out_tst(8) <= i_lval(0);
+p_out_tst(0) <= i_fval(0);
+p_out_tst(1) <= i_lval(0);
 
 
 i_dbg.det.pixcount  <= i_pixcount_measure;

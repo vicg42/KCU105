@@ -108,14 +108,14 @@ case i_fsm_vprm is
 
   when S_LINE_WAIT =>
 
-    if (p_in_fval = '1' and sr_lval(1) = '0') then
+    if (sr_fval(1) = '1' and sr_lval(1) = '0') then
       i_fsm_vprm <= S_PIXCOUNT;
     end if;
 
   when S_PIXCOUNT =>
 
     if (p_in_fval = '1') then
-      if (p_in_lval = '1') then --and p_in_dval = '1'
+      if (p_in_lval = '1' and p_in_dval = '1') then
         i_cnt <= i_cnt + 1;
       end if;
 
