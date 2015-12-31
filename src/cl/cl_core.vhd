@@ -38,7 +38,6 @@ p_in_cl_di_n  : in  std_logic_vector(3 downto 0);
 p_out_rxd     : out std_logic_vector(27 downto 0);
 p_out_rxclk   : out std_logic;
 p_out_link    : out std_logic;
-p_out_plllock : out std_logic;
 
 -------------------------------
 ----DBG
@@ -52,6 +51,7 @@ p_out_plllock : out std_logic;
 -----------------------------
 --p_in_refclk : in std_logic;
 --p_in_clk : in std_logic;
+p_out_plllock : out std_logic;
 p_in_rst : in std_logic
 );
 end entity cl_core;

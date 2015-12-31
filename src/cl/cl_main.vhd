@@ -82,7 +82,6 @@ p_in_cl_di_n  : in  std_logic_vector(3 downto 0);
 p_out_rxd     : out std_logic_vector(27 downto 0);
 p_out_rxclk   : out std_logic;
 p_out_link    : out std_logic;
-p_out_plllock : out std_logic;
 
 -------------------------------
 ----DBG
@@ -96,6 +95,7 @@ p_out_plllock : out std_logic;
 -----------------------------
 --p_in_refclk : in std_logic;
 --p_in_clk : in std_logic;
+p_out_plllock : out std_logic;
 p_in_rst : in std_logic
 );
 end component cl_core;
@@ -186,7 +186,6 @@ p_in_cl_di_n  => p_in_cl_di_n((4 * (i + 1)) - 1 downto 4 * i),
 p_out_rxd     => i_cl_rxd(i),
 p_out_rxclk   => i_cl_rxclk(i),
 p_out_link    => i_cl_link(i),
-p_out_plllock => i_cl_plllock(i),
 
 -----------------------------
 --DBG
@@ -197,6 +196,7 @@ p_out_plllock => i_cl_plllock(i),
 
 --p_in_refclk => p_in_refclk,
 --p_in_clk => p_in_clk,
+p_out_plllock => i_cl_plllock(i),
 p_in_rst => p_in_rst
 );
 end generate gen_ch;
