@@ -10,9 +10,9 @@ set_property PACKAGE_PIN   G10    [get_ports {pin_in_refclk[M125_p]}]
 set_property IOSTANDARD    LVDS   [get_ports {pin_in_refclk[M125_p]}]
 create_clock -period 8.000 -name {pin_in_refclk[M125_p]} -waveform {0.000 4.000} [get_ports {pin_in_refclk[M125_p]}]
 
-set_property PACKAGE_PIN M25 [get_ports {pin_in_refclk[M156_p]}]
-set_property IOSTANDARD LVDS_25 [get_ports {pin_in_refclk[M156_p]}]
-create_clock -period 6.400 -name {pin_in_refclk[M156_p]} -waveform {0.000 3.200} [get_ports {pin_in_refclk[M156_p]}]
+#set_property PACKAGE_PIN M25 [get_ports {pin_in_refclk[M156_p]}]
+#set_property IOSTANDARD LVDS_25 [get_ports {pin_in_refclk[M156_p]}]
+#create_clock -period 6.400 -name {pin_in_refclk[M156_p]} -waveform {0.000 3.200} [get_ports {pin_in_refclk[M156_p]}]
 
 create_clock -period 11.765 -name camera_link_clk -waveform {0.000 5.882} [get_ports {{pin_in_cl_clk_p[0]} {pin_in_cl_clk_p[1]} {pin_in_cl_clk_p[2]}}]
 

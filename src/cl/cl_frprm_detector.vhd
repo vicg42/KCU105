@@ -97,6 +97,8 @@ case i_fsm_vprm is
 
   when S_IDLE =>
 
+    i_det_done <= '0';
+
     if (sr_fval(0) = '0' and sr_fval(1) = '1') then
       if (i_cnt = TO_UNSIGNED(64, i_cnt'length)) then
         i_cnt <= (others => '0');
@@ -144,13 +146,14 @@ case i_fsm_vprm is
     --falling edge of p_in_fval
     if (sr_fval(0) = '0' and sr_fval(1) = '1') then
       i_linecount <= i_cnt;
+      i_det_done <= '1';
       i_fsm_vprm <= S_DONE;
     end if;
 
   when S_DONE =>
 
     if (p_in_restart = '1') then
-      i_det_done <= '1';
+      i_fsm_vprm <= S_IDLE;
     end if;
 
 end case;

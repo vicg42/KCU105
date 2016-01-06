@@ -108,8 +108,12 @@ end component fpga_test_01;
 
 component cam_cl_main is
 generic(
---G_PIXBIT : natural := 1
---G_CL_TAP : natural := 1
+G_VCH_NUM : natural := 0;
+G_PKT_TYPE : natural := 1;
+G_PKT_HEADER_SIZE : natural := 16; --Header Byte Count
+G_PKT_CHUNK_SIZE : natural := 1024; --Data Chunk
+G_CL_PIXBIT : natural := 1; --Amount bit per 1 pix
+G_CL_TAP : natural := 8; --Amount pixel per 1 clk
 G_CL_CHCOUNT : natural := 1
 );
 port(
@@ -118,6 +122,7 @@ port(
 --------------------------------------------------
 p_in_cam_ctrl_rx  : in  std_logic;
 p_out_cam_ctrl_tx : out std_logic;
+p_in_time         : in  std_logic_vector(31 downto 0);
 
 --------------------------------------------------
 --CameraLink Interface
@@ -133,23 +138,24 @@ p_in_cl_clk_n : in  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 p_in_cl_di_p  : in  std_logic_vector((4 * G_CL_CHCOUNT) - 1 downto 0);
 p_in_cl_di_n  : in  std_logic_vector((4 * G_CL_CHCOUNT) - 1 downto 0);
 
-----------------------------------------------------
-----VideoOut
-----------------------------------------------------
---p_out_link   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
---p_out_fval   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --frame valid
---p_out_lval   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --line valid
---p_out_dval   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --data valid
---p_out_rxbyte : out  std_logic_vector((G_PIXBIT * G_CL_TAP) - 1 downto 0);
---p_out_rxclk  : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
+--------------------------------------------------
+--VideoPkt Output
+--------------------------------------------------
+p_out_bufpkt_d     : out  std_logic_vector(63 downto 0);
+p_in_bufpkt_rd     : in   std_logic;
+p_in_bufpkt_rdclk  : in   std_logic;
+p_out_bufpkt_empty : out  std_logic;
 
+--------------------------------------------------
+--
+--------------------------------------------------
 p_out_status   : out  std_logic_vector(C_CAM_STATUS_LASTBIT downto 0);
 
 --------------------------------------------------
 --DBG
 --------------------------------------------------
-p_out_tst : out  std_logic_vector(31 downto 0);
-p_in_tst  : in   std_logic_vector(31 downto 0);
+p_out_tst : out  std_logic_vector(1 downto 0);
+p_in_tst  : in   std_logic_vector(0 downto 0);
 
 --p_in_refclk : in std_logic;
 --p_in_clk : in std_logic;
@@ -177,11 +183,16 @@ signal i_1ms               : std_logic;
 signal i_usrclk_rst        : std_logic;
 signal g_usrclk            : std_logic_vector(7 downto 0);
 signal i_test_led          : std_logic_vector(0 downto 0);
-signal i_cl_tst_out        : std_logic_vector(31 downto 0);
-signal i_cl_tst_in         : std_logic_vector(31 downto 0);
+signal i_cl_tst_out        : std_logic_vector(1 downto 0);
+signal i_cl_tst_in         : std_logic_vector(0 downto 0);
 signal i_usr_rst           : std_logic;
 
 signal i_cam_status        : std_logic_vector(C_CAM_STATUS_LASTBIT downto 0);
+
+signal i_cam_bufpkt_do     : std_logic_vector(63 downto 0);
+signal i_cam_bufpkt_rd     : std_logic;
+signal i_cam_bufpkt_empty  : std_logic;
+
 
 
 begin --architecture struct
@@ -206,8 +217,12 @@ i_usr_rst <= pin_in_btn(0);
 
 m_cam : cam_cl_main
 generic map(
---G_PIXBIT : natural := 1
---G_CL_TAP : natural := 1
+G_VCH_NUM => 0,
+G_PKT_TYPE        => 1,
+G_PKT_HEADER_SIZE => 16, --Header Byte Count
+G_PKT_CHUNK_SIZE  => 1024, --1280 --Data Chunk
+G_CL_PIXBIT  => 8, --Amount bit per 1 pix
+G_CL_TAP     => 8, --Amount pixel per 1 clk
 G_CL_CHCOUNT => G_CL_CHCOUNT
 )
 port map(
@@ -216,6 +231,7 @@ port map(
 --------------------------------------------------
 p_in_cam_ctrl_rx  => pin_in_rs232_rx ,
 p_out_cam_ctrl_tx => pin_out_rs232_tx,
+p_in_time         => (others => '0'),
 
 --------------------------------------------------
 --CameraLink Interface
@@ -231,16 +247,17 @@ p_in_cl_clk_n => pin_in_cl_clk_n,
 p_in_cl_di_p  => pin_in_cl_di_p ,
 p_in_cl_di_n  => pin_in_cl_di_n ,
 
-----------------------------------------------------
-----VideoOut
-----------------------------------------------------
---p_out_link   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
---p_out_fval   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --frame valid
---p_out_lval   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --line valid
---p_out_dval   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --data valid
---p_out_rxbyte : out  std_logic_vector((G_PIXBIT * G_CL_TAP) - 1 downto 0);
---p_out_rxclk  : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
+--------------------------------------------------
+--VideoPkt Output
+--------------------------------------------------
+p_out_bufpkt_d     => i_cam_bufpkt_do,
+p_in_bufpkt_rd     => '0',--i_cam_bufpkt_rd,
+p_in_bufpkt_rdclk  => g_usrclk(1),
+p_out_bufpkt_empty => i_cam_bufpkt_empty,
 
+--------------------------------------------------
+--
+--------------------------------------------------
 p_out_status   => i_cam_status,
 
 --------------------------------------------------

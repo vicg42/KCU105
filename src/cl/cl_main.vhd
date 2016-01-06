@@ -20,7 +20,7 @@ use work.cl_pkg.all;
 
 entity cl_main is
 generic(
-G_PIXBIT : natural := 8; --Amount bit per 1 pi
+G_CL_PIXBIT : natural := 8; --Amount bit per 1 pix
 G_CL_TAP : natural := 8; --Amount pixel per 1 clk
 G_CL_CHCOUNT : natural := 1
 );
@@ -42,7 +42,7 @@ p_out_link   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 p_out_fval   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --frame valid
 p_out_lval   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --line valid
 p_out_dval   : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --data valid
-p_out_rxbyte : out  std_logic_vector((G_PIXBIT * G_CL_TAP) - 1 downto 0);
+p_out_rxbyte : out  std_logic_vector((G_CL_PIXBIT * G_CL_TAP) - 1 downto 0);
 p_out_rxclk  : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 
 --------------------------------------------------
@@ -111,7 +111,7 @@ signal i_cl_plllock    : std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 type TCL_tstout is array (0 to G_CL_CHCOUNT - 1) of std_logic_vector(31 downto 0);
 signal i_cl_tstout     : TCL_tstout;
 
-type TCL_rxbyte is array (0 to C_CL_TAP_MAX - 1) of std_logic_vector(G_PIXBIT - 1 downto 0);
+type TCL_rxbyte is array (0 to C_CL_TAP_MAX - 1) of std_logic_vector(G_CL_PIXBIT - 1 downto 0);
 signal i_cl_rxbyte     : TCL_rxbyte;
 
 --type TCL_core_dbgs is array (0 to G_CL_CHCOUNT - 1) of TCL_core_dbg;
@@ -162,7 +162,7 @@ p_out_lval <= i_cl_lval;
 p_out_dval <= (others => '1');
 p_out_rxclk <= i_cl_rxclk;
 gen_dout : for i in 0 to (G_CL_TAP - 1) generate begin
-p_out_rxbyte((G_PIXBIT * (i + 1)) - 1 downto (G_PIXBIT * i)) <= i_cl_rxbyte(i)(G_PIXBIT - 1 downto 0);
+p_out_rxbyte((G_CL_PIXBIT * (i + 1)) - 1 downto (G_CL_PIXBIT * i)) <= i_cl_rxbyte(i)(G_CL_PIXBIT - 1 downto 0);
 end generate gen_dout;
 
 

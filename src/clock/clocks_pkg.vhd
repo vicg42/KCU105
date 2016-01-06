@@ -17,6 +17,8 @@ type TRefClkPinIN is record
 --M300_n : std_logic;
 M125_p : std_logic;
 M125_n : std_logic;
+--M156_p : std_logic;
+--M156_n : std_logic;
 --M90    : std_logic;
 end record;
 
