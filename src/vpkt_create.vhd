@@ -71,7 +71,6 @@ S_WAIT_HSYNC ,
 S_REMAIN_CALC,
 S_PKT_HWR0   ,
 S_PKT_HWR1   ,
-S_PKT_HWR2   ,
 S_PKT_DWR
 );
 signal i_fsm_vpkt        : TFsm_vpkt;
@@ -79,7 +78,7 @@ signal i_fsm_vpkt        : TFsm_vpkt;
 signal i_rdy             : std_logic;
 signal i_time            : unsigned(31 downto 0);
 
-signal i_fr_pixcount     : unsigned(31 downto 0);
+signal i_fr_pixcount     : unsigned(15 downto 0);
 signal i_fr_linecount    : unsigned(15 downto 0);
 signal i_fr_cnt          : unsigned(3 downto 0);
 
@@ -88,7 +87,6 @@ signal i_tx_pixcount     : unsigned(15 downto 0);
 signal i_chunk_pixcount  : unsigned(15 downto 0);
 signal i_pkt_pixcnt      : unsigned(15 downto 0);
 
-signal i_pix_num         : unsigned(15 downto 0);
 signal i_line_cnt        : unsigned(15 downto 0);
 
 signal i_pkt_d           : unsigned(63 downto 0);
@@ -124,6 +122,8 @@ p_out_pkt_wr <= i_pkt_wr;
 
 
 process(p_in_clk)
+variable remain_pixcount_byte : unsigned(31 downto 0);
+variable fr_pixcount_byte : unsigned(31 downto 0);
 begin
 if rising_edge(p_in_clk) then
 if (p_in_rst = '1') then
@@ -133,12 +133,14 @@ if (p_in_rst = '1') then
   i_fr_linecount <= (others => '0');
   i_fr_cnt <= (others => '0');
 
+    remain_pixcount_byte := (others => '0');
+    fr_pixcount_byte := (others => '0');
+
   i_remain_pixcount <= (others => '0');
   i_tx_pixcount <= (others => '0');
   i_chunk_pixcount <= (others => '0');
   i_pkt_pixcnt <= (others => '0');
 
-  i_pix_num <= (others => '0');
   i_line_cnt <= (others => '0');
 
   i_pkt_d <= (others => '0');
@@ -147,7 +149,7 @@ if (p_in_rst = '1') then
 
   i_padding <= '0';
 
-  i_bufi_rst <= '0';
+  i_bufi_rst <= '1';
 
   i_err <= '0';
 
@@ -160,7 +162,6 @@ else
     i_tx_pixcount <= (others => '0');
     i_chunk_pixcount <= (others => '0');
     i_pkt_pixcnt <= (others => '0');
-    i_pix_num <= (others => '0');
     i_line_cnt <= (others => '0');
     i_padding <= '0';
     i_pkt_wr <= '0';
@@ -169,6 +170,8 @@ else
     if (i_rdy = '1') then
       i_bufi_rst <= '0';
       i_fsm_vpkt <= S_WAIT_VSYNC;
+    else
+      i_bufi_rst <= '1';
     end if;
 
   when S_WAIT_VSYNC =>
@@ -178,7 +181,7 @@ else
 
     if (i_rdy = '1') then
       if (p_in_vsync = '0') then
-        i_fr_pixcount <= UNSIGNED(p_in_det_pixcount) * TO_UNSIGNED(G_CL_TAP, p_in_det_pixcount'length);
+        i_fr_pixcount <= UNSIGNED(p_in_det_pixcount);
         i_fr_linecount <= UNSIGNED(p_in_det_linecount);
 
         if (p_in_bufi_empty = '0') then
@@ -194,6 +197,8 @@ else
     end if;
 
   when S_WAIT_HSYNC =>
+
+    i_pkt_wr <= '0';
 
     if (i_rdy = '1') then
       if (p_in_hsync = '0') then
@@ -211,8 +216,9 @@ else
 
   when S_REMAIN_CALC =>
 
+    i_pkt_wr <= '0';
+
     if (i_rdy = '1') then
-      i_pkt_wr <= '0';
       i_remain_pixcount <= i_fr_pixcount(15 downto 0) - i_tx_pixcount;
       i_fsm_vpkt <= S_PKT_HWR0;
     else
@@ -225,22 +231,24 @@ else
   --###########################
   when S_PKT_HWR0 =>
 
+    remain_pixcount_byte := UNSIGNED(i_remain_pixcount) * TO_UNSIGNED(G_CL_TAP, i_remain_pixcount'length);
+    fr_pixcount_byte := UNSIGNED(i_fr_pixcount) * TO_UNSIGNED(G_CL_TAP, i_fr_pixcount'length);
+
     if (i_rdy = '0') then
       i_padding <= '1';
       i_bufi_rst <= '1';
-    end if;
+      i_fsm_vpkt <= S_IDLE;
 
-    if ((p_in_bufi_empty = '0' and p_in_hsync = '1') or i_padding = '1') then
+    elsif (p_in_bufi_empty = '0' and p_in_hsync = '1') then
 
-      if (i_remain_pixcount > TO_UNSIGNED(G_PKT_CHUNK_SIZE, i_remain_pixcount'length)) then
-        i_chunk_pixcount <= TO_UNSIGNED(G_PKT_CHUNK_SIZE, i_chunk_pixcount'length);
-        --pkt len
+      --pkt len
+      if (i_remain_pixcount > TO_UNSIGNED((G_PKT_CHUNK_SIZE / G_CL_TAP), i_remain_pixcount'length)) then
+        i_chunk_pixcount <= TO_UNSIGNED((G_PKT_CHUNK_SIZE / G_CL_TAP), i_chunk_pixcount'length);
         --(G_PKT_HEADER_SIZE - 2) becouse pkt_length set without size of field length(field length = 2byte)
         i_pkt_d((32 * 0) + 15 downto (32 * 0) +  0) <= (TO_UNSIGNED(G_PKT_CHUNK_SIZE, 16) + TO_UNSIGNED(G_PKT_HEADER_SIZE - 2, 16));
       else
-        --pkt len
         i_chunk_pixcount <= i_remain_pixcount;
-        i_pkt_d((32 * 0) + 15 downto (32 * 0) +  0) <= (i_remain_pixcount + TO_UNSIGNED(G_PKT_HEADER_SIZE - 2, 16));
+        i_pkt_d((32 * 0) + 15 downto (32 * 0) +  0) <= (remain_pixcount_byte(15 downto 0) + TO_UNSIGNED(G_PKT_HEADER_SIZE - 2, 16));
       end if;
 
       i_pkt_d((32 * 0) + 19 downto (32 * 0) + 16) <= (TO_UNSIGNED(G_PKT_TYPE, 4));
@@ -249,7 +257,7 @@ else
       i_pkt_d((32 * 0) + 31 downto (32 * 0) + 28) <= (others => '0');--Reserv
 
       --frame resolution
-      i_pkt_d((32 * 1) + 15 downto (32 * 1) +  0) <= i_fr_pixcount(15 downto 0);
+      i_pkt_d((32 * 1) + 15 downto (32 * 1) +  0) <= fr_pixcount_byte(15 downto 0);
       i_pkt_d((32 * 1) + 31 downto (32 * 1) + 16) <= i_fr_linecount;
 
       i_pkt_wr <= '1';
@@ -265,21 +273,11 @@ else
       i_bufi_rst <= '1';
     end if;
 
-    --current position of line & pixel
-    i_pkt_d((32 * 1) + 15 downto (32 * 1) +  0) <= i_pix_num(15 downto 0);
-    i_pkt_d((32 * 1) + 31 downto (32 * 1) + 16) <= i_line_cnt;
-    i_pkt_wr <= '1';
-
-    i_fsm_vpkt <= S_PKT_HWR2;
-
-  when S_PKT_HWR2 =>
-
-    if (i_rdy = '0') then
-      i_padding <= '1';
-      i_bufi_rst <= '1';
-    end if;
-
-    i_pkt_d(31 downto 0) <= i_time;
+    --current position of line & pixel  +  timestamp
+    i_pkt_d((32 * 0) + 15 downto (32 * 0) +  0) <= i_tx_pixcount(15 downto 0);
+    i_pkt_d((32 * 0) + 31 downto (32 * 0) + 16) <= i_line_cnt;
+    i_pkt_d((32 * 1) + 15 downto (32 * 1) +  0) <= i_time((16 * 1) - 1 downto (16 * 0));
+    i_pkt_d((32 * 1) + 31 downto (32 * 1) + 16) <= i_time((16 * 2) - 1 downto (16 * 1));
     i_pkt_wr <= '1';
     i_pkt_den <= '1';
 
@@ -301,15 +299,17 @@ else
       i_pkt_d((32 * 2) - 1 downto (32 * 0)) <= UNSIGNED(p_in_bufi_do);
       i_pkt_wr <= '1';
 
-      if (i_pkt_pixcnt >= i_chunk_pixcount) then
+      if (i_pkt_pixcnt >= (i_chunk_pixcount - 1)) then
         i_pkt_pixcnt <= (others => '0');
         i_pkt_den <= '0';
 
-        if (((i_tx_pixcount + i_chunk_pixcount) >= i_fr_pixcount) or i_padding = '1') then
-          i_pix_num <= (others => '0');
+        if (i_padding = '1') then
+          i_fsm_vpkt <= S_IDLE;
+
+        elsif ((i_tx_pixcount + i_chunk_pixcount) >= (i_fr_pixcount - 1)) then
           i_tx_pixcount <= (others => '0');
 
-          if ((i_line_cnt = i_fr_linecount) or i_padding = '1') then
+          if (i_line_cnt = (i_fr_linecount - 1)) then
             i_line_cnt <= (others => '0');
             i_fr_cnt <= i_fr_cnt + 1;
             i_fsm_vpkt <= S_WAIT_VSYNC;
@@ -324,8 +324,7 @@ else
         end if;
 
       else
-        i_pkt_pixcnt <= i_pkt_pixcnt + TO_UNSIGNED(G_CL_TAP, i_pkt_pixcnt'length);-- + 8; --
-        i_pix_num <= i_pix_num + i_chunk_pixcount;
+        i_pkt_pixcnt <= i_pkt_pixcnt + 1;
       end if;
 
     else

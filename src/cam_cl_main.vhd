@@ -332,8 +332,8 @@ fval : std_logic;
 lval : std_logic;
 fval_edge0 : std_logic;
 fval_edge1 : std_logic;
-lval_edge0 : std_logic;
-lval_edge1 : std_logic;
+--lval_edge0 : std_logic;
+--lval_edge1 : std_logic;
 rxbyte : TCL_rxbyte_dbg;
 end record;
 type TCLDBG_CHs is array (0 to 2) of TCLDBG_CH;
@@ -345,8 +345,8 @@ bufpkt_do : std_logic_vector(63 downto 0);
 vpkt_err : std_logic;
 fval_edge0 : std_logic;
 fval_edge1 : std_logic;
-lval_edge0 : std_logic;
-lval_edge1 : std_logic;
+--lval_edge0 : std_logic;
+--lval_edge1 : std_logic;
 end record;
 
 type TCAM_dbg is record

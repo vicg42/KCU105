@@ -20,7 +20,7 @@ generic(
 G_VCH_NUM : natural := 0;
 G_PKT_TYPE : natural := 1;
 G_PKT_HEADER_SIZE : natural := 16; --Header Byte Count
-G_PKT_CHUNK_SIZE : natural := 1024; --Data Chunk
+G_PKT_CHUNK_SIZE : natural := 512; --Data Chunk
 G_CL_PIXBIT : natural := 8; --Amount bit per 1 pix
 G_CL_TAP : natural := 8; --Amount pixel per 1 clk
 G_CL_CHCOUNT : natural := 3
@@ -125,6 +125,7 @@ signal i_bufpkt_rd        : std_logic;
 signal i_bufpkt_rdclk     : std_logic;
 signal i_bufpkt_empty     : std_logic;
 
+signal i_time             : unsigned(31 downto 0);
 
 
 begin --architecture behavior of cam_cl_tb is
@@ -142,6 +143,7 @@ end process;
 p_in_rst <= '1','0' after 1 us;
 
 
+i_time <= TO_UNSIGNED(16#7DCCBBAA#, i_time'length);
 
 --***********************************************************
 --
@@ -162,7 +164,7 @@ port map(
 --------------------------------------------------
 p_in_cam_ctrl_rx  => '1',
 p_out_cam_ctrl_tx => open,
-p_in_time         => (others => '0'),
+p_in_time         => std_logic_vector(i_time),
 
 --------------------------------------------------
 --CameraLink Interface

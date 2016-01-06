@@ -84,7 +84,7 @@ begin --architecture behavioral
 
 p_out_buf_empty <= OR_reduce(i_buf_empty(G_CL_TAP - 1 downto 0));
 
-i_buf_rst <= (not p_in_buf_rst);
+i_buf_rst <= (p_in_buf_rst);
 
 
 --##############################

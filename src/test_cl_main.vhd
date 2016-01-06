@@ -252,7 +252,7 @@ p_in_cl_di_n  => pin_in_cl_di_n ,
 --------------------------------------------------
 p_out_bufpkt_d     => i_cam_bufpkt_do,
 p_in_bufpkt_rd     => '0',--i_cam_bufpkt_rd,
-p_in_bufpkt_rdclk  => g_usrclk(1),
+p_in_bufpkt_rdclk  => g_usrclk(0),
 p_out_bufpkt_empty => i_cam_bufpkt_empty,
 
 --------------------------------------------------

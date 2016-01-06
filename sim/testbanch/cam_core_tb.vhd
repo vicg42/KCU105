@@ -135,9 +135,9 @@ else
 
     when S_PIX =>
 
-      if (i_cnt = TO_UNSIGNED(63, i_cnt'length)) then
+      if (i_cnt = TO_UNSIGNED((270 - 1), i_cnt'length)) then
         i_cnt <= (others => '0'); i_pixcnt <= (others => '0');
-        if (i_linecnt = TO_UNSIGNED(8, i_cnt'length)) then
+        if (i_linecnt = TO_UNSIGNED((8 - 1), i_cnt'length)) then
           i_linecnt <= (others => '0');
           i_fval <= '0';
           i_lval <= '0';
