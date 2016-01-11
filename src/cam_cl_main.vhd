@@ -23,11 +23,12 @@ entity cam_cl_main is
 generic(
 G_VCH_NUM : natural := 0;
 G_PKT_TYPE : natural := 1;
-G_PKT_HEADER_SIZE : natural := 16; --Header Byte Count
-G_PKT_CHUNK_SIZE : natural := 1024; --Data Chunk
+G_PKT_HEADER_BYTECOUNT : natural := 16;
+G_PKT_PIXCHUNK_BYTECOUNT : natural := 1024;
 G_CL_PIXBIT : natural := 1; --Amount bit per 1 pix
 G_CL_TAP : natural := 8; --Amount pixel per 1 clk
-G_CL_CHCOUNT : natural := 1
+G_CL_CHCOUNT : natural := 1;
+G_SIM : string := "OFF"
 );
 port(
 --------------------------------------------------
@@ -78,9 +79,6 @@ end entity cam_cl_main;
 
 architecture struct of cam_cl_main is
 
---constant CI_PIXBIT : natural := 8;
---constant CI_CL_TAP : natural := 8;
-
 component cl_main is
 generic(
 G_CL_PIXBIT : natural := 1;
@@ -121,6 +119,10 @@ p_in_rst : in std_logic
 end component cl_main;
 
 component cl_frprm_detector is
+generic (
+G_CL_TAP : natural := 8;
+G_SIM : string := "OFF"
+);
 port(
 --------------------------------------------------
 --usectrl
@@ -188,8 +190,8 @@ component vpkt_create is
 generic(
 G_VCH_NUM : natural := 0;
 G_PKT_TYPE : natural := 1;
-G_PKT_HEADER_SIZE : natural := 16; --Header Byte Count
-G_PKT_CHUNK_SIZE : natural := 1024; --Data Chunk
+G_PKT_HEADER_BYTECOUNT : natural := 16;
+G_PKT_PIXCHUNK_BYTECOUNT : natural := 1024;
 G_CL_TAP : natural := 8  --Amount pixel per 1 clk
 );
 port(
@@ -314,7 +316,7 @@ end component ila_dbg2_cl;
 component ila_dbg_cam is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(68 downto 0)
+probe0 : in std_logic_vector(70 downto 0)
 );
 end component ila_dbg_cam;
 
@@ -343,6 +345,8 @@ bufpkt_empty : std_logic;
 bufpkt_rd : std_logic;
 bufpkt_do : std_logic_vector(63 downto 0);
 vpkt_err : std_logic;
+fval : std_logic;
+lval : std_logic;
 fval_edge0 : std_logic;
 fval_edge1 : std_logic;
 --lval_edge0 : std_logic;
@@ -442,6 +446,10 @@ i_link_total <= AND_reduce(i_link);
 
 --Detect resolution of video
 m_frprm_detector : cl_frprm_detector
+generic map(
+G_CL_TAP => G_CL_TAP,
+G_SIM => G_SIM
+)
 port map(
 --------------------------------------------------
 --usectrl
@@ -505,13 +513,13 @@ p_in_buf_rdclk  => p_in_bufpkt_rdclk,
 p_in_buf_rst    => i_bufi_rst
 );
 
-
+--i_pixcount_detect <= std_logic_vector(TO_UNSIGNED(2157, i_pixcount_detect'length));
 m_vpkt : vpkt_create
 generic map(
 G_VCH_NUM => G_VCH_NUM,
 G_PKT_TYPE => G_PKT_TYPE,
-G_PKT_HEADER_SIZE => G_PKT_HEADER_SIZE, --Header Byte Count
-G_PKT_CHUNK_SIZE => G_PKT_CHUNK_SIZE, --Data Chunk
+G_PKT_HEADER_BYTECOUNT => G_PKT_HEADER_BYTECOUNT,
+G_PKT_PIXCHUNK_BYTECOUNT => G_PKT_PIXCHUNK_BYTECOUNT,
 G_CL_TAP => G_CL_TAP  --Amount pixel per 1 clk
 )
 port map(
@@ -635,6 +643,8 @@ i_dbg.cam.bufpkt_do <= i_bufpkt_do;
 i_dbg.cam.vpkt_err <= i_vpkt_tst_out(0);
 i_dbg.cam.fval_edge0 <= tst_fval_t_edge0;
 i_dbg.cam.fval_edge1 <= tst_fval_t_edge1;
+i_dbg.cam.fval <= i_fval(0);
+i_dbg.cam.lval <= i_lval(0);
 
 dbg_prm : ila_dbg_cl
 port map(
@@ -693,8 +703,10 @@ probe0(0)           => i_dbg.cam.bufpkt_empty,
 probe0(1)           => i_dbg.cam.bufpkt_rd   ,
 probe0(65 downto 2) => i_dbg.cam.bufpkt_do   ,
 probe0(66)          => i_dbg.cam.vpkt_err    ,
-probe0(67)          => i_dbg.cam.fval_edge0,
-probe0(68)          => i_dbg.cam.fval_edge1
+probe0(67)          => i_dbg.cam.fval,
+probe0(68)          => i_dbg.cam.lval,
+probe0(69)          => i_dbg.cam.fval_edge0,
+probe0(70)          => i_dbg.cam.fval_edge1
 );
 
 

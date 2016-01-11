@@ -19,8 +19,8 @@ entity cam_cl_tb is
 generic(
 G_VCH_NUM : natural := 0;
 G_PKT_TYPE : natural := 1;
-G_PKT_HEADER_SIZE : natural := 16; --Header Byte Count
-G_PKT_CHUNK_SIZE : natural := 512; --Data Chunk
+G_PKT_HEADER_BYTE_COUNT : natural := 16; --Header Byte Count
+G_PKT_PIXCHUNK_BYTE_COUNT : natural := 768; --Data Chunk
 G_CL_PIXBIT : natural := 8; --Amount bit per 1 pix
 G_CL_TAP : natural := 8; --Amount pixel per 1 clk
 G_CL_CHCOUNT : natural := 3
@@ -64,11 +64,12 @@ component cam_cl_main is
 generic(
 G_VCH_NUM : natural := 0;
 G_PKT_TYPE : natural := 1;
-G_PKT_HEADER_SIZE : natural := 16; --Header Byte Count
-G_PKT_CHUNK_SIZE : natural := 1024; --Data Chunk
+G_PKT_HEADER_BYTE_COUNT : natural := 16; --Header Byte Count
+G_PKT_PIXCHUNK_BYTE_COUNT : natural := 1024; --Data Chunk
 G_CL_PIXBIT : natural := 1; --Amount bit per 1 pix
 G_CL_TAP : natural := 8; --Amount pixel per 1 clk
-G_CL_CHCOUNT : natural := 1
+G_CL_CHCOUNT : natural := 1;
+G_SIM : string := "OFF"
 );
 port(
 --------------------------------------------------
@@ -152,11 +153,12 @@ m_cam : cam_cl_main
 generic map(
 G_VCH_NUM => G_VCH_NUM,
 G_PKT_TYPE => G_PKT_TYPE,
-G_PKT_HEADER_SIZE => G_PKT_HEADER_SIZE, --Header Byte Count
-G_PKT_CHUNK_SIZE => G_PKT_CHUNK_SIZE, --Data Chunk
+G_PKT_HEADER_BYTE_COUNT => G_PKT_HEADER_BYTE_COUNT, --Header Byte Count
+G_PKT_PIXCHUNK_BYTE_COUNT => G_PKT_PIXCHUNK_BYTE_COUNT, --Data Chunk
 G_CL_PIXBIT => G_CL_PIXBIT, --Amount bit per 1 pix
 G_CL_TAP => G_CL_TAP, --Amount pixel per 1 clk
-G_CL_CHCOUNT => G_CL_CHCOUNT
+G_CL_CHCOUNT => G_CL_CHCOUNT,
+G_SIM => "ON"
 )
 port map(
 --------------------------------------------------

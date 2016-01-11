@@ -4,14 +4,21 @@
 -- Create Date : 29.12.2015 11:09:05
 -- Module Name : cl_frprm_detector
 --
--- Description :
+-- Description : Detecting frame resolution. (line count & pixel count)
 --
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+library work;
+use work.vicg_common_pkg.all;
+
 entity cl_frprm_detector is
+generic (
+G_CL_TAP : natural := 8;
+G_SIM : string := "OFF"
+);
 port(
 --------------------------------------------------
 --usectrl
@@ -57,7 +64,7 @@ signal i_fsm_vprm     : TFsm_vprm;
 signal i_cnt       : unsigned(15 downto 0);
 signal i_flag      : std_logic;
 signal i_det_done  : std_logic;
-signal i_pixcount  : unsigned(15 downto 0);
+signal i_pixcount  : unsigned(31 downto 0);
 signal i_linecount : unsigned(15 downto 0);
 signal sr_lval     : std_logic_vector(0 to 1);
 signal sr_fval     : std_logic_vector(0 to 1);
@@ -65,7 +72,7 @@ signal sr_fval     : std_logic_vector(0 to 1);
 begin --architecture behavioral
 
 
-p_out_pixcount  <= std_logic_vector(i_pixcount);
+p_out_pixcount  <= std_logic_vector(i_pixcount(15 downto 0));
 p_out_linecount <= std_logic_vector(i_linecount);
 p_out_det_rdy   <= i_det_done;
 
@@ -100,7 +107,8 @@ case i_fsm_vprm is
     i_det_done <= '0';
 
     if (sr_fval(0) = '0' and sr_fval(1) = '1') then
-      if (i_cnt = TO_UNSIGNED(64, i_cnt'length)) then
+      if ((i_cnt = TO_UNSIGNED(64, i_cnt'length)) and strcmp(G_SIM, "OFF"))
+           or ((i_cnt = TO_UNSIGNED(4, i_cnt'length)) and strcmp(G_SIM, "ON")) then
         i_cnt <= (others => '0');
         i_fsm_vprm <= S_LINE_WAIT;
       else
@@ -123,7 +131,7 @@ case i_fsm_vprm is
 
       --falling edge of p_in_lval
       if (sr_lval(0) = '0' and sr_lval(1) = '1') then
-        i_pixcount <= i_cnt;
+        i_pixcount <= i_cnt * TO_UNSIGNED(G_CL_TAP, i_cnt'length);
         i_fsm_vprm <= S_FRAME_WAIT;
       end if;
     end if;
