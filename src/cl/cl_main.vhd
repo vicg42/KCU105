@@ -20,8 +20,8 @@ use work.cl_pkg.all;
 
 entity cl_main is
 generic(
-G_CL_PIXBIT : natural := 8; --Amount bit per 1 pix
-G_CL_TAP : natural := 8; --Amount pixel per 1 clk
+G_CL_PIXBIT : natural := 8; --Number of bit per 1 pix
+G_CL_TAP : natural := 8; --Number of pixel per 1 clk
 G_CL_CHCOUNT : natural := 1
 );
 port(

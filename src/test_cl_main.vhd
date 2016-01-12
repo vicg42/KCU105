@@ -113,8 +113,8 @@ G_VCH_NUM : natural := 0;
 G_PKT_TYPE : natural := 1;
 G_PKT_HEADER_BYTECOUNT : natural := 16;
 G_PKT_PIXCHUNK_BYTECOUNT : natural := 1024;
-G_CL_PIXBIT : natural := 1; --Amount bit per 1 pix
-G_CL_TAP : natural := 8; --Amount pixel per 1 clk
+G_CL_PIXBIT : natural := 1; --Number of bit per 1 pix
+G_CL_TAP : natural := 8; --Number of pixel per 1 clk
 G_CL_CHCOUNT : natural := 1;
 G_SIM : string := "OFF"
 );
@@ -158,6 +158,7 @@ p_out_status   : out  std_logic_vector(C_CAM_STATUS_LASTBIT downto 0);
 --------------------------------------------------
 p_out_tst : out  std_logic_vector(1 downto 0);
 p_in_tst  : in   std_logic_vector(0 downto 0);
+p_out_dbg : out  TCAM_dbg;
 
 --p_in_refclk : in std_logic;
 --p_in_clk : in std_logic;
@@ -185,8 +186,6 @@ signal i_1ms               : std_logic;
 signal i_usrclk_rst        : std_logic;
 signal g_usrclk            : std_logic_vector(7 downto 0);
 signal i_test_led          : std_logic_vector(0 downto 0);
-signal i_cl_tst_out        : std_logic_vector(1 downto 0);
-signal i_cl_tst_in         : std_logic_vector(0 downto 0);
 signal i_usr_rst           : std_logic;
 
 signal i_cam_status        : std_logic_vector(C_CAM_STATUS_LASTBIT downto 0);
@@ -194,9 +193,39 @@ signal i_cam_status        : std_logic_vector(C_CAM_STATUS_LASTBIT downto 0);
 signal i_cam_bufpkt_do     : std_logic_vector(63 downto 0);
 signal i_cam_bufpkt_rd     : std_logic;
 signal i_cam_bufpkt_empty  : std_logic;
+signal i_cam_bufpkt_rdclk  : std_logic; --g_usrclk(0),
+
+signal i_cam_tst_out       : std_logic_vector(1 downto 0);
+signal i_cam_tst_in        : std_logic_vector(0 downto 0);
+signal i_cam_dbg           : TCAM_dbg;
 
 signal i_time              : unsigned(31 downto 0);
 
+
+
+component ila_dbg_cl is
+port (
+clk : in std_logic;
+probe0 : in std_logic_vector(33 downto 0)
+);
+end component ila_dbg_cl;
+
+component ila_dbg2_cl is
+port (
+clk : in std_logic;
+probe0 : in std_logic_vector(28 downto 0)
+);
+end component ila_dbg2_cl;
+
+component ila_dbg_cam is
+port (
+clk : in std_logic;
+probe0 : in std_logic_vector(70 downto 0)
+);
+end component ila_dbg_cam;
+
+attribute mark_debug : string;
+attribute mark_debug of i_cam_dbg  : signal is "true";
 
 
 begin --architecture struct
@@ -218,7 +247,6 @@ p_in_clk   => pin_in_refclk
 
 i_usr_rst <= pin_in_btn(0);
 
-i_time <= TO_UNSIGNED(16#7BBBAAAA#, i_time'length);
 
 m_cam : cam_cl_main
 generic map(
@@ -226,8 +254,8 @@ G_VCH_NUM => 0,
 G_PKT_TYPE => 1,
 G_PKT_HEADER_BYTECOUNT => 16,
 G_PKT_PIXCHUNK_BYTECOUNT => 1024, --1280
-G_CL_PIXBIT  => 8, --Amount bit per 1 pix
-G_CL_TAP     => 8, --Amount pixel per 1 clk
+G_CL_PIXBIT  => 8, --Number of bit per 1 pix
+G_CL_TAP     => 8, --Number of pixel per 1 clk
 G_CL_CHCOUNT => G_CL_CHCOUNT,
 G_SIM => G_SIM
 )
@@ -257,8 +285,8 @@ p_in_cl_di_n  => pin_in_cl_di_n ,
 --VideoPkt Output
 --------------------------------------------------
 p_out_bufpkt_d     => i_cam_bufpkt_do,
-p_in_bufpkt_rd     => '0',--i_cam_bufpkt_rd,
-p_in_bufpkt_rdclk  => g_usrclk(0),
+p_in_bufpkt_rd     => i_cam_bufpkt_rd,
+p_in_bufpkt_rdclk  => i_cam_bufpkt_rdclk, --g_usrclk(0),
 p_out_bufpkt_empty => i_cam_bufpkt_empty,
 
 --------------------------------------------------
@@ -269,15 +297,20 @@ p_out_status   => i_cam_status,
 --------------------------------------------------
 --DBG
 --------------------------------------------------
-p_out_tst => i_cl_tst_out,
-p_in_tst  => i_cl_tst_in,
+p_out_tst => i_cam_tst_out,
+p_in_tst  => i_cam_tst_in,
+p_out_dbg => i_cam_dbg,
 
 --p_in_refclk => g_usrclk(1),
 --p_in_clk => g_usrclk(0),
 p_in_rst => i_usr_rst
 );
 
-i_cl_tst_in(0) <= i_btn;
+i_cam_bufpkt_rd <= (not i_cam_bufpkt_empty);
+i_cam_bufpkt_rdclk <= g_usrclk(0);
+i_cam_tst_in(0) <= i_btn;
+
+i_time <= TO_UNSIGNED(16#7BBBAAAA#, i_time'length);
 
 
 --#########################################
@@ -315,8 +348,8 @@ pin_out_led_hpc(1) <= i_cam_status(C_CAM_STATUS_CLX_LINK_BIT);
 pin_out_led_hpc(2) <= i_cam_status(C_CAM_STATUS_CLY_LINK_BIT);
 pin_out_led_hpc(3) <= i_cam_status(C_CAM_STATUS_CLZ_LINK_BIT);
 
-pin_out_TP(0) <= i_cl_tst_out(0);--PMOD1_4  (CSI)
-pin_out_TP(1) <= i_cl_tst_out(1);--PMOD1_6  (SSI)
+pin_out_TP(0) <= i_cam_tst_out(0);--PMOD1_4  (CSI)
+pin_out_TP(1) <= i_cam_tst_out(1);--PMOD1_6  (SSI)
 
 
 m_btn : debounce
@@ -332,5 +365,70 @@ p_in_clk_en => i_1ms,
 p_in_clk    => g_usrclk(0)
 );
 
+
+
+
+
+dbg_prm : ila_dbg_cl
+port map(
+clk       => i_cam_dbg.cl(0).clk,
+probe0(0) => i_cam_dbg.det.frprm_det,
+probe0(16 downto 1) => i_cam_dbg.det.pixcount,
+probe0(32 downto 17) => i_cam_dbg.det.linecount,
+probe0(33) => i_cam_dbg.det.restart
+
+);
+
+dbg2_clx : ila_dbg2_cl
+port map(
+clk                  => i_cam_dbg.cl(0).clk,
+probe0(0)            => i_cam_dbg.cl(0).link     ,
+probe0(1)            => i_cam_dbg.cl(0).fval     ,
+probe0(2)            => i_cam_dbg.cl(0).lval     ,
+probe0(10 downto 3)  => i_cam_dbg.cl(0).rxbyte(0),
+probe0(18 downto 11) => i_cam_dbg.cl(0).rxbyte(1),
+probe0(26 downto 19) => i_cam_dbg.cl(0).rxbyte(2),
+probe0(27)           => i_cam_dbg.cl(0).fval_edge0,
+probe0(28)           => i_cam_dbg.cl(0).fval_edge1
+);
+
+dbg2_cly : ila_dbg2_cl
+port map(
+clk                  => i_cam_dbg.cl(1).clk,
+probe0(0)            => i_cam_dbg.cl(1).link     ,
+probe0(1)            => i_cam_dbg.cl(1).fval     ,
+probe0(2)            => i_cam_dbg.cl(1).lval     ,
+probe0(10 downto 3)  => i_cam_dbg.cl(1).rxbyte(0),
+probe0(18 downto 11) => i_cam_dbg.cl(1).rxbyte(1),
+probe0(26 downto 19) => i_cam_dbg.cl(1).rxbyte(2),
+probe0(27)           => i_cam_dbg.cl(1).fval_edge0,
+probe0(28)           => i_cam_dbg.cl(1).fval_edge1
+);
+
+dbg2_clz : ila_dbg2_cl
+port map(
+clk                  => i_cam_dbg.cl(2).clk,
+probe0(0)            => i_cam_dbg.cl(2).link     ,
+probe0(1)            => i_cam_dbg.cl(2).fval     ,
+probe0(2)            => i_cam_dbg.cl(2).lval     ,
+probe0(10 downto 3)  => i_cam_dbg.cl(2).rxbyte(0),
+probe0(18 downto 11) => i_cam_dbg.cl(2).rxbyte(1),
+probe0(26 downto 19) => i_cam_dbg.cl(2).rxbyte(2),
+probe0(27)           => i_cam_dbg.cl(2).fval_edge0,
+probe0(28)           => i_cam_dbg.cl(2).fval_edge1
+);
+
+dbg_cam : ila_dbg_cam
+port map(
+clk                 => i_cam_bufpkt_rdclk,
+probe0(0)           => i_cam_dbg.cam.bufpkt_empty,
+probe0(1)           => i_cam_dbg.cam.bufpkt_rd   ,
+probe0(65 downto 2) => i_cam_dbg.cam.bufpkt_do   ,
+probe0(66)          => i_cam_dbg.cam.vpkt_err    ,
+probe0(67)          => i_cam_dbg.cam.fval,
+probe0(68)          => i_cam_dbg.cam.lval,
+probe0(69)          => i_cam_dbg.cam.fval_edge0,
+probe0(70)          => i_cam_dbg.cam.fval_edge1
+);
 
 end architecture struct;

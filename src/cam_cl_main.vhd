@@ -25,8 +25,8 @@ G_VCH_NUM : natural := 0;
 G_PKT_TYPE : natural := 1;
 G_PKT_HEADER_BYTECOUNT : natural := 16;
 G_PKT_PIXCHUNK_BYTECOUNT : natural := 1024;
-G_CL_PIXBIT : natural := 1; --Amount bit per 1 pix
-G_CL_TAP : natural := 8; --Amount pixel per 1 clk
+G_CL_PIXBIT : natural := 1; --Number of bit per 1 pix
+G_CL_TAP : natural := 8; --Number of pixel per 1 clk
 G_CL_CHCOUNT : natural := 1;
 G_SIM : string := "OFF"
 );
@@ -70,6 +70,7 @@ p_out_status   : out  std_logic_vector(C_CAM_STATUS_LASTBIT downto 0);
 --------------------------------------------------
 p_out_tst : out  std_logic_vector(1 downto 0);
 p_in_tst  : in   std_logic_vector(0 downto 0);
+p_out_dbg : out  TCAM_dbg;
 
 --p_in_refclk : in std_logic;
 --p_in_clk : in std_logic;
@@ -155,8 +156,8 @@ end component cl_frprm_detector;
 
 component cl_bufline is
 generic(
-G_CL_PIXBIT : natural := 8; --Amount bit per 1 pix
-G_CL_TAP : natural := 8; --Amount pixel per 1 clk
+G_CL_PIXBIT : natural := 8; --Number of bit per 1 pix
+G_CL_TAP : natural := 8; --Number of pixel per 1 clk
 G_CL_CHCOUNT : natural := 1
 );
 port(
@@ -192,7 +193,7 @@ G_VCH_NUM : natural := 0;
 G_PKT_TYPE : natural := 1;
 G_PKT_HEADER_BYTECOUNT : natural := 16;
 G_PKT_PIXCHUNK_BYTECOUNT : natural := 1024;
-G_CL_TAP : natural := 8  --Amount pixel per 1 clk
+G_CL_TAP : natural := 8  --Number of pixel per 1 clk
 );
 port(
 ----------------------------
@@ -299,70 +300,9 @@ signal tst_fval_t_edge1    : std_logic;
 --signal tst_lval_t_edge0    : std_logic;
 --signal tst_lval_t_edge1    : std_logic;
 
-component ila_dbg_cl is
-port (
-clk : in std_logic;
-probe0 : in std_logic_vector(33 downto 0)
-);
-end component ila_dbg_cl;
-
-component ila_dbg2_cl is
-port (
-clk : in std_logic;
-probe0 : in std_logic_vector(28 downto 0)
-);
-end component ila_dbg2_cl;
-
-component ila_dbg_cam is
-port (
-clk : in std_logic;
-probe0 : in std_logic_vector(70 downto 0)
-);
-end component ila_dbg_cam;
-
-type TCLDBG_detprm is record
-pixcount  : std_logic_vector(15 downto 0);
-linecount : std_logic_vector(15 downto 0);
-frprm_det : std_logic;
-restart   : std_logic;
-end record;
-
-type TCL_rxbyte_dbg is array (0 to 2) of std_logic_vector(7 downto 0);
-type TCLDBG_CH is record
-link : std_logic;
-fval : std_logic;
-lval : std_logic;
-fval_edge0 : std_logic;
-fval_edge1 : std_logic;
---lval_edge0 : std_logic;
---lval_edge1 : std_logic;
-rxbyte : TCL_rxbyte_dbg;
-end record;
-type TCLDBG_CHs is array (0 to 2) of TCLDBG_CH;
-
-type TCLDBG_CAM is record
-bufpkt_empty : std_logic;
-bufpkt_rd : std_logic;
-bufpkt_do : std_logic_vector(63 downto 0);
-vpkt_err : std_logic;
-fval : std_logic;
-lval : std_logic;
-fval_edge0 : std_logic;
-fval_edge1 : std_logic;
---lval_edge0 : std_logic;
---lval_edge1 : std_logic;
-end record;
-
-type TCAM_dbg is record
-det : TCLDBG_detprm;
-cl  : TCLDBG_CHs;
-cam : TCLDBG_CAM;
-end record;
-
 signal i_dbg : TCAM_dbg;
 
-attribute mark_debug : string;
-attribute mark_debug of i_dbg  : signal is "true";
+
 
 
 
@@ -520,7 +460,7 @@ G_VCH_NUM => G_VCH_NUM,
 G_PKT_TYPE => G_PKT_TYPE,
 G_PKT_HEADER_BYTECOUNT => G_PKT_HEADER_BYTECOUNT,
 G_PKT_PIXCHUNK_BYTECOUNT => G_PKT_PIXCHUNK_BYTECOUNT,
-G_CL_TAP => G_CL_TAP  --Amount pixel per 1 clk
+G_CL_TAP => G_CL_TAP  --Number of pixel per 1 clk
 )
 port map(
 ----------------------------
@@ -567,8 +507,8 @@ din       => i_bufpkt_di,
 wr_en     => i_bufpkt_wr,
 --wr_clk    : in  std_logic;
 
-dout      => i_bufpkt_do,
-rd_en     => i_bufpkt_rd,
+dout      => i_bufpkt_do,--p_out_bufpkt_d,--
+rd_en     => i_bufpkt_rd,--p_in_bufpkt_rd,--
 --rd_clk    : in  std_logic;
 
 empty     => i_bufpkt_empty,
@@ -585,11 +525,9 @@ srst      => '0'
 );
 
 
-p_out_bufpkt_d     <= i_bufpkt_do;
+i_bufpkt_rd <= p_in_bufpkt_rd;
+p_out_bufpkt_d <= i_bufpkt_do;
 p_out_bufpkt_empty <= i_bufpkt_empty;
-
---i_bufpkt_rd <= p_in_bufpkt_rd;
-i_bufpkt_rd <= (not i_bufpkt_empty);
 
 
 --#########################################
@@ -598,12 +536,15 @@ i_bufpkt_rd <= (not i_bufpkt_empty);
 p_out_tst(0) <= i_fval(0);
 p_out_tst(1) <= i_lval(0);
 
+p_out_dbg <= i_dbg;
+
 
 i_dbg.det.pixcount  <= i_pixcount_detect;
 i_dbg.det.linecount <= i_linecount_detect;
 i_dbg.det.frprm_det <= i_frprm_detect;
 i_dbg.det.restart <= i_restart;
 
+i_dbg.cl(0).clk <= i_rxclk(0);
 i_dbg.cl(0).link <= i_link(0);
 i_dbg.cl(0).fval <= i_fval(0);
 i_dbg.cl(0).lval <= i_lval(0);
@@ -615,6 +556,7 @@ i_dbg.cl(0).rxbyte(0) <= i_rxbyte((8 * (0 + 1)) - 1 downto (8 * 0));
 i_dbg.cl(0).rxbyte(1) <= i_rxbyte((8 * (1 + 1)) - 1 downto (8 * 1));
 i_dbg.cl(0).rxbyte(2) <= i_rxbyte((8 * (2 + 1)) - 1 downto (8 * 2));
 
+i_dbg.cl(1).clk <= i_rxclk(1);
 i_dbg.cl(1).link <= i_link(1);
 i_dbg.cl(1).fval <= i_fval(1);
 i_dbg.cl(1).lval <= i_lval(1);
@@ -626,6 +568,7 @@ i_dbg.cl(1).rxbyte(0) <= i_rxbyte((8 * (3 + 1)) - 1 downto (8 * 3));
 i_dbg.cl(1).rxbyte(1) <= i_rxbyte((8 * (4 + 1)) - 1 downto (8 * 4));
 i_dbg.cl(1).rxbyte(2) <= i_rxbyte((8 * (5 + 1)) - 1 downto (8 * 5));
 
+i_dbg.cl(2).clk <= i_rxclk(2);
 i_dbg.cl(2).link <= i_link(2);
 i_dbg.cl(2).fval <= i_fval(2);
 i_dbg.cl(2).lval <= i_lval(2);
@@ -645,69 +588,6 @@ i_dbg.cam.fval_edge0 <= tst_fval_t_edge0;
 i_dbg.cam.fval_edge1 <= tst_fval_t_edge1;
 i_dbg.cam.fval <= i_fval(0);
 i_dbg.cam.lval <= i_lval(0);
-
-dbg_prm : ila_dbg_cl
-port map(
-clk       => i_rxclk(0),
-probe0(0) => i_dbg.det.frprm_det,
-probe0(16 downto 1) => i_dbg.det.pixcount,
-probe0(32 downto 17) => i_dbg.det.linecount,
-probe0(33) => i_dbg.det.restart
-
-);
-
-dbg2_clx : ila_dbg2_cl
-port map(
-clk                  => i_rxclk(0),
-probe0(0)            => i_dbg.cl(0).link     ,
-probe0(1)            => i_dbg.cl(0).fval     ,
-probe0(2)            => i_dbg.cl(0).lval     ,
-probe0(10 downto 3)  => i_dbg.cl(0).rxbyte(0),
-probe0(18 downto 11) => i_dbg.cl(0).rxbyte(1),
-probe0(26 downto 19) => i_dbg.cl(0).rxbyte(2),
-probe0(27)           => i_dbg.cl(0).fval_edge0,
-probe0(28)           => i_dbg.cl(0).fval_edge1
-);
-
-dbg2_cly : ila_dbg2_cl
-port map(
-clk                  => i_rxclk(1),
-probe0(0)            => i_dbg.cl(1).link     ,
-probe0(1)            => i_dbg.cl(1).fval     ,
-probe0(2)            => i_dbg.cl(1).lval     ,
-probe0(10 downto 3)  => i_dbg.cl(1).rxbyte(0),
-probe0(18 downto 11) => i_dbg.cl(1).rxbyte(1),
-probe0(26 downto 19) => i_dbg.cl(1).rxbyte(2),
-probe0(27)           => i_dbg.cl(1).fval_edge0,
-probe0(28)           => i_dbg.cl(1).fval_edge1
-);
-
-dbg2_clz : ila_dbg2_cl
-port map(
-clk                  => i_rxclk(2),
-probe0(0)            => i_dbg.cl(2).link     ,
-probe0(1)            => i_dbg.cl(2).fval     ,
-probe0(2)            => i_dbg.cl(2).lval     ,
-probe0(10 downto 3)  => i_dbg.cl(2).rxbyte(0),
-probe0(18 downto 11) => i_dbg.cl(2).rxbyte(1),
-probe0(26 downto 19) => i_dbg.cl(2).rxbyte(2),
-probe0(27)           => i_dbg.cl(2).fval_edge0,
-probe0(28)           => i_dbg.cl(2).fval_edge1
-);
-
-
-dbg_cam : ila_dbg_cam
-port map(
-clk                 => p_in_bufpkt_rdclk,
-probe0(0)           => i_dbg.cam.bufpkt_empty,
-probe0(1)           => i_dbg.cam.bufpkt_rd   ,
-probe0(65 downto 2) => i_dbg.cam.bufpkt_do   ,
-probe0(66)          => i_dbg.cam.vpkt_err    ,
-probe0(67)          => i_dbg.cam.fval,
-probe0(68)          => i_dbg.cam.lval,
-probe0(69)          => i_dbg.cam.fval_edge0,
-probe0(70)          => i_dbg.cam.fval_edge1
-);
 
 
 process(i_link_total, i_rxclk(0))
