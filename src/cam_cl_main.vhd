@@ -187,7 +187,7 @@ p_in_buf_rst    : in   std_logic
 );
 end component cl_bufline;
 
-component vpkt_create is
+component pktvd_create is
 generic(
 G_VCH_NUM : natural := 0;
 G_PKT_TYPE : natural := 1;
@@ -232,7 +232,7 @@ p_in_tst  : in   std_logic_vector(31 downto 0);
 p_in_clk : in std_logic;
 p_in_rst : in std_logic
 );
-end component vpkt_create;
+end component pktvd_create;
 
 component cam_fifo_vpkt
 port (
@@ -454,7 +454,7 @@ p_in_buf_rst    => i_bufi_rst
 );
 
 --i_pixcount_detect <= std_logic_vector(TO_UNSIGNED(2157, i_pixcount_detect'length));
-m_vpkt : vpkt_create
+m_vpkt : pktvd_create
 generic map(
 G_VCH_NUM => G_VCH_NUM,
 G_PKT_TYPE => G_PKT_TYPE,
