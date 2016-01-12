@@ -2,7 +2,7 @@
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 11.01.2016 13:17:39
--- Module Name : vpkt_create
+-- Module Name : pktvd_create
 --
 -- Description :
 --
@@ -14,7 +14,7 @@ use ieee.numeric_std.all;
 library work;
 use work.reduce_pack.all;
 
-entity vpkt_create is
+entity pktvd_create is
 generic(
 G_BUFI_DWIDTH : natural := 64;
 G_VCH_NUM : natural := 0;
@@ -60,9 +60,9 @@ p_in_tst  : in   std_logic_vector(31 downto 0);
 p_in_clk : in std_logic;
 p_in_rst : in std_logic
 );
-end entity vpkt_create;
+end entity pktvd_create;
 
-architecture behavioral of vpkt_create is
+architecture behavioral of pktvd_create is
 
 
 type TFsm_vpkt is (
