@@ -41,11 +41,14 @@ vcom -64 -93 -work xil_defaultlib "../../src/vpkt_create.vhd";
 vcom -64 -93 -work xil_defaultlib "../../src/cam_cl_pkg.vhd";
 vcom -64 -93 -work xil_defaultlib "../../src/cam_cl_main.vhd";
 
+vcom -64 -93 -work xil_defaultlib "../../src/eth/eth_pkg.vhd"
+vcom -64 -93 -work xil_defaultlib "../../src/eth/eth_mac_tx_64.vhd"
+
 vcom -64 -93 -work xil_defaultlib "../testbanch/cam_core_tb.vhd";
 vcom -64 -93 -work xil_defaultlib "../testbanch/cam_cl_tb.vhd";
 
-# compile glbl module
-vlog -64 -93 -work xil_defaultlib "glbl.v";
+## compile glbl module
+#vlog -64 -93 -work xil_defaultlib "glbl.v";
 
 
 

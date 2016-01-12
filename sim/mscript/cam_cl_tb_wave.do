@@ -44,7 +44,6 @@ add wave -noupdate -radix unsigned /cam_cl_tb/m_cam/m_vpkt/i_fr_linecount
 add wave -noupdate /cam_cl_tb/m_cam/m_vpkt/i_fr_cnt
 add wave -noupdate -radix unsigned /cam_cl_tb/m_cam/m_vpkt/i_remain_pixcount
 add wave -noupdate -radix unsigned /cam_cl_tb/m_cam/m_vpkt/i_tx_pixcount
-add wave -noupdate -radix unsigned /cam_cl_tb/m_cam/m_vpkt/i_chunk_pixcount
 add wave -noupdate -radix unsigned /cam_cl_tb/m_cam/m_vpkt/i_pkt_pixcnt
 add wave -noupdate -radix unsigned /cam_cl_tb/m_cam/m_vpkt/i_line_cnt
 add wave -noupdate /cam_cl_tb/m_cam/m_vpkt/i_pkt_d
@@ -54,13 +53,28 @@ add wave -noupdate /cam_cl_tb/m_cam/m_vpkt/i_padding
 add wave -noupdate /cam_cl_tb/m_cam/m_vpkt/i_bufi_rst
 add wave -noupdate /cam_cl_tb/m_cam/m_vpkt/p_in_bufi_do
 add wave -noupdate /cam_cl_tb/m_cam/m_vpkt/p_in_bufi_empty
-add wave -noupdate /cam_cl_tb/m_cam/m_vpkt/p_out_pkt_do
+add wave -noupdate -radix hexadecimal /cam_cl_tb/m_cam/m_vpkt/p_out_pkt_do
 add wave -noupdate /cam_cl_tb/m_cam/m_vpkt/p_out_pkt_wr
+add wave -noupdate -radix unsigned /cam_cl_tb/m_cam/m_vpkt/tst_cnt
+add wave -noupdate -divider {New Divider}
+add wave -noupdate -radix hexadecimal /cam_cl_tb/m_cam/p_out_bufpkt_d
+add wave -noupdate /cam_cl_tb/m_cam/p_in_bufpkt_rd
+add wave -noupdate /cam_cl_tb/m_cam/p_in_bufpkt_rdclk
+add wave -noupdate /cam_cl_tb/m_cam/p_out_bufpkt_empty
+add wave -noupdate -color {Slate Blue} -itemcolor Gold /cam_cl_tb/m_eth_tx/i_fsm_eth_tx
+add wave -noupdate /cam_cl_tb/m_eth_tx/i_total_count_byte
+add wave -noupdate /cam_cl_tb/m_eth_tx/i_rd_chunk_cnt
+add wave -noupdate /cam_cl_tb/m_eth_tx/i_rd_chunk_count
+add wave -noupdate /cam_cl_tb/m_eth_tx/i_rd_chunk_rem
+add wave -noupdate /cam_cl_tb/m_eth_tx/p_out_eth_axi_tdata
+add wave -noupdate /cam_cl_tb/m_eth_tx/p_out_eth_axi_tkeep
+add wave -noupdate /cam_cl_tb/m_eth_tx/p_out_eth_axi_tvalid
+add wave -noupdate /cam_cl_tb/m_eth_tx/p_out_eth_axi_tlast
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {0 ps} 0}
-quietly wave cursor active 0
+WaveRestoreCursors {{Cursor 1} {178448000 ps} 0}
+quietly wave cursor active 1
 configure wave -namecolwidth 150
-configure wave -valuecolwidth 100
+configure wave -valuecolwidth 177
 configure wave -justifyvalue left
 configure wave -signalnamewidth 1
 configure wave -snapdistance 10
@@ -73,4 +87,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {0 ps} {191625 ns}
+WaveRestoreZoom {178381057 ps} {178670233 ps}

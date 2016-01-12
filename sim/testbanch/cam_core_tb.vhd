@@ -61,7 +61,8 @@ signal i_fsm     : TFsm;
 
 signal i_rst     : std_logic;
 signal i_clk     : std_logic;
-
+signal i_pixval  : unsigned(15 downto 0) := (others => '0');
+signal i_pixval2  : unsigned(15 downto 0) := (others => '0');
 signal i_pixcnt  : unsigned(15 downto 0) := (others => '0');
 signal i_cnt     : unsigned(15 downto 0) := (others => '0');
 signal i_linecnt : unsigned(15 downto 0) := (others => '0');
@@ -90,16 +91,17 @@ p_out_link   <= ((not i_rst) & (not i_rst) & (not i_rst));--;--(others => '1');-
 p_out_fval   <= (i_fval & i_fval & i_fval);--: out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --frame valid
 p_out_lval   <= (i_lval & i_lval & i_lval);--: out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --line valid
 p_out_dval   <= (others => '1');--: out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --data valid
-p_out_rxbyte <= std_logic_vector(RESIZE(i_pixcnt, p_out_rxbyte'length));--: out  std_logic_vector((G_CL_PIXBIT * G_CL_TAP) - 1 downto 0);
+p_out_rxbyte <= std_logic_vector(RESIZE(i_pixval2, 32)) & std_logic_vector(RESIZE(i_pixval, 32));--: out  std_logic_vector((G_CL_PIXBIT * G_CL_TAP) - 1 downto 0);
 p_out_rxclk  <= (i_clk & i_clk & i_clk);--: out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 
+i_pixval2 <= i_pixval + 1;
 
 process(i_rst, i_clk)
 begin
 if rising_edge(i_clk) then
 if (i_rst = '1') then
 
-i_cnt <= (others => '0'); i_pixcnt <= (others => '0');
+i_cnt <= (others => '0'); i_pixcnt <= (others => '0'); i_pixval <= (others => '0');
 i_linecnt <= (others => '0');
 i_fval <= '0';
 i_lval <= '0';
@@ -136,7 +138,7 @@ else
     when S_PIX =>
 
       if (i_cnt = TO_UNSIGNED((270 - 1), i_cnt'length)) then
-        i_cnt <= (others => '0'); i_pixcnt <= (others => '0');
+        i_cnt <= (others => '0'); i_pixcnt <= (others => '0'); i_pixval <= (others => '0');
         if (i_linecnt = TO_UNSIGNED((8 - 1), i_cnt'length)) then
           i_linecnt <= (others => '0');
           i_fval <= '0';
@@ -151,6 +153,7 @@ else
       else
         i_cnt <= i_cnt + 1;
         i_pixcnt <= i_pixcnt + 1;
+        i_pixval <= i_pixval + 2;
       end if;
   end case;
 end if;
