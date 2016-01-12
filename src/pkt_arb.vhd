@@ -74,23 +74,23 @@ begin --architecture behavioral
 ----------------------------
 --TO ETH_MAC
 ----------------------------
-p_out_txeth_axi_tdata <= p_in_txusr_axi_tdata((G_AXI_DWIDTH * (0 + 1)) - 1 downto (G_AXI_DWIDTH * 0)) when (i_txnum = TO_UNSIGNED(0, i_txnum'length) else
-                         p_in_txusr_axi_tdata((G_AXI_DWIDTH * (1 + 1)) - 1 downto (G_AXI_DWIDTH * 1)) when (i_txnum = TO_UNSIGNED(1, i_txnum'length) else
-                         p_in_txusr_axi_tdata((G_AXI_DWIDTH * (2 + 1)) - 1 downto (G_AXI_DWIDTH * 2)) when (i_txnum = TO_UNSIGNED(2, i_txnum'length) else
+p_out_txeth_axi_tdata <= p_in_txusr_axi_tdata((G_AXI_DWIDTH * (0 + 1)) - 1 downto (G_AXI_DWIDTH * 0)) when (i_txnum = TO_UNSIGNED(0, i_txnum'length)) else
+                         p_in_txusr_axi_tdata((G_AXI_DWIDTH * (1 + 1)) - 1 downto (G_AXI_DWIDTH * 1)) when (i_txnum = TO_UNSIGNED(1, i_txnum'length)) else
+                         p_in_txusr_axi_tdata((G_AXI_DWIDTH * (2 + 1)) - 1 downto (G_AXI_DWIDTH * 2)) when (i_txnum = TO_UNSIGNED(2, i_txnum'length)) else
                          (others => '0');
 
-p_out_txeth_axi_tvalid <= p_in_txusr_axi_tvalid(0) when (i_txnum = TO_UNSIGNED(0, i_txnum'length) else
-                          p_in_txusr_axi_tvalid(1) when (i_txnum = TO_UNSIGNED(1, i_txnum'length) else
-                          p_in_txusr_axi_tvalid(2) when (i_txnum = TO_UNSIGNED(2, i_txnum'length) else
+p_out_txeth_axi_tvalid <= p_in_txusr_axi_tvalid(0) when (i_txnum = TO_UNSIGNED(0, i_txnum'length)) else
+                          p_in_txusr_axi_tvalid(1) when (i_txnum = TO_UNSIGNED(1, i_txnum'length)) else
+                          p_in_txusr_axi_tvalid(2) when (i_txnum = TO_UNSIGNED(2, i_txnum'length)) else
                           '0';
 
-p_out_txusr_axi_tready(0) <= p_in_txeth_axi_tready when (i_txnum = TO_UNSIGNED(0, i_txnum'length) else '0';
-p_out_txusr_axi_tready(1) <= p_in_txeth_axi_tready when (i_txnum = TO_UNSIGNED(1, i_txnum'length) else '0';
-p_out_txusr_axi_tready(2) <= p_in_txeth_axi_tready when (i_txnum = TO_UNSIGNED(2, i_txnum'length) else '0';
+p_out_txusr_axi_tready(0) <= p_in_txeth_axi_tready when (i_txnum = TO_UNSIGNED(0, i_txnum'length)) else '0';
+p_out_txusr_axi_tready(1) <= p_in_txeth_axi_tready when (i_txnum = TO_UNSIGNED(1, i_txnum'length)) else '0';
+p_out_txusr_axi_tready(2) <= p_in_txeth_axi_tready when (i_txnum = TO_UNSIGNED(2, i_txnum'length)) else '0';
 
-p_out_txusr_axi_done(0) <= p_in_txeth_axi_done when (i_txnum = TO_UNSIGNED(0, i_txnum'length) else '0';
-p_out_txusr_axi_done(1) <= p_in_txeth_axi_done when (i_txnum = TO_UNSIGNED(1, i_txnum'length) else '0';
-p_out_txusr_axi_done(2) <= p_in_txeth_axi_done when (i_txnum = TO_UNSIGNED(2, i_txnum'length) else '0';
+p_out_txusr_axi_done(0) <= p_in_txeth_axi_done when (i_txnum = TO_UNSIGNED(0, i_txnum'length)) else '0';
+p_out_txusr_axi_done(1) <= p_in_txeth_axi_done when (i_txnum = TO_UNSIGNED(1, i_txnum'length)) else '0';
+p_out_txusr_axi_done(2) <= p_in_txeth_axi_done when (i_txnum = TO_UNSIGNED(2, i_txnum'length)) else '0';
 
 
 process(p_in_clk)

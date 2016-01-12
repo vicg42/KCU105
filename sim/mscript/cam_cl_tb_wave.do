@@ -55,7 +55,9 @@ add wave -noupdate /cam_cl_tb/m_cam/m_vpkt/p_in_bufi_do
 add wave -noupdate /cam_cl_tb/m_cam/m_vpkt/p_in_bufi_empty
 add wave -noupdate -radix hexadecimal /cam_cl_tb/m_cam/m_vpkt/p_out_pkt_do
 add wave -noupdate /cam_cl_tb/m_cam/m_vpkt/p_out_pkt_wr
-add wave -noupdate -radix unsigned /cam_cl_tb/m_cam/m_vpkt/tst_cnt
+add wave -noupdate -divider {New Divider}
+add wave -noupdate -color {Slate Blue} -itemcolor Gold /cam_cl_tb/m_pkt_arb/i_fsm_txarb
+add wave -noupdate /cam_cl_tb/m_pkt_arb/i_txnum
 add wave -noupdate -divider {New Divider}
 add wave -noupdate -radix hexadecimal /cam_cl_tb/m_cam/p_out_bufpkt_d
 add wave -noupdate /cam_cl_tb/m_cam/p_in_bufpkt_rd
@@ -87,4 +89,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {178381057 ps} {178670233 ps}
+WaveRestoreZoom {174957055 ps} {209323620 ps}

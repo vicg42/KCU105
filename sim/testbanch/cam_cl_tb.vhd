@@ -168,6 +168,41 @@ p_in_rst : in  std_logic
 );
 end component eth_mac_tx;
 
+component pkt_arb is
+generic(
+G_AXI_DWIDTH : natural := 64;
+G_CHCOUNT : natural := 0
+);
+port(
+--------------------------------------
+--ETH <- USR TXBUF
+--------------------------------------
+p_in_txusr_axi_tdata   : in   std_logic_vector((G_AXI_DWIDTH * G_CHCOUNT) - 1 downto 0);
+p_out_txusr_axi_tready : out  std_logic_vector(G_CHCOUNT - 1 downto 0);
+p_in_txusr_axi_tvalid  : in   std_logic_vector(G_CHCOUNT - 1 downto 0);
+p_out_txusr_axi_done   : out  std_logic_vector(G_CHCOUNT - 1 downto 0);
+
+----------------------------
+--TO ETH_MAC
+----------------------------
+p_out_txeth_axi_tdata   : out  std_logic_vector(G_AXI_DWIDTH - 1 downto 0);
+p_in_txeth_axi_tready   : in   std_logic;
+p_out_txeth_axi_tvalid  : out  std_logic;
+p_in_txeth_axi_done     : in   std_logic;
+
+------------------------------
+----DBG
+------------------------------
+--p_out_tst : out  std_logic_vector(31 downto 0);
+--p_in_tst  : in   std_logic_vector(31 downto 0);
+
+----------------------------
+--SYS
+----------------------------
+p_in_clk : in std_logic;
+p_in_rst : in std_logic
+);
+end component pkt_arb;
 
 signal p_in_rst           : std_logic;
 signal p_in_clk           : std_logic;
@@ -181,8 +216,22 @@ signal i_bufpkt_empty     : std_logic;
 signal i_time             : unsigned(31 downto 0);
 
 signal i_eth_cfg          : TEthCfg;
-signal i_eth_tx_axi_tready : std_logic;
-signal i_eth_tx_axi_tvalid : std_logic;
+signal i_eth_tx_axi_tready: std_logic;
+signal i_eth_tx_axi_tvalid: std_logic;
+
+constant CI_CHCOUNT : natural := 3;
+constant CI_AXI_DWIDTH : natural := 64;
+signal i_txusr_axi_tdata  : std_logic_vector((CI_AXI_DWIDTH * CI_CHCOUNT) - 1 downto 0);
+signal i_txusr_axi_tready : std_logic_vector(CI_CHCOUNT - 1 downto 0);
+signal i_txusr_axi_tvalid : std_logic_vector(CI_CHCOUNT - 1 downto 0);
+signal i_txusr_axi_done   : std_logic_vector(CI_CHCOUNT - 1 downto 0);
+
+signal i_txeth_arb_axi_tdata  : std_logic_vector(CI_AXI_DWIDTH - 1 downto 0);
+signal i_txeth_arb_axi_tready : std_logic;
+signal i_txeth_arb_axi_tvalid : std_logic;
+signal i_txeth_arb_axi_done   : std_logic;
+
+
 
 
 begin --architecture behavior of cam_cl_tb is
@@ -241,7 +290,7 @@ p_in_cl_di_n  => p_in_cl_di_n ,
 --------------------------------------------------
 --VideoPkt Output
 --------------------------------------------------
-p_out_bufpkt_d     => i_bufpkt_do,
+p_out_bufpkt_d     => i_txusr_axi_tdata((CI_AXI_DWIDTH * (0 + 1)) - 1 downto (CI_AXI_DWIDTH * 0)),--i_bufpkt_do,
 p_in_bufpkt_rd     => i_bufpkt_rd   ,
 p_in_bufpkt_rdclk  => i_bufpkt_rdclk,
 p_out_bufpkt_empty => i_bufpkt_empty,
@@ -266,8 +315,47 @@ p_in_rst => p_in_rst
 --i_bufpkt_rd <= (not i_bufpkt_empty);
 
 
-i_bufpkt_rd <= i_eth_tx_axi_tready;
-i_eth_tx_axi_tvalid <= not i_bufpkt_empty;
+i_bufpkt_rd <= i_txusr_axi_tready(0);
+i_txusr_axi_tvalid(0) <= not i_bufpkt_empty;
+i_txusr_axi_tvalid(1) <= '0';
+i_txusr_axi_tvalid(2) <= '0';
+
+
+m_pkt_arb : pkt_arb
+generic map(
+G_AXI_DWIDTH => CI_AXI_DWIDTH,
+G_CHCOUNT => CI_CHCOUNT
+)
+port map(
+--------------------------------------
+--ETH <- USR TXBUF
+--------------------------------------
+p_in_txusr_axi_tdata   => i_txusr_axi_tdata ,--: in   std_logic_vector((G_AXI_DWIDTH * G_CHCOUNT) - 1 downto 0);
+p_out_txusr_axi_tready => i_txusr_axi_tready,--: out  std_logic_vector(G_CHCOUNT - 1 downto 0);
+p_in_txusr_axi_tvalid  => i_txusr_axi_tvalid,--: in   std_logic_vector(G_CHCOUNT - 1 downto 0);
+p_out_txusr_axi_done   => open  ,--: out  std_logic_vector(G_CHCOUNT - 1 downto 0);
+
+----------------------------
+--TO ETH_MAC
+----------------------------
+p_out_txeth_axi_tdata  => i_txeth_arb_axi_tdata ,
+p_in_txeth_axi_tready  => i_txeth_arb_axi_tready,
+p_out_txeth_axi_tvalid => i_txeth_arb_axi_tvalid,
+p_in_txeth_axi_done    => i_txeth_arb_axi_done  ,
+
+------------------------------
+----DBG
+------------------------------
+--p_out_tst : out  std_logic_vector(31 downto 0);
+--p_in_tst  : in   std_logic_vector(31 downto 0);
+
+----------------------------
+--SYS
+----------------------------
+p_in_clk => i_bufpkt_rdclk,
+p_in_rst => p_in_rst
+);
+
 
 
 i_eth_cfg.mac.dst(0) <= std_logic_vector(TO_UNSIGNED(16#11#, 8));
@@ -301,10 +389,10 @@ p_in_cfg => i_eth_cfg,
 --------------------------------------
 --ETH <- USR TXBUF
 --------------------------------------
-p_in_usr_axi_tdata   => i_bufpkt_do,
-p_out_usr_axi_tready => i_eth_tx_axi_tready,--: out  std_logic;
-p_in_usr_axi_tvalid  => i_eth_tx_axi_tvalid,--: in   std_logic;
-p_out_usr_axi_done   => open,
+p_in_usr_axi_tdata   => i_txeth_arb_axi_tdata,--i_bufpkt_do,
+p_out_usr_axi_tready => i_txeth_arb_axi_tready,--i_eth_tx_axi_tready,--: out  std_logic;
+p_in_usr_axi_tvalid  => i_txeth_arb_axi_tvalid,--i_eth_tx_axi_tvalid,--: in   std_logic;
+p_out_usr_axi_done   => i_txeth_arb_axi_done,--open,
 
 --------------------------------------
 --ETH core (Tx)
@@ -328,6 +416,8 @@ p_out_tst => open,
 p_in_clk => i_bufpkt_rdclk,
 p_in_rst => p_in_rst
 );
+
+
 
 
 end architecture behavior;

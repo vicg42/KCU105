@@ -37,7 +37,8 @@ vcom -64 -93 -work xil_defaultlib "../../src/cl/cl_bufline.vhd";
 #vcom -64 -93 -work xil_defaultlib "../../src/cl/cl_core.vhd";
 vcom -64 -93 -work xil_defaultlib "../../src/cl/cl_frprm_detector.vhd";
 vcom -64 -93 -work xil_defaultlib "../../src/cl/gearbox_4_to_7.vhd";
-vcom -64 -93 -work xil_defaultlib "../../src/vpkt_create.vhd";
+vcom -64 -93 -work xil_defaultlib "../../src/pktvd_create.vhd";
+vcom -64 -93 -work xil_defaultlib "../../src/pkt_arb.vhd";
 vcom -64 -93 -work xil_defaultlib "../../src/cam_cl_pkg.vhd";
 vcom -64 -93 -work xil_defaultlib "../../src/cam_cl_main.vhd";
 
