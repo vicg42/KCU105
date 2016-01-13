@@ -23,14 +23,13 @@ port(
 --------------------------------------
 --ETH <- USR TXBUF
 --------------------------------------
+--to user
 p_in_txusr_axi_tdata   : in   std_logic_vector((G_AXI_DWIDTH * G_CHCOUNT) - 1 downto 0);
 p_out_txusr_axi_tready : out  std_logic_vector(G_CHCOUNT - 1 downto 0);
 p_in_txusr_axi_tvalid  : in   std_logic_vector(G_CHCOUNT - 1 downto 0);
 p_out_txusr_axi_done   : out  std_logic_vector(G_CHCOUNT - 1 downto 0);
 
-----------------------------
---TO ETH_MAC
-----------------------------
+--to eth_mac
 p_out_txeth_axi_tdata   : out  std_logic_vector(G_AXI_DWIDTH - 1 downto 0);
 p_in_txeth_axi_tready   : in   std_logic;
 p_out_txeth_axi_tvalid  : out  std_logic;
