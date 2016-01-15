@@ -6,6 +6,12 @@
 --
 -- Description :
 --
+-- Base Configuration   : Tap2/Pix8
+-- Base Configuration   : Tap2/Pix10
+-- Medium Configuration : Tap10/Pix10
+-- Full Configuration   : Tap8/Pix8
+-- Full Configuration   : Tap10/Pix8
+--
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -214,8 +220,261 @@ end generate gen_ch;
 --#################################
 --Full Configuration (64bit = 8Tap/8bit)
 --#################################
-gen_tap8 : if (G_CL_TAP = 8) generate begin
+gen_tap8_8bit : if (G_CL_TAP = 8) and (G_CL_PIXBIT = 8) generate begin
 --!!!! cl X cahnnel Full Configuration (64bit = 8Tap/8bit)!!!!
+process(i_cl_rxclk(0))
+begin
+if rising_edge(i_cl_rxclk(0)) then
+i_cl_fval(0) <= i_cl_rxd(0)((7 * 2) + 5); --FVAL(Frame value)
+i_cl_lval(0) <= i_cl_rxd(0)((7 * 2) + 4); --LVAL(Line value)
+
+--cl A(byte)
+i_cl_rxbyte(0)(0) <= i_cl_rxd(0)((7 * 0) + 0); --PortA0
+i_cl_rxbyte(0)(1) <= i_cl_rxd(0)((7 * 0) + 1); --PortA1
+i_cl_rxbyte(0)(2) <= i_cl_rxd(0)((7 * 0) + 2); --PortA2
+i_cl_rxbyte(0)(3) <= i_cl_rxd(0)((7 * 0) + 3); --PortA3
+i_cl_rxbyte(0)(4) <= i_cl_rxd(0)((7 * 0) + 4); --PortA4
+i_cl_rxbyte(0)(5) <= i_cl_rxd(0)((7 * 0) + 5); --PortA5
+i_cl_rxbyte(0)(6) <= i_cl_rxd(0)((7 * 3) + 0); --PortA6
+i_cl_rxbyte(0)(7) <= i_cl_rxd(0)((7 * 3) + 1); --PortA7
+
+--cl B(byte)
+i_cl_rxbyte(1)(0) <= i_cl_rxd(0)((7 * 0) + 6); --PortB0
+i_cl_rxbyte(1)(1) <= i_cl_rxd(0)((7 * 1) + 0); --PortB1
+i_cl_rxbyte(1)(2) <= i_cl_rxd(0)((7 * 1) + 1); --PortB2
+i_cl_rxbyte(1)(3) <= i_cl_rxd(0)((7 * 1) + 2); --PortB3
+i_cl_rxbyte(1)(4) <= i_cl_rxd(0)((7 * 1) + 3); --PortB4
+i_cl_rxbyte(1)(5) <= i_cl_rxd(0)((7 * 1) + 4); --PortB5
+i_cl_rxbyte(1)(6) <= i_cl_rxd(0)((7 * 3) + 2); --PortB6
+i_cl_rxbyte(1)(7) <= i_cl_rxd(0)((7 * 3) + 3); --PortB7
+
+--cl C(byte)
+i_cl_rxbyte(2)(0) <= i_cl_rxd(0)((7 * 1) + 5); --PortC0
+i_cl_rxbyte(2)(1) <= i_cl_rxd(0)((7 * 1) + 6); --PortC1
+i_cl_rxbyte(2)(2) <= i_cl_rxd(0)((7 * 2) + 0); --PortC2
+i_cl_rxbyte(2)(3) <= i_cl_rxd(0)((7 * 2) + 1); --PortC3
+i_cl_rxbyte(2)(4) <= i_cl_rxd(0)((7 * 2) + 2); --PortC4
+i_cl_rxbyte(2)(5) <= i_cl_rxd(0)((7 * 2) + 3); --PortC5
+i_cl_rxbyte(2)(6) <= i_cl_rxd(0)((7 * 3) + 4); --PortC6
+i_cl_rxbyte(2)(7) <= i_cl_rxd(0)((7 * 3) + 5); --PortC7
+end if;
+end process;
+
+--!!!! cl Y cahnnel Full Configuration (64bit = 8Tap/8bit)!!!!
+process(i_cl_rxclk(1))
+begin
+if rising_edge(i_cl_rxclk(1)) then
+i_cl_fval(1) <= i_cl_rxd(1)((7 * 2) + 5); --FVAL(Frame value)
+i_cl_lval(1) <= i_cl_rxd(1)((7 * 2) + 4); --LVAL(Line value)
+
+--cl D(byte)
+i_cl_rxbyte(3)(0) <= i_cl_rxd(1)((7 * 0) + 0); --PortD0
+i_cl_rxbyte(3)(1) <= i_cl_rxd(1)((7 * 0) + 1); --PortD1
+i_cl_rxbyte(3)(2) <= i_cl_rxd(1)((7 * 0) + 2); --PortD2
+i_cl_rxbyte(3)(3) <= i_cl_rxd(1)((7 * 0) + 3); --PortD3
+i_cl_rxbyte(3)(4) <= i_cl_rxd(1)((7 * 0) + 4); --PortD4
+i_cl_rxbyte(3)(5) <= i_cl_rxd(1)((7 * 0) + 5); --PortD5
+i_cl_rxbyte(3)(6) <= i_cl_rxd(1)((7 * 3) + 0); --PortD6
+i_cl_rxbyte(3)(7) <= i_cl_rxd(1)((7 * 3) + 1); --PortD7
+
+--cl E(byte)
+i_cl_rxbyte(4)(0) <= i_cl_rxd(1)((7 * 0) + 6); --PortE0
+i_cl_rxbyte(4)(1) <= i_cl_rxd(1)((7 * 1) + 0); --PortE1
+i_cl_rxbyte(4)(2) <= i_cl_rxd(1)((7 * 1) + 1); --PortE2
+i_cl_rxbyte(4)(3) <= i_cl_rxd(1)((7 * 1) + 2); --PortE3
+i_cl_rxbyte(4)(4) <= i_cl_rxd(1)((7 * 1) + 3); --PortE4
+i_cl_rxbyte(4)(5) <= i_cl_rxd(1)((7 * 1) + 4); --PortE5
+i_cl_rxbyte(4)(6) <= i_cl_rxd(1)((7 * 3) + 2); --PortE6
+i_cl_rxbyte(4)(7) <= i_cl_rxd(1)((7 * 3) + 3); --PortE7
+
+--cl F(byte)
+i_cl_rxbyte(5)(0) <= i_cl_rxd(1)((7 * 1) + 5); --PortF0
+i_cl_rxbyte(5)(1) <= i_cl_rxd(1)((7 * 1) + 6); --PortF1
+i_cl_rxbyte(5)(2) <= i_cl_rxd(1)((7 * 2) + 0); --PortF2
+i_cl_rxbyte(5)(3) <= i_cl_rxd(1)((7 * 2) + 1); --PortF3
+i_cl_rxbyte(5)(4) <= i_cl_rxd(1)((7 * 2) + 2); --PortF4
+i_cl_rxbyte(5)(5) <= i_cl_rxd(1)((7 * 2) + 3); --PortF5
+i_cl_rxbyte(5)(6) <= i_cl_rxd(1)((7 * 3) + 4); --PortF6
+i_cl_rxbyte(5)(7) <= i_cl_rxd(1)((7 * 3) + 5); --PortF7
+end if;
+end process;
+
+--!!!! cl Z cahnnel Full Configuration (64bit = 8Tap/8bit)!!!!
+process(i_cl_rxclk(2))
+begin
+if rising_edge(i_cl_rxclk(2)) then
+i_cl_fval(2) <= i_cl_rxd(2)((7 * 2) + 5); --FVAL(Frame value)
+i_cl_lval(2) <= i_cl_rxd(2)((7 * 2) + 4); --LVAL(Line value)
+
+--cl G(byte)
+i_cl_rxbyte(6)(0) <= i_cl_rxd(2)((7 * 0) + 0); --PortG0
+i_cl_rxbyte(6)(1) <= i_cl_rxd(2)((7 * 0) + 1); --PortG1
+i_cl_rxbyte(6)(2) <= i_cl_rxd(2)((7 * 0) + 2); --PortG2
+i_cl_rxbyte(6)(3) <= i_cl_rxd(2)((7 * 0) + 3); --PortG3
+i_cl_rxbyte(6)(4) <= i_cl_rxd(2)((7 * 0) + 4); --PortG4
+i_cl_rxbyte(6)(5) <= i_cl_rxd(2)((7 * 0) + 5); --PortG5
+i_cl_rxbyte(6)(6) <= i_cl_rxd(2)((7 * 3) + 0); --PortG6
+i_cl_rxbyte(6)(7) <= i_cl_rxd(2)((7 * 3) + 1); --PortG7
+
+--cl H(byte)
+i_cl_rxbyte(7)(0) <= i_cl_rxd(2)((7 * 0) + 6); --PortH0
+i_cl_rxbyte(7)(1) <= i_cl_rxd(2)((7 * 1) + 0); --PortH1
+i_cl_rxbyte(7)(2) <= i_cl_rxd(2)((7 * 1) + 1); --PortH2
+i_cl_rxbyte(7)(3) <= i_cl_rxd(2)((7 * 1) + 2); --PortH3
+i_cl_rxbyte(7)(4) <= i_cl_rxd(2)((7 * 1) + 3); --PortH4
+i_cl_rxbyte(7)(5) <= i_cl_rxd(2)((7 * 1) + 4); --PortH5
+i_cl_rxbyte(7)(6) <= i_cl_rxd(2)((7 * 3) + 2); --PortH6
+i_cl_rxbyte(7)(7) <= i_cl_rxd(2)((7 * 3) + 3); --PortH7
+end if;
+end process;
+
+end generate gen_tap8_8bit;
+
+
+
+
+
+
+--#################################
+--Full Configuration (80bit = 10Tap/8bit)
+--#################################
+gen_tap10_8bit : if (G_CL_TAP = 10) and (G_CL_PIXBIT = 8) generate begin
+--!!!! cl X cahnnel Full Configuration (80bit = 10Tap/8bit)!!!!
+process(i_cl_rxclk(0))
+begin
+if rising_edge(i_cl_rxclk(0)) then
+i_cl_fval(0) <= i_cl_rxd(0)((7 * 2) + 5); --FVAL(Frame value)
+i_cl_lval(0) <= i_cl_rxd(0)((7 * 2) + 4); --LVAL(Line value)
+
+--cl A(byte)
+i_cl_rxbyte(0)(0) <= i_cl_rxd(0)((7 * 0) + 0); --PortA0
+i_cl_rxbyte(0)(1) <= i_cl_rxd(0)((7 * 0) + 1); --PortA1
+i_cl_rxbyte(0)(2) <= i_cl_rxd(0)((7 * 0) + 2); --PortA2
+i_cl_rxbyte(0)(3) <= i_cl_rxd(0)((7 * 0) + 3); --PortA3
+i_cl_rxbyte(0)(4) <= i_cl_rxd(0)((7 * 0) + 4); --PortA4
+i_cl_rxbyte(0)(5) <= i_cl_rxd(0)((7 * 3) + 1); --PortA5
+i_cl_rxbyte(0)(6) <= i_cl_rxd(0)((7 * 0) + 5); --PortA6
+i_cl_rxbyte(0)(7) <= i_cl_rxd(0)((7 * 0) + 6); --PortA7
+
+--cl B(byte)
+i_cl_rxbyte(1)(0) <= i_cl_rxd(0)((7 * 1) + 0); --PortB0
+i_cl_rxbyte(1)(1) <= i_cl_rxd(0)((7 * 1) + 1); --PortB1
+i_cl_rxbyte(1)(2) <= i_cl_rxd(0)((7 * 3) + 2); --PortB2
+i_cl_rxbyte(1)(3) <= i_cl_rxd(0)((7 * 3) + 3); --PortB3
+i_cl_rxbyte(1)(4) <= i_cl_rxd(0)((7 * 1) + 2); --PortB4
+i_cl_rxbyte(1)(5) <= i_cl_rxd(0)((7 * 1) + 3); --PortB5
+i_cl_rxbyte(1)(6) <= i_cl_rxd(0)((7 * 1) + 4); --PortB6
+i_cl_rxbyte(1)(7) <= i_cl_rxd(0)((7 * 1) + 5); --PortB7
+
+--cl C(byte)
+i_cl_rxbyte(2)(0) <= i_cl_rxd(0)((7 * 3) + 4); --PortC0
+i_cl_rxbyte(2)(1) <= i_cl_rxd(0)((7 * 3) + 5); --PortC1
+i_cl_rxbyte(2)(2) <= i_cl_rxd(0)((7 * 1) + 6); --PortC2
+i_cl_rxbyte(2)(3) <= i_cl_rxd(0)((7 * 2) + 0); --PortC3
+i_cl_rxbyte(2)(4) <= i_cl_rxd(0)((7 * 2) + 1); --PortC4
+i_cl_rxbyte(2)(5) <= i_cl_rxd(0)((7 * 2) + 2); --PortC5
+i_cl_rxbyte(2)(6) <= i_cl_rxd(0)((7 * 2) + 3); --PortC6
+i_cl_rxbyte(2)(7) <= i_cl_rxd(0)((7 * 3) + 6); --PortC7
+
+--cl D(byte)
+i_cl_rxbyte(3)(0) <= i_cl_rxd(0)((7 * 2) + 6); --PortD0
+i_cl_rxbyte(3)(1) <= i_cl_rxd(0)((7 * 3) + 0); --PortD1
+end if;
+end process;
+
+--!!!! cl Y cahnnel Full Configuration (80bit = 10Tap/8bit)!!!!
+process(i_cl_rxclk(1))
+begin
+if rising_edge(i_cl_rxclk(1)) then
+i_cl_lval(1) <= i_cl_rxd(1)((7 * 3) + 0); --LVAL(Line value)
+
+i_cl_rxbyte(3)(2) <= i_cl_rxd(1)((7 * 0) + 0); --PortD2
+i_cl_rxbyte(3)(3) <= i_cl_rxd(1)((7 * 0) + 1); --PortD3
+i_cl_rxbyte(3)(4) <= i_cl_rxd(1)((7 * 0) + 2); --PortD4
+i_cl_rxbyte(3)(5) <= i_cl_rxd(1)((7 * 0) + 3); --PortD5
+i_cl_rxbyte(3)(6) <= i_cl_rxd(1)((7 * 0) + 4); --PortD6
+i_cl_rxbyte(3)(7) <= i_cl_rxd(1)((7 * 3) + 1); --PortD7
+
+--cl E(byte)
+i_cl_rxbyte(4)(0) <= i_cl_rxd(1)((7 * 0) + 5); --PortE0
+i_cl_rxbyte(4)(1) <= i_cl_rxd(1)((7 * 0) + 6); --PortE1
+i_cl_rxbyte(4)(2) <= i_cl_rxd(1)((7 * 1) + 0); --PortE2
+i_cl_rxbyte(4)(3) <= i_cl_rxd(1)((7 * 1) + 1); --PortE3
+i_cl_rxbyte(4)(4) <= i_cl_rxd(1)((7 * 3) + 2); --PortE4
+i_cl_rxbyte(4)(5) <= i_cl_rxd(1)((7 * 3) + 3); --PortE5
+i_cl_rxbyte(4)(6) <= i_cl_rxd(1)((7 * 1) + 2); --PortE6
+i_cl_rxbyte(4)(7) <= i_cl_rxd(1)((7 * 1) + 3); --PortE7
+
+--cl F(byte)
+i_cl_rxbyte(5)(0) <= i_cl_rxd(1)((7 * 1) + 4); --PortF0
+i_cl_rxbyte(5)(1) <= i_cl_rxd(1)((7 * 1) + 5); --PortF1
+i_cl_rxbyte(5)(2) <= i_cl_rxd(1)((7 * 3) + 4); --PortF2
+i_cl_rxbyte(5)(3) <= i_cl_rxd(1)((7 * 3) + 5); --PortF3
+i_cl_rxbyte(5)(4) <= i_cl_rxd(1)((7 * 1) + 6); --PortF4
+i_cl_rxbyte(5)(5) <= i_cl_rxd(1)((7 * 2) + 0); --PortF5
+i_cl_rxbyte(5)(6) <= i_cl_rxd(1)((7 * 2) + 1); --PortF6
+i_cl_rxbyte(5)(7) <= i_cl_rxd(1)((7 * 2) + 2); --PortF7
+
+--cl G(byte)
+i_cl_rxbyte(6)(0) <= i_cl_rxd(1)((7 * 2) + 3); --PortG0
+i_cl_rxbyte(6)(1) <= i_cl_rxd(1)((7 * 3) + 6); --PortG1
+i_cl_rxbyte(6)(2) <= i_cl_rxd(1)((7 * 2) + 4); --PortG2
+i_cl_rxbyte(6)(3) <= i_cl_rxd(1)((7 * 2) + 5); --PortG3
+i_cl_rxbyte(6)(4) <= i_cl_rxd(1)((7 * 2) + 6); --PortG4
+end if;
+end process;
+
+--!!!! cl Y cahnnel Full Configuration (80bit = 10Tap/8bit)!!!!
+process(i_cl_rxclk(2))
+begin
+if rising_edge(i_cl_rxclk(2)) then
+i_cl_lval(2) <= i_cl_rxd(2)((7 * 3) + 0); --LVAL(Line value)
+
+i_cl_rxbyte(6)(5) <= i_cl_rxd(2)((7 * 0) + 0); --PortG5
+i_cl_rxbyte(6)(6) <= i_cl_rxd(2)((7 * 0) + 1); --PortG6
+i_cl_rxbyte(6)(7) <= i_cl_rxd(2)((7 * 0) + 2); --PortG7
+
+--cl H(byte)
+i_cl_rxbyte(7)(0) <= i_cl_rxd(2)((7 * 0) + 3); --PortH0
+i_cl_rxbyte(7)(1) <= i_cl_rxd(2)((7 * 0) + 4); --PortH1
+i_cl_rxbyte(7)(2) <= i_cl_rxd(2)((7 * 3) + 1); --PortH2
+i_cl_rxbyte(7)(3) <= i_cl_rxd(2)((7 * 0) + 5); --PortH3
+i_cl_rxbyte(7)(4) <= i_cl_rxd(2)((7 * 0) + 6); --PortH4
+i_cl_rxbyte(7)(5) <= i_cl_rxd(2)((7 * 1) + 0); --PortH5
+i_cl_rxbyte(7)(6) <= i_cl_rxd(2)((7 * 1) + 1); --PortH6
+i_cl_rxbyte(7)(7) <= i_cl_rxd(2)((7 * 3) + 2); --PortH7
+
+--cl I(byte)
+i_cl_rxbyte(8)(0) <= i_cl_rxd(2)((7 * 3) + 3); --PortI0
+i_cl_rxbyte(8)(1) <= i_cl_rxd(2)((7 * 1) + 2); --PortI1
+i_cl_rxbyte(8)(2) <= i_cl_rxd(2)((7 * 1) + 3); --PortI2
+i_cl_rxbyte(8)(3) <= i_cl_rxd(2)((7 * 1) + 4); --PortI3
+i_cl_rxbyte(8)(4) <= i_cl_rxd(2)((7 * 1) + 5); --PortI4
+i_cl_rxbyte(8)(5) <= i_cl_rxd(2)((7 * 3) + 4); --PortI5
+i_cl_rxbyte(8)(6) <= i_cl_rxd(2)((7 * 3) + 5); --PortI6
+i_cl_rxbyte(8)(7) <= i_cl_rxd(2)((7 * 1) + 6); --PortI7
+
+--cl J(byte)
+i_cl_rxbyte(9)(0) <= i_cl_rxd(2)((7 * 2) + 0); --PortJ0
+i_cl_rxbyte(9)(1) <= i_cl_rxd(2)((7 * 2) + 1); --PortJ1
+i_cl_rxbyte(9)(2) <= i_cl_rxd(2)((7 * 2) + 2); --PortJ2
+i_cl_rxbyte(9)(3) <= i_cl_rxd(2)((7 * 2) + 3); --PortJ3
+i_cl_rxbyte(9)(4) <= i_cl_rxd(2)((7 * 3) + 6); --PortJ4
+i_cl_rxbyte(9)(5) <= i_cl_rxd(2)((7 * 2) + 4); --PortJ5
+i_cl_rxbyte(9)(6) <= i_cl_rxd(2)((7 * 2) + 5); --PortJ6
+i_cl_rxbyte(9)(7) <= i_cl_rxd(2)((7 * 2) + 6); --PortJ7
+end if;
+end process;
+end generate gen_tap10_8bit;
+
+
+
+
+--#################################
+--BASE Configuration (16bit = 2Tap/8bit)
+--#################################
+gen_tap2_8bit : if (G_CL_TAP = 2) and (G_CL_PIXBIT = 8) generate begin
+--!!!! cl X cahnnel !!!!
 process(i_cl_rxclk(0))
 begin
 if rising_edge(i_cl_rxclk(0)) then
@@ -242,98 +501,18 @@ i_cl_rxbyte(1)(5) <= i_cl_rxd(0)((7 * 1) + 4); --B5
 i_cl_rxbyte(1)(6) <= i_cl_rxd(0)((7 * 3) + 2); --B6
 i_cl_rxbyte(1)(7) <= i_cl_rxd(0)((7 * 3) + 3); --B7
 
---cl C(byte)
-i_cl_rxbyte(2)(0) <= i_cl_rxd(0)((7 * 1) + 5); --C0
-i_cl_rxbyte(2)(1) <= i_cl_rxd(0)((7 * 1) + 6); --C1
-i_cl_rxbyte(2)(2) <= i_cl_rxd(0)((7 * 2) + 0); --C2
-i_cl_rxbyte(2)(3) <= i_cl_rxd(0)((7 * 2) + 1); --C3
-i_cl_rxbyte(2)(4) <= i_cl_rxd(0)((7 * 2) + 2); --C4
-i_cl_rxbyte(2)(5) <= i_cl_rxd(0)((7 * 2) + 3); --C5
-i_cl_rxbyte(2)(6) <= i_cl_rxd(0)((7 * 3) + 4); --C6
-i_cl_rxbyte(2)(7) <= i_cl_rxd(0)((7 * 3) + 5); --C7
 end if;
 end process;
-
---!!!! cl Y cahnnel Full Configuration (64bit = 8Tap/8bit)!!!!
-process(i_cl_rxclk(1))
-begin
-if rising_edge(i_cl_rxclk(1)) then
-i_cl_fval(1) <= i_cl_rxd(1)((7 * 2) + 5); --FVAL(Frame value)
-i_cl_lval(1) <= i_cl_rxd(1)((7 * 2) + 4); --LVAL(Line value)
-
---cl D(byte)
-i_cl_rxbyte(3)(0) <= i_cl_rxd(1)((7 * 0) + 0); --D0
-i_cl_rxbyte(3)(1) <= i_cl_rxd(1)((7 * 0) + 1); --D1
-i_cl_rxbyte(3)(2) <= i_cl_rxd(1)((7 * 0) + 2); --D2
-i_cl_rxbyte(3)(3) <= i_cl_rxd(1)((7 * 0) + 3); --D3
-i_cl_rxbyte(3)(4) <= i_cl_rxd(1)((7 * 0) + 4); --D4
-i_cl_rxbyte(3)(5) <= i_cl_rxd(1)((7 * 0) + 5); --D5
-i_cl_rxbyte(3)(6) <= i_cl_rxd(1)((7 * 3) + 0); --D6
-i_cl_rxbyte(3)(7) <= i_cl_rxd(1)((7 * 3) + 1); --D7
-
---cl E(byte)
-i_cl_rxbyte(4)(0) <= i_cl_rxd(1)((7 * 0) + 6); --E0
-i_cl_rxbyte(4)(1) <= i_cl_rxd(1)((7 * 1) + 0); --E1
-i_cl_rxbyte(4)(2) <= i_cl_rxd(1)((7 * 1) + 1); --E2
-i_cl_rxbyte(4)(3) <= i_cl_rxd(1)((7 * 1) + 2); --E3
-i_cl_rxbyte(4)(4) <= i_cl_rxd(1)((7 * 1) + 3); --E4
-i_cl_rxbyte(4)(5) <= i_cl_rxd(1)((7 * 1) + 4); --E5
-i_cl_rxbyte(4)(6) <= i_cl_rxd(1)((7 * 3) + 2); --E6
-i_cl_rxbyte(4)(7) <= i_cl_rxd(1)((7 * 3) + 3); --E7
-
---cl F(byte)
-i_cl_rxbyte(5)(0) <= i_cl_rxd(1)((7 * 1) + 5); --F0
-i_cl_rxbyte(5)(1) <= i_cl_rxd(1)((7 * 1) + 6); --F1
-i_cl_rxbyte(5)(2) <= i_cl_rxd(1)((7 * 2) + 0); --F2
-i_cl_rxbyte(5)(3) <= i_cl_rxd(1)((7 * 2) + 1); --F3
-i_cl_rxbyte(5)(4) <= i_cl_rxd(1)((7 * 2) + 2); --F4
-i_cl_rxbyte(5)(5) <= i_cl_rxd(1)((7 * 2) + 3); --F5
-i_cl_rxbyte(5)(6) <= i_cl_rxd(1)((7 * 3) + 4); --F6
-i_cl_rxbyte(5)(7) <= i_cl_rxd(1)((7 * 3) + 5); --F7
-end if;
-end process;
-
---!!!! cl Z cahnnel Full Configuration (64bit = 8Tap/8bit)!!!!
-process(i_cl_rxclk(2))
-begin
-if rising_edge(i_cl_rxclk(2)) then
-i_cl_fval(2) <= i_cl_rxd(2)((7 * 2) + 5); --FVAL(Frame value)
-i_cl_lval(2) <= i_cl_rxd(2)((7 * 2) + 4); --LVAL(Line value)
-
---cl G(byte)
-i_cl_rxbyte(6)(0) <= i_cl_rxd(2)((7 * 0) + 0); --G0
-i_cl_rxbyte(6)(1) <= i_cl_rxd(2)((7 * 0) + 1); --G1
-i_cl_rxbyte(6)(2) <= i_cl_rxd(2)((7 * 0) + 2); --G2
-i_cl_rxbyte(6)(3) <= i_cl_rxd(2)((7 * 0) + 3); --G3
-i_cl_rxbyte(6)(4) <= i_cl_rxd(2)((7 * 0) + 4); --G4
-i_cl_rxbyte(6)(5) <= i_cl_rxd(2)((7 * 0) + 5); --G5
-i_cl_rxbyte(6)(6) <= i_cl_rxd(2)((7 * 3) + 0); --G6
-i_cl_rxbyte(6)(7) <= i_cl_rxd(2)((7 * 3) + 1); --G7
-
---cl H(byte)
-i_cl_rxbyte(7)(0) <= i_cl_rxd(2)((7 * 0) + 6); --H0
-i_cl_rxbyte(7)(1) <= i_cl_rxd(2)((7 * 1) + 0); --H1
-i_cl_rxbyte(7)(2) <= i_cl_rxd(2)((7 * 1) + 1); --H2
-i_cl_rxbyte(7)(3) <= i_cl_rxd(2)((7 * 1) + 2); --H3
-i_cl_rxbyte(7)(4) <= i_cl_rxd(2)((7 * 1) + 3); --H4
-i_cl_rxbyte(7)(5) <= i_cl_rxd(2)((7 * 1) + 4); --H5
-i_cl_rxbyte(7)(6) <= i_cl_rxd(2)((7 * 3) + 2); --H6
-i_cl_rxbyte(7)(7) <= i_cl_rxd(2)((7 * 3) + 3); --H7
-end if;
-end process;
-
-end generate gen_tap8;
-
-
+end generate gen_tap2_8bit;
 
 
 
 
 --#################################
---Full Configuration (80bit = 10Tap/8bit)
+--BASE Configuration (20bit = 2Tap/10bit)
 --#################################
-gen_tap10 : if (G_CL_TAP = 10) generate begin
---!!!! cl X cahnnel Full Configuration (80bit = 10Tap/8bit)!!!!
+gen_tap2_10bit : if (G_CL_TAP = 2) and (G_CL_PIXBIT = 10) generate begin
+--!!!! cl X cahnnel !!!!
 process(i_cl_rxclk(0))
 begin
 if rising_edge(i_cl_rxclk(0)) then
@@ -341,125 +520,113 @@ i_cl_fval(0) <= i_cl_rxd(0)((7 * 2) + 5); --FVAL(Frame value)
 i_cl_lval(0) <= i_cl_rxd(0)((7 * 2) + 4); --LVAL(Line value)
 
 --cl A(byte)
-i_cl_rxbyte(0)(0) <= i_cl_rxd(0)((7 * 0) + 0); --A0
-i_cl_rxbyte(0)(1) <= i_cl_rxd(0)((7 * 0) + 1); --A1
-i_cl_rxbyte(0)(2) <= i_cl_rxd(0)((7 * 0) + 2); --A2
-i_cl_rxbyte(0)(3) <= i_cl_rxd(0)((7 * 0) + 3); --A3
-i_cl_rxbyte(0)(4) <= i_cl_rxd(0)((7 * 0) + 4); --A4
-i_cl_rxbyte(0)(5) <= i_cl_rxd(0)((7 * 3) + 1); --A5
-i_cl_rxbyte(0)(6) <= i_cl_rxd(0)((7 * 0) + 5); --A6
-i_cl_rxbyte(0)(7) <= i_cl_rxd(0)((7 * 0) + 6); --A7
+i_cl_rxbyte(0)(0) <= i_cl_rxd(0)((7 * 0) + 0); --PortA0
+i_cl_rxbyte(0)(1) <= i_cl_rxd(0)((7 * 0) + 1); --PortA1
+i_cl_rxbyte(0)(2) <= i_cl_rxd(0)((7 * 0) + 2); --PortA2
+i_cl_rxbyte(0)(3) <= i_cl_rxd(0)((7 * 0) + 3); --PortA3
+i_cl_rxbyte(0)(4) <= i_cl_rxd(0)((7 * 0) + 4); --PortA4
+i_cl_rxbyte(0)(5) <= i_cl_rxd(0)((7 * 0) + 5); --PortA5
+i_cl_rxbyte(0)(6) <= i_cl_rxd(0)((7 * 3) + 0); --PortA6
+i_cl_rxbyte(0)(7) <= i_cl_rxd(0)((7 * 3) + 1); --PortA7
+i_cl_rxbyte(0)(8) <= i_cl_rxd(0)((7 * 0) + 6); --PortB0
+i_cl_rxbyte(0)(9) <= i_cl_rxd(0)((7 * 1) + 0); --PortB1
 
 --cl B(byte)
-i_cl_rxbyte(1)(0) <= i_cl_rxd(0)((7 * 1) + 0); --B0
-i_cl_rxbyte(1)(1) <= i_cl_rxd(0)((7 * 1) + 1); --B1
-i_cl_rxbyte(1)(2) <= i_cl_rxd(0)((7 * 3) + 2); --B2
-i_cl_rxbyte(1)(3) <= i_cl_rxd(0)((7 * 3) + 3); --B3
-i_cl_rxbyte(1)(4) <= i_cl_rxd(0)((7 * 1) + 2); --B4
-i_cl_rxbyte(1)(5) <= i_cl_rxd(0)((7 * 1) + 3); --B5
-i_cl_rxbyte(1)(6) <= i_cl_rxd(0)((7 * 1) + 4); --B6
-i_cl_rxbyte(1)(7) <= i_cl_rxd(0)((7 * 1) + 5); --B7
+i_cl_rxbyte(1)(0) <= i_cl_rxd(0)((7 * 1) + 5); --PortC0
+i_cl_rxbyte(1)(1) <= i_cl_rxd(0)((7 * 1) + 6); --PortC1
+i_cl_rxbyte(1)(2) <= i_cl_rxd(0)((7 * 2) + 0); --PortC2
+i_cl_rxbyte(1)(3) <= i_cl_rxd(0)((7 * 2) + 1); --PortC3
+i_cl_rxbyte(1)(4) <= i_cl_rxd(0)((7 * 2) + 2); --PortC4
+i_cl_rxbyte(1)(5) <= i_cl_rxd(0)((7 * 2) + 3); --PortC5
+i_cl_rxbyte(1)(6) <= i_cl_rxd(0)((7 * 3) + 4); --PortC6
+i_cl_rxbyte(1)(7) <= i_cl_rxd(0)((7 * 3) + 5); --PortC7
+i_cl_rxbyte(1)(8) <= i_cl_rxd(0)((7 * 1) + 3); --PortB4
+i_cl_rxbyte(1)(9) <= i_cl_rxd(0)((7 * 1) + 4); --PortB5
 
---cl C(byte)
-i_cl_rxbyte(2)(0) <= i_cl_rxd(0)((7 * 3) + 4); --C0
-i_cl_rxbyte(2)(1) <= i_cl_rxd(0)((7 * 3) + 5); --C1
-i_cl_rxbyte(2)(2) <= i_cl_rxd(0)((7 * 1) + 6); --C2
-i_cl_rxbyte(2)(3) <= i_cl_rxd(0)((7 * 2) + 0); --C3
-i_cl_rxbyte(2)(4) <= i_cl_rxd(0)((7 * 2) + 1); --C4
-i_cl_rxbyte(2)(5) <= i_cl_rxd(0)((7 * 2) + 2); --C5
-i_cl_rxbyte(2)(6) <= i_cl_rxd(0)((7 * 2) + 3); --C6
-i_cl_rxbyte(2)(7) <= i_cl_rxd(0)((7 * 3) + 6); --C7
+end if;
+end process;
+end generate gen_tap2_10bit;
 
---cl D(byte)
-i_cl_rxbyte(3)(0) <= i_cl_rxd(0)((7 * 2) + 6); --D0
-i_cl_rxbyte(3)(1) <= i_cl_rxd(0)((7 * 3) + 0); --D1
+
+
+
+--#################################
+--MEDIUM Configuration (40bit = 4Tap/10bit)
+--#################################
+gen_tap4_10bit : if (G_CL_TAP = 4) and (G_CL_PIXBIT = 10) generate begin
+--!!!! cl X cahnnel !!!!
+process(i_cl_rxclk(0))
+begin
+if rising_edge(i_cl_rxclk(0)) then
+i_cl_fval(0) <= i_cl_rxd(0)((7 * 2) + 5); --FVAL(Frame value)
+i_cl_lval(0) <= i_cl_rxd(0)((7 * 2) + 4); --LVAL(Line value)
+
+--cl A(byte)
+i_cl_rxbyte(0)(0) <= i_cl_rxd(0)((7 * 0) + 0); --PortA0
+i_cl_rxbyte(0)(1) <= i_cl_rxd(0)((7 * 0) + 1); --PortA1
+i_cl_rxbyte(0)(2) <= i_cl_rxd(0)((7 * 0) + 2); --PortA2
+i_cl_rxbyte(0)(3) <= i_cl_rxd(0)((7 * 0) + 3); --PortA3
+i_cl_rxbyte(0)(4) <= i_cl_rxd(0)((7 * 0) + 4); --PortA4
+i_cl_rxbyte(0)(5) <= i_cl_rxd(0)((7 * 0) + 5); --PortA5
+i_cl_rxbyte(0)(6) <= i_cl_rxd(0)((7 * 3) + 0); --PortA6
+i_cl_rxbyte(0)(7) <= i_cl_rxd(0)((7 * 3) + 1); --PortA7
+i_cl_rxbyte(0)(8) <= i_cl_rxd(0)((7 * 0) + 6); --PortB0
+i_cl_rxbyte(0)(9) <= i_cl_rxd(0)((7 * 1) + 0); --PortB1
+
+--cl B(byte)
+i_cl_rxbyte(1)(0) <= i_cl_rxd(0)((7 * 1) + 5); --PortC0
+i_cl_rxbyte(1)(1) <= i_cl_rxd(0)((7 * 1) + 6); --PortC1
+i_cl_rxbyte(1)(2) <= i_cl_rxd(0)((7 * 2) + 0); --PortC2
+i_cl_rxbyte(1)(3) <= i_cl_rxd(0)((7 * 2) + 1); --PortC3
+i_cl_rxbyte(1)(4) <= i_cl_rxd(0)((7 * 2) + 2); --PortC4
+i_cl_rxbyte(1)(5) <= i_cl_rxd(0)((7 * 2) + 3); --PortC5
+i_cl_rxbyte(1)(6) <= i_cl_rxd(0)((7 * 3) + 4); --PortC6
+i_cl_rxbyte(1)(7) <= i_cl_rxd(0)((7 * 3) + 5); --PortC7
+i_cl_rxbyte(1)(8) <= i_cl_rxd(0)((7 * 1) + 3); --PortB4
+i_cl_rxbyte(1)(9) <= i_cl_rxd(0)((7 * 1) + 4); --PortB5
+
 end if;
 end process;
 
---!!!! cl Y cahnnel Full Configuration (80bit = 10Tap/8bit)!!!!
+--!!!! cl Y cahnnel !!!!
 process(i_cl_rxclk(1))
 begin
 if rising_edge(i_cl_rxclk(1)) then
-i_cl_lval(1) <= i_cl_rxd(1)((7 * 3) + 0); --LVAL(Line value)
+i_cl_fval(1) <= i_cl_rxd(1)((7 * 2) + 5); --FVAL(Frame value)
+i_cl_lval(1) <= i_cl_rxd(1)((7 * 2) + 4); --LVAL(Line value)
 
-i_cl_rxbyte(3)(2) <= i_cl_rxd(1)((7 * 0) + 0); --D2
-i_cl_rxbyte(3)(3) <= i_cl_rxd(1)((7 * 0) + 1); --D3
-i_cl_rxbyte(3)(4) <= i_cl_rxd(1)((7 * 0) + 2); --D4
-i_cl_rxbyte(3)(5) <= i_cl_rxd(1)((7 * 0) + 3); --D5
-i_cl_rxbyte(3)(6) <= i_cl_rxd(1)((7 * 0) + 4); --D6
-i_cl_rxbyte(3)(7) <= i_cl_rxd(1)((7 * 3) + 1); --D7
+--cl C(byte)
+i_cl_rxbyte(2)(0) <= i_cl_rxd(1)((7 * 0) + 0); --PortD0
+i_cl_rxbyte(2)(1) <= i_cl_rxd(1)((7 * 0) + 1); --PortD1
+i_cl_rxbyte(2)(2) <= i_cl_rxd(1)((7 * 0) + 2); --PortD2
+i_cl_rxbyte(2)(3) <= i_cl_rxd(1)((7 * 0) + 3); --PortD3
+i_cl_rxbyte(2)(4) <= i_cl_rxd(1)((7 * 0) + 4); --PortD4
+i_cl_rxbyte(2)(5) <= i_cl_rxd(1)((7 * 0) + 5); --PortD5
+i_cl_rxbyte(2)(6) <= i_cl_rxd(1)((7 * 3) + 0); --PortD6
+i_cl_rxbyte(2)(7) <= i_cl_rxd(1)((7 * 3) + 1); --PortD7
+i_cl_rxbyte(2)(4) <= i_cl_rxd(1)((7 * 2) + 2); --PortF4
+i_cl_rxbyte(2)(5) <= i_cl_rxd(1)((7 * 2) + 3); --PortF5
 
---cl E(byte)
-i_cl_rxbyte(4)(0) <= i_cl_rxd(1)((7 * 0) + 5); --E0
-i_cl_rxbyte(4)(1) <= i_cl_rxd(1)((7 * 0) + 6); --E1
-i_cl_rxbyte(4)(2) <= i_cl_rxd(1)((7 * 1) + 0); --E2
-i_cl_rxbyte(4)(3) <= i_cl_rxd(1)((7 * 1) + 1); --E3
-i_cl_rxbyte(4)(4) <= i_cl_rxd(1)((7 * 3) + 2); --E4
-i_cl_rxbyte(4)(5) <= i_cl_rxd(1)((7 * 3) + 3); --E5
-i_cl_rxbyte(4)(6) <= i_cl_rxd(1)((7 * 1) + 2); --E6
-i_cl_rxbyte(4)(7) <= i_cl_rxd(1)((7 * 1) + 3); --E7
+--cl D(byte)
+i_cl_rxbyte(3)(0) <= i_cl_rxd(1)((7 * 0) + 6); --PortE0
+i_cl_rxbyte(3)(1) <= i_cl_rxd(1)((7 * 1) + 0); --PortE1
+i_cl_rxbyte(3)(2) <= i_cl_rxd(1)((7 * 1) + 1); --PortE2
+i_cl_rxbyte(3)(3) <= i_cl_rxd(1)((7 * 1) + 2); --PortE3
+i_cl_rxbyte(3)(4) <= i_cl_rxd(1)((7 * 1) + 3); --PortE4
+i_cl_rxbyte(3)(5) <= i_cl_rxd(1)((7 * 1) + 4); --PortE5
+i_cl_rxbyte(3)(6) <= i_cl_rxd(1)((7 * 3) + 2); --PortE6
+i_cl_rxbyte(3)(7) <= i_cl_rxd(1)((7 * 3) + 3); --PortE7
+i_cl_rxbyte(3)(8) <= i_cl_rxd(1)((7 * 1) + 5); --PortF0
+i_cl_rxbyte(3)(9) <= i_cl_rxd(1)((7 * 1) + 6); --PortF1
 
---cl F(byte)
-i_cl_rxbyte(5)(0) <= i_cl_rxd(1)((7 * 1) + 4); --F0
-i_cl_rxbyte(5)(1) <= i_cl_rxd(1)((7 * 1) + 5); --F1
-i_cl_rxbyte(5)(2) <= i_cl_rxd(1)((7 * 3) + 4); --F2
-i_cl_rxbyte(5)(3) <= i_cl_rxd(1)((7 * 3) + 5); --F3
-i_cl_rxbyte(5)(4) <= i_cl_rxd(1)((7 * 1) + 6); --F4
-i_cl_rxbyte(5)(5) <= i_cl_rxd(1)((7 * 2) + 0); --F5
-i_cl_rxbyte(5)(6) <= i_cl_rxd(1)((7 * 2) + 1); --F6
-i_cl_rxbyte(5)(7) <= i_cl_rxd(1)((7 * 2) + 2); --F7
-
---cl G(byte)
-i_cl_rxbyte(6)(0) <= i_cl_rxd(1)((7 * 2) + 3); --G0
-i_cl_rxbyte(6)(1) <= i_cl_rxd(1)((7 * 3) + 6); --G1
-i_cl_rxbyte(6)(2) <= i_cl_rxd(1)((7 * 2) + 4); --G2
-i_cl_rxbyte(6)(3) <= i_cl_rxd(1)((7 * 2) + 5); --G3
-i_cl_rxbyte(6)(4) <= i_cl_rxd(1)((7 * 2) + 6); --G4
 end if;
 end process;
 
---!!!! cl Y cahnnel Full Configuration (80bit = 10Tap/8bit)!!!!
-process(i_cl_rxclk(2))
-begin
-if rising_edge(i_cl_rxclk(2)) then
-i_cl_lval(2) <= i_cl_rxd(2)((7 * 3) + 0); --LVAL(Line value)
+end generate gen_tap4_10bit;
 
-i_cl_rxbyte(6)(5) <= i_cl_rxd(2)((7 * 0) + 0); --G5
-i_cl_rxbyte(6)(6) <= i_cl_rxd(2)((7 * 0) + 1); --G6
-i_cl_rxbyte(6)(7) <= i_cl_rxd(2)((7 * 0) + 2); --G7
 
---cl H(byte)
-i_cl_rxbyte(7)(0) <= i_cl_rxd(2)((7 * 0) + 3); --H0
-i_cl_rxbyte(7)(1) <= i_cl_rxd(2)((7 * 0) + 4); --H1
-i_cl_rxbyte(7)(2) <= i_cl_rxd(2)((7 * 3) + 1); --H2
-i_cl_rxbyte(7)(3) <= i_cl_rxd(2)((7 * 0) + 5); --H3
-i_cl_rxbyte(7)(4) <= i_cl_rxd(2)((7 * 0) + 6); --H4
-i_cl_rxbyte(7)(5) <= i_cl_rxd(2)((7 * 1) + 0); --H5
-i_cl_rxbyte(7)(6) <= i_cl_rxd(2)((7 * 1) + 1); --H6
-i_cl_rxbyte(7)(7) <= i_cl_rxd(2)((7 * 3) + 2); --H7
 
---cl I(byte)
-i_cl_rxbyte(8)(0) <= i_cl_rxd(2)((7 * 3) + 3); --I0
-i_cl_rxbyte(8)(1) <= i_cl_rxd(2)((7 * 1) + 2); --I1
-i_cl_rxbyte(8)(2) <= i_cl_rxd(2)((7 * 1) + 3); --I2
-i_cl_rxbyte(8)(3) <= i_cl_rxd(2)((7 * 1) + 4); --I3
-i_cl_rxbyte(8)(4) <= i_cl_rxd(2)((7 * 1) + 5); --I4
-i_cl_rxbyte(8)(5) <= i_cl_rxd(2)((7 * 3) + 4); --I5
-i_cl_rxbyte(8)(6) <= i_cl_rxd(2)((7 * 3) + 5); --I6
-i_cl_rxbyte(8)(7) <= i_cl_rxd(2)((7 * 1) + 6); --I7
 
---cl J(byte)
-i_cl_rxbyte(9)(0) <= i_cl_rxd(2)((7 * 2) + 0); --J0
-i_cl_rxbyte(9)(1) <= i_cl_rxd(2)((7 * 2) + 1); --J1
-i_cl_rxbyte(9)(2) <= i_cl_rxd(2)((7 * 2) + 2); --J2
-i_cl_rxbyte(9)(3) <= i_cl_rxd(2)((7 * 2) + 3); --J3
-i_cl_rxbyte(9)(4) <= i_cl_rxd(2)((7 * 3) + 6); --J4
-i_cl_rxbyte(9)(5) <= i_cl_rxd(2)((7 * 2) + 4); --J5
-i_cl_rxbyte(9)(6) <= i_cl_rxd(2)((7 * 2) + 5); --J6
-i_cl_rxbyte(9)(7) <= i_cl_rxd(2)((7 * 2) + 6); --J7
-end if;
-end process;
-end generate gen_tap10;
 
 
 --#########################################
