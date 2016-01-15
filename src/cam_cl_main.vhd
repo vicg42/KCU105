@@ -34,8 +34,8 @@ port(
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_cam_ctrl_rx  : in  std_logic;
-p_out_cam_ctrl_tx : out std_logic;
+--p_in_cam_ctrl_rx  : in  std_logic;
+--p_out_cam_ctrl_tx : out std_logic;
 p_in_time         : in  std_logic_vector(31 downto 0);
 
 --------------------------------------------------
@@ -68,8 +68,8 @@ p_out_status   : out  std_logic_vector(C_CAM_STATUS_LASTBIT downto 0);
 --------------------------------------------------
 --DBG
 --------------------------------------------------
-p_out_tst : out  std_logic_vector(1 downto 0);
-p_in_tst  : in   std_logic_vector(0 downto 0);
+p_out_tst : out  std_logic_vector(2 downto 0);
+p_in_tst  : in   std_logic_vector(2 downto 0);
 p_out_dbg : out  TCAM_dbg;
 
 --p_in_refclk : in std_logic;
@@ -82,6 +82,11 @@ architecture struct of cam_cl_main is
 
 component cl_main is
 generic(
+G_DCM_PLL_TYPE : TCL_PLL_TYPE_ARRAY := (C_CL_PLL, C_CL_PLL, C_CL_MMCM);
+G_DCM_CLKIN_PERIOD : real := 11.764000; --85MHz
+G_DCM_DIVCLK_DIVIDE : natural := 1;
+G_DCM_CLKFBOUT_MULT : natural := 2;
+G_DCM_CLKOUT0_DIVIDE : natural := 2;
 G_CL_PIXBIT : natural := 1;
 G_CL_TAP : natural := 1;
 G_CL_CHCOUNT : natural := 1
@@ -324,12 +329,6 @@ p_out_status(C_CAM_STATUS_CL_LINKTOTAL_BIT) <= i_link_total;
 
 
 
-m_ibufds_tfg : IBUFDS
-port map (I => p_in_tfg_p, IB => p_in_tfg_n, O => p_out_cam_ctrl_tx);
-
-m_obufds_tc : OBUFDS
-port map (I => p_in_cam_ctrl_rx, O  => p_out_tc_p, OB => p_out_tc_n);
-
 
 --m_IDELAYCTRL : IDELAYCTRL
 --generic map (
@@ -342,8 +341,13 @@ port map (I => p_in_cam_ctrl_rx, O  => p_out_tc_p, OB => p_out_tc_n);
 --                            -- REFCLK.
 --);
 
-m_cl_if : cl_main
+m_cam_core : cl_main
 generic map(
+G_DCM_PLL_TYPE => (C_CL_PLL, C_CL_PLL, C_CL_MMCM),
+G_DCM_CLKIN_PERIOD   => 11.764000, --85MHz => clkx7 = ((85/1)*14)/2 = 1190/2 = 595MHz
+G_DCM_DIVCLK_DIVIDE  => 1,
+G_DCM_CLKFBOUT_MULT  => 14,
+G_DCM_CLKOUT0_DIVIDE => 2,
 G_CL_PIXBIT => G_CL_PIXBIT,
 G_CL_TAP => G_CL_TAP,
 G_CL_CHCOUNT => G_CL_CHCOUNT
@@ -535,6 +539,16 @@ p_out_bufpkt_empty <= i_bufpkt_empty;
 --#########################################
 p_out_tst(0) <= i_fval(0);
 p_out_tst(1) <= i_lval(0);
+
+--test ctrl camera VITA25K
+m_ibufds_tfg : IBUFDS
+--port map (I => p_in_tfg_p, IB => p_in_tfg_n, O => p_out_cam_ctrl_tx);
+port map (I => p_in_tfg_p, IB => p_in_tfg_n, O => p_out_tst(2));
+
+m_obufds_tc : OBUFDS
+--port map (I => p_in_cam_ctrl_rx, O  => p_out_tc_p, OB => p_out_tc_n);
+port map (I => p_in_tst(2), O  => p_out_tc_p, OB => p_out_tc_n);
+
 
 p_out_dbg <= i_dbg;
 

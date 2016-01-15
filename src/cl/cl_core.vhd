@@ -21,6 +21,10 @@ use work.cl_pkg.all;
 
 entity cl_core is
 generic(
+G_CLKIN_PERIOD : real := 11.764000; --85MHz
+G_DIVCLK_DIVIDE : natural := 1;
+G_CLKFBOUT_MULT : natural := 2;
+G_CLKOUT0_DIVIDE : natural := 2;
 G_PLL_TYPE : natural := 0
 );
 port(
@@ -75,6 +79,22 @@ reset     : in std_logic;
 locked    : out std_logic
 );
 end component cl_clk_pll;
+
+component cl_mmcm is
+generic(
+G_CLKIN_PERIOD : real := 11.764000; --85MHz
+G_DIVCLK_DIVIDE : natural := 1;
+G_CLKFBOUT_MULT : natural := 2;
+G_CLKOUT0_DIVIDE : natural := 2;
+G_PLL_TYPE : natural := 0
+);
+port(
+p_in_clk     : in  std_logic;
+p_out_gclkx7 : out std_logic;
+p_in_rst     : in  std_logic;
+p_out_locked : out std_logic
+);
+end component cl_mmcm;
 
 component gearbox_4_to_7 is
 generic (D : integer := 8); -- Set the number of inputs
@@ -184,27 +204,42 @@ port map (I => p_in_cl_clk_p, IB => p_in_cl_clk_n, O => i_cl_clkin);
 m_bufg_clk : BUFG
 port map (I => i_cl_clkin, O => g_cl_clkin);
 
-gen_pll : if (G_PLL_TYPE = C_CL_PLL) generate
-begin
-m_pllclk : cl_clk_pll
+m_dcm : cl_mmcm
+generic map(
+G_CLKIN_PERIOD => 11.764000, --85MHz
+G_DIVCLK_DIVIDE => 1,
+G_CLKFBOUT_MULT => 14,
+G_CLKOUT0_DIVIDE => 2,
+G_PLL_TYPE => G_PLL_TYPE
+)
 port map(
-clk_in1  => g_cl_clkin,
-clk_out1 => g_cl_clkin_7x,
-reset    => p_in_rst,
-locked   => i_cl_clkin_7x_lock
+p_in_clk     => g_cl_clkin,
+p_out_gclkx7 => g_cl_clkin_7x,
+p_in_rst     => p_in_rst,
+p_out_locked => i_cl_clkin_7x_lock
 );
-end generate gen_pll;
 
-gen_mmcm : if (G_PLL_TYPE = C_CL_MMCM) generate
-begin
-m_pllclk : cl_clk_mmcd
-port map(
-clk_in1  => g_cl_clkin,
-clk_out1 => g_cl_clkin_7x,
-reset    => p_in_rst,
-locked   => i_cl_clkin_7x_lock
-);
-end generate gen_mmcm;
+--gen_pll : if (G_PLL_TYPE = C_CL_PLL) generate
+--begin
+--m_pllclk : cl_clk_pll
+--port map(
+--clk_in1  => g_cl_clkin,
+--clk_out1 => g_cl_clkin_7x,
+--reset    => p_in_rst,
+--locked   => i_cl_clkin_7x_lock
+--);
+--end generate gen_pll;
+--
+--gen_mmcm : if (G_PLL_TYPE = C_CL_MMCM) generate
+--begin
+--m_pllclk : cl_clk_mmcd
+--port map(
+--clk_in1  => g_cl_clkin,
+--clk_out1 => g_cl_clkin_7x,
+--reset    => p_in_rst,
+--locked   => i_cl_clkin_7x_lock
+--);
+--end generate gen_mmcm;
 
 m_clkx7div4 : BUFGCE_DIV
 generic map (

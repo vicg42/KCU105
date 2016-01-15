@@ -16,6 +16,7 @@ constant C_CL_TAP_MAX : natural := 10;
 
 constant C_CL_MMCM : natural := 0;
 constant C_CL_PLL  : natural := 1;
+type TCL_PLL_TYPE_ARRAY is array(2 downto 0) of natural;
 
 type TCL_RegSync is array (0 to 6) of unsigned(3 downto 0);
 

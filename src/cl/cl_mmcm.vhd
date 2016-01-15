@@ -98,7 +98,7 @@ DWE => '0',                 -- 1-bit input: DRP write enable
 CLKFBIN => i_clkfbi          -- 1-bit input: Feedback clock
 );
 
---i_clkfbi <= i_clkfbo;
+i_clkfbi <= i_clkfbo;
 end generate gen_pll;
 
 
@@ -214,7 +214,7 @@ PSINCDEC => '0',         -- 1-bit input: Phase shift increment/decrement
 CLKFBIN => i_clkfbi            -- 1-bit input: Feedback clock
 );
 
---i_clkfbi <= i_clkfbo;
+i_clkfbi <= i_clkfbo;
 end generate gen_mmcm;
 
 

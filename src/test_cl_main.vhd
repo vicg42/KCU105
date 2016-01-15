@@ -122,8 +122,8 @@ port(
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_cam_ctrl_rx  : in  std_logic;
-p_out_cam_ctrl_tx : out std_logic;
+--p_in_cam_ctrl_rx  : in  std_logic;
+--p_out_cam_ctrl_tx : out std_logic;
 p_in_time         : in  std_logic_vector(31 downto 0);
 
 --------------------------------------------------
@@ -156,8 +156,8 @@ p_out_status   : out  std_logic_vector(C_CAM_STATUS_LASTBIT downto 0);
 --------------------------------------------------
 --DBG
 --------------------------------------------------
-p_out_tst : out  std_logic_vector(1 downto 0);
-p_in_tst  : in   std_logic_vector(0 downto 0);
+p_out_tst : out  std_logic_vector(2 downto 0);
+p_in_tst  : in   std_logic_vector(2 downto 0);
 p_out_dbg : out  TCAM_dbg;
 
 --p_in_refclk : in std_logic;
@@ -180,6 +180,36 @@ p_in_clk    : in    std_logic
 );
 end component debounce;
 
+component sync is
+generic(
+G_T100us : natural := 64 --100us/(1/clk_ferq) , clk_ferq=125MHz
+);
+port(
+--p_in_time_set  : in  std_logic;
+p_in_time_val  : in  std_logic_vector(31 downto 0);
+p_out_time     : out std_logic_vector(31 downto 0);
+
+----Input synchrotization
+--p_in_sync_src    : in std_logic_vector(2 downto 0); --source of sync
+--p_in_sync_pps    : in std_logic; --1 strobe per 1 sec
+--p_in_sync_ext_1m : in std_logic;
+--p_in_sync_ext_1s : in std_logic;
+--p_in_sync_iedge  : in std_logic; --управл€ющие фронты входов внешней синхронизации (0-rissing)
+--
+----Device synchrotization
+--p_in_sync_oedge   : in std_logic; --управл€ющие фронты выходов на внешнюю синхронизацию (0-rissing)
+--p_out_dev_sync_1m : out  std_logic;
+--p_out_dev_sync_1s : out  std_logic;
+--p_out_dev_sync_120Hz: out  std_logic;
+
+-------------------------------
+--System
+-------------------------------
+p_in_clk : in   std_logic;
+p_in_rst : in   std_logic
+);
+end component sync;
+
 signal i_btn               : std_logic;
 signal i_1ms               : std_logic;
 
@@ -195,11 +225,11 @@ signal i_cam_bufpkt_rd     : std_logic;
 signal i_cam_bufpkt_empty  : std_logic;
 signal i_cam_bufpkt_rdclk  : std_logic; --g_usrclk(0),
 
-signal i_cam_tst_out       : std_logic_vector(1 downto 0);
-signal i_cam_tst_in        : std_logic_vector(0 downto 0);
+signal i_cam_tst_out       : std_logic_vector(2 downto 0);
+signal i_cam_tst_in        : std_logic_vector(2 downto 0);
 signal i_cam_dbg           : TCAM_dbg;
 
-signal i_time              : unsigned(31 downto 0);
+signal i_time              : std_logic_vector(31 downto 0);
 
 
 
@@ -263,9 +293,9 @@ port map(
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_cam_ctrl_rx  => pin_in_rs232_rx ,
-p_out_cam_ctrl_tx => pin_out_rs232_tx,
-p_in_time         => std_logic_vector(i_time),
+--p_in_cam_ctrl_rx  => pin_in_rs232_rx ,
+--p_out_cam_ctrl_tx => pin_out_rs232_tx,
+p_in_time         => i_time,
 
 --------------------------------------------------
 --CameraLink Interface
@@ -308,9 +338,37 @@ p_in_rst => i_usr_rst
 
 i_cam_bufpkt_rd <= (not i_cam_bufpkt_empty);
 i_cam_bufpkt_rdclk <= g_usrclk(0);
-i_cam_tst_in(0) <= i_btn;
 
-i_time <= TO_UNSIGNED(16#7BBBAAAA#, i_time'length);
+--i_time <= TO_UNSIGNED(16#7BBBAAAA#, i_time'length);
+
+m_sync : sync
+generic map(
+G_T100us => 12500 --100us/(1/clk_ferq) , clk_ferq=125MHz
+)
+port map(
+--p_in_time_set => '0',
+p_in_time_val => (others => '0'),
+p_out_time    => i_time,
+
+----Input synchrotization
+--p_in_sync_src    => "000",
+--p_in_sync_pps    => '0',
+--p_in_sync_ext_1m => '0',
+--p_in_sync_ext_1s => '0',
+--p_in_sync_iedge  => '0',
+--
+----Device synchrotization
+--p_in_sync_oedge   => '0',
+--p_out_dev_sync_1m => open,
+--p_out_dev_sync_1s => open,
+--p_out_dev_sync_120Hz=> open,
+
+-------------------------------
+--System
+-------------------------------
+p_in_clk => g_usrclk(0),
+p_in_rst => i_usrclk_rst
+);
 
 
 --#########################################
@@ -350,6 +408,11 @@ pin_out_led_hpc(3) <= i_cam_status(C_CAM_STATUS_CLZ_LINK_BIT);
 
 pin_out_TP(0) <= i_cam_tst_out(0);--PMOD1_4  (CSI)
 pin_out_TP(1) <= i_cam_tst_out(1);--PMOD1_6  (SSI)
+
+
+i_cam_tst_in(0) <= i_btn;
+i_cam_tst_in(2) <= pin_in_rs232_rx;--p_in_tst(2); --cam_ctrl_rx (UART)
+pin_out_rs232_tx <= i_cam_tst_out(2);--cam_ctrl_tx (UART)
 
 
 m_btn : debounce

@@ -20,6 +20,11 @@ use work.cl_pkg.all;
 
 entity cl_main is
 generic(
+G_DCM_PLL_TYPE : TCL_PLL_TYPE_ARRAY := (C_CL_PLL, C_CL_PLL, C_CL_MMCM);
+G_DCM_CLKIN_PERIOD : real := 11.764000; --85MHz
+G_DCM_DIVCLK_DIVIDE : natural := 1;
+G_DCM_CLKFBOUT_MULT : natural := 2;
+G_DCM_CLKOUT0_DIVIDE : natural := 2;
 G_CL_PIXBIT : natural := 8; --Number of bit per 1 pix
 G_CL_TAP : natural := 8; --Number of pixel per 1 clk
 G_CL_CHCOUNT : natural := 1
@@ -59,12 +64,12 @@ end entity cl_main;
 
 architecture struct of cl_main is
 
-
-type TCL_PLL_TYPE is array(0 to 2) of natural;
-constant CI_PLL_TYPE : TCL_PLL_TYPE := (C_CL_MMCM, C_CL_PLL, C_CL_PLL);
-
 component cl_core is
 generic(
+G_CLKIN_PERIOD : real := 11.764000; --85MHz
+G_DIVCLK_DIVIDE : natural := 1;
+G_CLKFBOUT_MULT : natural := 2;
+G_CLKOUT0_DIVIDE : natural := 2;
 G_PLL_TYPE : natural := 0
 );
 port(
@@ -169,7 +174,11 @@ end generate gen_dout;
 gen_ch : for i in 0 to (G_CL_CHCOUNT - 1) generate begin
 m_core : cl_core
 generic map(
-G_PLL_TYPE => CI_PLL_TYPE(i)
+G_CLKIN_PERIOD   => G_DCM_CLKIN_PERIOD  ,
+G_DIVCLK_DIVIDE  => G_DCM_DIVCLK_DIVIDE ,
+G_CLKFBOUT_MULT  => G_DCM_CLKFBOUT_MULT ,
+G_CLKOUT0_DIVIDE => G_DCM_CLKOUT0_DIVIDE,
+G_PLL_TYPE => G_DCM_PLL_TYPE(i)
 )
 port map(
 -----------------------------
