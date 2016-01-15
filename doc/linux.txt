@@ -1,3 +1,5 @@
---- linux accaunt ---
+--- linux accaunt (on PC(Д.Попов) ---
 user : user
 password : vicg
+group : vicg-lin
+ip : 192.168.1.101
