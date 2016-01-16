@@ -23,7 +23,7 @@ G_CLKIN_PERIOD : real := 11.764000; --85MHz
 G_DIVCLK_DIVIDE : natural := 1;
 G_CLKFBOUT_MULT : natural := 2;
 G_CLKOUT0_DIVIDE : natural := 2;
-G_PLL_TYPE : natural := 0
+G_DCM_TYPE : natural := 0
 );
 port(
 p_in_clk     : in  std_logic;
@@ -44,7 +44,7 @@ begin --architecture behavioral
 
 m_bufg_out : BUFG port map(I => i_clkx7, O => p_out_gclkx7);
 
-gen_pll : if (G_PLL_TYPE = C_CL_PLL) generate begin
+gen_pll : if (G_DCM_TYPE = C_CL_PLL) generate begin
 --PLL_FVCO = 600...1335 !!!
 m_plle3_adv : PLLE3_ADV
 generic map (
@@ -102,7 +102,7 @@ i_clkfbi <= i_clkfbo;
 end generate gen_pll;
 
 
-gen_mmcm : if (G_PLL_TYPE = C_CL_MMCM) generate begin
+gen_mmcm : if (G_DCM_TYPE = C_CL_MMCM) generate begin
 --MMCM_FVCO = 600...1440 !!!
 mmcme3_adv_inst: unisim.vcomponents.MMCME3_ADV
 generic map (

@@ -26,14 +26,17 @@ use work.cl_pkg.all;
 
 entity cl_main is
 generic(
-G_DCM_PLL_TYPE : TCL_PLL_TYPE_ARRAY := (C_CL_PLL, C_CL_PLL, C_CL_MMCM);
-G_DCM_CLKIN_PERIOD : real := 11.764000; --85MHz
+G_DCM_TYPE : TCL_DCM_TYPE_ARRAY := (C_CL_PLL, --type dcm for chanal 3
+                                    C_CL_PLL, --type dcm for chanal 2
+                                    C_CL_MMCM --type dcm for chanal 1
+                                   );
+G_DCM_CLKIN_PERIOD : real := 11.764000; --85MHz => clkx7 = ((85/1)*14)/2 = 1190/2 = 595MHz
 G_DCM_DIVCLK_DIVIDE : natural := 1;
-G_DCM_CLKFBOUT_MULT : natural := 2;
+G_DCM_CLKFBOUT_MULT : natural := 14;
 G_DCM_CLKOUT0_DIVIDE : natural := 2;
 G_CL_PIXBIT : natural := 8; --Number of bit per 1 pix
 G_CL_TAP : natural := 8; --Number of pixel per 1 clk
-G_CL_CHCOUNT : natural := 1
+G_CL_CHCOUNT : natural := 1 --Number of channel: Base/Medium/Full Configuration = 1/2/3
 );
 port(
 --------------------------------------------------
@@ -76,7 +79,7 @@ G_CLKIN_PERIOD : real := 11.764000; --85MHz
 G_DIVCLK_DIVIDE : natural := 1;
 G_CLKFBOUT_MULT : natural := 2;
 G_CLKOUT0_DIVIDE : natural := 2;
-G_PLL_TYPE : natural := 0
+G_DCM_TYPE : natural := 0
 );
 port(
 -----------------------------
@@ -184,7 +187,7 @@ G_CLKIN_PERIOD   => G_DCM_CLKIN_PERIOD  ,
 G_DIVCLK_DIVIDE  => G_DCM_DIVCLK_DIVIDE ,
 G_CLKFBOUT_MULT  => G_DCM_CLKFBOUT_MULT ,
 G_CLKOUT0_DIVIDE => G_DCM_CLKOUT0_DIVIDE,
-G_PLL_TYPE => G_DCM_PLL_TYPE(i)
+G_DCM_TYPE => G_DCM_TYPE(i)
 )
 port map(
 -----------------------------

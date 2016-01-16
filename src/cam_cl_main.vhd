@@ -82,7 +82,7 @@ architecture struct of cam_cl_main is
 
 component cl_main is
 generic(
-G_DCM_PLL_TYPE : TCL_PLL_TYPE_ARRAY := (C_CL_PLL, C_CL_PLL, C_CL_MMCM);
+G_DCM_TYPE : TCL_DCM_TYPE_ARRAY := (C_CL_PLL, C_CL_PLL, C_CL_MMCM);
 G_DCM_CLKIN_PERIOD : real := 11.764000; --85MHz
 G_DCM_DIVCLK_DIVIDE : natural := 1;
 G_DCM_CLKFBOUT_MULT : natural := 2;
@@ -343,7 +343,7 @@ p_out_status(C_CAM_STATUS_CL_LINKTOTAL_BIT) <= i_link_total;
 
 m_cam_core : cl_main
 generic map(
-G_DCM_PLL_TYPE => (C_CL_PLL, C_CL_PLL, C_CL_MMCM),
+G_DCM_TYPE => (C_CL_PLL, C_CL_PLL, C_CL_MMCM),
 G_DCM_CLKIN_PERIOD   => 11.764000, --85MHz => clkx7 = ((85/1)*14)/2 = 1190/2 = 595MHz
 G_DCM_DIVCLK_DIVIDE  => 1,
 G_DCM_CLKFBOUT_MULT  => 14,

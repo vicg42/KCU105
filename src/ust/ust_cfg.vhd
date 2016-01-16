@@ -21,7 +21,7 @@ constant C_USTCFG_CAM0_VCH_NUM            : natural := 0;
 constant C_USTCFG_CAM0_PIXCHUNK_BYTECOUNT : natural := 1024; --1280(max)
 constant C_USTCFG_CAM0_CL_PIXBIT          : natural := 8; --Number of bit per 1 pix
 constant C_USTCFG_CAM0_CL_TAP             : natural := 8; --Number of pixel per 1 clk
-constant C_USTCFG_CAM0_CL_CHCOUNT         : natural := 3;
+constant C_USTCFG_CAM0_CL_CHCOUNT         : natural := 3; --Number of channel: Base/Medium/Full Configuration = 1/2/3
 
 
 end package ust_cfg;

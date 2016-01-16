@@ -110,9 +110,7 @@ port(
 --------------------------------------------------
 --
 --------------------------------------------------
---p_in_cam_ctrl_rx  : in  std_logic;
---p_out_cam_ctrl_tx : out std_logic;
-p_in_time         : in  std_logic_vector(31 downto 0);
+p_in_time : in  std_logic_vector(31 downto 0);
 
 --------------------------------------------------
 --CameraLink Interface
@@ -157,14 +155,25 @@ end component cam_cl_main;
 signal i_time_init     : std_logic_vector(31 downto 0);
 signal i_time          : std_logic_vector(31 downto 0);
 
-signal i_cam_tst_in        : std_logic_vector(2 downto 0);
-signal i_cam_tst_out       : std_logic_vector(2 downto 0);
+signal i_cam0_tst_in       : std_logic_vector(2 downto 0);
+signal i_cam0_tst_out      : std_logic_vector(2 downto 0);
 signal i_cam0_bufpkt_do    : std_logic_vector(63 downto 0);
 signal i_cam0_bufpkt_rd    : std_logic;
 signal i_cam0_bufpkt_rdclk : std_logic;
 signal i_cam0_bufpkt_empty : std_logic;
 
 signal i_cam_dbg           : TCAM_dbg;
+
+component ila_dbg_cam is
+port (
+clk : in std_logic;
+probe0 : in std_logic_vector(70 downto 0)
+);
+end component ila_dbg_cam;
+
+attribute mark_debug : string;
+attribute mark_debug of i_cam_dbg  : signal is "true";
+
 
 
 begin --architecture struct
@@ -220,9 +229,7 @@ port map(
 --------------------------------------------------
 --
 --------------------------------------------------
---p_in_cam_ctrl_rx  => pin_in_rs232_rx ,
---p_out_cam_ctrl_tx => pin_out_rs232_tx,
-p_in_time         => i_time,
+p_in_time => i_time,
 
 --------------------------------------------------
 --CameraLink Interface
@@ -254,8 +261,8 @@ p_out_status   => p_out_cam0_status,
 --------------------------------------------------
 --DBG
 --------------------------------------------------
-p_out_tst => i_cam_tst_out,
-p_in_tst  => i_cam_tst_in,
+p_out_tst => i_cam0_tst_out,
+p_in_tst  => i_cam0_tst_in,
 p_out_dbg => i_cam_dbg,
 
 --p_in_refclk => g_usrclk(1),
@@ -279,12 +286,26 @@ i_cam0_bufpkt_rdclk <= p_in_eth_clk;
 --#########################################
 --DBG
 --#########################################
-i_cam_tst_in(0) <= p_in_tst(0); --frprm_restart
-i_cam_tst_in(2) <= p_in_tst(2); --cam_ctrl_rx (UART)
+i_cam0_tst_in(0) <= p_in_tst(0); --frprm_restart
+i_cam0_tst_in(2) <= p_in_tst(2); --cam_ctrl_rx (UART)
 
-p_out_tst(0) <= i_cam_tst_out(0);--i_fval(0)
-p_out_tst(1) <= i_cam_tst_out(1);--i_lval(0)
-p_out_tst(2) <= i_cam_tst_out(2);--cam_ctrl_tx (UART)
+p_out_tst(0) <= i_cam0_tst_out(0);--i_fval(0)
+p_out_tst(1) <= i_cam0_tst_out(1);--i_lval(0)
+p_out_tst(2) <= i_cam0_tst_out(2);--cam_ctrl_tx (UART)
 
+
+
+dbg_cam : ila_dbg_cam
+port map(
+clk                 => i_cam0_bufpkt_rdclk,
+probe0(0)           => i_cam_dbg.cam.bufpkt_empty,
+probe0(1)           => i_cam_dbg.cam.bufpkt_rd   ,
+probe0(65 downto 2) => i_cam_dbg.cam.bufpkt_do   ,
+probe0(66)          => i_cam_dbg.cam.vpkt_err    ,
+probe0(67)          => i_cam_dbg.cam.fval,
+probe0(68)          => i_cam_dbg.cam.lval,
+probe0(69)          => i_cam_dbg.cam.fval_edge0,
+probe0(70)          => i_cam_dbg.cam.fval_edge1
+);
 
 end architecture struct;

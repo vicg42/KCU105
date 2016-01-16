@@ -25,7 +25,7 @@ G_CLKIN_PERIOD : real := 11.764000; --85MHz
 G_DIVCLK_DIVIDE : natural := 1;
 G_CLKFBOUT_MULT : natural := 2;
 G_CLKOUT0_DIVIDE : natural := 2;
-G_PLL_TYPE : natural := 0
+G_DCM_TYPE : natural := 0
 );
 port(
 -----------------------------
@@ -62,31 +62,13 @@ end entity cl_core;
 
 architecture struct of cl_core is
 
-component cl_clk_mmcd is
-port (
-clk_in1  : in  std_logic;
-clk_out1 : out std_logic;
-reset    : in  std_logic;
-locked   : out std_logic
-);
-end component cl_clk_mmcd;
-
-component cl_clk_pll is
-Port (
-clk_in1   : in std_logic;
-clk_out1  : out std_logic;
-reset     : in std_logic;
-locked    : out std_logic
-);
-end component cl_clk_pll;
-
 component cl_mmcm is
 generic(
 G_CLKIN_PERIOD : real := 11.764000; --85MHz
 G_DIVCLK_DIVIDE : natural := 1;
 G_CLKFBOUT_MULT : natural := 2;
 G_CLKOUT0_DIVIDE : natural := 2;
-G_PLL_TYPE : natural := 0
+G_DCM_TYPE : natural := 0
 );
 port(
 p_in_clk     : in  std_logic;
@@ -210,7 +192,7 @@ G_CLKIN_PERIOD => 11.764000, --85MHz
 G_DIVCLK_DIVIDE => 1,
 G_CLKFBOUT_MULT => 14,
 G_CLKOUT0_DIVIDE => 2,
-G_PLL_TYPE => G_PLL_TYPE
+G_DCM_TYPE => G_DCM_TYPE
 )
 port map(
 p_in_clk     => g_cl_clkin,
@@ -218,28 +200,6 @@ p_out_gclkx7 => g_cl_clkin_7x,
 p_in_rst     => p_in_rst,
 p_out_locked => i_cl_clkin_7x_lock
 );
-
---gen_pll : if (G_PLL_TYPE = C_CL_PLL) generate
---begin
---m_pllclk : cl_clk_pll
---port map(
---clk_in1  => g_cl_clkin,
---clk_out1 => g_cl_clkin_7x,
---reset    => p_in_rst,
---locked   => i_cl_clkin_7x_lock
---);
---end generate gen_pll;
---
---gen_mmcm : if (G_PLL_TYPE = C_CL_MMCM) generate
---begin
---m_pllclk : cl_clk_mmcd
---port map(
---clk_in1  => g_cl_clkin,
---clk_out1 => g_cl_clkin_7x,
---reset    => p_in_rst,
---locked   => i_cl_clkin_7x_lock
---);
---end generate gen_mmcm;
 
 m_clkx7div4 : BUFGCE_DIV
 generic map (
