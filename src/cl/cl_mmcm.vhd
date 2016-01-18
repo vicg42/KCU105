@@ -19,9 +19,9 @@ use work.cl_pkg.all;
 
 entity cl_mmcm is
 generic(
-G_CLKIN_PERIOD : real := 11.764000; --85MHz
+G_CLKIN_PERIOD : real := 11.764000; --85MHz => clkx7 = ((85/1)*14)/2 = 1190/2 = 595MHz
 G_DIVCLK_DIVIDE : natural := 1;
-G_CLKFBOUT_MULT : natural := 2;
+G_CLKFBOUT_MULT : natural := 14;
 G_CLKOUT0_DIVIDE : natural := 2;
 G_DCM_TYPE : natural := 0
 );
