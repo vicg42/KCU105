@@ -4,7 +4,7 @@
 -- Create Date : 14.01.2016 12:23:42
 -- Module Name : cl_mmcm
 --
--- Description :
+-- Description : p_out_gclkx7 = p_in_clk x 7
 --
 -------------------------------------------------------------------------
 library ieee;
