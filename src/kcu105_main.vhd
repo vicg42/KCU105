@@ -24,15 +24,31 @@ use work.mem_wr_pkg.all;
 use work.cfgdev_pkg.all;
 use work.fg_pkg.all;
 use work.eth_pkg.all;
-
+use work.ust_cfg.all;
+use work.cam_cl_pkg.all;
 
 entity kcu105_main is
 port(
 --------------------------------------------------
 --DBG
 --------------------------------------------------
-pin_in_btn          : in    std_logic_vector(4 downto 0);
+pin_in_btn          : in    std_logic_vector(1 downto 0);
 pin_out_led         : out   std_logic_vector(7 downto 0);
+
+--pin_in_cl_tfg_n : in  std_logic;
+--pin_in_cl_tfg_p : in  std_logic;
+--pin_out_cl_tc_n : out std_logic;
+--pin_out_cl_tc_p : out std_logic;
+--
+----X,Y,Z : 0,1,2
+--pin_in_cl_clk_p : in  std_logic_vector(C_USTCFG_CAM0_CL_CHCOUNT - 1 downto 0);
+--pin_in_cl_clk_n : in  std_logic_vector(C_USTCFG_CAM0_CL_CHCOUNT - 1 downto 0);
+--pin_in_cl_di_p  : in  std_logic_vector((4 * C_USTCFG_CAM0_CL_CHCOUNT) - 1 downto 0);
+--pin_in_cl_di_n  : in  std_logic_vector((4 * C_USTCFG_CAM0_CL_CHCOUNT) - 1 downto 0);
+--
+----RS232(PC)
+--pin_in_rs232_rx  : in  std_logic;
+--pin_out_rs232_tx : out std_logic;
 
 --------------------------------------------------
 --FMC
@@ -75,6 +91,20 @@ pin_in_refclk       : in    TRefClkPinIN
 end entity kcu105_main;
 
 architecture struct of kcu105_main is
+
+component debounce is
+generic(
+G_PUSH_LEVEL : std_logic := '0'; --Лог. уровень когда кнопка нажата
+G_DEBVAL : integer := 4
+);
+port(
+p_in_btn  : in    std_logic;
+p_out_btn : out   std_logic;
+
+p_in_clk_en : in    std_logic;
+p_in_clk    : in    std_logic
+);
+end component debounce;
 
 signal i_glob_rst          : std_logic;
 signal i_usrclk_rst        : std_logic;
@@ -178,6 +208,16 @@ signal i_ethio_tx_axi_tready : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0
 signal i_ethio_tx_axi_tvalid : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 signal i_ethio_tx_axi_done   : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 
+signal i_swt_ethio_tx_axi_tdata  : std_logic_vector((C_PCFG_ETH_DWIDTH * C_PCFG_ETH_CH_COUNT) - 1 downto 0);
+signal i_swt_ethio_tx_axi_tready : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
+signal i_swt_ethio_tx_axi_tvalid : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
+signal i_swt_ethio_tx_axi_done   : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
+
+signal i_ust_ethio_tx_axi_tdata  : std_logic_vector(C_PCFG_ETH_DWIDTH - 1 downto 0);
+signal i_ust_ethio_tx_axi_tready : std_logic;
+signal i_ust_ethio_tx_axi_tvalid : std_logic;
+signal i_ust_ethio_tx_axi_done   : std_logic;
+
 signal i_ethio_clk           : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 signal i_ethio_rst           : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 
@@ -195,6 +235,13 @@ signal i_test_led          : std_logic_vector(1 downto 0);
 signal i_swt_rst           : std_logic;
 signal i_swt_tst_out       : std_logic_vector(31 downto 0);
 
+signal i_ust_tst_in        : std_logic_vector(2 downto 0);
+signal i_ust_tst_out       : std_logic_vector(2 downto 0);
+signal i_ust_frprm_restart_btn : std_logic;
+signal i_ust_rst           : std_logic;
+signal i_ust_cam0_status   : std_logic_vector(C_CAM_STATUS_LASTBIT downto 0);
+
+signal i_1ms               : std_logic;
 
 attribute keep : string;
 attribute keep of g_host_clk : signal is "true";
@@ -209,13 +256,13 @@ attribute keep of i_ethio_clk : signal is "true";
 --);
 --end component dbgcs_ila_hostclk;
 --
---component dbgcs_ila_usr_highclk is
---port (
---clk : in std_logic;
---probe0 : in std_logic_vector(86 downto 0)
---);
---end component dbgcs_ila_usr_highclk;
---
+component dbgcs_ila_usr_highclk is
+port (
+clk : in std_logic;
+probe0 : in std_logic_vector(74 downto 0)
+);
+end component dbgcs_ila_usr_highclk;
+
 --
 --type TDBG2_darray is array (0 to 0) of std_logic_vector(31 downto 0);
 --
@@ -262,7 +309,7 @@ attribute keep of i_ethio_clk : signal is "true";
 --irq : std_logic;
 --end record;
 --
---type TSWT_dbg is record
+type TSWT_dbg is record
 --h2eth_txd_rdy : std_logic;
 --h2eth_txd : std_logic_vector(31 downto 0);
 --h2eth_wr : std_logic;
@@ -271,28 +318,28 @@ attribute keep of i_ethio_clk : signal is "true";
 --i_h2eth_buf_rst   : std_logic;
 --i_eth_txbuf_empty : std_logic;
 --ethio_clk         : std_logic;
-----ethio_rst         : std_logic;
---
---ethio_rx_axi_tready : std_logic                    ;
---ethio_rx_axi_tdata  : std_logic_vector(63 downto 0);
---ethio_rx_axi_tkeep  : std_logic_vector(7 downto 0) ;
---ethio_rx_axi_tvalid : std_logic                    ;
---ethio_rx_axi_tuser  : std_logic_vector(1 downto 0) ;
---
+--ethio_rst         : std_logic;
+
+ethio_rx_axi_tready : std_logic                    ;
+ethio_rx_axi_tdata  : std_logic_vector(63 downto 0);
+ethio_rx_axi_tkeep  : std_logic_vector(7 downto 0) ;
+ethio_rx_axi_tvalid : std_logic                    ;
+ethio_rx_axi_tuser  : std_logic_vector(1 downto 0) ;
+
 --fgbuf_fltr_den : std_logic;
 --eth2fg_frr : std_logic;
---
-----eth_txbuf_hrdy : std_logic;
-----eth_txbuf_wr : std_logic;
-----eth_txbuf_empty : std_logic;
-----eth_txbuf_empty_tst : std_logic;
-----eth_tmr_irq : std_logic;
-----eth_tmr_en : std_logic;
-----vbufi_empty : std_logic;
-----eth_rxbuf_den : std_logic;
-----vbufi_fltr_den : std_logic;
---end record;
---
+
+--eth_txbuf_hrdy : std_logic;
+--eth_txbuf_wr : std_logic;
+--eth_txbuf_empty : std_logic;
+--eth_txbuf_empty_tst : std_logic;
+--eth_tmr_irq : std_logic;
+--eth_tmr_en : std_logic;
+--vbufi_empty : std_logic;
+--eth_rxbuf_den : std_logic;
+--vbufi_fltr_den : std_logic;
+end record;
+
 --type TFGWR_dbg is record
 --fsm : std_logic_vector(3 downto 0);
 --vbufi_d0         : std_logic_vector(31 downto 0);
@@ -319,19 +366,19 @@ attribute keep of i_ethio_clk : signal is "true";
 --rx : TEthDBG_MacRx;
 --end record;
 --
---type TMAIN_dbg is record
+type TMAIN_dbg is record
 --pcie : TPCIE_dbg;
 ----h2m  : TH2M_dbg;
 --cfg : TCFG_dbg;
---swt : TSWT_dbg;
+swt : TSWT_dbg;
 --fg : TFG_dbg;
 --eth : TEth_dbg;
---end record;
---
---signal i_dbg    : TMAIN_dbg;
---
---attribute mark_debug : string;
---attribute mark_debug of i_dbg  : signal is "true";
+end record;
+
+signal i_dbg    : TMAIN_dbg;
+
+attribute mark_debug : string;
+attribute mark_debug of i_dbg  : signal is "true";
 
 
 begin --architecture struct
@@ -474,7 +521,7 @@ p_in_rst         => i_usrclk_rst
 
 
 --#########################################
---Switch
+--Ethernet
 --#########################################
 m_eth : eth_main
 generic map(
@@ -553,6 +600,67 @@ p_in_rst => i_eth_rst --i_usrclk_rst
 );
 
 
+----ETH_TX(0) <- SWT
+--i_ethio_tx_axi_tdata((C_PCFG_ETH_DWIDTH * (0 + 1)) - 1 downto (C_PCFG_ETH_DWIDTH * 0)) <= i_swt_ethio_tx_axi_tdata((C_PCFG_ETH_DWIDTH * (0 + 1)) - 1 downto (C_PCFG_ETH_DWIDTH * 0));
+--i_ethio_tx_axi_tvalid(0) <= i_swt_ethio_tx_axi_tvalid(0);
+--i_swt_ethio_tx_axi_tready(0) <= i_ethio_tx_axi_tready(0);
+--i_swt_ethio_tx_axi_done(0) <= i_ethio_tx_axi_done(0);
+--
+----ETH_TX(1) <- UST
+--i_ethio_tx_axi_tdata((C_PCFG_ETH_DWIDTH * (1 + 1)) - 1 downto (C_PCFG_ETH_DWIDTH * 1)) <= i_ust_ethio_tx_axi_tdata;
+--i_ethio_tx_axi_tvalid(1) <= i_ust_ethio_tx_axi_tvalid;
+--i_ust_ethio_tx_axi_tready <= i_ethio_tx_axi_tready(1);
+--i_ust_ethio_tx_axi_done <= i_ethio_tx_axi_done(1);
+--
+--
+----#########################################
+----UST DBG
+----#########################################
+--m_ust : ust_main
+--generic map(
+--G_SIM => "OFF"
+--)
+--port map(
+----------------------------------------------------
+----CameraLink Interface
+----------------------------------------------------
+--p_in_cam0_cl_tfg_n => pin_in_cl_tfg_n,
+--p_in_cam0_cl_tfg_p => pin_in_cl_tfg_p,
+--p_out_cam0_cl_tc_n => pin_out_cl_tc_n,
+--p_out_cam0_cl_tc_p => pin_out_cl_tc_p,
+--
+----X,Y,Z : 0,1,2
+--p_in_cam0_cl_clk_p => pin_in_cl_clk_p,
+--p_in_cam0_cl_clk_n => pin_in_cl_clk_n,
+--p_in_cam0_cl_di_p  => pin_in_cl_di_p ,
+--p_in_cam0_cl_di_n  => pin_in_cl_di_n ,
+--
+--p_out_cam0_status  => i_ust_cam0_status,
+--
+----------------------------------------------------
+----To ETH
+----------------------------------------------------
+----user -> eth
+--p_out_eth_tx_axi_tdata  => i_ust_ethio_tx_axi_tdata,
+--p_in_eth_tx_axi_tready  => i_ust_ethio_tx_axi_tready,
+--p_out_eth_tx_axi_tvalid => i_ust_ethio_tx_axi_tvalid,
+--p_in_eth_tx_axi_done    => i_ust_ethio_tx_axi_done,
+--p_in_eth_clk            => i_ethio_clk(1),
+--
+----------------------------------------------------
+----DBG
+----------------------------------------------------
+--p_out_tst => i_ust_tst_out,
+--p_in_tst  => i_ust_tst_in,
+--
+----------------------------------------------------
+----SYSTEM
+----------------------------------------------------
+--p_in_clk => g_usrclk(0),
+--p_in_rst => i_ust_rst
+--);
+
+
 --#########################################
 --Switch
 --#########################################
@@ -612,10 +720,10 @@ p_in_ethio_rx_axi_tvalid  => i_ethio_rx_axi_tvalid,
 p_in_ethio_rx_axi_tuser   => i_ethio_rx_axi_tuser ,
 
 --txbuf -> eth
-p_out_ethio_tx_axi_tdata  => i_ethio_tx_axi_tdata ,
-p_in_ethio_tx_axi_tready  => i_ethio_tx_axi_tready,
-p_out_ethio_tx_axi_tvalid => i_ethio_tx_axi_tvalid,
-p_in_ethio_tx_axi_done    => i_ethio_tx_axi_done  ,
+p_out_ethio_tx_axi_tdata  => i_ethio_tx_axi_tdata ,--i_swt_ethio_tx_axi_tdata , --
+p_in_ethio_tx_axi_tready  => i_ethio_tx_axi_tready,--i_swt_ethio_tx_axi_tready, --
+p_out_ethio_tx_axi_tvalid => i_ethio_tx_axi_tvalid,--i_swt_ethio_tx_axi_tvalid, --
+p_in_ethio_tx_axi_done    => i_ethio_tx_axi_done  ,--i_swt_ethio_tx_axi_done  , --
 
 p_in_ethio_clk            => i_ethio_clk,
 p_in_ethio_rst            => i_ethio_rst,
@@ -967,7 +1075,7 @@ p_out_test_led  => i_test_led(0),
 p_out_test_done => open,
 
 p_out_1us  => open,
-p_out_1ms  => open,
+p_out_1ms  => i_1ms,
 p_out_1s   => open,
 -------------------------------
 --System
@@ -998,12 +1106,19 @@ pin_out_led(7) <= '0';
 end generate gen_eth_count1;
 
 
-pin_out_led_hpc(0) <= i_swt_tst_out(4);-- <= OR_reduce(h_reg_eth2fg_frr(0))
-pin_out_led_hpc(1) <= i_swt_tst_out(5);-- <= h_reg_ctrl(C_SWT_REG_CTRL_DBG_HOST2FG_BIT);
-pin_out_led_hpc(2) <= i_tmr_irq(0) and i_tmr_en(0);
-pin_out_led_hpc(3) <= i_test_led(1);
+--pin_out_led_hpc(0) <= i_swt_tst_out(4);-- <= OR_reduce(h_reg_eth2fg_frr(0))
+--pin_out_led_hpc(1) <= i_swt_tst_out(5);-- <= h_reg_ctrl(C_SWT_REG_CTRL_DBG_HOST2FG_BIT);
+--pin_out_led_hpc(2) <= i_tmr_irq(0) and i_tmr_en(0);
+--pin_out_led_hpc(3) <= i_test_led(1);
+pin_out_led_hpc(0) <= i_ust_cam0_status(C_CAM_STATUS_CL_LINKTOTAL_BIT);
+pin_out_led_hpc(1) <= i_ust_cam0_status(C_CAM_STATUS_CLX_LINK_BIT);
+pin_out_led_hpc(2) <= i_ust_cam0_status(C_CAM_STATUS_CLY_LINK_BIT);
+pin_out_led_hpc(3) <= i_ust_cam0_status(C_CAM_STATUS_CLZ_LINK_BIT);
 
-pin_out_led_lpc(3 downto 0) <= pin_in_btn(3 downto 0);
+pin_out_led_lpc(0) <= i_swt_tst_out(4);-- <= OR_reduce(h_reg_eth2fg_frr(0))
+pin_out_led_lpc(1) <= i_swt_tst_out(5);-- <= h_reg_ctrl(C_SWT_REG_CTRL_DBG_HOST2FG_BIT);
+pin_out_led_lpc(2) <= i_tmr_irq(0) and i_tmr_en(0);
+pin_out_led_lpc(3) <= i_test_led(1);
 
 
 m_led2 : fpga_test_01
@@ -1025,6 +1140,30 @@ p_in_clken => '1',
 p_in_clk   => i_ethio_clk(0),
 p_in_rst   => i_ethio_rst(0)
 );
+
+i_ust_tst_in(0) <= i_ust_frprm_restart_btn;
+--i_ust_tst_in(2) <= pin_in_rs232_rx;--p_in_tst(2); --cam_ctrl_rx (UART)
+--
+----i_ust_tst_out(0);--i_fval(0)
+----i_ust_tst_out(1);--i_lval(0)
+--pin_out_rs232_tx <= i_ust_tst_out(2);--cam_ctrl_tx (UART)
+
+i_ust_rst <= pin_in_btn(0); --CPU_RESET
+
+m_btn : debounce
+generic map(
+G_PUSH_LEVEL => '0', --Лог. уровень когда кнопка нажата
+G_DEBVAL => 250
+)
+port map(
+p_in_btn  => pin_in_btn(1), --SW_C (SW7)
+p_out_btn => i_ust_frprm_restart_btn,
+
+p_in_clk_en => i_1ms,
+p_in_clk    => g_usrclk(0)
+);
+
+
 
 ------#############################################
 ------DBGCS
@@ -1060,12 +1199,12 @@ p_in_rst   => i_ethio_rst(0)
 ----i_dbg.swt.vbufi_empty <= i_swt_tst_out(3);-- <= tst_vbufi_empty;
 ----i_dbg.swt.eth_rxbuf_den <= i_swt_tst_out(6);-- <= tst_eth_rxbuf_den;
 ----i_dbg.swt.vbufi_fltr_den <= i_swt_tst_out(7);-- <= i_vbufi_fltr_den;
---
---i_dbg.swt.ethio_rx_axi_tdata  <= i_ethio_rx_axi_tdata (63 downto 0);
---i_dbg.swt.ethio_rx_axi_tkeep  <= i_ethio_rx_axi_tkeep (7 downto 0);
---i_dbg.swt.ethio_rx_axi_tvalid <= i_ethio_rx_axi_tvalid(0);
---i_dbg.swt.ethio_rx_axi_tuser  <= i_ethio_rx_axi_tuser (1 downto 0);
---
+
+i_dbg.swt.ethio_rx_axi_tdata  <= i_ethio_rx_axi_tdata (63 downto 0);
+i_dbg.swt.ethio_rx_axi_tkeep  <= i_ethio_rx_axi_tkeep (7 downto 0);
+i_dbg.swt.ethio_rx_axi_tvalid <= i_ethio_rx_axi_tvalid(0);
+i_dbg.swt.ethio_rx_axi_tuser  <= i_ethio_rx_axi_tuser (1 downto 0);
+
 ----i_dbg.swt.ethio_rx_axi_tvalid <= i_swt_tst_out(6);
 ----i_dbg.swt.ethio_rx_axi_tuser  <= i_swt_tst_out(7) & i_swt_tst_out(8);
 ----i_swt_tst_out(7);-- <= syn_eth_rxd_sof(0);
@@ -1532,6 +1671,17 @@ p_in_rst   => i_ethio_rst(0)
 --);
 --
 ----end generate gen_dbgcs_on;
+
+
+m_dbg_swt : dbgcs_ila_usr_highclk
+port map (
+clk => i_ethio_clk(0),
+
+probe0(0)           => i_dbg.swt.ethio_rx_axi_tvalid,
+probe0(2 downto 1)  => i_dbg.swt.ethio_rx_axi_tuser,
+probe0(66 downto 3) => i_dbg.swt.ethio_rx_axi_tdata,
+probe0(74 downto 67)=> i_dbg.swt.ethio_rx_axi_tkeep
+);
 
 end architecture struct;
 
