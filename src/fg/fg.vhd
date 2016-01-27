@@ -1064,23 +1064,25 @@ p_out_tst(31 downto 24) <= (others => '0');
 end generate gen_dbgcs_off;
 
 gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
---gen : for i in 0 to G_VCH_COUNT - 1 generate
---i_fgwr_tst_outtmp(i) <= OR_reduce(i_fgwr_tst_out(i));
---end generate gen;
-p_out_tst(7 downto 0) <= i_fgwr_tst_out(7 downto 0);
-p_out_tst(8) <= i_irq_exp(0);
-p_out_tst(9) <= i_vbuf_hold(0);
-p_out_tst(20 downto 10) <= i_fgwr_tst_out(20 downto 10);
-p_out_tst(21) <= i_fgwr_tst_out(21);
-p_out_tst(22) <= i_fgwr_tst_out(22);
-p_out_tst(23) <= tst_pkt_err;
-p_out_tst(31 downto 24) <= (others => '0');
---p_out_tst(4 downto 1) <= tst_fgwr_out(3 downto 0);
---p_out_tst(8 downto 5) <= tst_fgrd_out(3 downto 0);
---p_out_tst(9)          <= tst_fgwr_out(4);
---p_out_tst(10)         <= tst_fgrd_out(4);
---p_out_tst(25 downto 11) <= (others => '0');
---p_out_tst(31 downto 26) <= tst_fgwr_out(31 downto 26);
+----gen : for i in 0 to G_VCH_COUNT - 1 generate
+----i_fgwr_tst_outtmp(i) <= OR_reduce(i_fgwr_tst_out(i));
+----end generate gen;
+--p_out_tst(7 downto 0) <= i_fgwr_tst_out(7 downto 0);
+--p_out_tst(8) <= i_irq_exp(0);
+--p_out_tst(9) <= i_vbuf_hold(0);
+--p_out_tst(20 downto 10) <= i_fgwr_tst_out(20 downto 10);
+--p_out_tst(21) <= i_fgwr_tst_out(21);
+--p_out_tst(22) <= i_fgwr_tst_out(22);
+--p_out_tst(23) <= tst_pkt_err;
+--p_out_tst(31 downto 24) <= (others => '0');
+----p_out_tst(4 downto 1) <= tst_fgwr_out(3 downto 0);
+----p_out_tst(8 downto 5) <= tst_fgrd_out(3 downto 0);
+----p_out_tst(9)          <= tst_fgwr_out(4);
+----p_out_tst(10)         <= tst_fgrd_out(4);
+----p_out_tst(25 downto 11) <= (others => '0');
+----p_out_tst(31 downto 26) <= tst_fgwr_out(31 downto 26);
+p_out_tst(26 downto 0) <= i_fgwr_tst_out(26 downto 0);
+p_out_tst(31 downto 27) <= (others => '0');
 end generate gen_dbgcs_on;
 
 process(p_in_clk)
@@ -1089,7 +1091,7 @@ if rising_edge(p_in_clk) then
   if (p_in_rst = '1') then
     tst_pkt_err <= '0';
   else
-    if (i_fgwr_tst_out(23) = '1') then --i_err
+    if (i_fgwr_tst_out(16) = '1') then --i_err
       tst_pkt_err <= '1';
     elsif (i_hrdstart = '1') then
       tst_pkt_err <= '0';

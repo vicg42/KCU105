@@ -1,3 +1,0 @@
---- linux accaunt ---
-user : user
-password : vicg

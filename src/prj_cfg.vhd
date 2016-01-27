@@ -15,7 +15,7 @@ use work.vicg_common_pkg.all;
 
 package prj_cfg is
 
-constant C_PCFG_FIRMWARE_VERSION       : integer := 16#0050#;
+constant C_PCFG_FIRMWARE_VERSION       : integer := 16#0052#;
 
 constant C_PCFG_BOARD                  : string := "KCU105";
 constant C_PCFG_MAIN_DBGCS             : string := "ON";
@@ -28,7 +28,7 @@ constant C_PCGF_PCIE_DWIDTH            : integer := 128;
 constant C_PCFG_FG_FR_PIX_COUNT_MAX    : integer := 8192; --Max frame resolution. Must be pwr(2, n)
 constant C_PCFG_FG_FR_ROW_COUNT_MAX    : integer := 8192;
 constant C_PCFG_FG_VBUF_COUNT          : integer := 4; --Count Frame Buffers. Must be pwr(2, n)
-constant C_PCFG_FG_VCH_COUNT           : integer := 1; --Count Video channels. Must be pwr(2, n)
+constant C_PCFG_FG_VCH_COUNT           : integer := 2; --Count Video channels. Must be pwr(2, n)
 
 --Memory Controller
 constant C_PCFG_MEMCTRL_BANK_SIZE      : integer := 7; --max 7: 0-8MB, 1-16MB, 2-32MB, 3-64MB, 4-128MB, ..., 7-1GB

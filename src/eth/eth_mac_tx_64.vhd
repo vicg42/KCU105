@@ -74,7 +74,6 @@ S_TX_DONE
 );
 signal i_fsm_eth_tx        : TEth_fsm_tx;
 
-signal i_usr_payload_byte  : unsigned(15 downto 0);
 signal i_total_count_byte  : unsigned(15 downto 0);
 signal i_rd_chunk_cnt      : unsigned(15 downto 0);
 signal i_rd_chunk_count    : unsigned(15 downto 0);
@@ -91,8 +90,9 @@ signal i_eth_axi_tlast     : std_logic;
 constant CI_MAC_LEN  : integer := 2;--Field Length/Type - count byte
 constant CI_ADD      : integer := CI_MAC_LEN;
 
-signal i_usr_axi_done   : std_logic;
-signal i_usr_axi_rd : std_logic;
+signal i_usr_axi_done      : std_logic;
+signal i_usr_axi_rd        : std_logic;
+signal i_usr_axi_rden      : std_logic;
 
 signal tst_fsm  : unsigned(2 downto 0);
 
@@ -119,7 +119,7 @@ i_rd_chunk_rem <= i_rd_chunk_count((i_total_count_byte'length - log2(G_AXI_DWIDT
 process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
-  if p_in_rst = '1' then
+  if (p_in_rst = '1') then
     i_fsm_eth_tx <= S_TX_IDLE;
 
     i_eth_axi_tdata <= (others => '0');
@@ -132,6 +132,8 @@ if rising_edge(p_in_clk) then
     i_rd_chunk_cnt <= (others => '0');
 
     sr_txbuf_do <= (others => '0');
+
+    i_usr_axi_rden <= '0';
 
   else
 
@@ -174,6 +176,7 @@ if rising_edge(p_in_clk) then
               i_eth_axi_tkeep(7 downto 0) <= "11111111";
 
               i_eth_axi_tvalid <= '1';
+              i_usr_axi_rden <= '1';
 
               i_fsm_eth_tx <= S_TX_ADR1;
 
@@ -262,6 +265,7 @@ if rising_edge(p_in_clk) then
             if (i_rd_chunk_cnt = (i_rd_chunk_count - 1)) then
 
                 i_rd_chunk_cnt <= (others => '0');
+                i_usr_axi_rden <= '0';
 
                 if i_rd_chunk_rem(3 downto 0) < TO_UNSIGNED(4, 3) then
 
@@ -333,7 +337,7 @@ if rising_edge(p_in_clk) then
           i_eth_axi_tvalid <= '0';
           i_eth_axi_tlast <= '0';
 
-          if (p_in_eth_axi_tready = '1' and p_in_usr_axi_tvalid = '0') then
+          if (p_in_eth_axi_tready = '1') then -- and p_in_usr_axi_tvalid = '0') then
 
             i_fsm_eth_tx <= S_TX_IDLE;
 
@@ -351,7 +355,7 @@ p_out_eth_axi_tlast <= i_eth_axi_tlast;
 
 
 i_usr_axi_rd <= (p_in_usr_axi_tvalid) and p_in_eth_axi_tready;
-p_out_usr_axi_tready <= i_usr_axi_rd and i_eth_axi_tvalid;
+p_out_usr_axi_tready <= i_usr_axi_rd and i_usr_axi_rden;
 
 i_usr_axi_done <= i_eth_axi_tlast and p_in_eth_axi_tready;
 p_out_usr_axi_done <= i_usr_axi_done;

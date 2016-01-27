@@ -140,9 +140,12 @@ signal i_err              : std_logic;
 signal i_skp_dcnt         : unsigned(i_mem_rqlen'range);
 signal i_skp_en           : std_logic;
 
-signal tst_fgwr_fsm       : unsigned(3 downto 0);
-signal tst_vbufi_full     : std_logic;
+signal tst_fgwr_fsm       : unsigned(2 downto 0);
 signal tst_timestump_cnt  : unsigned(31 downto 0);
+signal tst_vbufi_full_detect     : std_logic;
+signal tst_vbufi_rd       : std_logic_vector(1 downto 0);
+signal tst_vbufi_full     : std_logic_vector(1 downto 0);
+signal tst_vbufi_empty    : std_logic_vector(1 downto 0);
 
 
 begin --architecture behavioral
@@ -162,11 +165,21 @@ p_out_frmrk <= i_fr_rowmrk when p_in_tst(C_FG_REG_DBG_TIMESTUMP_BIT) = '0'
 gen_vbuf_count_1 : if (G_VBUFI_COUNT = 1) generate
 begin
 p_out_vbufi_rd(0) <= i_vbufi_rd;
+
 p_out_vbufi_rd(p_out_vbufi_rd'high downto 1) <= (others => '0');
 
 i_vbufi_do <= p_in_vbufi_do((G_MEM_DWIDTH * (0 + 1)) - 1 downto (G_MEM_DWIDTH * 0));
 
 i_vbufi_empty <= p_in_vbufi_empty(0);
+
+tst_vbufi_rd(0) <= i_vbufi_rd;
+tst_vbufi_rd(1) <= '0';
+
+tst_vbufi_full(0) <= p_in_vbufi_pfull(0);
+tst_vbufi_full(1) <= '0';
+
+tst_vbufi_empty(0) <= p_in_vbufi_empty(0);
+tst_vbufi_empty(1) <= '1';
 
 end generate gen_vbuf_count_1;
 
@@ -180,6 +193,12 @@ i_vbufi_do <= p_in_vbufi_do((G_MEM_DWIDTH * (0 + 1)) - 1 downto (G_MEM_DWIDTH * 
               p_in_vbufi_do((G_MEM_DWIDTH * (1 + 1)) - 1 downto (G_MEM_DWIDTH * 1));
 
 i_vbufi_empty <= p_in_vbufi_empty(0) when i_vbufi_sel = '0' else p_in_vbufi_empty(1);
+
+tst_vbufi_rd(0) <= i_vbufi_rd when i_vbufi_sel = '0' else '0';
+tst_vbufi_rd(1) <= i_vbufi_rd when i_vbufi_sel = '1' else '0';
+
+tst_vbufi_full <= p_in_vbufi_pfull;
+tst_vbufi_empty <= p_in_vbufi_empty;
 
 end generate gen_vbuf_count_2;
 
@@ -470,33 +489,41 @@ p_out_tst(31 downto 24) <= (others => '0');
 end generate gen_dbgcs_off;
 
 gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
-p_out_tst(3  downto 0) <= std_logic_vector(tst_fgwr_fsm);
-p_out_tst(4) <= i_vbufi_rd;
-p_out_tst(5) <= tst_vbufi_full;
-p_out_tst(6) <= i_fr_rdy(0);
-p_out_tst(9 downto 7) <= (others => '0');
-p_out_tst(20 downto 10) <= std_logic_vector(i_fr_rownum(10 downto 0));
-p_out_tst(21) <= i_mem_start;
-p_out_tst(22) <= i_mem_done;
-p_out_tst(23) <= i_err;
-p_out_tst(31 downto 24) <= (others => '0');
+p_out_tst(2  downto 0) <= std_logic_vector(tst_fgwr_fsm);
+p_out_tst(13 downto 3) <= std_logic_vector(i_fr_rownum(10 downto 0));
+p_out_tst(14) <= i_mem_start;
+p_out_tst(15) <= i_mem_done;
+p_out_tst(16) <= i_err;
+p_out_tst(17) <= i_vbufi_sel;
+p_out_tst(18) <= i_vbufi_empty;
+p_out_tst(19) <= i_fr_rdy(0);
+p_out_tst(20) <= tst_vbufi_full_detect;
+p_out_tst(21) <= tst_vbufi_rd(0);
+p_out_tst(22) <= tst_vbufi_empty(0);
+p_out_tst(23) <= tst_vbufi_full(0);
+p_out_tst(24) <= tst_vbufi_rd(1);
+p_out_tst(25) <= tst_vbufi_empty(1);
+p_out_tst(26) <= tst_vbufi_full(1);
+p_out_tst(31 downto 27) <= (others => '0');
 
 process(p_in_clk)
 begin
   if rising_edge(p_in_clk) then
 
     if p_in_vbufi_full(0) = '1' then
-      tst_vbufi_full <= '1';
+      tst_vbufi_full_detect <= '1';
     elsif i_fsm_fgwr = S_IDLE then
-      tst_vbufi_full <= '0';
+      tst_vbufi_full_detect <= '0';
     end if;
 
   end if;
 end process;
 
 tst_fgwr_fsm <= TO_UNSIGNED(16#01#, tst_fgwr_fsm'length) when i_fsm_fgwr = S_PKTH_RD   else
-                TO_UNSIGNED(16#02#, tst_fgwr_fsm'length) when i_fsm_fgwr = S_MEM_START else
-                TO_UNSIGNED(16#03#, tst_fgwr_fsm'length) when i_fsm_fgwr = S_MEM_WR    else
+                TO_UNSIGNED(16#02#, tst_fgwr_fsm'length) when i_fsm_fgwr = S_PKTH_RD1  else
+                TO_UNSIGNED(16#03#, tst_fgwr_fsm'length) when i_fsm_fgwr = S_MEM_START else
+                TO_UNSIGNED(16#04#, tst_fgwr_fsm'length) when i_fsm_fgwr = S_MEM_WR    else
+                TO_UNSIGNED(16#05#, tst_fgwr_fsm'length) when i_fsm_fgwr = S_PKTSKIP   else
                 TO_UNSIGNED(16#00#, tst_fgwr_fsm'length); --i_fsm_fgwr = S_IDLE        else
 end generate gen_dbgcs_on;
 
