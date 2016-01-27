@@ -39,7 +39,7 @@ constant C_HREG_FIRMWARE                      : integer := 16#00#;--FPGA firmwar
 constant C_HREG_CTRL                          : integer := 16#01#;--Global control
 constant C_HREG_DMAPRM_ADR                    : integer := 16#02#;--Driver BUF(adress) (BYTE)
 constant C_HREG_DMAPRM_LEN                    : integer := 16#03#;--Driver BUF(size) (BYTE)
-constant C_HREG_DEV_CTRL                      : integer := 16#04#;--device control (fpga module connected to host(pcie))
+constant C_HREG_DMA_CTRL                      : integer := 16#04#;--device control (fpga module connected to host(pcie))
 constant C_HREG_DEV_STATUS                    : integer := 16#05#;--device status (fpga module connected to host(pcie))
 constant C_HREG_IRQ                           : integer := 16#07#;--Interrupt
 constant C_HREG_MEM_ADR                       : integer := 16#08#;--RAM Adress (module - pcie2mem))
@@ -49,9 +49,28 @@ constant C_HREG_PCIE                          : integer := 16#0D#;--PCIE info
 constant C_HREG_FUNC                          : integer := 16#0E#;--FPGA module using
 constant C_HREG_FUNCPRM                       : integer := 16#0F#;--FPGA module info
 constant C_HREG_ETH_HEADER                    : integer := 16#10#;
-constant C_HREG_TST0                          : integer := 16#1C#;--DBG registers
-constant C_HREG_TST1                          : integer := 16#1D#;--(Wr) PWM control
-constant C_HREG_TST2                          : integer := 16#1E#;--(Rd) Temperature
+constant C_HREG_ETH0_MAC_L                    : integer := 16#11#;
+constant C_HREG_ETH0_MAC_MID                  : integer := 16#12#;
+constant C_HREG_ETH0_MAC_M                    : integer := 16#13#;
+constant C_HREG_TMR_CTRL                      : integer := 16#14#;--TMR control
+constant C_HREG_TMR_CMP                       : integer := 16#15#;--TMR value of compare
+constant C_HREG_FG_CTRL                       : integer := 16#16#;
+constant C_HREG_FG_DATA                       : integer := 16#17#;
+constant C_HREG_FG_DBG                        : integer := 16#18#;
+constant C_HREG_FG_MEM_CTRL                   : integer := 16#19#;
+constant C_HREG_SWT_CTRL                      : integer := 16#1A#;
+constant C_HREG_SWT_DBG                       : integer := 16#1B#;
+constant C_HREG_SWT_ETH2HOST_FRR0             : integer := 16#1C#;
+constant C_HREG_SWT_ETH2HOST_FRR1             : integer := 16#1D#;
+constant C_HREG_SWT_ETH2FG_FRR0               : integer := 16#1E#;
+constant C_HREG_SWT_ETH2FG_FRR1               : integer := 16#1F#;
+--constant C_HREG_DEV_REG_NUM                   : integer := 16#1F#; --
+--constant C_HREG_DEV_REG_DATA                  : integer := 16#1F#;
+
+constant C_HREG_TST0                          : integer := 16#06#;--16#1C#;--DBG registers
+constant C_HREG_TST1                          : integer := 16#0B#;--16#1D#;--(Wr) PWM control
+constant C_HREG_TST2                          : integer := 16#0C#;--16#1E#;--(Rd) Temperature
+
 
 
 --Register C_HREG_FIRMWARE / Bit Map:
@@ -66,27 +85,27 @@ constant C_HREG_CTRL_FG_RDDONE_BIT            : integer := 3;
 constant C_HREG_CTRL_LAST_BIT                 : integer := C_HREG_CTRL_FG_RDDONE_BIT;
 
 
---Register C_HREG_DEV_CTRL / Bit Map:
-constant C_HREG_DEV_CTRL_DRDY_BIT             : integer := 0;
-constant C_HREG_DEV_CTRL_DMA_START_BIT        : integer := 1; --(Rising_edge)
-constant C_HREG_DEV_CTRL_DMA_DIR_BIT          : integer := 2; --1/0 Ц (PC<-FPGA)/(PC->FPGA)
-constant C_HREG_DEV_CTRL_DMABUF_L_BIT         : integer := 3; --Number of start buffer (for DMATRN)
-constant C_HREG_DEV_CTRL_DMABUF_M_BIT         : integer := 10;
-constant C_HREG_DEV_CTRL_DMABUF_COUNT_L_BIT   : integer := 11;--Count buffer (for DMATRN)
-constant C_HREG_DEV_CTRL_DMABUF_COUNT_M_BIT   : integer := 18;
-constant C_HREG_DEV_CTRL_ADR_L_BIT            : integer := 19;--device adress (fpga module connected to host(pcie)) - C_HDEV_xxx
-constant C_HREG_DEV_CTRL_ADR_M_BIT            : integer := 22;
-constant C_HREG_DEV_CTRL_FG_CH_L_BIT          : integer := 23;--number of Frame Grabber channel
-constant C_HREG_DEV_CTRL_FG_CH_M_BIT          : integer := 25;
-constant C_HREG_DEV_CTRL_LAST_BIT             : integer := C_HREG_DEV_CTRL_FG_CH_M_BIT;--Max 31
+--Register C_HREG_DMA_CTRL / Bit Map:
+constant C_HREG_DMA_CTRL_DRDY_BIT             : integer := 0;
+constant C_HREG_DMA_CTRL_DMA_START_BIT        : integer := 1; --(Rising_edge)
+constant C_HREG_DMA_CTRL_DMA_DIR_BIT          : integer := 2; --1/0 Ц (PC<-FPGA)/(PC->FPGA)
+constant C_HREG_DMA_CTRL_DMABUF_L_BIT         : integer := 3; --Number of start buffer (for DMATRN)
+constant C_HREG_DMA_CTRL_DMABUF_M_BIT         : integer := 10;
+constant C_HREG_DMA_CTRL_DMABUF_COUNT_L_BIT   : integer := 11;--Count buffer (for DMATRN)
+constant C_HREG_DMA_CTRL_DMABUF_COUNT_M_BIT   : integer := 18;
+constant C_HREG_DMA_CTRL_ADR_L_BIT            : integer := 19;--device adress (fpga module connected to host(pcie)) - C_HDEV_xxx
+constant C_HREG_DMA_CTRL_ADR_M_BIT            : integer := 22;
+constant C_HREG_DMA_CTRL_FG_CH_L_BIT          : integer := 23;--number of Frame Grabber channel
+constant C_HREG_DMA_CTRL_FG_CH_M_BIT          : integer := 25;
+constant C_HREG_DMA_CTRL_LAST_BIT             : integer := C_HREG_DMA_CTRL_FG_CH_M_BIT;--Max 31
 
---field C_HREG_DEV_CTRL_ADR - user device adress:
+--field C_HREG_DMA_CTRL_ADR - user device adress:
 constant C_HDEV_CFG                           : integer := 0;--CFG
 constant C_HDEV_MEM                           : integer := 1;--RAM
 constant C_HDEV_FG                            : integer := 2;--Frame Grabber
 constant C_HDEV_ETH                           : integer := 3;
 constant C_HDEV_COUNT                         : integer := C_HDEV_ETH + 1;
-constant C_HDEV_COUNT_MAX                     : integer := pwr(2, (C_HREG_DEV_CTRL_ADR_M_BIT - C_HREG_DEV_CTRL_ADR_L_BIT + 1));
+constant C_HDEV_COUNT_MAX                     : integer := pwr(2, (C_HREG_DMA_CTRL_ADR_M_BIT - C_HREG_DMA_CTRL_ADR_L_BIT + 1));
 
 
 --Register C_HOST_REG_STATUS_DEV / Bit Map:
@@ -111,9 +130,8 @@ constant C_HREG_DEV_STATUS_LAST_BIT           : integer := C_HREG_DEV_STATUS_FG_
 constant C_HREG_IRQ_NUM_L_WBIT                : integer := 0; --IRQ source
 constant C_HREG_IRQ_NUM_M_WBIT                : integer := 3;
 constant C_HREG_IRQ_EN_WBIT                   : integer := 13;
-constant C_HREG_IRQ_DIS_WBIT                  : integer := 14;
-constant C_HREG_IRQ_STATUS_CLR_WBIT           : integer := 15;
-constant C_HREG_IRQ_CLR_WBIT                  : integer := 16;
+constant C_HREG_IRQ_STATUS_CLR_WBIT           : integer := 14;
+constant C_HREG_IRQ_CLR_WBIT                  : integer := 15;
 constant C_HREG_IRQ_LAST_WBIT                 : integer := C_HREG_IRQ_CLR_WBIT;
 
 constant C_HREG_IRQ_STATUS_L_RBIT             : integer := 0; --Status active irq
@@ -208,42 +226,37 @@ constant C_HDEV_OPTOUT_FST_BIT                : integer := 0;
 constant C_HDEV_OPTOUT_LAST_BIT               : integer := C_HDEV_OPTOUT_MEM_TRNRD_LEN_M_BIT;
 
 
-
 ----------------------------------------------------------------
---module cfgdev.vhd
+--module  eth_main.vhd
 ----------------------------------------------------------------
---CFG Device Address map:
-constant C_CFGDEV_FG                          : integer := 0;
-constant C_CFGDEV_SWT                         : integer := 1;
-constant C_CFGDEV_TMR                         : integer := 2;
-constant C_CFGDEV_ETH                         : integer := 3;
-constant C_CFGDEV_COUNT                       : integer := C_CFGDEV_ETH + 1;
-constant C_CFGDEV_COUNT_MAX                   : integer := 8;
+type TEthMacA_ is array (0 to 5) of std_logic_vector(7 downto 0);
+type TEthMac_ is record
+mdst : TEthMacA_;
+msrc : TEthMacA_;
+end record;
 
+type TEthCtrl is array (0 to 0) of TEthMac_;
 
 
 ----------------------------------------------------------------
 --module timers.vhd
 ----------------------------------------------------------------
-constant C_TMR_REG_CTRL                       : integer := 16#000#;
-constant C_TMR_REG_CMP_L                      : integer := 16#001#;
-constant C_TMR_REG_CMP_M                      : integer := 16#002#;
-
-
---Register C_TMR_REG_CTRL / Bit Map:
-constant C_TMR_REG_CTRL_NUM_L_BIT             : integer := 0;--Number TMR
-constant C_TMR_REG_CTRL_NUM_M_BIT             : integer := 1;
-constant C_TMR_REG_CTRL_EN_BIT                : integer := 14;
-constant C_TMR_REG_CTRL_DIS_BIT               : integer := 15;
---constant C_TMR_REG_CTRL_STATUS_EN_L_RBIT      : integer := 0;--
---constant C_TMR_REG_CTRL_STATUS_EN_M_RBIT      : integer := xxx;
-constant C_TMR_REG_CTRL_LAST_BIT              : integer := C_TMR_REG_CTRL_DIS_BIT;
-
-
---
 constant C_TMR_ETH                            : integer := 0;
+constant C_TMR_COUNT                          : integer := C_TMR_ETH + 1;
 
-constant C_TMR_COUNT                          : integer := C_TMR_ETH + 1;--max=3
+--Register C_HREG_TMR_CTRL / Bit Map:
+constant C_HREG_TMR_CTRL_EN_BIT                : integer := 0;
+constant C_HREG_TMR_CTRL_NUM_L_BIT             : integer := 1;--Number TMR
+constant C_HREG_TMR_CTRL_NUM_M_BIT             : integer := 1 + C_TMR_COUNT;
+--constant C_HREG_TMR_CTRL_STATUS_EN_L_RBIT      : integer := 0;--
+--constant C_HREG_TMR_CTRL_STATUS_EN_M_RBIT      : integer := xxx;
+constant C_HREG_TMR_CTRL_LAST_BIT              : integer := C_HREG_TMR_CTRL_NUM_M_BIT;
+
+type TTmrVal is array (0 to C_TMR_COUNT) of std_logic_vector(31 downto 0);
+type TTmrCtrl is record
+en  : std_logic_vector(C_TMR_COUNT - 1 downto 0);
+data : TTmrVal;
+end record;
 
 
 ----------------------------------------------------------------
@@ -281,6 +294,8 @@ Type TEthFRR is array (0 to C_SWT_FRR_COUNT_MAX - 1) of std_logic_vector(7 downt
 --mask of filter (7...0),
 -- 3..0 - packet type
 -- 7..4 - packet subtype
+
+
 
 
 ----------------------------------------------------------------
@@ -355,15 +370,18 @@ constant C_FG_REG_DBG_TRCHOLD_BIT     : integer:=11;--Ёмул€ци€ захвата видеобуфе
 constant C_FG_REG_DBG_LAST_BIT            : integer:=C_FG_REG_DBG_TRCHOLD_BIT;
 
 
-----------------------------------------------------------------
---module  eth_main.vhd
-----------------------------------------------------------------
-constant C_ETH_REG_CTRL                       : integer:=16#000#;
-constant C_ETH_REG_MAC_PATRN0                 : integer:=16#001#;--DST MAC
-constant C_ETH_REG_MAC_PATRN1                 : integer:=16#002#;
-constant C_ETH_REG_MAC_PATRN2                 : integer:=16#003#;
-constant C_ETH_REG_MAC_PATRN3                 : integer:=16#004#;--SRC MAC
-constant C_ETH_REG_MAC_PATRN4                 : integer:=16#005#;
-constant C_ETH_REG_MAC_PATRN5                 : integer:=16#006#;
+
+
+type TDevCtrlReg is record
+eth : TEthCtrl;
+fg  : TFgCtrl;
+swt : TSwtCtrl;
+tmr : TTmrCtrl;
+end record;
+
+type TDevCtrl is record
+dma : std_logic_vector(C_HREG_DMA_CTRL_LAST_BIT downto C_HREG_DMA_CTRL_DRDY_BIT);
+reg : TDevCtrlReg;
+end record;
 
 end package prj_def;
