@@ -31,7 +31,7 @@ p_out_hclk      : out   std_logic;
 p_out_gctrl     : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);--global ctrl
 
 --CTRL user devices
-p_out_dev_ctrl  : out   std_logic_vector(C_HREG_DMA_CTRL_LAST_BIT downto 0);
+p_out_dev_ctrl  : out   TDevCtrl;
 p_out_dev_din   : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);--DEV<-HOST
 p_in_dev_dout   : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);--DEV->HOST
 p_out_dev_wr    : out   std_logic;
@@ -129,46 +129,22 @@ pcie     : std_logic_vector(C_HREG_PCIE_EN_TESTD_GEN_BIT downto C_HREG_PCIE_SPEE
 tst0     : std_logic_vector(31 downto 0);
 tst1     : std_logic_vector(31 downto 0);
 
-fg_ctrl  : std_logic_vector(C_HREG_FG_CTRL_LAST_BIT downto 0);
+fg_ctrl  : std_logic_vector(C_FG_REG_CTRL_LAST_BIT downto 0);
 fg_data  : std_logic_vector(31 downto 0);
 end record;
-
-
-
-type TFgCtrl is record
-set_idle : std_logic;
-dbg  : std_logic_vector(C_HREG_FG_DBG_LAST_BIT downto 0);
-prm  : TFG_Prm;
-end record;
-
-type TSwtFrrMask is array (0 to 7) of std_logic_vector(7 downto 0);
-
-type TSwtFrr record
-eth2h  : TSWTfrrMask;
-eth2fg : TSWTfrrMask;
-end record;
-
-type TSwtCtrl is record
-ctrl : std_logic_vector(C_HREG_SWT_CTRL_LAST_BIT downto 0);
-dbg  : std_logic_vector(C_HREG_SWT_DBG_LAST_BIT downto 0);
-frr  : TSwtFrr;
-end record;
-
-
-type TDevRegCtrl is record
-eth : TEthCtrl;
-fg  : TFgCtrl;
-swt : TSwtCtrl;
-tmr : TTmrCtrl;
-end record;
-
-signal i_dev_reg : TDevRegCtrl;
 
 
 signal i_reg_rd           : std_logic;
 signal i_reg_bar          : std_logic;
 signal i_reg_adr          : unsigned(4 downto 0);
 signal i_reg              : TUsrReg;
+
+signal i_dev_reg          : TDevRegCtrl;
+signal i_cfg_dadr         : unsigned((C_HREG_CFG_CTRL_ADR_M_BIT - C_HREG_CFG_CTRL_ADR_L_BIT) downto 0);
+signal i_cfg_dreg         : unsigned((C_HREG_CFG_CTRL_REG_M_BIT - C_HREG_CFG_CTRL_REG_L_BIT) downto 0);
+signal i_tmr_num          : unsigned((C_TMR_REG_CTRL_NUM_M_WBIT - C_TMR_REG_CTRL_NUM_L_WBIT) downto 0);
+signal i_fg_vch           : unsigned((C_FG_REG_CTRL_VCH_M_BIT - C_FG_REG_CTRL_VCH_L_BIT) downto 0);
+signal i_fg_prm           : unsigned((C_FG_REG_CTRL_PRM_M_BIT - C_FG_REG_CTRL_PRM_L_BIT) downto 0);
 
 signal i_fg_rddone                 : std_logic;
 
@@ -270,8 +246,8 @@ i_dmabuf_num   <= i_reg.dev_ctrl(C_HREG_DMA_CTRL_DMABUF_M_BIT downto C_HREG_DMA_
 i_dmabuf_count <= i_reg.dev_ctrl(C_HREG_DMA_CTRL_DMABUF_COUNT_M_BIT downto C_HREG_DMA_CTRL_DMABUF_COUNT_L_BIT);
 i_hdev_adr     <= i_reg.dev_ctrl(C_HREG_DMA_CTRL_ADR_M_BIT downto C_HREG_DMA_CTRL_ADR_L_BIT);
 
-i_fg_vch <= UNSIGNED(i_reg.fg_ctrl(C_HREG_FG_CTRL_VCH_M_BIT downto C_HREG_FG_CTRL_VCH_L_BIT));
-i_fg_prm <= UNSIGNED(i_reg.fg_ctrl(C_HREG_FG_CTRL_PRM_M_BIT downto C_HREG_FG_CTRL_PRM_L_BIT));
+i_fg_vch <= UNSIGNED(i_reg.fg_ctrl(C_FG_REG_CTRL_VCH_M_BIT downto C_FG_REG_CTRL_VCH_L_BIT));
+i_fg_prm <= UNSIGNED(i_reg.fg_ctrl(C_FG_REG_CTRL_PRM_M_BIT downto C_FG_REG_CTRL_PRM_L_BIT));
 
 i_reg.firmware <= std_logic_vector(TO_UNSIGNED(C_FPGA_FIRMWARE_VERSION, i_reg.firmware'length));
 
@@ -287,7 +263,9 @@ wr : process(p_in_clk)
   variable dmaprm_wr : std_logic;
   variable usr_grst : std_logic;
   variable fg_rddone_edge : std_logic;
-  variable tmr_num := unsigned(C_HREG_TMR_CTRL_NUM_M_BIT - C_HREG_TMR_CTRL_NUM_L_BIT downto 0);
+  variable tmr_num : unsigned((C_TMR_REG_CTRL_NUM_M_WBIT - C_TMR_REG_CTRL_NUM_L_WBIT) downto 0);
+  variable fg_vch : unsigned((C_FG_REG_CTRL_VCH_M_BIT - C_FG_REG_CTRL_VCH_L_BIT) downto 0);
+  variable fg_prm : unsigned((C_FG_REG_CTRL_PRM_M_BIT - C_FG_REG_CTRL_PRM_L_BIT) downto 0);
 begin
 if rising_edge(p_in_clk) then
   if (p_in_rst_n = '0') then
@@ -299,6 +277,8 @@ if rising_edge(p_in_clk) then
     i_reg.irq <= (others => '0');
     i_reg.tst0 <= (others => '0');
     i_reg.tst1 <= (others => '1');
+    i_reg.fg_ctrl <= (others => '0');
+    i_reg.fg_data <= (others => '0');
 
       dma_start := '0';
     i_dma_start <= '0';
@@ -319,6 +299,50 @@ if rising_edge(p_in_clk) then
 
       fg_rddone_edge := '0';
     i_fg_rddone <= '0';
+
+    i_cfg_dadr <= (others => '0');
+    i_cfg_dreg <= (others => '0');
+      fg_vch := (others => '0');
+      fg_prm := (others => '0');
+    i_fg_vch <= (others => '0');
+    i_fg_prm <= (others => '0');
+      tmr_num := (others => '0');
+    i_tmr_num <= (others => '0');
+
+    for i in 0 to (i_dev_reg.eth'length - 1) loop
+    for y in 0 to (i_dev_reg.eth(0).mac.dst'length - 1) loop
+    i_dev_reg.eth(i).mac.dst(y) <= (others => '0');
+    i_dev_reg.eth(i).mac.src(y) <= (others => '0');
+    end loop;
+    end loop;
+
+    i_dev_reg.swt.ctrl <= (others => '0');
+    i_dev_reg.swt.dbg <= (others => '0');
+    for i in 0 to (i_dev_reg.swt.frr.eth2h'length - 1) loop
+    i_dev_reg.swt.frr.eth2h(i) <= (others => '0');
+    end loop;
+    for i in 0 to (i_dev_reg.swt.frr.eth2fg'length - 1) loop
+    i_dev_reg.swt.frr.eth2fg(i) <= (others => '0');
+    end loop;
+
+    for i in 0 to (i_dev_reg.tmr.en'length - 1) loop
+    i_dev_reg.tmr.en(i) <= '0';
+    i_dev_reg.tmr.data(i) <= (others => '0');
+    end loop;
+
+    i_dev_reg.fg.dbg <= (others => '0');
+    for i in 0 to (i_dev_reg.fg.prm.ch'length - 1) loop
+    i_dev_reg.fg.idle(i) <= '0';
+    i_dev_reg.fg.prm.ch(i).fr.act.pixcount <= (others => '0');
+    i_dev_reg.fg.prm.ch(i).fr.act.rowcount <= (others => '0');
+    i_dev_reg.fg.prm.ch(i).fr.skp.pixcount <= (others => '0');
+    i_dev_reg.fg.prm.ch(i).fr.skp.rowcount <= (others => '0');
+    i_dev_reg.fg.prm.ch(i).mirror.pix <= '0';
+    i_dev_reg.fg.prm.ch(i).mirror.row <= '0';
+    i_dev_reg.fg.prm.ch(i).steprd <= (others => '0');
+    end loop;
+    i_dev_reg.fg.prm.memwr_trnlen <= (others => '0');
+    i_dev_reg.fg.prm.memrd_trnlen <= (others => '0');
 
   else
 
@@ -381,147 +405,163 @@ if rising_edge(p_in_clk) then
         elsif (i_reg_adr = TO_UNSIGNED(C_HREG_TST1, i_reg_adr'length)) then i_reg.tst1 <= p_in_reg_din;
 
 
-        --####################
-        --######   FG   ######
-        --####################
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_FG_CTRL, i_reg_adr'length)) then
 
-            i_reg.fg_ctrl <= p_in_reg_din(i_reg.fg_ctrl'high downto 0);
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_CFG_CTRL, i_reg_adr'length)) then
+            i_cfg_dadr <= UNSIGNED(p_in_reg_din(C_HREG_CFG_CTRL_ADR_M_BIT downto C_HREG_CFG_CTRL_ADR_L_BIT));
+            i_cfg_dreg <= UNSIGNED(p_in_reg_din(C_HREG_CFG_CTRL_REG_M_BIT downto C_HREG_CFG_CTRL_REG_L_BIT));
 
-            fg_vch := UNSIGNED(p_in_reg_din(C_HREG_FG_CTRL_VCH_M_BIT downto C_HREG_FG_CTRL_VCH_L_BIT));
-            fg_prm := UNSIGNED(p_in_reg_din(C_HREG_FG_CTRL_PRM_M_BIT downto C_HREG_FG_CTRL_PRM_L_BIT));
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_CFG_DATA, i_reg_adr'length)) then
 
-              for ch in 0 to C_FG_VCH_COUNT - 1 loop
-                if ch = fg_vch then
-                  fg_set_idle(ch) := p_in_reg_din(C_HREG_FG_CTRL_SET_IDLE_BIT);
-                end if;
-              end loop;
+            --####################
+            --######   FG   ######
+            --####################
+            if (i_cfg_dadr = TO_UNSIGNED(C_CFGDEV_FG, i_cfg_dadr'length)) then
 
-            if p_in_reg_din(C_HREG_FG_CTRL_WR_BIT) = '1' then
+                if (i_cfg_dreg = TO_UNSIGNED(C_FG_REG_DATA, i_cfg_dreg'length)) then
+                    i_reg.fg_data <= p_in_reg_din;
 
-                fg_prm_set := '1';
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_FG_REG_DBG, i_cfg_dreg'length)) then
+                    i_dev_reg.fg.dbg <= p_in_reg_din(i_dev_reg.fg.dbg'range);
 
-                for ch in 0 to C_FG_VCH_COUNT - 1 loop
-                  if ch = fg_vch then
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_FG_REG_MEM_CTRL, i_cfg_dreg'length)) then
+                    i_dev_reg.fg.prm.memwr_trnlen(7 downto 0) <= p_in_reg_din(7 downto 0);
+                    i_dev_reg.fg.prm.memrd_trnlen(7 downto 0) <= p_in_reg_din(15 downto 8);
 
-                    if fg_prm = TO_UNSIGNED(C_HREG_FG_CTRL_PRM_FR_ZONE_ACTIVE, fg_prm'length) then
-                      i_dev_reg.fg.prm.ch(ch).fr.act.pixcount <= UNSIGNED(i_reg.fg_data(15 downto  0));
-                      i_dev_reg.fg.prm.ch(ch).fr.act.rowcount <= UNSIGNED(i_reg.fg_data(31 downto 16));
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_FG_REG_CTRL, i_cfg_dreg'length)) then
 
-                    elsif fg_prm = TO_UNSIGNED(C_HREG_FG_CTRL_PRM_FR_ZONE_SKIP, fg_prm'length) then
-                      i_dev_reg.fg.prm.ch(ch).fr.skp.pixcount <= UNSIGNED(i_reg.fg_data(15 downto  0));
-                      i_dev_reg.fg.prm.ch(ch).fr.skp.rowcount <= UNSIGNED(i_reg.fg_data(31 downto 16));
+                    i_reg.fg_ctrl <= p_in_reg_din(i_reg.fg_ctrl'range);
 
-                    elsif fg_prm = TO_UNSIGNED(C_HREG_FG_CTRL_PRM_FR_OPTIONS, fg_prm'length) then
-                      i_dev_reg.fg.prm.ch(ch).mirror.pix <= i_reg.fg_data(0); --i_reg.fg_data(4);
-                      i_dev_reg.fg.prm.ch(ch).mirror.row <= i_reg.fg_data(1); --i_reg.fg_data(5);
+                    fg_vch := UNSIGNED(p_in_reg_din(C_FG_REG_CTRL_VCH_M_BIT downto C_FG_REG_CTRL_VCH_L_BIT));
+                    fg_prm := UNSIGNED(p_in_reg_din(C_FG_REG_CTRL_PRM_M_BIT downto C_FG_REG_CTRL_PRM_L_BIT));
 
-                    elsif fg_prm = TO_UNSIGNED(C_HREG_FG_CTRL_PRM_FR_STEP_RD_LINE, fg_prm'length) then
-                      i_dev_reg.fg.prm.ch(ch).steprd <= UNSIGNED(i_reg.fg_data(15 downto 0));
+                    for ch in 0 to C_FG_VCH_COUNT - 1 loop
+                      if (ch = fg_vch) then
+                        i_dev_reg.fg.idle(ch) <= p_in_reg_din(C_FG_REG_CTRL_SET_IDLE_BIT);
+                      end if;
+                    end loop;
+
+                    if (p_in_reg_din(C_FG_REG_CTRL_WR_BIT) = C_FG_REG_CTRL_WR) then
+
+                        for ch in 0 to C_FG_VCH_COUNT - 1 loop
+                          if (ch = fg_vch) then
+
+                            if (fg_prm = TO_UNSIGNED(C_FG_PRM_FR_ZONE_ACTIVE, fg_prm'length)) then
+                              i_dev_reg.fg.prm.ch(ch).fr.act.pixcount <= UNSIGNED(i_reg.fg_data(15 downto  0));
+                              i_dev_reg.fg.prm.ch(ch).fr.act.rowcount <= UNSIGNED(i_reg.fg_data(31 downto 16));
+
+                            elsif (fg_prm = TO_UNSIGNED(C_FG_PRM_FR_ZONE_SKIP, fg_prm'length)) then
+                              i_dev_reg.fg.prm.ch(ch).fr.skp.pixcount <= UNSIGNED(i_reg.fg_data(15 downto  0));
+                              i_dev_reg.fg.prm.ch(ch).fr.skp.rowcount <= UNSIGNED(i_reg.fg_data(31 downto 16));
+
+                            elsif (fg_prm = TO_UNSIGNED(C_FG_PRM_FR_OPTIONS, fg_prm'length)) then
+                              i_dev_reg.fg.prm.ch(ch).mirror.pix <= i_reg.fg_data(0); --i_reg.fg_data(4);
+                              i_dev_reg.fg.prm.ch(ch).mirror.row <= i_reg.fg_data(1); --i_reg.fg_data(5);
+
+                            elsif (fg_prm = TO_UNSIGNED(C_FG_PRM_FR_STEP_RD_LINE, fg_prm'length)) then
+                              i_dev_reg.fg.prm.ch(ch).steprd <= UNSIGNED(i_reg.fg_data(15 downto 0));
+
+                            end if;
+                          end if;
+                        end loop;
 
                     end if;
-                  end if;
-                end loop;
-
-            end if;
-
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_FG_DBG, i_reg_adr'length)) then
-          i_dev_reg.fg.dbg <= p_in_reg_din(i_reg.fg_dbg'high downto 0);
-
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_FG_DATA, i_reg_adr'length)) then
-          i_reg.fg_data <= p_in_reg_din;
-
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_FG_MEM_CTRL, i_reg_adr'length)) then
-            fg_prm_set := '1';
-            i_dev_reg.fg.prm.memwr_trnlen(7 downto 0) <= p_in_reg_din(7 downto 0);
-            i_dev_reg.fg.prm.memrd_trnlen(7 downto 0) <= p_in_reg_din(15 downto 8);
+                end if;--fg reg
 
 
-        --####################
-        --######   ETH  ######
-        --####################
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_ETH0_MAC_L, i_reg_adr'length)) then
-            i_dev_reg.eth(0).mdst(0) <= p_in_reg_din((8 * 1) - 1 downto (8 * 0));
-            i_dev_reg.eth(0).mdst(1) <= p_in_reg_din((8 * 2) - 1 downto (8 * 1));
-            i_dev_reg.eth(0).mdst(2) <= p_in_reg_din((8 * 3) - 1 downto (8 * 2));
-            i_dev_reg.eth(0).mdst(3) <= p_in_reg_din((8 * 4) - 1 downto (8 * 3));
+            --####################
+            --######   ETH  ######
+            --####################
+            elsif (i_cfg_dadr = TO_UNSIGNED(C_CFGDEV_ETH, i_cfg_dadr'length)) then
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_ETH0_MAC_MID, i_reg_adr'length)) then
-            i_dev_reg.eth(0).mdst(4) <= p_in_reg_din((8 * 1) - 1 downto (8 * 0));
-            i_dev_reg.eth(0).mdst(5) <= p_in_reg_din((8 * 2) - 1 downto (8 * 1));
-            i_dev_reg.eth(0).msrc(0) <= p_in_reg_din((8 * 1) - 1 downto (8 * 0));
-            i_dev_reg.eth(0).msrc(1) <= p_in_reg_din((8 * 2) - 1 downto (8 * 1));
+                if (i_cfg_dreg = TO_UNSIGNED(C_ETH_REG_MAC_PATRN0, i_cfg_dreg'length)) then
+                    i_dev_reg.eth(0).mac.dst(0) <= p_in_reg_din((8 * 1) - 1 downto (8 * 0));
+                    i_dev_reg.eth(0).mac.dst(1) <= p_in_reg_din((8 * 2) - 1 downto (8 * 1));
+                    i_dev_reg.eth(0).mac.dst(2) <= p_in_reg_din((8 * 3) - 1 downto (8 * 2));
+                    i_dev_reg.eth(0).mac.dst(3) <= p_in_reg_din((8 * 4) - 1 downto (8 * 3));
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_ETH0_MAC_M, i_reg_adr'length)) then
-            i_dev_reg.eth(0).msrc(2) <= p_in_reg_din((8 * 3) - 1 downto (8 * 2));
-            i_dev_reg.eth(0).msrc(3) <= p_in_reg_din((8 * 4) - 1 downto (8 * 3));
-            i_dev_reg.eth(0).msrc(4) <= p_in_reg_din((8 * 1) - 1 downto (8 * 0));
-            i_dev_reg.eth(0).msrc(5) <= p_in_reg_din((8 * 2) - 1 downto (8 * 1));
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_ETH_REG_MAC_PATRN1, i_cfg_dreg'length)) then
+                    i_dev_reg.eth(0).mac.dst(4) <= p_in_reg_din((8 * 1) - 1 downto (8 * 0));
+                    i_dev_reg.eth(0).mac.dst(5) <= p_in_reg_din((8 * 2) - 1 downto (8 * 1));
+                    i_dev_reg.eth(0).mac.src(0) <= p_in_reg_din((8 * 1) - 1 downto (8 * 0));
+                    i_dev_reg.eth(0).mac.src(1) <= p_in_reg_din((8 * 2) - 1 downto (8 * 1));
 
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_ETH_REG_MAC_PATRN2, i_cfg_dreg'length)) then
+                    i_dev_reg.eth(0).mac.src(2) <= p_in_reg_din((8 * 3) - 1 downto (8 * 2));
+                    i_dev_reg.eth(0).mac.src(3) <= p_in_reg_din((8 * 4) - 1 downto (8 * 3));
+                    i_dev_reg.eth(0).mac.src(4) <= p_in_reg_din((8 * 1) - 1 downto (8 * 0));
+                    i_dev_reg.eth(0).mac.src(5) <= p_in_reg_din((8 * 2) - 1 downto (8 * 1));
 
-
-        --####################
-        --######   SWT  ######
-        --####################
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_SWT_CTRL, i_reg_adr'length)) then
-            i_dev_reg.swt.ctrl <= p_in_reg_din(i_dev_reg.swt_ctrl'high downto 0);
-
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_SWT_DBG, i_reg_adr'length)) then
-            i_dev_reg.swt.dbg <= p_in_reg_din(i_dev_reg.swt_dbg'high downto 0);
-
-        --filter pkt: ETH<->HOST
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_SWT_ETH2HOST_FRR0, i_reg_adr'length)) then
-            i_dev_reg.swt.frr.eth2h(0) <= p_in_reg_din((8 * 1) - 1 downto (8 * 0));
-            i_dev_reg.swt.frr.eth2h(1) <= p_in_reg_din((8 * 2) - 1 downto (8 * 1));
-            i_dev_reg.swt.frr.eth2h(2) <= p_in_reg_din((8 * 3) - 1 downto (8 * 2));
-            i_dev_reg.swt.frr.eth2h(3) <= p_in_reg_din((8 * 4) - 1 downto (8 * 3));
-
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_SWT_ETH2HOST_FRR1, i_reg_adr'length)) then
-            i_dev_reg.swt.frr.eth2h(4) <= p_in_reg_din((8 * 1) - 1 downto (8 * 0));
-            i_dev_reg.swt.frr.eth2h(5) <= p_in_reg_din((8 * 2) - 1 downto (8 * 1));
-            i_dev_reg.swt.frr.eth2h(6) <= p_in_reg_din((8 * 3) - 1 downto (8 * 2));
-            i_dev_reg.swt.frr.eth2h(7) <= p_in_reg_din((8 * 4) - 1 downto (8 * 3));
-
-        --filter pkt: ETH->FG
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_SWT_ETH2FG_FRR0, i_reg_adr'length)) then
-            i_dev_reg.swt.frr.eth2fg(0) <= p_in_reg_din((8 * 1) - 1 downto (8 * 0));
-            i_dev_reg.swt.frr.eth2fg(1) <= p_in_reg_din((8 * 2) - 1 downto (8 * 1));
-            i_dev_reg.swt.frr.eth2fg(2) <= p_in_reg_din((8 * 3) - 1 downto (8 * 2));
-            i_dev_reg.swt.frr.eth2fg(3) <= p_in_reg_din((8 * 4) - 1 downto (8 * 3));
-
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_SWT_ETH2FG_FRR1, i_reg_adr'length)) then
-            i_dev_reg.swt.frr.eth2fg(4) <= p_in_reg_din((8 * 1) - 1 downto (8 * 0));
-            i_dev_reg.swt.frr.eth2fg(5) <= p_in_reg_din((8 * 2) - 1 downto (8 * 1));
-            i_dev_reg.swt.frr.eth2fg(6) <= p_in_reg_din((8 * 3) - 1 downto (8 * 2));
-            i_dev_reg.swt.frr.eth2fg(7) <= p_in_reg_din((8 * 4) - 1 downto (8 * 3));
+                end if;--eth reg
 
 
-        --####################
-        --######   TMR  ######
-        --####################
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_TMR_CTRL, i_reg_adr'length)) then
+            --####################
+            --######   SWT  ######
+            --####################
+            elsif (i_cfg_dadr = TO_UNSIGNED(C_CFGDEV_SWT, i_cfg_dadr'length)) then
 
-          tmr_num := UNSIGNED(p_in_reg_din(C_HREG_TMR_CTRL_NUM_M_BIT downto C_HREG_TMR_CTRL_NUM_L_BIT));
+                if (i_cfg_dreg = TO_UNSIGNED(C_SWT_REG_CTRL, i_cfg_dreg'length)) then
+                    i_dev_reg.swt.ctrl <= p_in_reg_din(i_dev_reg.swt.ctrl'range);
 
-          for i in 0 to C_TMR_COUNT - 1 loop
-            if (i = tmr_num) then
-              i_dev_reg.tmr.en(i) <= p_in_reg_din(C_HREG_TMR_CTRL_EN_BIT);
-            end if;
-          end loop;
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_SWT_REG_DBG, i_cfg_dreg'length)) then
+                    i_dev_reg.swt.dbg <= p_in_reg_din(i_dev_reg.swt.dbg'range);
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_TMR_CMP, i_reg_adr'length)) then
-          for i in 0 to C_TMR_COUNT - 1 loop
-            if (i = i_tmr_num) then
-              i_dev_reg.tmr.data(i) <= UNSIGNED(p_in_reg_din);
-            end if;
-          end loop;
+                --filter pkt: ETH<->HOST
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_SWT_REG_ETH2HOST_FRR0, i_cfg_dreg'length)) then
+                    i_dev_reg.swt.frr.eth2h(0) <= p_in_reg_din((8 * 1) - 1 downto (8 * 0));
+                    i_dev_reg.swt.frr.eth2h(1) <= p_in_reg_din((8 * 2) - 1 downto (8 * 1));
+                    i_dev_reg.swt.frr.eth2h(2) <= p_in_reg_din((8 * 3) - 1 downto (8 * 2));
+                    i_dev_reg.swt.frr.eth2h(3) <= p_in_reg_din((8 * 4) - 1 downto (8 * 3));
 
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_SWT_REG_ETH2HOST_FRR1, i_cfg_dreg'length)) then
+                    i_dev_reg.swt.frr.eth2h(4) <= p_in_reg_din((8 * 1) - 1 downto (8 * 0));
+                    i_dev_reg.swt.frr.eth2h(5) <= p_in_reg_din((8 * 2) - 1 downto (8 * 1));
+                    i_dev_reg.swt.frr.eth2h(6) <= p_in_reg_din((8 * 3) - 1 downto (8 * 2));
+                    i_dev_reg.swt.frr.eth2h(7) <= p_in_reg_din((8 * 4) - 1 downto (8 * 3));
+
+                --filter pkt: ETH->FG
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_SWT_REG_ETH2FG_FRR0, i_cfg_dreg'length)) then
+                    i_dev_reg.swt.frr.eth2fg(0) <= p_in_reg_din((8 * 1) - 1 downto (8 * 0));
+                    i_dev_reg.swt.frr.eth2fg(1) <= p_in_reg_din((8 * 2) - 1 downto (8 * 1));
+                    i_dev_reg.swt.frr.eth2fg(2) <= p_in_reg_din((8 * 3) - 1 downto (8 * 2));
+                    i_dev_reg.swt.frr.eth2fg(3) <= p_in_reg_din((8 * 4) - 1 downto (8 * 3));
+
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_SWT_REG_ETH2FG_FRR1, i_cfg_dreg'length)) then
+                    i_dev_reg.swt.frr.eth2fg(4) <= p_in_reg_din((8 * 1) - 1 downto (8 * 0));
+                    i_dev_reg.swt.frr.eth2fg(5) <= p_in_reg_din((8 * 2) - 1 downto (8 * 1));
+                    i_dev_reg.swt.frr.eth2fg(6) <= p_in_reg_din((8 * 3) - 1 downto (8 * 2));
+                    i_dev_reg.swt.frr.eth2fg(7) <= p_in_reg_din((8 * 4) - 1 downto (8 * 3));
+
+                end if;--swt reg
+
+            --####################
+            --######   TMR  ######
+            --####################
+            elsif (i_cfg_dadr = TO_UNSIGNED(C_CFGDEV_TMR, i_cfg_dadr'length)) then
+
+                if (i_cfg_dreg = TO_UNSIGNED(C_TMR_REG_CTRL, i_cfg_dreg'length)) then
+
+                    tmr_num := UNSIGNED(p_in_reg_din(C_TMR_REG_CTRL_NUM_M_WBIT downto C_TMR_REG_CTRL_NUM_L_WBIT));
+                    i_tmr_num <= tmr_num;
+
+                    for i in 0 to C_TMR_COUNT - 1 loop
+                      if (i = tmr_num) then
+                        i_dev_reg.tmr.en(i) <= p_in_reg_din(C_TMR_REG_CTRL_EN_WBIT);
+                      end if;
+                    end loop;
+
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_TMR_REG_CMP, i_cfg_dreg'length)) then
+                    for i in 0 to C_TMR_COUNT - 1 loop
+                      if (i = i_tmr_num) then
+                        i_dev_reg.tmr.data(i) <= UNSIGNED(p_in_reg_din);
+                      end if;
+                    end loop;
+
+                end if;--tmr reg
+            end if;--cfg_dadr
 
         end if; --adr
       end if; --bar
     end if; --wr
-
-    i_tmr_num <= tmr_num;
 
     i_host_dmaprm_wr(0) <= dmaprm_wr;
     i_dev_drdy <= dev_drdy;
@@ -635,117 +675,138 @@ if rising_edge(p_in_clk) then
           txd(C_HREG_FUNCPRM_FG_128_BIT) := '1';
 
 
-        --####################
-        --######   SWT  ######
-        --####################
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_SWT_CTRL, i_reg_adr'length)) then
-            txd(i_dev_reg.swt.ctrl'range) := i_dev_reg.swt.ctrl;
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_SWT_DBG, i_reg_adr'length)) then
-            txd(i_dev_reg.swt.dbg'range) := i_dev_reg.swt.dbg;
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_CFG_CTRL, i_reg_adr'length)) then
+            txd(C_HREG_CFG_CTRL_ADR_M_BIT downto C_HREG_CFG_CTRL_ADR_L_BIT) := std_logic_vector(i_cfg_dadr);
+            txd(C_HREG_CFG_CTRL_REG_M_BIT downto C_HREG_CFG_CTRL_REG_L_BIT) := std_logic_vector(i_cfg_dreg);
 
-        --filter pkt: ETH<->HOST
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_SWT_ETH2HOST_FRR0, i_reg_adr'length)) then
-            txd((8 * 1) - 1 downto (8 * 0)) := i_dev_reg.swt.frr.eth2h(0);
-            txd((8 * 2) - 1 downto (8 * 1)) := i_dev_reg.swt.frr.eth2h(1);
-            txd((8 * 3) - 1 downto (8 * 2)) := i_dev_reg.swt.frr.eth2h(2);
-            txd((8 * 4) - 1 downto (8 * 3)) := i_dev_reg.swt.frr.eth2h(3);
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_CFG_DATA, i_reg_adr'length)) then
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_SWT_ETH2HOST_FRR1, i_reg_adr'length)) then
-            txd((8 * 1) - 1 downto (8 * 0)) := i_dev_reg.swt.frr.eth2h(4);
-            txd((8 * 2) - 1 downto (8 * 1)) := i_dev_reg.swt.frr.eth2h(5);
-            txd((8 * 3) - 1 downto (8 * 2)) := i_dev_reg.swt.frr.eth2h(6);
-            txd((8 * 4) - 1 downto (8 * 3)) := i_dev_reg.swt.frr.eth2h(7);
+            --####################
+            --######   SWT  ######
+            --####################
+            if (i_cfg_dadr = TO_UNSIGNED(C_CFGDEV_SWT, i_cfg_dadr'length)) then
 
-        --filter pkt: ETH->FG
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_SWT_ETH2FG_FRR0, i_reg_adr'length)) then
-            txd((8 * 1) - 1 downto (8 * 0)) := i_dev_reg.swt.frr.eth2fg(0);
-            txd((8 * 2) - 1 downto (8 * 1)) := i_dev_reg.swt.frr.eth2fg(1);
-            txd((8 * 3) - 1 downto (8 * 2)) := i_dev_reg.swt.frr.eth2fg(2);
-            txd((8 * 4) - 1 downto (8 * 3)) := i_dev_reg.swt.frr.eth2fg(3);
+                if (i_cfg_dreg = TO_UNSIGNED(C_SWT_REG_CTRL, i_cfg_dreg'length)) then
+                    txd(i_dev_reg.swt.ctrl'range) := i_dev_reg.swt.ctrl;
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_SWT_ETH2FG_FRR1, i_reg_adr'length)) then
-            txd((8 * 1) - 1 downto (8 * 0)) := i_dev_reg.swt.frr.eth2fg(4);
-            txd((8 * 2) - 1 downto (8 * 1)) := i_dev_reg.swt.frr.eth2fg(5);
-            txd((8 * 3) - 1 downto (8 * 2)) := i_dev_reg.swt.frr.eth2fg(6);
-            txd((8 * 4) - 1 downto (8 * 3)) := i_dev_reg.swt.frr.eth2fg(7);
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_SWT_REG_DBG, i_cfg_dreg'length)) then
+                    txd(i_dev_reg.swt.dbg'range) := i_dev_reg.swt.dbg;
 
+                --filter pkt: ETH<->HOST
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_SWT_REG_ETH2HOST_FRR0, i_cfg_dreg'length)) then
+                    txd((8 * 1) - 1 downto (8 * 0)) := i_dev_reg.swt.frr.eth2h(0);
+                    txd((8 * 2) - 1 downto (8 * 1)) := i_dev_reg.swt.frr.eth2h(1);
+                    txd((8 * 3) - 1 downto (8 * 2)) := i_dev_reg.swt.frr.eth2h(2);
+                    txd((8 * 4) - 1 downto (8 * 3)) := i_dev_reg.swt.frr.eth2h(3);
 
-        --####################
-        --######   FG   ######
-        --####################
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_FG_CTRL, i_reg_adr'length)) then
-          txd(i_reg.fg_ctrl'range) := i_reg.fg_ctrl;
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_SWT_REG_ETH2HOST_FRR1, i_cfg_dreg'length)) then
+                    txd((8 * 1) - 1 downto (8 * 0)) := i_dev_reg.swt.frr.eth2h(4);
+                    txd((8 * 2) - 1 downto (8 * 1)) := i_dev_reg.swt.frr.eth2h(5);
+                    txd((8 * 3) - 1 downto (8 * 2)) := i_dev_reg.swt.frr.eth2h(6);
+                    txd((8 * 4) - 1 downto (8 * 3)) := i_dev_reg.swt.frr.eth2h(7);
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_FG_DBG, i_reg_adr'length)) then
-          txd(i_reg.fg_dbg'range) := i_reg.fg_dbg;
+                --filter pkt: ETH->FG
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_SWT_REG_ETH2FG_FRR0, i_cfg_dreg'length)) then
+                    txd((8 * 1) - 1 downto (8 * 0)) := i_dev_reg.swt.frr.eth2fg(0);
+                    txd((8 * 2) - 1 downto (8 * 1)) := i_dev_reg.swt.frr.eth2fg(1);
+                    txd((8 * 3) - 1 downto (8 * 2)) := i_dev_reg.swt.frr.eth2fg(2);
+                    txd((8 * 4) - 1 downto (8 * 3)) := i_dev_reg.swt.frr.eth2fg(3);
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_FG_DATA, i_reg_adr'length)) then
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_SWT_REG_ETH2FG_FRR1, i_cfg_dreg'length)) then
+                    txd((8 * 1) - 1 downto (8 * 0)) := i_dev_reg.swt.frr.eth2fg(4);
+                    txd((8 * 2) - 1 downto (8 * 1)) := i_dev_reg.swt.frr.eth2fg(5);
+                    txd((8 * 3) - 1 downto (8 * 2)) := i_dev_reg.swt.frr.eth2fg(6);
+                    txd((8 * 4) - 1 downto (8 * 3)) := i_dev_reg.swt.frr.eth2fg(7);
 
-            for ch in 0 to C_FG_VCH_COUNT - 1 loop
-              if (ch = i_fg_vch) then
-
-                if (i_fg_prm = TO_UNSIGNED(C_HREG_FG_CTRL_PRM_FR_ZONE_ACTIVE, i_fg_prm'length)) then
-                  txd(15 downto  0) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).fr.act.pixcount);
-                  txd(31 downto 16) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).fr.act.rowcount);
-
-                elsif (i_fg_prm = TO_UNSIGNED(C_HREG_FG_CTRL_PRM_FR_ZONE_SKIP, i_fg_prm'length)) then
-                  txd(15 downto  0) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).fr.skp.pixcount);
-                  txd(31 downto 16) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).fr.skp.rowcount);
-
-                elsif (i_fg_prm = TO_UNSIGNED(C_HREG_FG_CTRL_PRM_FR_OPTIONS, i_fg_prm'length)) then
-                  txd(0) := i_dev_reg.fg.prm.ch(ch).mirror.pix;--txd(4)
-                  txd(1) := i_dev_reg.fg.prm.ch(ch).mirror.row;--txd(5)
-
-                elsif (i_fg_prm = TO_UNSIGNED(C_HREG_FG_CTRL_PRM_FR_STEP_RD_LINE, i_fg_prm'length)) then
-                  txd(15 downto 0) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).steprd);
-
-                end if;
-              end if;
-            end loop;
-
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_FG_MEM_CTRL, i_reg_adr'length)) then
-            txd(7  downto 0) := i_dev_reg.fg.prm.memwr_trnlen;
-            txd(15 downto 8) := i_dev_reg.fg.prm.memrd_trnlen;
+                end if;--swt reg
 
 
+            --####################
+            --######   FG   ######
+            --####################
+            elsif (i_cfg_dadr = TO_UNSIGNED(C_CFGDEV_SWT, i_cfg_dadr'length)) then
 
-        --####################
-        --######   ETH  ######
-        --####################
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_ETH0_MAC_L, i_reg_adr'length)) then
-            txd((8 * 1) - 1 downto (8 * 0)) := i_dev_reg.eth(0).mdst(0);
-            txd((8 * 2) - 1 downto (8 * 1)) := i_dev_reg.eth(0).mdst(1);
-            txd((8 * 3) - 1 downto (8 * 2)) := i_dev_reg.eth(0).mdst(2);
-            txd((8 * 4) - 1 downto (8 * 3)) := i_dev_reg.eth(0).mdst(3);
+                if (i_cfg_dreg = TO_UNSIGNED(C_FG_REG_CTRL, i_cfg_dreg'length)) then
+                    txd(i_reg.fg_ctrl'range) := i_reg.fg_ctrl;
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_ETH0_MAC_MID, i_reg_adr'length)) then
-            txd((8 * 1) - 1 downto (8 * 0)) := i_dev_reg.eth(0).mdst(4);
-            txd((8 * 2) - 1 downto (8 * 1)) := i_dev_reg.eth(0).mdst(5);
-            txd((8 * 3) - 1 downto (8 * 2)) := i_dev_reg.eth(0).msrc(0);
-            txd((8 * 4) - 1 downto (8 * 3)) := i_dev_reg.eth(0).msrc(1);
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_FG_REG_DBG, i_cfg_dreg'length)) then
+                  txd(i_dev_reg.fg.dbg'range) := i_dev_reg.fg.dbg;
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_ETH0_MAC_M, i_reg_adr'length)) then
-            txd((8 * 1) - 1 downto (8 * 0)) := i_dev_reg.eth(0).msrc(2);
-            txd((8 * 2) - 1 downto (8 * 1)) := i_dev_reg.eth(0).msrc(3);
-            txd((8 * 3) - 1 downto (8 * 2)) := i_dev_reg.eth(0).msrc(4);
-            txd((8 * 4) - 1 downto (8 * 3)) := i_dev_reg.eth(0).msrc(5);
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_FG_REG_DATA, i_cfg_dreg'length)) then
+
+                    for ch in 0 to C_FG_VCH_COUNT - 1 loop
+                      if (ch = i_fg_vch) then
+
+                        if (i_fg_prm = TO_UNSIGNED(C_FG_PRM_FR_ZONE_ACTIVE, i_fg_prm'length)) then
+                          txd(15 downto  0) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).fr.act.pixcount);
+                          txd(31 downto 16) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).fr.act.rowcount);
+
+                        elsif (i_fg_prm = TO_UNSIGNED(C_FG_PRM_FR_ZONE_SKIP, i_fg_prm'length)) then
+                          txd(15 downto  0) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).fr.skp.pixcount);
+                          txd(31 downto 16) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).fr.skp.rowcount);
+
+                        elsif (i_fg_prm = TO_UNSIGNED(C_FG_PRM_FR_OPTIONS, i_fg_prm'length)) then
+                          txd(0) := i_dev_reg.fg.prm.ch(ch).mirror.pix;--txd(4)
+                          txd(1) := i_dev_reg.fg.prm.ch(ch).mirror.row;--txd(5)
+
+                        elsif (i_fg_prm = TO_UNSIGNED(C_FG_PRM_FR_STEP_RD_LINE, i_fg_prm'length)) then
+                          txd(15 downto 0) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).steprd);
+
+                        end if;
+                      end if;
+                    end loop;
+
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_FG_REG_MEM_CTRL, i_cfg_dreg'length)) then
+                    txd(7  downto 0) := i_dev_reg.fg.prm.memwr_trnlen;
+                    txd(15 downto 8) := i_dev_reg.fg.prm.memrd_trnlen;
+
+                end if;--fg reg
 
 
+            --####################
+            --######   ETH  ######
+            --####################
+            elsif (i_cfg_dadr = TO_UNSIGNED(C_CFGDEV_ETH, i_cfg_dadr'length)) then
 
-        --####################
-        --######   TMR  ######
-        --####################
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_TMR_CTRL, i_reg_adr'length)) then
-            txd(i_dev_reg.tmr.en'range) <= i_dev_reg.tmr.en; --status of tmr (on/off)
+                if (i_cfg_dreg = TO_UNSIGNED(C_ETH_REG_MAC_PATRN0, i_cfg_dreg'length)) then
+                    txd((8 * 1) - 1 downto (8 * 0)) := i_dev_reg.eth(0).mac.dst(0);
+                    txd((8 * 2) - 1 downto (8 * 1)) := i_dev_reg.eth(0).mac.dst(1);
+                    txd((8 * 3) - 1 downto (8 * 2)) := i_dev_reg.eth(0).mac.dst(2);
+                    txd((8 * 4) - 1 downto (8 * 3)) := i_dev_reg.eth(0).mac.dst(3);
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_TMR_CMP, i_reg_adr'length)) then
-          for i in 0 to C_TMR_COUNT - 1 loop
-            if (i = i_tmr_num) then
-              txd := std_logic_vector(i_dev_reg.tmr.data(i));
-            end if;
-          end loop;
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_ETH_REG_MAC_PATRN0, i_cfg_dreg'length)) then
+                    txd((8 * 1) - 1 downto (8 * 0)) := i_dev_reg.eth(0).mac.dst(4);
+                    txd((8 * 2) - 1 downto (8 * 1)) := i_dev_reg.eth(0).mac.dst(5);
+                    txd((8 * 3) - 1 downto (8 * 2)) := i_dev_reg.eth(0).mac.src(0);
+                    txd((8 * 4) - 1 downto (8 * 3)) := i_dev_reg.eth(0).mac.src(1);
 
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_ETH_REG_MAC_PATRN0, i_cfg_dreg'length)) then
+                    txd((8 * 1) - 1 downto (8 * 0)) := i_dev_reg.eth(0).mac.src(2);
+                    txd((8 * 2) - 1 downto (8 * 1)) := i_dev_reg.eth(0).mac.src(3);
+                    txd((8 * 3) - 1 downto (8 * 2)) := i_dev_reg.eth(0).mac.src(4);
+                    txd((8 * 4) - 1 downto (8 * 3)) := i_dev_reg.eth(0).mac.src(5);
+
+                end if;--eth reg
+
+
+            --####################
+            --######   TMR  ######
+            --####################
+            elsif (i_cfg_dadr = TO_UNSIGNED(C_CFGDEV_TMR, i_cfg_dadr'length)) then
+
+                if (i_cfg_dreg = TO_UNSIGNED(C_TMR_REG_CTRL, i_cfg_dreg'length)) then
+                    txd(i_dev_reg.tmr.en'range) := i_dev_reg.tmr.en; --status of tmr (on/off)
+
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_TMR_REG_CMP, i_cfg_dreg'length)) then
+                  for i in 0 to C_TMR_COUNT - 1 loop
+                    if (i = i_tmr_num) then
+                      txd := std_logic_vector(i_dev_reg.tmr.data(i));
+                    end if;
+                  end loop;
+
+                end if;--tmr reg
+            end if;--cfg_dadr
 
         end if; --adr
       end if; --bar

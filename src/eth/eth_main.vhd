@@ -28,7 +28,6 @@ port(
 -------------------------------
 p_in_reg : TEthCtrl;
 
-
 -------------------------------
 --UsrBuf
 -------------------------------
@@ -305,8 +304,7 @@ begin
 process(i_coreclk_out)
 begin
 if rising_edge(i_coreclk_out) then
-  i_reg_ethcfg(i).mac.dst <= p_in_reg.eth(0).mdst;--h_reg_ethcfg;
-  i_reg_ethcfg(i).mac.src <= p_in_reg.eth(0).msrc;--h_reg_ethcfg;
+  i_reg_ethcfg(i) <= p_in_reg(0);
 end if;
 end process;
 
@@ -362,7 +360,7 @@ port map(
 --------------------------------------
 --CFG
 --------------------------------------
-p_in_cfg => h_reg_ethcfg,
+p_in_cfg => i_reg_ethcfg(i),
 
 --------------------------------------
 --USR RXBUF <- ETH

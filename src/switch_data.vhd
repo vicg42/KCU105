@@ -28,17 +28,6 @@ port(
 -------------------------------
 p_in_reg : TSWTCtrl;
 
---p_in_cfg_clk     : in   std_logic;
---
---p_in_cfg_adr     : in   std_logic_vector(5 downto 0);
---p_in_cfg_adr_ld  : in   std_logic;
---
---p_in_cfg_txdata  : in   std_logic_vector(15 downto 0);
---p_in_cfg_wr      : in   std_logic;
---
---p_out_cfg_rxdata : out  std_logic_vector(15 downto 0);
---p_in_cfg_rd      : in   std_logic;
-
 -------------------------------
 --HOST
 -------------------------------
@@ -187,7 +176,7 @@ port(
 --------------------------------------
 --CFG
 --------------------------------------
-p_in_frr        : in    TEthFRR;
+p_in_frr        : in    TSwtFrrMasks;
 
 --------------------------------------
 --Upstream Port
@@ -219,25 +208,15 @@ p_in_rst        : in    std_logic
 );
 end component pkt_filter;
 
-signal i_reg_adr              : unsigned(p_in_cfg_adr'range);
-
-signal h_reg_dbg              : std_logic_vector(C_SWT_REG_DBG_LAST_BIT downto 0);
-signal h_reg_ctrl             : std_logic_vector(C_SWT_REG_CTRL_LAST_BIT downto 0);
-signal h_reg_eth2h_frr        : TEthFRR;
-signal h_reg_eth2fg_frr       : TEthFRR;
-
 signal b_rst_eth_bufs         : std_logic;
 signal b_rst_fg_bufs          : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
 Type TEthCH_d is array (0 to G_ETH_CH_COUNT - 1) of std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
-Type TEthCH_fgfrr is array (0 to G_ETH_CH_COUNT - 1) of TEthFRR;
 
 signal syn_eth_rxd            : TEthCH_d;
 signal syn_eth_rxd_wr         : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 signal syn_eth_rxd_sof        : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 signal syn_eth_rxd_eof        : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-signal syn_eth2h_frr          : TEthCH_fgfrr;
-signal syn_eth2fg_frr         : TEthCH_fgfrr;
 
 signal i_eth_tmr_en           : std_logic;
 signal i_eth_tmr_irq          : std_logic;
@@ -273,129 +252,11 @@ signal i_h2eth_buf_rst        : std_logic;
 begin --architecture behavioral of switch_data
 
 
-------------------------------------------------------
-----Register
-------------------------------------------------------
-----Address counter
---process(p_in_cfg_clk)
---begin
---if rising_edge(p_in_cfg_clk) then
---  if p_in_rst = '1' then
---    i_reg_adr <= (others => '0');
---  else
---    if p_in_cfg_adr_ld = '1' then
---      i_reg_adr <= UNSIGNED(p_in_cfg_adr);
---    else
---      if (p_in_cfg_wr = '1' or p_in_cfg_rd = '1') then
---        i_reg_adr <= i_reg_adr + 1;
---      end if;
---    end if;
---  end if;
---end if;
---end process;
---
-----register wr
---process(p_in_cfg_clk)
---begin
---if rising_edge(p_in_cfg_clk) then
---  if p_in_rst = '1' then
---    h_reg_ctrl <= (others => '0');
---    h_reg_dbg <= (others => '0');
---
---    for i in 0 to C_SWT_GET_FRR_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT) - 1 loop
---      h_reg_eth2h_frr(2 * i) <= (others => '0');
---      h_reg_eth2h_frr((2 * i) + 1) <= (others => '0');
---    end loop;
---
---    for i in 0 to C_SWT_GET_FRR_REG_COUNT(C_SWT_ETH_FG_FRR_COUNT) - 1 loop
---      h_reg_eth2fg_frr(2 * i) <= (others => '0');
---      h_reg_eth2fg_frr((2 * i) + 1) <= (others => '0');
---    end loop;
---
---  else
---    if p_in_cfg_wr = '1' then
---        if i_reg_adr = TO_UNSIGNED(C_SWT_REG_CTRL, i_reg_adr'length) then
---          h_reg_ctrl <= p_in_cfg_txdata(h_reg_ctrl'high downto 0);
---
---        elsif i_reg_adr = TO_UNSIGNED(C_SWT_REG_DBG, i_reg_adr'length) then
---          h_reg_dbg <= p_in_cfg_txdata(h_reg_dbg'high downto 0);
---
---        elsif i_reg_adr(i_reg_adr'high downto log2(C_SWT_FRR_COUNT_MAX)) =
---            TO_UNSIGNED(C_SWT_REG_FRR_ETH2HOST/C_SWT_FRR_COUNT_MAX
---                                    ,(i_reg_adr'high - log2(C_SWT_FRR_COUNT_MAX) + 1)) then
---        --Mask pkt filter: ETH<->HOST
---          for i in 0 to C_SWT_GET_FRR_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT) - 1 loop
---            if i_reg_adr(log2(C_SWT_FRR_COUNT_MAX) - 1 downto 0) = i then
---              h_reg_eth2h_frr(2 * i)  <= p_in_cfg_txdata(7 downto 0);
---              h_reg_eth2h_frr((2 * i) + 1) <= p_in_cfg_txdata(15 downto 8);
---            end if;
---          end loop;
---
---        elsif i_reg_adr(i_reg_adr'high downto log2(C_SWT_FRR_COUNT_MAX)) =
---          TO_UNSIGNED(C_SWT_REG_FRR_ETH2FG/C_SWT_FRR_COUNT_MAX
---                                  ,(i_reg_adr'high - log2(C_SWT_FRR_COUNT_MAX) + 1)) then
---        --Mask pkt filter: ETH->FG
---          for i in 0 to C_SWT_GET_FRR_REG_COUNT(C_SWT_ETH_FG_FRR_COUNT) - 1 loop
---            if i_reg_adr(log2(C_SWT_FRR_COUNT_MAX) - 1 downto 0) = i then
---              h_reg_eth2fg_frr(2 * i)  <= p_in_cfg_txdata(7 downto 0);
---              h_reg_eth2fg_frr((2 * i) + 1) <= p_in_cfg_txdata(15 downto 8);
---            end if;
---          end loop;
---
---        end if;
---    end if;
---  end if;
---end if;
---end process;
---
-----register rd
---process(p_in_cfg_clk)
---begin
---if rising_edge(p_in_cfg_clk) then
---  if p_in_rst = '1' then
---    p_out_cfg_rxdata <= (others => '0');
---  else
---    if p_in_cfg_rd = '1' then
---        if i_reg_adr = TO_UNSIGNED(C_SWT_REG_CTRL, i_reg_adr'length) then
---          p_out_cfg_rxdata <= std_logic_vector(RESIZE(UNSIGNED(h_reg_ctrl), p_out_cfg_rxdata'length));
---
---        elsif i_reg_adr = TO_UNSIGNED(C_SWT_REG_DBG, i_reg_adr'length) then
---          p_out_cfg_rxdata <= std_logic_vector(RESIZE(UNSIGNED(h_reg_dbg), p_out_cfg_rxdata'length));
---
---        elsif i_reg_adr(i_reg_adr'high downto log2(C_SWT_FRR_COUNT_MAX)) =
---          TO_UNSIGNED(C_SWT_REG_FRR_ETH2HOST/C_SWT_FRR_COUNT_MAX
---                                    ,(i_reg_adr'high - log2(C_SWT_FRR_COUNT_MAX) + 1)) then
---        --Mask pkt filter: ETH<->HOST
---          for i in 0 to C_SWT_GET_FRR_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT) - 1 loop
---            if i_reg_adr(log2(C_SWT_FRR_COUNT_MAX) - 1 downto 0) = i then
---              p_out_cfg_rxdata(7 downto 0) <= h_reg_eth2h_frr(2 * i)  ;
---              p_out_cfg_rxdata(15 downto 8) <= h_reg_eth2h_frr((2 * i) + 1);
---            end if;
---          end loop;
---
---        elsif i_reg_adr(i_reg_adr'high downto log2(C_SWT_FRR_COUNT_MAX)) =
---          TO_UNSIGNED(C_SWT_REG_FRR_ETH2FG/C_SWT_FRR_COUNT_MAX
---                                  ,(i_reg_adr'high - log2(C_SWT_FRR_COUNT_MAX) + 1)) then
---        --Mask pkt filter: ETH->FG
---          for i in 0 to C_SWT_GET_FRR_REG_COUNT(C_SWT_ETH_FG_FRR_COUNT) - 1 loop
---            if i_reg_adr(log2(C_SWT_FRR_COUNT_MAX) - 1 downto 0) = i then
---              p_out_cfg_rxdata(7 downto 0) <= h_reg_eth2fg_frr(2 * i)  ;
---              p_out_cfg_rxdata(15 downto 8) <= h_reg_eth2fg_frr((2 * i) + 1);
---            end if;
---          end loop;
---
---        end if;
---    end if;
---  end if;
---end if;
---end process;
-
 
 process(p_in_ethio_clk(0))
 begin
 if rising_edge(p_in_ethio_clk(0)) then
 b_rst_eth_bufs <= p_in_ethio_rst(0);-- or h_reg_ctrl(C_SWT_REG_CTRL_RST_ETH_BUFS_BIT);
-p_in_reg
 end if;
 end process;
 
@@ -409,37 +270,12 @@ begin
 if rising_edge(p_in_ethio_clk(eth_ch)) then
   if (p_in_ethio_rst(eth_ch) = '1') then
 
---    for i in 0 to C_SWT_GET_FRR_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT) - 1 loop
---      syn_eth2h_frr(eth_ch)(2 * i) <= (others => '0');
---      syn_eth2h_frr(eth_ch)((2 * i) + 1) <= (others => '0');
---    end loop;
-
-    for i in 0 to C_SWT_GET_FRR_REG_COUNT(C_SWT_ETH_FG_FRR_COUNT) - 1 loop
-      syn_eth2fg_frr(eth_ch)(2 * i) <= (others => '0');
-      syn_eth2fg_frr(eth_ch)((2 * i) + 1) <= (others => '0');
-    end loop;
-
     syn_eth_rxd(eth_ch) <= (others => '0');
     syn_eth_rxd_wr(eth_ch) <= '0';
     syn_eth_rxd_sof(eth_ch) <= '0';
     syn_eth_rxd_eof(eth_ch) <= '0';
 
   else
-
-----    if (p_in_ethio_rx_axi_tuser((2 * eth_ch) + 1) = '1') then
-----    --eof
---
---      for i in 0 to C_SWT_GET_FRR_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT) - 1 loop
---        syn_eth2h_frr(eth_ch)(2 * i) <= h_reg_eth2h_frr(2 * i);
---        syn_eth2h_frr(eth_ch)((2 * i) + 1) <= h_reg_eth2h_frr((2 * i) + 1);
---      end loop;
---
---      for i in 0 to C_SWT_GET_FRR_REG_COUNT(C_SWT_ETH_FG_FRR_COUNT) - 1 loop
---        syn_eth2fg_frr(eth_ch)(2 * i) <= h_reg_eth2fg_frr(2 * i);
---        syn_eth2fg_frr(eth_ch)((2 * i) + 1) <= h_reg_eth2fg_frr((2 * i) + 1);
---      end loop;
-----
-----    end if;
 
     syn_eth_rxd(eth_ch) <= p_in_ethio_rx_axi_tdata((G_ETH_DWIDTH * (eth_ch + 1)) - 1 downto (G_ETH_DWIDTH * eth_ch));
     syn_eth_rxd_wr(eth_ch) <= p_in_ethio_rx_axi_tvalid(eth_ch);
@@ -545,7 +381,7 @@ port map(
 --------------------------------------
 --CFG
 --------------------------------------
-p_in_frr        => p_in_reg.frr.eth2h, --syn_eth2h_frr(0), --
+p_in_frr        => p_in_reg.frr.eth2h,
 
 --------------------------------------
 --Upstream Port
@@ -704,7 +540,7 @@ port map(
 --------------------------------------
 --CFG
 --------------------------------------
-p_in_frr        => p_in_reg.frr.eth2fg, --syn_eth2fg_frr(eth_ch),
+p_in_frr        => p_in_reg.frr.eth2fg,
 
 --------------------------------------
 --Upstream Port
@@ -769,8 +605,8 @@ p_out_tst(0) <= i_h2eth_buf_rst;
 p_out_tst(1) <= i_eth_txbuf_empty;
 p_out_tst(2) <= i_eth_htxd_rdy;
 p_out_tst(3) <= '0';
-p_out_tst(4) <= OR_reduce(h_reg_eth2fg_frr(0));
-p_out_tst(5) <= h_reg_dbg(C_SWT_REG_DBG_HOST2FG_BIT);
+p_out_tst(4) <= '0';
+p_out_tst(5) <= p_in_reg.dbg(C_SWT_REG_DBG_HOST2FG_BIT);
 p_out_tst(6) <= syn_eth_rxd_wr(0);
 p_out_tst(7) <= syn_eth_rxd_sof(0);
 p_out_tst(8) <= syn_eth_rxd_eof(0);

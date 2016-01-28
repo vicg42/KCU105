@@ -223,7 +223,7 @@ p_out_hclk      : out   std_logic;
 p_out_gctrl     : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);--global ctrl
 
 --CTRL user devices
-p_out_dev_ctrl  : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
+p_out_dev_ctrl  : out   TDevCtrl;
 p_out_dev_din   : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);--DEV<-HOST
 p_in_dev_dout   : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);--DEV->HOST
 p_out_dev_wr    : out   std_logic;

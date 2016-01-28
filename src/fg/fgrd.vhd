@@ -14,7 +14,7 @@ use ieee.numeric_std.all;
 library work;
 use work.reduce_pack.all;
 use work.vicg_common_pkg.all;
-use work.fg_pkg.all;
+use work.prj_def.all;
 use work.mem_wr_pkg.all;
 
 entity fgrd is

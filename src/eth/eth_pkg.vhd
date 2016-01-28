@@ -12,19 +12,6 @@ use ieee.std_logic_1164.all;
 
 package eth_pkg is
 
-type TEthMacAdr is array (0 to 5) of std_logic_vector(7 downto 0);
-type TEthMAC is record
-dst : TEthMacAdr;
-src : TEthMacAdr;
-end record;
-
-type TEthCfg is record
---usrctrl  : std_logic_vector(15 downto 0);
-mac      : TEthMAC;
-end record;
-type TEthCfgs is array (0 to 0) of TEthCfg;
-
-
 type TEthDBG_MacTx is record
 fsm : std_logic_vector(2 downto 0);
 

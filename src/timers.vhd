@@ -42,6 +42,7 @@ architecture behavioral of timers is
 
 constant CI_EXP_VALUE : integer := 7;
 
+signal i_tmr_en         : std_logic_vector(G_TMR_COUNT - 1 downto 0);
 signal i_reg_count      : TTmrVal;
 signal i_tmr_cnt        : TTmrVal;
 signal i_tmr_irq        : std_logic_vector(G_TMR_COUNT - 1 downto 0);
@@ -61,17 +62,17 @@ process(p_in_tmr_clk)
 begin
 if rising_edge(p_in_tmr_clk) then
   if p_in_rst = '1' then
-    sr_tmr_en(i) <= '0';
+    i_tmr_en(i) <= '0';
 
     i_tmr_cnt(i) <= (others => '0');
     i_tmr_irq(i) <= '0';
 
   else
 
-    sr_tmr_en(i) <= p_in_reg.en(i);
-    i_reg_count(i) <= p_in_reg.dcmp(i);
+    i_tmr_en(i) <= p_in_reg.en(i);
+    i_reg_count(i) <= p_in_reg.data(i);
 
-    if sr_tmr_en(i) = '1' then
+    if i_tmr_en(i) = '1' then
       if i_tmr_cnt(i) = (i_reg_count(i) - 1) then
         i_tmr_cnt(i) <= (others => '0');
       else
@@ -87,9 +88,7 @@ if rising_edge(p_in_tmr_clk) then
       i_tmr_irq(i) <= '1';
 
     else
-
       i_tmr_irq(i) <= '0';
-
     end if;
 
   end if;
@@ -116,18 +115,10 @@ elsif rising_edge(p_in_tmr_clk) then
 end if;
 end process;
 
-----oversample IRQ strobe
---process(p_in_cfg_clk)
---begin
---if rising_edge(p_in_cfg_clk) then
---  i_tmr_irq_out(i) <= i_tmr_irq_exp(i);
---end if;
---end process;
-
 end generate gen_tmr;
 
-p_out_tmr_irq <= i_tmr_irq_exp;--i_tmr_irq_out;
-p_out_tmr_en <= h_tmr_en;
 
+p_out_tmr_irq <= i_tmr_irq_exp;
+p_out_tmr_en <= i_tmr_en;
 
 end architecture behavioral;
