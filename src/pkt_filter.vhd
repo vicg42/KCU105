@@ -22,7 +22,7 @@ port(
 --------------------------------------
 --CFG
 --------------------------------------
-p_in_frr        : in    TEthFRR;
+p_in_frr        : in    TSwtFrrMasks;
 
 --------------------------------------
 --Upstream Port
@@ -61,14 +61,18 @@ signal i_dwnp_wr     : std_logic := '0';
 signal i_dwnp_eof    : std_logic := '0';
 --signal i_dwnp_sof    : std_logic := '0';
 
-signal sr_upp_data   : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
---signal sr_upp_sof    : std_logic := '0';
-signal sr_upp_wr     : std_logic := '0';
-signal sr_upp_eof    : std_logic := '0';
+type TSrDLocal is array (0 to 1) of std_logic_vector(G_DWIDTH - 1 downto 0);
+signal sr_upp_data   : TSrDLocal;
+signal sr_upp_sof    : std_logic_vector(0 to 1);
+signal sr_upp_wr     : std_logic_vector(0 to 1);
+signal sr_upp_eof    : std_logic_vector(0 to 1);
 
 signal i_pkt_type    : std_logic_vector(3 downto 0);
 signal i_pkt_subtype : std_logic_vector(3 downto 0);
 signal i_pkt_en      : std_logic_vector(G_FRR_COUNT - 1 downto 0) := (others => '0');
+
+type TFrrLocal is array (0 to G_FRR_COUNT - 1) of std_logic_vector(7 downto 0);
+signal i_frr         : TFrrLocal;
 
 
 begin --architecture behavioral
@@ -77,20 +81,38 @@ begin --architecture behavioral
 process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
-  sr_upp_eof <= p_in_upp_eof;
---  sr_upp_sof <= p_in_upp_sof;
-  sr_upp_wr  <= p_in_upp_wr;
+  if p_in_rst = '1' then
+    sr_upp_eof <= (others => '0');
+    sr_upp_sof <= (others => '0');
+    sr_upp_wr  <= (others => '0');
 
-  if p_in_upp_wr = '1' then
-    sr_upp_data <= p_in_upp_data;
+    for i in 0 to (sr_upp_data'length - 1) loop
+      sr_upp_data(i) <= (others => '0');
+    end loop;
+
+    for i in 0 to (i_frr'length - 1) loop
+      i_frr(i) <= (others => '0');
+    end loop;
+
+  else
+    sr_upp_eof <= p_in_upp_eof & sr_upp_eof(0 to 0);
+    sr_upp_sof <= p_in_upp_sof & sr_upp_sof(0 to 0);
+    sr_upp_wr  <= p_in_upp_wr & sr_upp_wr(0 to 0);
+    sr_upp_data <= p_in_upp_data & sr_upp_data(0 to 0);
+
+    --Update local FRR(frame routing rule) olny on SOF(start of frame)
+    if (p_in_upp_sof = '1') then
+      for i in 0 to G_FRR_COUNT - 1 loop
+        i_frr(i) <= p_in_frr(i);
+      end loop;
+    end if;
   end if;
-
 end if;
 end process;
 
 
-i_pkt_type(3 downto 0) <= p_in_upp_data(19 downto 16);
-i_pkt_subtype(3 downto 0) <= p_in_upp_data(23 downto 20);
+i_pkt_type(3 downto 0) <= sr_upp_data(0)(19 downto 16);
+i_pkt_subtype(3 downto 0) <= sr_upp_data(0)(23 downto 20);
 
 
 process(p_in_clk)
@@ -101,18 +123,18 @@ if rising_edge(p_in_clk) then
 
   else
 
-    if p_in_upp_sof = '1' and p_in_upp_wr = '1' then
+    if sr_upp_sof(0) = '1' and sr_upp_wr(0) = '1' then
 
         --Find rule of commutation
         for i in 0 to G_FRR_COUNT - 1 loop
-          if p_in_frr(i) /= (p_in_frr(i)'range => '0') then
-            if p_in_frr(i) = (i_pkt_subtype & i_pkt_type) then
+          if (i_frr(i) /= (i_frr(i)'range => '0')) then
+            if (i_frr(i) = (i_pkt_subtype & i_pkt_type)) then
               i_pkt_en(i) <= '1';
             end if;
           end if;
         end loop;
 
-    elsif sr_upp_eof = '1' then
+    elsif sr_upp_eof(1) = '1' then
 
       i_pkt_en <= (others => '0');
 
@@ -127,10 +149,10 @@ process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
 
---  i_dwnp_sof  <= sr_upp_sof and OR_reduce(i_pkt_en);
-  i_dwnp_eof  <= sr_upp_eof and OR_reduce(i_pkt_en);
-  i_dwnp_wr   <= sr_upp_wr  and OR_reduce(i_pkt_en);
-  i_dwnp_data <= sr_upp_data;
+--  i_dwnp_sof  <= sr_upp_sof(1) and OR_reduce(i_pkt_en);
+  i_dwnp_eof  <= sr_upp_eof(1) and OR_reduce(i_pkt_en);
+  i_dwnp_wr   <= sr_upp_wr(1)  and OR_reduce(i_pkt_en);
+  i_dwnp_data <= sr_upp_data(1);
 
 end if;
 end process;

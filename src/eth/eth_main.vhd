@@ -26,16 +26,7 @@ port(
 -------------------------------
 --CFG
 -------------------------------
-p_in_cfg_clk     : in  std_logic;
-
-p_in_cfg_adr     : in  std_logic_vector(2 downto 0);
-p_in_cfg_adr_ld  : in  std_logic;
-
-p_in_cfg_txdata  : in  std_logic_vector(15 downto 0);
-p_in_cfg_wr      : in  std_logic;
-
-p_out_cfg_rxdata : out std_logic_vector(15 downto 0);
-p_in_cfg_rd      : in  std_logic;
+p_in_reg : TEthCtrl;
 
 -------------------------------
 --UsrBuf
@@ -253,9 +244,6 @@ rxn  : in  std_logic_vector(G_GTCH_COUNT - 1 downto 0)
 end component eth_app;
 
 
-signal i_reg_adr         : unsigned(p_in_cfg_adr'range);
-signal h_reg_ethcfg      : TEthCfg;
-
 Type TEthCH_CFG is array (0 to G_ETH_CH_COUNT - 1) of TEthCfg;
 signal i_reg_ethcfg      : TEthCH_CFG;
 
@@ -308,122 +296,6 @@ begin --architecture behavioral of eth_main is
 
 
 ----------------------------------------------------
---Configuration
-----------------------------------------------------
---adress
-process(p_in_cfg_clk)
-begin
-if rising_edge(p_in_cfg_clk) then
-  if p_in_rst = '1' then
-    i_reg_adr <= (others => '0');
-  else
-    if p_in_cfg_adr_ld = '1' then
-      i_reg_adr <= UNSIGNED(p_in_cfg_adr);
-    else
-      if (p_in_cfg_wr = '1' or p_in_cfg_rd = '1') then
-        i_reg_adr <= i_reg_adr + 1;
-      end if;
-    end if;
-  end if;
-end if;
-end process;
-
---write registers
-process(p_in_cfg_clk)
-begin
-if rising_edge(p_in_cfg_clk) then
-  if p_in_rst = '1' then
---    for i in 0 to h_reg_ethcfg.mac.dst'high loop
---    h_reg_ethcfg.mac.dst(i) <= (others => '0');
---    h_reg_ethcfg.mac.src(i) <= (others => '0');
---    end loop;
-
-    h_reg_ethcfg.mac.dst(0) <= std_logic_vector(TO_UNSIGNED(16#D1#, 8));
-    h_reg_ethcfg.mac.dst(1) <= std_logic_vector(TO_UNSIGNED(16#D2#, 8));
-    h_reg_ethcfg.mac.dst(2) <= std_logic_vector(TO_UNSIGNED(16#D3#, 8));
-    h_reg_ethcfg.mac.dst(3) <= std_logic_vector(TO_UNSIGNED(16#D4#, 8));
-    h_reg_ethcfg.mac.dst(4) <= std_logic_vector(TO_UNSIGNED(16#D5#, 8));
-    h_reg_ethcfg.mac.dst(5) <= std_logic_vector(TO_UNSIGNED(16#D6#, 8));
-
-    h_reg_ethcfg.mac.src(0) <= std_logic_vector(TO_UNSIGNED(16#C1#, 8));
-    h_reg_ethcfg.mac.src(1) <= std_logic_vector(TO_UNSIGNED(16#C2#, 8));
-    h_reg_ethcfg.mac.src(2) <= std_logic_vector(TO_UNSIGNED(16#C3#, 8));
-    h_reg_ethcfg.mac.src(3) <= std_logic_vector(TO_UNSIGNED(16#C4#, 8));
-    h_reg_ethcfg.mac.src(4) <= std_logic_vector(TO_UNSIGNED(16#C5#, 8));
-    h_reg_ethcfg.mac.src(5) <= std_logic_vector(TO_UNSIGNED(16#C6#, 8));
-
-  else
-    if p_in_cfg_wr = '1' then
-        if i_reg_adr = TO_UNSIGNED(C_ETH_REG_MAC_PATRN0, i_reg_adr'length) then
-          h_reg_ethcfg.mac.dst(0) <= p_in_cfg_txdata(7 downto 0);
-          h_reg_ethcfg.mac.dst(1) <= p_in_cfg_txdata(15 downto 8);
-
-        elsif i_reg_adr = TO_UNSIGNED(C_ETH_REG_MAC_PATRN1, i_reg_adr'length) then
-          h_reg_ethcfg.mac.dst(2) <= p_in_cfg_txdata(7 downto 0);
-          h_reg_ethcfg.mac.dst(3) <= p_in_cfg_txdata(15 downto 8);
-
-        elsif i_reg_adr = TO_UNSIGNED(C_ETH_REG_MAC_PATRN2, i_reg_adr'length) then
-          h_reg_ethcfg.mac.dst(4) <= p_in_cfg_txdata(7 downto 0);
-          h_reg_ethcfg.mac.dst(5) <= p_in_cfg_txdata(15 downto 8);
-
-        elsif i_reg_adr = TO_UNSIGNED(C_ETH_REG_MAC_PATRN3, i_reg_adr'length) then
-          h_reg_ethcfg.mac.src(0) <= p_in_cfg_txdata(7 downto 0);
-          h_reg_ethcfg.mac.src(1) <= p_in_cfg_txdata(15 downto 8);
-
-        elsif i_reg_adr = TO_UNSIGNED(C_ETH_REG_MAC_PATRN4, i_reg_adr'length) then
-          h_reg_ethcfg.mac.src(2) <= p_in_cfg_txdata(7 downto 0);
-          h_reg_ethcfg.mac.src(3) <= p_in_cfg_txdata(15 downto 8);
-
-        elsif i_reg_adr = TO_UNSIGNED(C_ETH_REG_MAC_PATRN5, i_reg_adr'length) then
-          h_reg_ethcfg.mac.src(4) <= p_in_cfg_txdata(7 downto 0);
-          h_reg_ethcfg.mac.src(5) <= p_in_cfg_txdata(15 downto 8);
-
-        end if;
-    end if;
-  end if;
-end if;
-end process;
-
---read registers
-process(p_in_cfg_clk)
-begin
-if rising_edge(p_in_cfg_clk) then
-  if p_in_rst = '1' then
-    p_out_cfg_rxdata <= (others => '0');
-  else
-    if p_in_cfg_rd = '1' then
-        if i_reg_adr = TO_UNSIGNED(C_ETH_REG_MAC_PATRN0, i_reg_adr'length) then
-          p_out_cfg_rxdata(7 downto 0)  <= h_reg_ethcfg.mac.dst(0);
-          p_out_cfg_rxdata(15 downto 8) <= h_reg_ethcfg.mac.dst(1);
-
-        elsif i_reg_adr = TO_UNSIGNED(C_ETH_REG_MAC_PATRN1, i_reg_adr'length) then
-          p_out_cfg_rxdata(7 downto 0)  <= h_reg_ethcfg.mac.dst(2);
-          p_out_cfg_rxdata(15 downto 8) <= h_reg_ethcfg.mac.dst(3);
-
-        elsif i_reg_adr = TO_UNSIGNED(C_ETH_REG_MAC_PATRN2, i_reg_adr'length) then
-          p_out_cfg_rxdata(7 downto 0)  <= h_reg_ethcfg.mac.dst(4);
-          p_out_cfg_rxdata(15 downto 8) <= h_reg_ethcfg.mac.dst(5);
-
-        elsif i_reg_adr = TO_UNSIGNED(C_ETH_REG_MAC_PATRN3, i_reg_adr'length) then
-          p_out_cfg_rxdata(7 downto 0)  <= h_reg_ethcfg.mac.src(0);
-          p_out_cfg_rxdata(15 downto 8) <= h_reg_ethcfg.mac.src(1);
-
-        elsif i_reg_adr = TO_UNSIGNED(C_ETH_REG_MAC_PATRN4, i_reg_adr'length) then
-          p_out_cfg_rxdata(7 downto 0)  <= h_reg_ethcfg.mac.src(2);
-          p_out_cfg_rxdata(15 downto 8) <= h_reg_ethcfg.mac.src(3);
-
-        elsif i_reg_adr = TO_UNSIGNED(C_ETH_REG_MAC_PATRN5, i_reg_adr'length) then
-          p_out_cfg_rxdata(7 downto 0)  <= h_reg_ethcfg.mac.src(4);
-          p_out_cfg_rxdata(15 downto 8) <= h_reg_ethcfg.mac.src(5);
-
-        end if;
-    end if;
-  end if;
-end if;
-end process;
-
-
-----------------------------------------------------
 --
 ----------------------------------------------------
 gen_mac_ch: for i in 0 to (G_ETH_CH_COUNT - 1) generate
@@ -432,7 +304,7 @@ begin
 process(i_coreclk_out)
 begin
 if rising_edge(i_coreclk_out) then
-  i_reg_ethcfg(i) <= h_reg_ethcfg;
+  i_reg_ethcfg(i) <= p_in_reg(0);
 end if;
 end process;
 
@@ -488,7 +360,7 @@ port map(
 --------------------------------------
 --CFG
 --------------------------------------
-p_in_cfg => h_reg_ethcfg,
+p_in_cfg => i_reg_ethcfg(i),
 
 --------------------------------------
 --USR RXBUF <- ETH

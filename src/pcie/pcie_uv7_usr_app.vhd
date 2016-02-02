@@ -31,7 +31,7 @@ p_out_hclk      : out   std_logic;
 p_out_gctrl     : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);--global ctrl
 
 --CTRL user devices
-p_out_dev_ctrl  : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
+p_out_dev_ctrl  : out   TDevCtrl;
 p_out_dev_din   : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);--DEV<-HOST
 p_in_dev_dout   : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);--DEV->HOST
 p_out_dev_wr    : out   std_logic;
@@ -90,7 +90,6 @@ p_in_dma_mrd_rcv_err  : in    std_logic;
 p_out_irq_clr : out   std_logic;
 p_out_irq_set : out   std_logic;
 p_in_irq_ack  : in    std_logic;
-p_out_irq_req : out   std_logic_vector(C_HIRQ_COUNT - 1 downto 0);
 
 --System
 p_in_clk   : in    std_logic;
@@ -121,32 +120,44 @@ end component;
 type TUsrReg is record
 firmware : std_logic_vector(C_HREG_FRMWARE_LAST_BIT downto 0);
 ctrl     : std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
-dev_ctrl : std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
+dev_ctrl : std_logic_vector(C_HREG_DMA_CTRL_LAST_BIT downto 0);
 mem_adr  : std_logic_vector(C_HREG_MEM_ADR_LAST_BIT downto 0);
 mem_ctrl : std_logic_vector(C_HREG_MEM_CTRL_LAST_BIT downto 0);
 irq      : std_logic_vector(C_HREG_IRQ_NUM_M_WBIT downto C_HREG_IRQ_NUM_L_WBIT);
 pcie     : std_logic_vector(C_HREG_PCIE_EN_TESTD_GEN_BIT downto C_HREG_PCIE_SPEED_TESTING_BIT);
 tst0     : std_logic_vector(31 downto 0);
 tst1     : std_logic_vector(31 downto 0);
+
+fg_ctrl  : std_logic_vector(C_FG_REG_CTRL_LAST_BIT downto 0);
+fg_data  : std_logic_vector(31 downto 0);
 end record;
+
 
 signal i_reg_rd           : std_logic;
 signal i_reg_bar          : std_logic;
 signal i_reg_adr          : unsigned(4 downto 0);
 signal i_reg              : TUsrReg;
 
+signal i_dev_reg          : TDevRegCtrl;
+signal i_cfg_dadr         : unsigned((C_HREG_CFG_CTRL_ADR_M_BIT - C_HREG_CFG_CTRL_ADR_L_BIT) downto 0);
+signal i_cfg_dreg         : unsigned((C_HREG_CFG_CTRL_REG_M_BIT - C_HREG_CFG_CTRL_REG_L_BIT) downto 0);
+signal i_tmr_num          : unsigned((C_TMR_REG_CTRL_NUM_M_WBIT - C_TMR_REG_CTRL_NUM_L_WBIT) downto 0);
+signal i_fg_vch           : unsigned((C_FG_REG_CTRL_VCH_M_BIT - C_FG_REG_CTRL_VCH_L_BIT) downto 0);
+signal i_fg_prm           : unsigned((C_FG_REG_CTRL_PRM_M_BIT - C_FG_REG_CTRL_PRM_L_BIT) downto 0);
+
 signal i_fg_rddone                 : std_logic;
 
-signal i_hdev_adr                  : std_logic_vector(C_HREG_DEV_CTRL_ADR_M_BIT
-                                                       - C_HREG_DEV_CTRL_ADR_L_BIT downto 0);
+signal i_hdev_adr                  : std_logic_vector(C_HREG_DMA_CTRL_ADR_M_BIT
+                                                       - C_HREG_DMA_CTRL_ADR_L_BIT downto 0);
 
-signal i_dmabuf_num                : std_logic_vector(C_HREG_DEV_CTRL_DMABUF_M_BIT
-                                                       - C_HREG_DEV_CTRL_DMABUF_L_BIT downto 0);
+signal i_dmabuf_num                : std_logic_vector(C_HREG_DMA_CTRL_DMABUF_M_BIT
+                                                       - C_HREG_DMA_CTRL_DMABUF_L_BIT downto 0);
 
-signal i_dmabuf_count              : std_logic_vector(C_HREG_DEV_CTRL_DMABUF_COUNT_M_BIT
-                                                      - C_HREG_DEV_CTRL_DMABUF_COUNT_L_BIT downto 0);
+signal i_dmabuf_count              : std_logic_vector(C_HREG_DMA_CTRL_DMABUF_COUNT_M_BIT
+                                                      - C_HREG_DMA_CTRL_DMABUF_COUNT_L_BIT downto 0);
 signal i_usr_grst                  : std_logic;
 
+signal i_dma_ctrl                  : std_logic_vector(C_HREG_DMA_CTRL_LAST_BIT downto C_HREG_DMA_CTRL_DRDY_BIT);
 signal i_dma_start                 : std_logic;--DEV_CTRL(DMA_START) - rising_edge
 signal sr_dma_start                : std_logic;
 signal i_dmatrn_len                : std_logic_vector(31 downto 0);--DMATRN size (Byte)
@@ -216,10 +227,10 @@ p_out_hclk <= p_in_clk;
 p_out_dmatrn_init <= i_dmatrn_init;
 
 --MEMORY WRITE - DMATRN_WR (PC<-FPGA)
-p_out_dma_mwr_en  <= i_dmatrn_work and i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
+p_out_dma_mwr_en  <= i_dmatrn_work and i_reg.dev_ctrl(C_HREG_DMA_CTRL_DMA_DIR_BIT);
 
 --MEMORY READ - DMATRN_RD (PC->FPGA)
-p_out_dma_mrd_en  <= i_dmatrn_work and not i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
+p_out_dma_mrd_en  <= i_dmatrn_work and not i_reg.dev_ctrl(C_HREG_DMA_CTRL_DMA_DIR_BIT);
 
 p_out_dma_prm.addr <= i_dmatrn_adr(31 downto 0);
 p_out_dma_prm.len  <= i_dmatrn_len;
@@ -230,9 +241,12 @@ p_out_dma_prm.len  <= i_dmatrn_len;
 ----------------------------------------------------------------------------------------------
 --User registor:
 ----------------------------------------------------------------------------------------------
-i_dmabuf_num   <= i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMABUF_M_BIT downto C_HREG_DEV_CTRL_DMABUF_L_BIT);
-i_dmabuf_count <= i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMABUF_COUNT_M_BIT downto C_HREG_DEV_CTRL_DMABUF_COUNT_L_BIT);
-i_hdev_adr     <= i_reg.dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT);
+i_dmabuf_num   <= i_reg.dev_ctrl(C_HREG_DMA_CTRL_DMABUF_M_BIT downto C_HREG_DMA_CTRL_DMABUF_L_BIT);
+i_dmabuf_count <= i_reg.dev_ctrl(C_HREG_DMA_CTRL_DMABUF_COUNT_M_BIT downto C_HREG_DMA_CTRL_DMABUF_COUNT_L_BIT);
+i_hdev_adr     <= i_reg.dev_ctrl(C_HREG_DMA_CTRL_ADR_M_BIT downto C_HREG_DMA_CTRL_ADR_L_BIT);
+
+i_fg_vch <= UNSIGNED(i_reg.fg_ctrl(C_FG_REG_CTRL_VCH_M_BIT downto C_FG_REG_CTRL_VCH_L_BIT));
+i_fg_prm <= UNSIGNED(i_reg.fg_ctrl(C_FG_REG_CTRL_PRM_M_BIT downto C_FG_REG_CTRL_PRM_L_BIT));
 
 i_reg.firmware <= std_logic_vector(TO_UNSIGNED(C_FPGA_FIRMWARE_VERSION, i_reg.firmware'length));
 
@@ -248,6 +262,9 @@ wr : process(p_in_clk)
   variable dmaprm_wr : std_logic;
   variable usr_grst : std_logic;
   variable fg_rddone_edge : std_logic;
+  variable tmr_num : unsigned((C_TMR_REG_CTRL_NUM_M_WBIT - C_TMR_REG_CTRL_NUM_L_WBIT) downto 0);
+  variable fg_vch : unsigned((C_FG_REG_CTRL_VCH_M_BIT - C_FG_REG_CTRL_VCH_L_BIT) downto 0);
+  variable fg_prm : unsigned((C_FG_REG_CTRL_PRM_M_BIT - C_FG_REG_CTRL_PRM_L_BIT) downto 0);
 begin
 if rising_edge(p_in_clk) then
   if (p_in_rst_n = '0') then
@@ -259,6 +276,8 @@ if rising_edge(p_in_clk) then
     i_reg.irq <= (others => '0');
     i_reg.tst0 <= (others => '0');
     i_reg.tst1 <= (others => '1');
+    i_reg.fg_ctrl <= (others => '0');
+    i_reg.fg_data <= (others => '0');
 
       dma_start := '0';
     i_dma_start <= '0';
@@ -280,6 +299,50 @@ if rising_edge(p_in_clk) then
       fg_rddone_edge := '0';
     i_fg_rddone <= '0';
 
+    i_cfg_dadr <= (others => '0');
+    i_cfg_dreg <= (others => '0');
+      fg_vch := (others => '0');
+      fg_prm := (others => '0');
+    i_fg_vch <= (others => '0');
+    i_fg_prm <= (others => '0');
+      tmr_num := (others => '0');
+    i_tmr_num <= (others => '0');
+
+    for i in 0 to (i_dev_reg.eth'length - 1) loop
+    for y in 0 to (i_dev_reg.eth(0).mac.dst'length - 1) loop
+    i_dev_reg.eth(i).mac.dst(y) <= (others => '0');
+    i_dev_reg.eth(i).mac.src(y) <= (others => '0');
+    end loop;
+    end loop;
+
+    i_dev_reg.swt.ctrl <= (others => '0');
+    i_dev_reg.swt.dbg <= (others => '0');
+    for i in 0 to (i_dev_reg.swt.frr.eth2h'length - 1) loop
+    i_dev_reg.swt.frr.eth2h(i) <= (others => '0');
+    end loop;
+    for i in 0 to (i_dev_reg.swt.frr.eth2fg'length - 1) loop
+    i_dev_reg.swt.frr.eth2fg(i) <= (others => '0');
+    end loop;
+
+    for i in 0 to (i_dev_reg.tmr.en'length - 1) loop
+    i_dev_reg.tmr.en(i) <= '0';
+    i_dev_reg.tmr.data(i) <= (others => '0');
+    end loop;
+
+    i_dev_reg.fg.dbg <= (others => '0');
+    for i in 0 to (i_dev_reg.fg.prm.ch'length - 1) loop
+    i_dev_reg.fg.idle(i) <= '0';
+    i_dev_reg.fg.prm.ch(i).fr.act.pixcount <= (others => '0');
+    i_dev_reg.fg.prm.ch(i).fr.act.rowcount <= (others => '0');
+    i_dev_reg.fg.prm.ch(i).fr.skp.pixcount <= (others => '0');
+    i_dev_reg.fg.prm.ch(i).fr.skp.rowcount <= (others => '0');
+    i_dev_reg.fg.prm.ch(i).mirror.pix <= '0';
+    i_dev_reg.fg.prm.ch(i).mirror.row <= '0';
+    i_dev_reg.fg.prm.ch(i).steprd <= (others => '0');
+    end loop;
+    i_dev_reg.fg.prm.memwr_trnlen <= (others => '0');
+    i_dev_reg.fg.prm.memrd_trnlen <= (others => '0');
+
   else
 
       dmaprm_wr := '0';
@@ -295,55 +358,207 @@ if rising_edge(p_in_clk) then
       ----------------------------------------------
       --Register Space:
       ----------------------------------------------
-        if (i_reg_adr = TO_UNSIGNED(C_HREG_CTRL, 5))  then
+        if (i_reg_adr = TO_UNSIGNED(C_HREG_CTRL, i_reg_adr'length))  then
           i_reg.ctrl <= p_in_reg_din(i_reg.ctrl'high downto 0);
             usr_grst := p_in_reg_din(C_HREG_CTRL_RST_ALL_BIT);
             fg_rddone_edge := p_in_reg_din(C_HREG_CTRL_FG_RDDONE_BIT);
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_ADR, 5)) then --Adress(Byte)
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_ADR, i_reg_adr'length)) then --Adress(Byte)
           i_host_dmaprm_din <= p_in_reg_din;
             dmaprm_wr := '1';
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_LEN, 5)) then --Size(Byte)
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_LEN, i_reg_adr'length)) then --Size(Byte)
           i_host_dmaprm_din <= p_in_reg_din;
             dmaprm_wr := '1';
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_DEV_CTRL, 5)) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_DMA_CTRL, i_reg_adr'length)) then
           i_reg.dev_ctrl <= p_in_reg_din(i_reg.dev_ctrl'high downto 0);
-            dma_start := p_in_reg_din(C_HREG_DEV_CTRL_DMA_START_BIT);
-            dev_drdy := p_in_reg_din(C_HREG_DEV_CTRL_DRDY_BIT);
+            dma_start := p_in_reg_din(C_HREG_DMA_CTRL_DMA_START_BIT);
+            dev_drdy := p_in_reg_din(C_HREG_DMA_CTRL_DRDY_BIT);
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_PCIE, 5)) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_PCIE, i_reg_adr'length)) then
             i_reg.pcie <= p_in_reg_din(C_HREG_PCIE_EN_TESTD_GEN_BIT downto C_HREG_PCIE_SPEED_TESTING_BIT);
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_MEM_ADR, 5)) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_MEM_ADR, i_reg_adr'length)) then
           i_reg.mem_adr <= p_in_reg_din(i_reg.mem_adr'high downto 0);
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_MEM_CTRL, 5)) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_MEM_CTRL, i_reg_adr'length)) then
           i_reg.mem_ctrl <= p_in_reg_din(i_reg.mem_ctrl'high downto 0);
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_IRQ, 5)) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_IRQ, i_reg_adr'length)) then
           i_reg.irq <= p_in_reg_din(C_HREG_IRQ_NUM_M_WBIT downto C_HREG_IRQ_NUM_L_WBIT);
             irq_clr := p_in_reg_din(C_HREG_IRQ_CLR_WBIT);
             irq_status_clr := p_in_reg_din(C_HREG_IRQ_STATUS_CLR_WBIT);
 
             for i in 0 to C_HIRQ_COUNT - 1 loop
               if (UNSIGNED(p_in_reg_din(C_HREG_IRQ_NUM_M_WBIT downto C_HREG_IRQ_NUM_L_WBIT)) = i) then
-                if (p_in_reg_din(C_HREG_IRQ_EN_WBIT) = '1') then
-                  i_irq_en(i) <= '1';
-                elsif (p_in_reg_din(C_HREG_IRQ_DIS_WBIT) = '1') then
-                  i_irq_en(i) <= '0';
+                if (p_in_reg_din(C_HREG_IRQ_STATUS_CLR_WBIT) = '0' and p_in_reg_din(C_HREG_IRQ_CLR_WBIT) = '0') then
+                  i_irq_en(i) <= p_in_reg_din(C_HREG_IRQ_EN_WBIT);
                 end if;
               end if;
             end loop;
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_TST0, 5)) then i_reg.tst0 <= p_in_reg_din;
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_TST1, 5)) then i_reg.tst1 <= p_in_reg_din;
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_TST0, i_reg_adr'length)) then i_reg.tst0 <= p_in_reg_din;
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_TST1, i_reg_adr'length)) then i_reg.tst1 <= p_in_reg_din;
 
-        end if;
 
-      end if;
-    end if;
+
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_CFG_CTRL, i_reg_adr'length)) then
+            i_cfg_dadr <= UNSIGNED(p_in_reg_din(C_HREG_CFG_CTRL_ADR_M_BIT downto C_HREG_CFG_CTRL_ADR_L_BIT));
+            i_cfg_dreg <= UNSIGNED(p_in_reg_din(C_HREG_CFG_CTRL_REG_M_BIT downto C_HREG_CFG_CTRL_REG_L_BIT));
+
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_CFG_DATA, i_reg_adr'length)) then
+
+            --####################
+            --######   FG   ######
+            --####################
+            if (i_cfg_dadr = TO_UNSIGNED(C_CFGDEV_FG, i_cfg_dadr'length)) then
+
+                if (i_cfg_dreg = TO_UNSIGNED(C_FG_REG_DATA, i_cfg_dreg'length)) then
+                    i_reg.fg_data <= p_in_reg_din;
+
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_FG_REG_DBG, i_cfg_dreg'length)) then
+                    i_dev_reg.fg.dbg <= p_in_reg_din(i_dev_reg.fg.dbg'range);
+
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_FG_REG_MEM_CTRL, i_cfg_dreg'length)) then
+                    i_dev_reg.fg.prm.memwr_trnlen <= p_in_reg_din(C_HREG_MEM_CTRL_TRNWR_M_BIT downto C_HREG_MEM_CTRL_TRNWR_L_BIT);
+                    i_dev_reg.fg.prm.memrd_trnlen <= p_in_reg_din(C_HREG_MEM_CTRL_TRNRD_M_BIT downto C_HREG_MEM_CTRL_TRNRD_L_BIT);
+
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_FG_REG_CTRL, i_cfg_dreg'length)) then
+
+                    i_reg.fg_ctrl <= p_in_reg_din(i_reg.fg_ctrl'range);
+
+                    fg_vch := UNSIGNED(p_in_reg_din(C_FG_REG_CTRL_VCH_M_BIT downto C_FG_REG_CTRL_VCH_L_BIT));
+                    fg_prm := UNSIGNED(p_in_reg_din(C_FG_REG_CTRL_PRM_M_BIT downto C_FG_REG_CTRL_PRM_L_BIT));
+
+                    for ch in 0 to C_FG_VCH_COUNT - 1 loop
+                      if (ch = fg_vch) then
+                        i_dev_reg.fg.idle(ch) <= p_in_reg_din(C_FG_REG_CTRL_SET_IDLE_BIT);
+                      end if;
+                    end loop;
+
+                    if (p_in_reg_din(C_FG_REG_CTRL_WR_BIT) = C_FG_REG_CTRL_WR) then
+
+                        for ch in 0 to C_FG_VCH_COUNT - 1 loop
+                          if (ch = fg_vch) then
+
+                            if (fg_prm = TO_UNSIGNED(C_FG_PRM_ZONE_ACTIVE, fg_prm'length)) then
+                              i_dev_reg.fg.prm.ch(ch).fr.act.pixcount <= UNSIGNED(i_reg.fg_data(C_FG_PIX_M downto  C_FG_PIX_L));
+                              i_dev_reg.fg.prm.ch(ch).fr.act.rowcount <= UNSIGNED(i_reg.fg_data(C_FG_ROW_M downto  C_FG_ROW_L));
+
+                            elsif (fg_prm = TO_UNSIGNED(C_FG_PRM_ZONE_SKIP, fg_prm'length)) then
+                              i_dev_reg.fg.prm.ch(ch).fr.skp.pixcount <= UNSIGNED(i_reg.fg_data(C_FG_PIX_M downto  C_FG_PIX_L));
+                              i_dev_reg.fg.prm.ch(ch).fr.skp.rowcount <= UNSIGNED(i_reg.fg_data(C_FG_ROW_M downto  C_FG_ROW_L));
+
+                            elsif (fg_prm = TO_UNSIGNED(C_FG_PRM_OPTIONS, fg_prm'length)) then
+                              i_dev_reg.fg.prm.ch(ch).mirror.pix <= i_reg.fg_data(C_FG_PRM_OPTIONS_MIRX_BIT);
+                              i_dev_reg.fg.prm.ch(ch).mirror.row <= i_reg.fg_data(C_FG_PRM_OPTIONS_MIRY_BIT);
+
+                            elsif (fg_prm = TO_UNSIGNED(C_FG_PRM_STEP_RD_LINE, fg_prm'length)) then
+                              i_dev_reg.fg.prm.ch(ch).steprd <= UNSIGNED(i_reg.fg_data(i_dev_reg.fg.prm.ch(ch).steprd'range));
+
+                            end if;
+                          end if;
+                        end loop;
+
+                    end if;
+                end if;--fg reg
+
+
+            --####################
+            --######   ETH  ######
+            --####################
+            elsif (i_cfg_dadr = TO_UNSIGNED(C_CFGDEV_ETH, i_cfg_dadr'length)) then
+
+                if (i_cfg_dreg = TO_UNSIGNED(C_ETH_REG_MAC_PATRN0, i_cfg_dreg'length)) then
+                    i_dev_reg.eth(0).mac.dst(0) <= p_in_reg_din((8 * 1) - 1 downto (8 * 0));
+                    i_dev_reg.eth(0).mac.dst(1) <= p_in_reg_din((8 * 2) - 1 downto (8 * 1));
+                    i_dev_reg.eth(0).mac.dst(2) <= p_in_reg_din((8 * 3) - 1 downto (8 * 2));
+                    i_dev_reg.eth(0).mac.dst(3) <= p_in_reg_din((8 * 4) - 1 downto (8 * 3));
+
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_ETH_REG_MAC_PATRN1, i_cfg_dreg'length)) then
+                    i_dev_reg.eth(0).mac.dst(4) <= p_in_reg_din((8 * 1) - 1 downto (8 * 0));
+                    i_dev_reg.eth(0).mac.dst(5) <= p_in_reg_din((8 * 2) - 1 downto (8 * 1));
+                    i_dev_reg.eth(0).mac.src(0) <= p_in_reg_din((8 * 1) - 1 downto (8 * 0));
+                    i_dev_reg.eth(0).mac.src(1) <= p_in_reg_din((8 * 2) - 1 downto (8 * 1));
+
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_ETH_REG_MAC_PATRN2, i_cfg_dreg'length)) then
+                    i_dev_reg.eth(0).mac.src(2) <= p_in_reg_din((8 * 3) - 1 downto (8 * 2));
+                    i_dev_reg.eth(0).mac.src(3) <= p_in_reg_din((8 * 4) - 1 downto (8 * 3));
+                    i_dev_reg.eth(0).mac.src(4) <= p_in_reg_din((8 * 1) - 1 downto (8 * 0));
+                    i_dev_reg.eth(0).mac.src(5) <= p_in_reg_din((8 * 2) - 1 downto (8 * 1));
+
+                end if;--eth reg
+
+
+            --####################
+            --######   SWT  ######
+            --####################
+            elsif (i_cfg_dadr = TO_UNSIGNED(C_CFGDEV_SWT, i_cfg_dadr'length)) then
+
+                if (i_cfg_dreg = TO_UNSIGNED(C_SWT_REG_CTRL, i_cfg_dreg'length)) then
+                    i_dev_reg.swt.ctrl <= p_in_reg_din(i_dev_reg.swt.ctrl'range);
+
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_SWT_REG_DBG, i_cfg_dreg'length)) then
+                    i_dev_reg.swt.dbg <= p_in_reg_din(i_dev_reg.swt.dbg'range);
+
+                --filter pkt: ETH<->HOST
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_SWT_REG_ETH2HOST_FRR0, i_cfg_dreg'length)) then
+                    i_dev_reg.swt.frr.eth2h(0) <= p_in_reg_din((8 * 1) - 1 downto (8 * 0));
+                    i_dev_reg.swt.frr.eth2h(1) <= p_in_reg_din((8 * 2) - 1 downto (8 * 1));
+                    i_dev_reg.swt.frr.eth2h(2) <= p_in_reg_din((8 * 3) - 1 downto (8 * 2));
+                    i_dev_reg.swt.frr.eth2h(3) <= p_in_reg_din((8 * 4) - 1 downto (8 * 3));
+
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_SWT_REG_ETH2HOST_FRR1, i_cfg_dreg'length)) then
+                    i_dev_reg.swt.frr.eth2h(4) <= p_in_reg_din((8 * 1) - 1 downto (8 * 0));
+                    i_dev_reg.swt.frr.eth2h(5) <= p_in_reg_din((8 * 2) - 1 downto (8 * 1));
+                    i_dev_reg.swt.frr.eth2h(6) <= p_in_reg_din((8 * 3) - 1 downto (8 * 2));
+                    i_dev_reg.swt.frr.eth2h(7) <= p_in_reg_din((8 * 4) - 1 downto (8 * 3));
+
+                --filter pkt: ETH->FG
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_SWT_REG_ETH2FG_FRR0, i_cfg_dreg'length)) then
+                    i_dev_reg.swt.frr.eth2fg(0) <= p_in_reg_din((8 * 1) - 1 downto (8 * 0));
+                    i_dev_reg.swt.frr.eth2fg(1) <= p_in_reg_din((8 * 2) - 1 downto (8 * 1));
+                    i_dev_reg.swt.frr.eth2fg(2) <= p_in_reg_din((8 * 3) - 1 downto (8 * 2));
+                    i_dev_reg.swt.frr.eth2fg(3) <= p_in_reg_din((8 * 4) - 1 downto (8 * 3));
+
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_SWT_REG_ETH2FG_FRR1, i_cfg_dreg'length)) then
+                    i_dev_reg.swt.frr.eth2fg(4) <= p_in_reg_din((8 * 1) - 1 downto (8 * 0));
+                    i_dev_reg.swt.frr.eth2fg(5) <= p_in_reg_din((8 * 2) - 1 downto (8 * 1));
+                    i_dev_reg.swt.frr.eth2fg(6) <= p_in_reg_din((8 * 3) - 1 downto (8 * 2));
+                    i_dev_reg.swt.frr.eth2fg(7) <= p_in_reg_din((8 * 4) - 1 downto (8 * 3));
+
+                end if;--swt reg
+
+            --####################
+            --######   TMR  ######
+            --####################
+            elsif (i_cfg_dadr = TO_UNSIGNED(C_CFGDEV_TMR, i_cfg_dadr'length)) then
+
+                if (i_cfg_dreg = TO_UNSIGNED(C_TMR_REG_CTRL, i_cfg_dreg'length)) then
+
+                    tmr_num := UNSIGNED(p_in_reg_din(C_TMR_REG_CTRL_NUM_M_WBIT downto C_TMR_REG_CTRL_NUM_L_WBIT));
+                    i_tmr_num <= tmr_num;
+
+                    for i in 0 to C_TMR_COUNT - 1 loop
+                      if (i = tmr_num) then
+                        i_dev_reg.tmr.en(i) <= p_in_reg_din(C_TMR_REG_CTRL_EN_WBIT);
+                      end if;
+                    end loop;
+
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_TMR_REG_CMP, i_cfg_dreg'length)) then
+                    for i in 0 to C_TMR_COUNT - 1 loop
+                      if (i = i_tmr_num) then
+                        i_dev_reg.tmr.data(i) <= UNSIGNED(p_in_reg_din);
+                      end if;
+                    end loop;
+
+                end if;--tmr reg
+            end if;--cfg_dadr
+
+        end if; --adr
+      end if; --bar
+    end if; --wr
 
     i_host_dmaprm_wr(0) <= dmaprm_wr;
     i_dev_drdy <= dev_drdy;
@@ -354,8 +569,8 @@ if rising_edge(p_in_clk) then
 
     sr_dma_start <= i_dma_start;
 
-  end if;
-end if;
+  end if; --rst
+end if; --clk
 end process;--Reg Write
 
 --Reg Read:
@@ -379,20 +594,20 @@ if rising_edge(p_in_clk) then
       ----------------------------------------------
       --Register Space:
       ----------------------------------------------
-        if (i_reg_adr = TO_UNSIGNED(C_HREG_FIRMWARE, 5)) then
+        if (i_reg_adr = TO_UNSIGNED(C_HREG_FIRMWARE, i_reg_adr'length)) then
             txd := std_logic_vector(RESIZE(UNSIGNED(i_reg.firmware), txd'length));
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_ADR, 5)) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_ADR, i_reg_adr'length)) then
             txd := std_logic_vector(RESIZE(UNSIGNED(i_host_dmaprm_dout), txd'length));
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_LEN, 5)) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_LEN, i_reg_adr'length)) then
             txd := std_logic_vector(RESIZE(UNSIGNED(i_host_dmaprm_dout), txd'length));
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_DEV_CTRL, 5)) then
-            txd(C_HREG_DEV_CTRL_LAST_BIT downto C_HREG_DEV_CTRL_DMA_DIR_BIT)
-                := i_reg.dev_ctrl(C_HREG_DEV_CTRL_LAST_BIT downto C_HREG_DEV_CTRL_DMA_DIR_BIT);
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_DMA_CTRL, i_reg_adr'length)) then
+            txd(C_HREG_DMA_CTRL_LAST_BIT downto C_HREG_DMA_CTRL_DMA_DIR_BIT)
+                := i_reg.dev_ctrl(C_HREG_DMA_CTRL_LAST_BIT downto C_HREG_DMA_CTRL_DMA_DIR_BIT);
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_PCIE, 5)) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_PCIE, i_reg_adr'length)) then
             txd(C_HREG_PCIE_NEG_LINK_M_RBIT downto C_HREG_PCIE_NEG_LINK_L_RBIT)
                 := p_in_pcie_prm.link_width(5 downto 0);
 
@@ -407,43 +622,43 @@ if rising_edge(p_in_clk) then
             txd(C_HREG_PCIE_SPEED_TESTING_BIT) := i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
             txd(C_HREG_PCIE_EN_TESTD_GEN_BIT) := i_reg.pcie(C_HREG_PCIE_EN_TESTD_GEN_BIT);
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_MEM_ADR, 5)) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_MEM_ADR, i_reg_adr'length)) then
             txd := std_logic_vector(RESIZE(UNSIGNED(i_reg.mem_adr), txd'length));
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_MEM_CTRL, 5)) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_MEM_CTRL, i_reg_adr'length)) then
             txd := std_logic_vector(RESIZE(UNSIGNED(i_reg.mem_ctrl), txd'length));
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_IRQ, 5)) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_IRQ, i_reg_adr'length)) then
             for i in 0 to C_HIRQ_COUNT - 1 loop
               txd(i) := i_irq_status(i);
             end loop;
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_DEV_STATUS, 5)) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_DEV_STATUS, i_reg_adr'length)) then
             txd(C_HREG_DEV_STATUS_DMA_BUSY_BIT) := i_dma_work;
             txd(C_HREG_DEV_STATUS_LAST_BIT downto (C_HREG_DEV_STATUS_DMA_BUSY_BIT + 1)) := p_in_dev_status;
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_FG_FRMRK, 5)) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_FG_FRMRK, i_reg_adr'length)) then
           txd := p_in_dev_opt(C_HDEV_OPTIN_FG_FRMRK_M_BIT downto C_HDEV_OPTIN_FG_FRMRK_L_BIT);
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_ETH_HEADER, 5)) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_ETH_HEADER, i_reg_adr'length)) then
           txd := p_in_dev_opt(C_HDEV_OPTIN_ETH_HEADER_M_BIT downto C_HDEV_OPTIN_ETH_HEADER_L_BIT);
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_TST0, 5)) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_TST0, i_reg_adr'length)) then
           txd := std_logic_vector(RESIZE(UNSIGNED(i_reg.tst0), txd'length));
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_TST1, 5)) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_TST1, i_reg_adr'length)) then
           txd(31 downto 0) := i_reg.tst1(31 downto 0);
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_TST2, 5)) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_TST2, i_reg_adr'length)) then
           txd := p_in_tst(63 downto 32);
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_FUNC, 5)) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_FUNC, i_reg_adr'length)) then
           txd(C_HREG_FUNC_MEM_BIT) := '1';
           txd(C_HREG_FUNC_TMR_BIT) := '1';
           txd(C_HREG_FUNC_FG_BIT) := '1'; --Frame Grabber
           txd(C_HREG_FUNC_ETH_BIT) := '1';
 
-        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_FUNCPRM, 5)) then
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_FUNCPRM, i_reg_adr'length)) then
 
           txd(C_HREG_FUNCPRM_MEMBANK_SIZE_M_BIT downto C_HREG_FUNCPRM_MEMBANK_SIZE_L_BIT)
               := std_logic_vector(TO_UNSIGNED(C_PCFG_MEMCTRL_BANK_SIZE
@@ -456,15 +671,148 @@ if rising_edge(p_in_clk) then
           txd(C_HREG_FUNCPRM_FG_REV_BIT) := '0';
           txd(C_HREG_FUNCPRM_FG_128_BIT) := '1';
 
-        end if;
 
-      end if;
+
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_CFG_CTRL, i_reg_adr'length)) then
+            txd(C_HREG_CFG_CTRL_ADR_M_BIT downto C_HREG_CFG_CTRL_ADR_L_BIT) := std_logic_vector(i_cfg_dadr);
+            txd(C_HREG_CFG_CTRL_REG_M_BIT downto C_HREG_CFG_CTRL_REG_L_BIT) := std_logic_vector(i_cfg_dreg);
+
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_CFG_DATA, i_reg_adr'length)) then
+
+            --####################
+            --######   SWT  ######
+            --####################
+            if (i_cfg_dadr = TO_UNSIGNED(C_CFGDEV_SWT, i_cfg_dadr'length)) then
+
+                if (i_cfg_dreg = TO_UNSIGNED(C_SWT_REG_CTRL, i_cfg_dreg'length)) then
+                    txd(i_dev_reg.swt.ctrl'range) := i_dev_reg.swt.ctrl;
+
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_SWT_REG_DBG, i_cfg_dreg'length)) then
+                    txd(i_dev_reg.swt.dbg'range) := i_dev_reg.swt.dbg;
+
+                --filter pkt: ETH<->HOST
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_SWT_REG_ETH2HOST_FRR0, i_cfg_dreg'length)) then
+                    txd((8 * 1) - 1 downto (8 * 0)) := i_dev_reg.swt.frr.eth2h(0);
+                    txd((8 * 2) - 1 downto (8 * 1)) := i_dev_reg.swt.frr.eth2h(1);
+                    txd((8 * 3) - 1 downto (8 * 2)) := i_dev_reg.swt.frr.eth2h(2);
+                    txd((8 * 4) - 1 downto (8 * 3)) := i_dev_reg.swt.frr.eth2h(3);
+
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_SWT_REG_ETH2HOST_FRR1, i_cfg_dreg'length)) then
+                    txd((8 * 1) - 1 downto (8 * 0)) := i_dev_reg.swt.frr.eth2h(4);
+                    txd((8 * 2) - 1 downto (8 * 1)) := i_dev_reg.swt.frr.eth2h(5);
+                    txd((8 * 3) - 1 downto (8 * 2)) := i_dev_reg.swt.frr.eth2h(6);
+                    txd((8 * 4) - 1 downto (8 * 3)) := i_dev_reg.swt.frr.eth2h(7);
+
+                --filter pkt: ETH->FG
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_SWT_REG_ETH2FG_FRR0, i_cfg_dreg'length)) then
+                    txd((8 * 1) - 1 downto (8 * 0)) := i_dev_reg.swt.frr.eth2fg(0);
+                    txd((8 * 2) - 1 downto (8 * 1)) := i_dev_reg.swt.frr.eth2fg(1);
+                    txd((8 * 3) - 1 downto (8 * 2)) := i_dev_reg.swt.frr.eth2fg(2);
+                    txd((8 * 4) - 1 downto (8 * 3)) := i_dev_reg.swt.frr.eth2fg(3);
+
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_SWT_REG_ETH2FG_FRR1, i_cfg_dreg'length)) then
+                    txd((8 * 1) - 1 downto (8 * 0)) := i_dev_reg.swt.frr.eth2fg(4);
+                    txd((8 * 2) - 1 downto (8 * 1)) := i_dev_reg.swt.frr.eth2fg(5);
+                    txd((8 * 3) - 1 downto (8 * 2)) := i_dev_reg.swt.frr.eth2fg(6);
+                    txd((8 * 4) - 1 downto (8 * 3)) := i_dev_reg.swt.frr.eth2fg(7);
+
+                end if;--swt reg
+
+
+            --####################
+            --######   FG   ######
+            --####################
+            elsif (i_cfg_dadr = TO_UNSIGNED(C_CFGDEV_SWT, i_cfg_dadr'length)) then
+
+                if (i_cfg_dreg = TO_UNSIGNED(C_FG_REG_CTRL, i_cfg_dreg'length)) then
+                    txd(i_reg.fg_ctrl'range) := i_reg.fg_ctrl;
+
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_FG_REG_DBG, i_cfg_dreg'length)) then
+                  txd(i_dev_reg.fg.dbg'range) := i_dev_reg.fg.dbg;
+
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_FG_REG_DATA, i_cfg_dreg'length)) then
+
+                    for ch in 0 to C_FG_VCH_COUNT - 1 loop
+                      if (ch = i_fg_vch) then
+
+                        if (i_fg_prm = TO_UNSIGNED(C_FG_PRM_ZONE_ACTIVE, i_fg_prm'length)) then
+                          txd(C_FG_PIX_M downto C_FG_PIX_L) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).fr.act.pixcount);
+                          txd(C_FG_ROW_M downto C_FG_ROW_L) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).fr.act.rowcount);
+
+                        elsif (i_fg_prm = TO_UNSIGNED(C_FG_PRM_ZONE_SKIP, i_fg_prm'length)) then
+                          txd(C_FG_PIX_M downto C_FG_PIX_L) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).fr.skp.pixcount);
+                          txd(C_FG_ROW_M downto C_FG_ROW_L) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).fr.skp.rowcount);
+
+                        elsif (i_fg_prm = TO_UNSIGNED(C_FG_PRM_OPTIONS, i_fg_prm'length)) then
+                          txd(C_FG_PRM_OPTIONS_MIRX_BIT) := i_dev_reg.fg.prm.ch(ch).mirror.pix;
+                          txd(C_FG_PRM_OPTIONS_MIRY_BIT) := i_dev_reg.fg.prm.ch(ch).mirror.row;
+
+                        elsif (i_fg_prm = TO_UNSIGNED(C_FG_PRM_STEP_RD_LINE, i_fg_prm'length)) then
+                          txd(i_dev_reg.fg.prm.ch(ch).steprd'range) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).steprd);
+
+                        end if;
+                      end if;
+                    end loop;
+
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_FG_REG_MEM_CTRL, i_cfg_dreg'length)) then
+                    txd(C_HREG_MEM_CTRL_TRNWR_M_BIT downto C_HREG_MEM_CTRL_TRNWR_L_BIT) := i_dev_reg.fg.prm.memwr_trnlen;
+                    txd(C_HREG_MEM_CTRL_TRNRD_M_BIT downto C_HREG_MEM_CTRL_TRNRD_L_BIT) := i_dev_reg.fg.prm.memrd_trnlen;
+
+                end if;--fg reg
+
+
+            --####################
+            --######   ETH  ######
+            --####################
+            elsif (i_cfg_dadr = TO_UNSIGNED(C_CFGDEV_ETH, i_cfg_dadr'length)) then
+
+                if (i_cfg_dreg = TO_UNSIGNED(C_ETH_REG_MAC_PATRN0, i_cfg_dreg'length)) then
+                    txd((8 * 1) - 1 downto (8 * 0)) := i_dev_reg.eth(0).mac.dst(0);
+                    txd((8 * 2) - 1 downto (8 * 1)) := i_dev_reg.eth(0).mac.dst(1);
+                    txd((8 * 3) - 1 downto (8 * 2)) := i_dev_reg.eth(0).mac.dst(2);
+                    txd((8 * 4) - 1 downto (8 * 3)) := i_dev_reg.eth(0).mac.dst(3);
+
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_ETH_REG_MAC_PATRN0, i_cfg_dreg'length)) then
+                    txd((8 * 1) - 1 downto (8 * 0)) := i_dev_reg.eth(0).mac.dst(4);
+                    txd((8 * 2) - 1 downto (8 * 1)) := i_dev_reg.eth(0).mac.dst(5);
+                    txd((8 * 3) - 1 downto (8 * 2)) := i_dev_reg.eth(0).mac.src(0);
+                    txd((8 * 4) - 1 downto (8 * 3)) := i_dev_reg.eth(0).mac.src(1);
+
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_ETH_REG_MAC_PATRN0, i_cfg_dreg'length)) then
+                    txd((8 * 1) - 1 downto (8 * 0)) := i_dev_reg.eth(0).mac.src(2);
+                    txd((8 * 2) - 1 downto (8 * 1)) := i_dev_reg.eth(0).mac.src(3);
+                    txd((8 * 3) - 1 downto (8 * 2)) := i_dev_reg.eth(0).mac.src(4);
+                    txd((8 * 4) - 1 downto (8 * 3)) := i_dev_reg.eth(0).mac.src(5);
+
+                end if;--eth reg
+
+
+            --####################
+            --######   TMR  ######
+            --####################
+            elsif (i_cfg_dadr = TO_UNSIGNED(C_CFGDEV_TMR, i_cfg_dadr'length)) then
+
+                if (i_cfg_dreg = TO_UNSIGNED(C_TMR_REG_CTRL, i_cfg_dreg'length)) then
+                    txd(i_dev_reg.tmr.en'range) := i_dev_reg.tmr.en; --status of tmr (on/off)
+
+                elsif (i_cfg_dreg = TO_UNSIGNED(C_TMR_REG_CMP, i_cfg_dreg'length)) then
+                  for i in 0 to C_TMR_COUNT - 1 loop
+                    if (i = i_tmr_num) then
+                      txd := std_logic_vector(i_dev_reg.tmr.data(i));
+                    end if;
+                  end loop;
+
+                end if;--tmr reg
+            end if;--cfg_dadr
+
+        end if; --adr
+      end if; --bar
 
       p_out_reg_dout <= txd;
 
-    end if;--if i_reg_rd = '1' then
-  end if;
-end if;--p_in_rst_n,
+    end if;--rd
+  end if; --rst
+end if;--clk
 end process;--Reg Read
 
 
@@ -475,13 +823,13 @@ end process;--Reg Read
 i_dmatrn_mrd_done <= i_mrd_done
                       when UNSIGNED(i_hdev_adr) /= TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length)
                             or i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT) = '1'
-                        else (not i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT)
+                        else (not i_reg.dev_ctrl(C_HREG_DMA_CTRL_DMA_DIR_BIT)
                               and AND_reduce(i_dmatrn_mem_done));
 --TRN DONE: PC<-FPGA
 i_dmatrn_mwr_done <= i_mwr_done
                       when UNSIGNED(i_hdev_adr) /= TO_UNSIGNED(C_HDEV_MEM, i_hdev_adr'length)
                             or i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT) = '1'
-                        else ( i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT)
+                        else ( i_reg.dev_ctrl(C_HREG_DMA_CTRL_DMA_DIR_BIT)
                               and AND_reduce(i_dmatrn_mem_done));
 
 i_dmatrn_done <= i_dmatrn_mwr_done or i_dmatrn_mrd_done;
@@ -775,16 +1123,19 @@ p_out_dev_rd <= p_in_rxbuf_rd;
 p_out_dev_din <= p_in_txbuf_di;
 
 --user device ctrl
-p_out_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT) <= i_mrd_done or i_dev_drdy;
+i_dma_ctrl(C_HREG_DMA_CTRL_DRDY_BIT) <= i_mrd_done or i_dev_drdy;
 
-p_out_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT) <= sr_dma_start
+i_dma_ctrl(C_HREG_DMA_CTRL_DMA_START_BIT) <= sr_dma_start
                                       when UNSIGNED(i_hdev_adr) /= TO_UNSIGNED(C_HDEV_MEM
                                                                               , i_hdev_adr'length) else
                                         i_dmatrn_init and not i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 
-p_out_dev_ctrl(C_HREG_DEV_CTRL_LAST_BIT
-              downto C_HREG_DEV_CTRL_DMA_START_BIT + 1) <= i_reg.dev_ctrl(C_HREG_DEV_CTRL_LAST_BIT
-                                                                          downto C_HREG_DEV_CTRL_DMA_START_BIT + 1);
+i_dma_ctrl(C_HREG_DMA_CTRL_LAST_BIT
+              downto C_HREG_DMA_CTRL_DMA_START_BIT + 1) <= i_reg.dev_ctrl(C_HREG_DMA_CTRL_LAST_BIT
+                                                                          downto C_HREG_DMA_CTRL_DMA_START_BIT + 1);
+
+p_out_dev_ctrl.dma <= i_dma_ctrl;
+p_out_dev_ctrl.reg <= i_dev_reg;
 
 p_out_gctrl(C_HREG_CTRL_FG_RDDONE_BIT - 1 downto 0) <= i_reg.ctrl(C_HREG_CTRL_FG_RDDONE_BIT - 1 downto 0);
 p_out_gctrl(C_HREG_CTRL_FG_RDDONE_BIT) <= i_fg_rddone;
@@ -829,7 +1180,7 @@ p_out_tst(47 downto 32)   <= std_logic_vector(RESIZE(UNSIGNED(i_reg.tst1(7 downt
 p_out_tst(55 downto 48)   <= i_dmabuf_count;
 p_out_tst(57 downto 56)   <= i_dmatrn_mem_done;
 p_out_tst(61 downto 58)   <= i_hdev_adr;
-p_out_tst(62)             <= i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
+p_out_tst(62)             <= i_reg.dev_ctrl(C_HREG_DMA_CTRL_DMA_DIR_BIT);
 p_out_tst(63)             <= i_reg_bar and (p_in_reg_wr or i_reg_rd);
 p_out_tst(64)             <= i_memtrn_done;
 p_out_tst(95 downto 65)   <= (others => '0');
@@ -837,7 +1188,7 @@ p_out_tst(96)             <= i_irq_status_clr;
 p_out_tst(100 downto 97)  <= std_logic_vector(RESIZE(UNSIGNED(i_reg.irq(C_HREG_IRQ_NUM_M_WBIT downto C_HREG_IRQ_NUM_L_WBIT)), 4));
 p_out_tst(108 downto 101) <= std_logic_vector(RESIZE(UNSIGNED(i_irq_status), 8));
 p_out_tst(116 downto 109) <= std_logic_vector(RESIZE(UNSIGNED(i_irq_set(C_HIRQ_COUNT - 1 downto 0)), 8));
-p_out_tst(120 downto 117) <= i_reg.dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT); --(22..19)
+p_out_tst(120 downto 117) <= i_reg.dev_ctrl(C_HREG_DMA_CTRL_ADR_M_BIT downto C_HREG_DMA_CTRL_ADR_L_BIT); --(22..19)
 p_out_tst(121)            <= tst_dmatrn_init;
 p_out_tst(122)            <= i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 p_out_tst(123)            <= p_in_txbuf_wr;

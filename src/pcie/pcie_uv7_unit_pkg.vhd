@@ -223,7 +223,7 @@ p_out_hclk      : out   std_logic;
 p_out_gctrl     : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);--global ctrl
 
 --CTRL user devices
-p_out_dev_ctrl  : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
+p_out_dev_ctrl  : out   TDevCtrl;
 p_out_dev_din   : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);--DEV<-HOST
 p_in_dev_dout   : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);--DEV->HOST
 p_out_dev_wr    : out   std_logic;
@@ -282,7 +282,6 @@ p_in_dma_mrd_done     : in    std_logic;
 p_out_irq_clr : out   std_logic;
 p_out_irq_set : out   std_logic;
 p_in_irq_ack  : in    std_logic;
-p_out_irq_req : out   std_logic_vector(C_HIRQ_COUNT - 1 downto 0);
 
 --System
 p_in_clk   : in    std_logic;

@@ -21,7 +21,6 @@ use work.prj_def.all;
 use work.kcu105_main_unit_pkg.all;
 use work.mem_ctrl_pkg.all;
 use work.mem_wr_pkg.all;
-use work.cfgdev_pkg.all;
 use work.fg_pkg.all;
 use work.eth_pkg.all;
 use work.ust_cfg.all;
@@ -114,7 +113,7 @@ signal g_usr_highclk       : std_logic;
 signal i_host_rst_n        : std_logic;
 signal g_host_clk          : std_logic;
 signal i_host_gctrl        : std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
-signal i_host_dev_ctrl     : std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
+signal i_host_dev_ctrl     : TDevCtrl;
 signal i_host_dev_txd      : std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 signal i_host_dev_rxd      : std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 signal i_host_dev_wr       : std_logic;
@@ -124,8 +123,8 @@ signal i_host_dev_irq      : std_logic_vector((C_HIRQ_COUNT - 1) downto C_HIRQ_F
 signal i_host_dev_opt_in   : std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto C_HDEV_OPTIN_FST_BIT);
 signal i_host_dev_opt_out  : std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto C_HDEV_OPTOUT_FST_BIT);
 
-signal i_host_devadr       : unsigned(C_HREG_DEV_CTRL_ADR_M_BIT
-                                                 - C_HREG_DEV_CTRL_ADR_L_BIT downto 0);
+signal i_host_devadr       : unsigned(C_HREG_DMA_CTRL_ADR_M_BIT
+                                                 - C_HREG_DMA_CTRL_ADR_L_BIT downto 0);
 
 Type THostDCtrl is array (0 to C_HDEV_COUNT - 1) of std_logic;
 Type THostDWR is array (0 to C_HDEV_COUNT - 1) of std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
@@ -143,22 +142,6 @@ signal i_host_tst_in       : std_logic_vector(127 downto 0);
 signal i_host_tst_out      : std_logic_vector(127 downto 0);
 signal i_host_tst2_out     : std_logic_vector(255 downto 0);
 signal i_host_dbg          : TPCIE_dbg;
-
-constant CI_CFG_DWIDTH     : integer := 16;--bit
-signal i_cfg_rst           : std_logic;
-signal i_cfg_dadr          : std_logic_vector(C_CFGPKT_DADR_M_BIT - C_CFGPKT_DADR_L_BIT downto 0);
-signal i_cfg_radr          : std_logic_vector(C_CFGPKT_RADR_M_BIT - C_CFGPKT_RADR_L_BIT downto 0);
-signal i_cfg_radr_ld       : std_logic;
---signal i_cfg_radr_fifo     : std_logic;
-signal i_cfg_wr            : std_logic;
-signal i_cfg_rd            : std_logic;
-signal i_cfg_txd           : std_logic_vector(CI_CFG_DWIDTH - 1 downto 0);
-signal i_cfg_rxd           : std_logic_vector(CI_CFG_DWIDTH - 1 downto 0);
-Type TCfgRxD is array (0 to C_CFGDEV_COUNT - 1) of std_logic_vector(i_cfg_rxd'range);
-signal i_cfg_rxd_dev       : TCfgRxD;
-signal i_cfg_wr_dev        : std_logic_vector(C_CFGDEV_COUNT - 1 downto 0);
-signal i_cfg_rd_dev        : std_logic_vector(C_CFGDEV_COUNT - 1 downto 0);
-signal i_cfg_tst_out       : std_logic_vector(31 downto 0);
 
 signal i_tmr_clk           : std_logic;
 signal i_tmr_irq           : std_logic_vector(C_TMR_COUNT - 1 downto 0);
@@ -189,7 +172,7 @@ signal i_fg_rst            : std_logic;
 signal i_fgwr_chen         : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
 signal i_fg_rd_start       : std_logic;
 signal i_fg_tst_in         : std_logic_vector(31 downto 0);
-signal i_fg_tst_out        : std_logic_vector(31 downto 0);
+signal i_fg_tst_out        : std_logic_vector(255 downto 0);
 
 signal i_fg_bufi_do        : std_logic_vector((C_PCFG_ETH_DWIDTH * C_PCFG_ETH_CH_COUNT_MAX) - 1 downto 0);
 signal i_fg_bufi_rd        : std_logic_vector(C_PCFG_ETH_CH_COUNT_MAX - 1 downto 0);
@@ -253,14 +236,14 @@ attribute keep of i_ethio_clk : signal is "true";
 component dbgcs_ila_hostclk is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(87 downto 0)
+probe0 : in std_logic_vector(177 downto 0)
 );
 end component dbgcs_ila_hostclk;
 
 component dbgcs_ila_usr_highclk is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(74 downto 0)
+probe0 : in std_logic_vector(142 downto 0)
 );
 end component dbgcs_ila_usr_highclk;
 
@@ -327,6 +310,13 @@ ethio_rx_axi_tkeep  : std_logic_vector(7 downto 0) ;
 ethio_rx_axi_tvalid : std_logic                    ;
 ethio_rx_axi_tuser  : std_logic_vector(1 downto 0) ;
 
+ethio_tx_axi_tdata  : std_logic_vector(63 downto 0);
+ethio_tx_axi_tready : std_logic;
+ethio_tx_axi_tvalid : std_logic;
+ethio_tx_axi_done   : std_logic;
+
+h2eth_buf_empty     : std_logic;
+
 --fgbuf_fltr_den : std_logic;
 --eth2fg_frr : std_logic;
 
@@ -339,6 +329,19 @@ ethio_rx_axi_tuser  : std_logic_vector(1 downto 0) ;
 --vbufi_empty : std_logic;
 --eth_rxbuf_den : std_logic;
 --vbufi_fltr_den : std_logic;
+end record;
+
+type TFGRD_dbg is record
+fsm             : std_logic_vector(3 downto 0);
+vch_num         : std_logic_vector(2 downto 0);
+hrd_start       : std_logic;
+fr_skp_pixcount : std_logic_vector(15 downto 0);
+fr_skp_rowcount : std_logic_vector(15 downto 0);
+fr_act_pixcount : std_logic_vector(15 downto 0);
+fr_act_rowcount : std_logic_vector(15 downto 0);
+steprd          : std_logic_vector(15 downto 0);
+mirror_pix      : std_logic;
+mirror_row      : std_logic;
 end record;
 
 type TFGWR_vbufi is array (0 to 1) of std_logic_vector(31 downto 0);
@@ -370,11 +373,11 @@ vbufi_full_det : std_logic;--<= i_fg_tst_out(20);-- <= tst_vbufi_full_detect;
 vbufi_rd    : std_logic_vector(0 downto 0);--<= i_fg_tst_out(21);-- <= tst_vbufi_rd(0);
 vbufi_empty : std_logic_vector(0 downto 0);--<= i_fg_tst_out(22);-- <= tst_vbufi_empty(0);
 vbufi_full  : std_logic_vector(0 downto 0);--<= i_fg_tst_out(23);-- <= tst_vbufi_full(0);
-
 end record;
 --
 type TFG_dbg is record
 fgwr : TFGWR_dbg;
+fgrd : TFGRD_dbg;
 --hirq : std_logic;
 --hdrdy : std_logic;
 end record;
@@ -408,7 +411,6 @@ begin --architecture struct
 i_mem_ctrl_rst <= i_host_gctrl(C_HREG_CTRL_RST_MEM_BIT);--or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT) not i_host_rst_n or
 i_arb_mem_rst <= not OR_reduce(i_mem_ctrl_status.rdy);
 i_eth_rst <= i_host_gctrl(C_HREG_CTRL_RST_ETH_BIT) or i_usrclk_rst;
-i_cfg_rst <= i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT) or i_host_tst_out(0);
 i_swt_rst <= i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT);
 i_fg_rst <= i_arb_mem_rst;
 
@@ -433,96 +435,19 @@ i_tmr_clk <= g_usrclk(0);
 g_usr_highclk <= i_mem_ctrl_sysout.clk;
 
 
---***********************************************************
---
---***********************************************************
-m_cfg : cfgdev_host
-generic map(
-G_DBG => "OFF",
-G_HOST_DWIDTH  => C_HDEV_DWIDTH,
-G_CFG_DWIDTH => CI_CFG_DWIDTH
-)
-port map(
--------------------------------
---HOST
--------------------------------
---host -> dev
-p_in_htxbuf_di       => i_host_txd(C_HDEV_CFG),
-p_in_htxbuf_wr       => i_host_wr(C_HDEV_CFG),
-p_out_htxbuf_full    => i_host_txbuf_full(C_HDEV_CFG),
-p_out_htxbuf_empty   => i_host_txbuf_empty(C_HDEV_CFG),
-
---host <- dev
-p_out_hrxbuf_do      => i_host_rxd(C_HDEV_CFG),
-p_in_hrxbuf_rd       => i_host_rd(C_HDEV_CFG),
-p_out_hrxbuf_full    => open,
-p_out_hrxbuf_empty   => i_host_rxbuf_empty(C_HDEV_CFG),
-
-p_out_hirq           => i_host_dev_irq(C_HIRQ_CFG),
-p_in_hclk            => g_host_clk,
-
--------------------------------
---CFG
--------------------------------
-p_out_cfg_dadr       => i_cfg_dadr,
-p_out_cfg_radr       => i_cfg_radr,
-p_out_cfg_radr_ld    => i_cfg_radr_ld,
-p_out_cfg_radr_fifo  => open,--i_cfg_radr_fifo,
-
-p_out_cfg_txdata     => i_cfg_txd,
-p_out_cfg_wr         => i_cfg_wr,
-p_in_cfg_txbuf_full  => '0',
-p_in_cfg_txbuf_empty => '0',
-
-p_in_cfg_rxdata      => i_cfg_rxd,
-p_out_cfg_rd         => i_cfg_rd,
-p_in_cfg_rxbuf_full  => '0',
-p_in_cfg_rxbuf_empty => '0',
-
-p_out_cfg_done       => open,
-p_in_cfg_clk         => g_host_clk,
-
--------------------------------
---DBG
--------------------------------
-p_in_tst             => (others => '0'),
-p_out_tst            => i_cfg_tst_out,
-
--------------------------------
---System
--------------------------------
-p_in_rst             => i_cfg_rst
-);
-
-i_cfg_rxd <= i_cfg_rxd_dev(C_CFGDEV_SWT) when UNSIGNED(i_cfg_dadr) = TO_UNSIGNED(C_CFGDEV_SWT, i_cfg_dadr'length) else
-             i_cfg_rxd_dev(C_CFGDEV_TMR) when UNSIGNED(i_cfg_dadr) = TO_UNSIGNED(C_CFGDEV_TMR, i_cfg_dadr'length) else
-             i_cfg_rxd_dev(C_CFGDEV_ETH) when UNSIGNED(i_cfg_dadr) = TO_UNSIGNED(C_CFGDEV_ETH, i_cfg_dadr'length) else
-             i_cfg_rxd_dev(C_CFGDEV_FG);
-
-gen_cfg_dev : for i in 0 to C_CFGDEV_COUNT - 1 generate
-i_cfg_wr_dev(i) <= i_cfg_wr when UNSIGNED(i_cfg_dadr) = TO_UNSIGNED(i, i_cfg_dadr'length) else '0';
-i_cfg_rd_dev(i) <= i_cfg_rd when UNSIGNED(i_cfg_dadr) = TO_UNSIGNED(i, i_cfg_dadr'length) else '0';
-end generate gen_cfg_dev;
-
 
 --#########################################
 --
 --#########################################
 m_tmr : timers
+generic map(
+G_TMR_COUNT => C_TMR_COUNT
+)
 port map(
 -------------------------------
 --CFG
 -------------------------------
-p_in_cfg_clk      => g_host_clk,
-
-p_in_cfg_adr      => i_cfg_radr(1 downto 0),
-p_in_cfg_adr_ld   => i_cfg_radr_ld,
-
-p_in_cfg_txdata   => i_cfg_txd,
-p_in_cfg_wr       => i_cfg_wr_dev(C_CFGDEV_TMR),
-
-p_out_cfg_rxdata  => i_cfg_rxd_dev(C_CFGDEV_TMR),
-p_in_cfg_rd       => i_cfg_rd_dev(C_CFGDEV_TMR),
+p_in_reg => i_host_dev_ctrl.reg.tmr,
 
 -------------------------------
 --
@@ -551,16 +476,7 @@ port map(
 -------------------------------
 --CFG
 -------------------------------
-p_in_cfg_clk     => g_host_clk,
-
-p_in_cfg_adr     => i_cfg_radr(2 downto 0),
-p_in_cfg_adr_ld  => i_cfg_radr_ld,
-
-p_in_cfg_txdata  => i_cfg_txd,
-p_in_cfg_wr      => i_cfg_wr_dev(C_CFGDEV_ETH),
-
-p_out_cfg_rxdata => i_cfg_rxd_dev(C_CFGDEV_ETH),
-p_in_cfg_rd      => i_cfg_rd_dev(C_CFGDEV_ETH),
+p_in_reg => i_host_dev_ctrl.reg.eth,
 
 -------------------------------
 --UsrBuf
@@ -678,7 +594,7 @@ p_in_clk => g_usrclk(0),
 p_in_rst => i_ust_rst
 );
 
-i_ust_rst_mnl <= i_eth_status_rdy(0) or i_ust_rst;
+i_ust_rst <= i_eth_status_rdy(0) or i_ust_rst_mnl;
 
 
 --#########################################
@@ -695,16 +611,7 @@ port map(
 -------------------------------
 --CFG
 -------------------------------
-p_in_cfg_clk     => g_host_clk,
-
-p_in_cfg_adr     => i_cfg_radr(5 downto 0),
-p_in_cfg_adr_ld  => i_cfg_radr_ld,
-
-p_in_cfg_txdata  => i_cfg_txd,
-p_in_cfg_wr      => i_cfg_wr_dev(C_CFGDEV_SWT),
-
-p_out_cfg_rxdata => i_cfg_rxd_dev(C_CFGDEV_SWT),
-p_in_cfg_rd      => i_cfg_rd_dev(C_CFGDEV_SWT),
+p_in_reg => i_host_dev_ctrl.reg.swt,
 
 -------------------------------
 --HOST
@@ -774,7 +681,7 @@ p_in_rst  => i_swt_rst
 --#########################################
 --Frame Grabber
 --#########################################
-i_fg_rd_start <= i_host_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)
+i_fg_rd_start <= i_host_dev_ctrl.dma(C_HREG_DMA_CTRL_DMA_START_BIT)
                   when i_host_devadr = TO_UNSIGNED(C_HDEV_FG, i_host_devadr'length) else '0';
 
 m_fg : fg
@@ -800,21 +707,12 @@ port map(
 -------------------------------
 --CFG
 -------------------------------
-p_in_cfg_clk      => g_host_clk,
-
-p_in_cfg_adr      => i_cfg_radr(3 downto 0),
-p_in_cfg_adr_ld   => i_cfg_radr_ld,
-
-p_in_cfg_txdata   => i_cfg_txd,
-p_in_cfg_wr       => i_cfg_wr_dev(C_CFGDEV_FG),
-
-p_out_cfg_rxdata  => i_cfg_rxd_dev(C_CFGDEV_FG),
-p_in_cfg_rd       => i_cfg_rd_dev(C_CFGDEV_FG),
+p_in_reg => i_host_dev_ctrl.reg.fg,
 
 -------------------------------
 --HOST
 -------------------------------
-p_in_hrdchsel     => i_host_dev_ctrl(C_HREG_DEV_CTRL_FG_CH_M_BIT downto C_HREG_DEV_CTRL_FG_CH_L_BIT),
+p_in_hrdchsel     => i_host_dev_ctrl.dma(C_HREG_DMA_CTRL_FG_CH_M_BIT downto C_HREG_DMA_CTRL_FG_CH_L_BIT),
 p_in_hrdstart     => i_fg_rd_start,
 p_in_hrddone      => i_host_gctrl(C_HREG_CTRL_FG_RDDONE_BIT),
 p_out_hirq        => i_host_dev_irq((C_HIRQ_FG_VCH0 + C_FG_VCH_COUNT) - 1 downto C_HIRQ_FG_VCH0),
@@ -909,12 +807,9 @@ i_host_tst_in(65 downto 48) <= (others => '0');
 i_host_tst_in(127 downto 66) <= (others => '0');
 
 
-i_host_devadr <= UNSIGNED(i_host_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT));
+i_host_devadr <= UNSIGNED(i_host_dev_ctrl.dma(C_HREG_DMA_CTRL_ADR_M_BIT downto C_HREG_DMA_CTRL_ADR_L_BIT));
 
 --Status User Devices
-i_host_dev_status(C_HREG_DEV_STATUS_CFG_RXRDY_BIT) <= not i_host_rxbuf_empty(C_HDEV_CFG);
-i_host_dev_status(C_HREG_DEV_STATUS_CFG_TXRDY_BIT) <= i_host_txbuf_empty(C_HDEV_CFG);
-
 i_host_dev_status(C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT) <= OR_reduce(i_mem_ctrl_status.rdy);
 
 i_host_dev_status(C_HREG_DEV_STATUS_ETH_RDY_BIT) <= i_eth_status_qplllock;
@@ -928,23 +823,21 @@ begin
 i_host_wr(i)  <= i_host_dev_wr when i_host_devadr = TO_UNSIGNED(i, i_host_devadr'length) else '0';
 i_host_rd(i)  <= i_host_dev_rd when i_host_devadr = TO_UNSIGNED(i, i_host_devadr'length) else '0';
 i_host_txd(i) <= i_host_dev_txd;
-i_host_txd_rdy(i) <= i_host_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT) when i_host_devadr = TO_UNSIGNED(i, i_host_devadr'length) else '0';
+i_host_txd_rdy(i) <= i_host_dev_ctrl.dma(C_HREG_DMA_CTRL_DRDY_BIT) when i_host_devadr = TO_UNSIGNED(i, i_host_devadr'length) else '0';
 end generate gen_dev_dbuf;
 
-i_host_dev_rxd <= i_host_rxd(C_HDEV_CFG) when i_host_devadr = TO_UNSIGNED(C_HDEV_CFG, i_host_devadr'length) else
-                  i_host_rxd(C_HDEV_ETH) when i_host_devadr = TO_UNSIGNED(C_HDEV_ETH, i_host_devadr'length) else
+i_host_dev_rxd <= i_host_rxd(C_HDEV_ETH) when i_host_devadr = TO_UNSIGNED(C_HDEV_ETH, i_host_devadr'length) else
                   i_host_rxd(C_HDEV_FG);--  when i_host_devadr = TO_UNSIGNED(C_HDEV_FG, i_host_devadr'length) else
 --                  i_host_rxd(C_HDEV_MEM);
 
 --Flags (Host <- User Devices)
 --i_host_dev_opt_in(C_HDEV_OPTIN_TXFIFO_FULL_BIT) <= i_host_txbuf_full(C_HDEV_MEM) when i_host_devadr = TO_UNSIGNED(C_HDEV_MEM, i_host_devadr'length) else
-i_host_dev_opt_in(C_HDEV_OPTIN_TXFIFO_FULL_BIT) <= i_host_txbuf_full(C_HDEV_CFG) when i_host_devadr = TO_UNSIGNED(C_HDEV_CFG, i_host_devadr'length) else
+i_host_dev_opt_in(C_HDEV_OPTIN_TXFIFO_FULL_BIT) <= i_host_txbuf_full(C_HDEV_ETH) when i_host_devadr = TO_UNSIGNED(C_HDEV_ETH, i_host_devadr'length) else
                                                    '0';
 
 --i_host_dev_opt_in(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) <= i_host_rxbuf_empty(C_HDEV_MEM) when i_host_devadr = TO_UNSIGNED(C_HDEV_MEM, i_host_devadr'length) else
 i_host_dev_opt_in(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) <= i_host_rxbuf_empty(C_HDEV_ETH) when i_host_devadr = TO_UNSIGNED(C_HDEV_ETH, i_host_devadr'length) else
                                                     i_host_rxbuf_empty(C_HDEV_FG)  when i_host_devadr = TO_UNSIGNED(C_HDEV_FG , i_host_devadr'length) else
-                                                    i_host_rxbuf_empty(C_HDEV_CFG) when i_host_devadr = TO_UNSIGNED(C_HDEV_CFG , i_host_devadr'length) else
                                                     '0';
 
 i_host_dev_opt_in(C_HDEV_OPTIN_ETH_HEADER_M_BIT
@@ -960,8 +853,8 @@ i_host_mem_ctrl.trnwr_len <= i_host_dev_opt_out(C_HDEV_OPTOUT_MEM_TRNWR_LEN_M_BI
 i_host_mem_ctrl.trnrd_len <= i_host_dev_opt_out(C_HDEV_OPTOUT_MEM_TRNRD_LEN_M_BIT downto C_HDEV_OPTOUT_MEM_TRNRD_LEN_L_BIT);
 i_host_mem_ctrl.adr       <= i_host_dev_opt_out(C_HDEV_OPTOUT_MEM_ADR_M_BIT downto C_HDEV_OPTOUT_MEM_ADR_L_BIT);
 i_host_mem_ctrl.req_len   <= i_host_dev_opt_out(C_HDEV_OPTOUT_MEM_RQLEN_M_BIT downto C_HDEV_OPTOUT_MEM_RQLEN_L_BIT);
-i_host_mem_ctrl.dir       <= not i_host_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
-i_host_mem_ctrl.start     <= i_host_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)
+i_host_mem_ctrl.dir       <= not i_host_dev_ctrl.dma(C_HREG_DMA_CTRL_DMA_DIR_BIT);
+i_host_mem_ctrl.start     <= i_host_dev_ctrl.dma(C_HREG_DMA_CTRL_DMA_START_BIT)
                                 when i_host_devadr = TO_UNSIGNED(C_HDEV_MEM, i_host_devadr'length) else '0';
 
 --m_host2mem : pcie2mem_ctrl
@@ -1212,6 +1105,17 @@ i_dbg.fg.fgwr.vbufi_full(0) <= i_fg_tst_out(23);-- <= tst_vbufi_full(0);
 --i_dbg.fg.fgwr.vbufi_empty(1) <= i_fg_tst_out(25);-- <= tst_vbufi_empty(1);
 --i_dbg.fg.fgwr.vbufi_full(1) <= i_fg_tst_out(26);-- <= tst_vbufi_full(1);
 
+i_dbg.fg.fgrd.fsm             <= i_fg_tst_out((128 + 3) downto (128 + 0))  ;--<= std_logic_vector(tst_fsm_fgrd);
+i_dbg.fg.fgrd.vch_num         <= i_fg_tst_out((128 + 6) downto (128 + 4))  ;--<= i_vch_num;
+i_dbg.fg.fgrd.hrd_start       <= i_fg_tst_out(128 + 7)                     ;--<= p_in_hrd_start;
+i_dbg.fg.fgrd.fr_skp_pixcount <= i_fg_tst_out((128 + 23) downto (128 + 8 ));--<= i_vch_prm.fr.skp.pixcount;
+i_dbg.fg.fgrd.fr_skp_rowcount <= i_fg_tst_out((128 + 39) downto (128 + 24));--<= i_vch_prm.fr.skp.rowcount;
+i_dbg.fg.fgrd.fr_act_pixcount <= i_fg_tst_out((128 + 55) downto (128 + 40));--<= i_vch_prm.fr.act.pixcount;
+i_dbg.fg.fgrd.fr_act_rowcount <= i_fg_tst_out((128 + 71) downto (128 + 56));--<= i_vch_prm.fr.act.rowcount;
+i_dbg.fg.fgrd.steprd          <= i_fg_tst_out((128 + 87) downto (128 + 72));--<= i_vch_prm.steprd;
+i_dbg.fg.fgrd.mirror_pix      <= i_fg_tst_out(128 + 88)          ;--<= i_vch_prm.mirror.pix;
+i_dbg.fg.fgrd.mirror_row      <= i_fg_tst_out(128 + 89)          ;--<= i_vch_prm.mirror.row;
+
 
 --i_dbg.fg.fgwr.fsm <= i_fg_tst_out(3  downto 0);
 --i_dbg.fg.fgwr.vbufi_rd <= i_fg_tst_out(4);
@@ -1244,6 +1148,14 @@ i_dbg.swt.ethio_rx_axi_tdata  <= i_ethio_rx_axi_tdata (63 downto 0);
 i_dbg.swt.ethio_rx_axi_tkeep  <= i_ethio_rx_axi_tkeep (7 downto 0);
 i_dbg.swt.ethio_rx_axi_tvalid <= i_ethio_rx_axi_tvalid(0);
 i_dbg.swt.ethio_rx_axi_tuser  <= i_ethio_rx_axi_tuser (1 downto 0);
+
+
+i_dbg.swt.ethio_tx_axi_tdata  <= i_ethio_tx_axi_tdata (63 downto 0);
+i_dbg.swt.ethio_tx_axi_tready <= i_ethio_tx_axi_tready(0);
+i_dbg.swt.ethio_tx_axi_tvalid <= i_ethio_tx_axi_tvalid(0);
+i_dbg.swt.ethio_tx_axi_done   <= i_ethio_tx_axi_done  (0);
+i_dbg.swt.h2eth_buf_empty     <= i_swt_tst_out(1);-- <= i_eth_txbuf_empty;
+
 
 ----i_dbg.swt.ethio_rx_axi_tvalid <= i_swt_tst_out(6);
 ----i_dbg.swt.ethio_rx_axi_tuser  <= i_swt_tst_out(7) & i_swt_tst_out(8);
@@ -1720,7 +1632,14 @@ clk => i_ethio_clk(0),
 probe0(0)           => i_dbg.swt.ethio_rx_axi_tvalid,
 probe0(2 downto 1)  => i_dbg.swt.ethio_rx_axi_tuser,
 probe0(66 downto 3) => i_dbg.swt.ethio_rx_axi_tdata,
-probe0(74 downto 67)=> i_dbg.swt.ethio_rx_axi_tkeep
+probe0(74 downto 67)=> i_dbg.swt.ethio_rx_axi_tkeep,
+
+probe0(138 downto 75)=> i_dbg.swt.ethio_tx_axi_tdata ,
+probe0(139)          => i_dbg.swt.ethio_tx_axi_tready,
+probe0(140)          => i_dbg.swt.ethio_tx_axi_tvalid,
+probe0(141)          => i_dbg.swt.ethio_tx_axi_done  ,
+
+probe0(142)          => i_dbg.swt.h2eth_buf_empty
 );
 
 
@@ -1741,7 +1660,19 @@ probe0(83) => i_dbg.fg.fgwr.fr_rdy0,
 probe0(84) => i_dbg.fg.fgwr.vbufi_full_det,
 probe0(85) => i_dbg.fg.fgwr.vbufi_rd(0),
 probe0(86) => i_dbg.fg.fgwr.vbufi_empty(0),
-probe0(87) => i_dbg.fg.fgwr.vbufi_full(0)
+probe0(87) => i_dbg.fg.fgwr.vbufi_full(0),
+
+probe0(91 downto 88)   => i_dbg.fg.fgrd.fsm            ,
+probe0(94 downto 92)   => i_dbg.fg.fgrd.vch_num        ,
+probe0(95)             => i_dbg.fg.fgrd.hrd_start      ,
+probe0(111 downto 96)  => i_dbg.fg.fgrd.fr_skp_pixcount,
+probe0(127 downto 112) => i_dbg.fg.fgrd.fr_skp_rowcount,
+probe0(143 downto 128) => i_dbg.fg.fgrd.fr_act_pixcount,
+probe0(159 downto 144) => i_dbg.fg.fgrd.fr_act_rowcount,
+probe0(175 downto 160) => i_dbg.fg.fgrd.steprd         ,
+probe0(176)            => i_dbg.fg.fgrd.mirror_pix     ,
+probe0(177)            => i_dbg.fg.fgrd.mirror_row
+
 );
 
 end architecture struct;

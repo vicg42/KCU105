@@ -16,7 +16,7 @@ use work.clocks_pkg.all;
 use work.pcie_pkg.all;
 use work.mem_wr_pkg.all;
 use work.mem_ctrl_pkg.all;
-use work.fg_pkg.all;
+--use work.fg_pkg.all;
 use work.eth_pkg.all;
 use work.ust_cfg.all;
 use work.cam_cl_pkg.all;
@@ -68,7 +68,7 @@ port(
 p_out_hclk       : out   std_logic ;
 p_out_gctrl      : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
-p_out_dev_ctrl   : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
+p_out_dev_ctrl   : out   TDevCtrl;
 p_out_dev_din    : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 p_in_dev_dout    : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 p_out_dev_wr     : out   std_logic;
@@ -169,16 +169,7 @@ port(
 -------------------------------
 --CFG
 -------------------------------
-p_in_cfg_clk      : in   std_logic;
-
-p_in_cfg_adr      : in   std_logic_vector(3 downto 0);
-p_in_cfg_adr_ld   : in   std_logic;
-
-p_in_cfg_txdata   : in   std_logic_vector(15 downto 0);
-p_in_cfg_wr       : in   std_logic;
-
-p_out_cfg_rxdata  : out  std_logic_vector(15 downto 0);
-p_in_cfg_rd       : in   std_logic;
+p_in_reg : TFgCtrl;
 
 -------------------------------
 --HOST
@@ -219,7 +210,7 @@ p_in_memrd        : in    TMemOUT;
 --DBG
 -------------------------------
 p_in_tst          : in    std_logic_vector(31 downto 0);
-p_out_tst         : out   std_logic_vector(31 downto 0);
+p_out_tst         : out   std_logic_vector(255 downto 0);
 
 -------------------------------
 --System
@@ -241,16 +232,7 @@ port(
 -------------------------------
 --CFG
 -------------------------------
-p_in_cfg_clk     : in   std_logic;
-
-p_in_cfg_adr     : in   std_logic_vector(5 downto 0);
-p_in_cfg_adr_ld  : in   std_logic;
-
-p_in_cfg_txdata  : in   std_logic_vector(15 downto 0);
-p_in_cfg_wr      : in   std_logic;
-
-p_out_cfg_rxdata : out  std_logic_vector(15 downto 0);
-p_in_cfg_rd      : in   std_logic;
+p_in_reg : TSwtCtrl;
 
 -------------------------------
 --HOST
@@ -318,27 +300,21 @@ p_in_rst  : in    std_logic
 end component switch_data;
 
 component timers is
+generic(
+G_TMR_COUNT : natural := 1
+);
 port(
 -------------------------------
 --CFG
 -------------------------------
-p_in_cfg_clk     : in   std_logic;
-
-p_in_cfg_adr     : in   std_logic_vector(1 downto 0);
-p_in_cfg_adr_ld  : in   std_logic;
-
-p_in_cfg_txdata  : in   std_logic_vector(15 downto 0);
-p_in_cfg_wr      : in   std_logic;
-
-p_out_cfg_rxdata : out  std_logic_vector(15 downto 0);
-p_in_cfg_rd      : in   std_logic;
+p_in_reg : TTmrCtrl;
 
 -------------------------------
 --
 -------------------------------
 p_in_tmr_clk     : in   std_logic;
-p_out_tmr_irq    : out  std_logic_vector(C_TMR_COUNT - 1 downto 0);
-p_out_tmr_en     : out  std_logic_vector(C_TMR_COUNT - 1 downto 0);
+p_out_tmr_irq    : out  std_logic_vector(G_TMR_COUNT - 1 downto 0);
+p_out_tmr_en     : out  std_logic_vector(G_TMR_COUNT - 1 downto 0);
 
 -------------------------------
 --System
@@ -359,16 +335,7 @@ port(
 -------------------------------
 --CFG
 -------------------------------
-p_in_cfg_clk     : in  std_logic;
-
-p_in_cfg_adr     : in  std_logic_vector(2 downto 0);
-p_in_cfg_adr_ld  : in  std_logic;
-
-p_in_cfg_txdata  : in  std_logic_vector(15 downto 0);
-p_in_cfg_wr      : in  std_logic;
-
-p_out_cfg_rxdata : out std_logic_vector(15 downto 0);
-p_in_cfg_rd      : in  std_logic;
+p_in_reg : TEthCtrl;
 
 -------------------------------
 --UsrBuf

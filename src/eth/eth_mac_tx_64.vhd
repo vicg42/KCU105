@@ -17,7 +17,7 @@ use ieee.numeric_std.all;
 library work;
 use work.vicg_common_pkg.all;
 use work.reduce_pack.all;
-use work.eth_pkg.all;
+use work.prj_def.all;
 
 entity eth_mac_tx is
 generic(

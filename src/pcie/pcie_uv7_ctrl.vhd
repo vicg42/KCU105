@@ -32,7 +32,7 @@ p_out_hclk      : out   std_logic;
 p_out_gctrl     : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
 --CTRL user devices
-p_out_dev_ctrl  : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
+p_out_dev_ctrl  : out   TDevCtrl;
 p_out_dev_din   : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 p_in_dev_dout   : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 p_out_dev_wr    : out   std_logic;
@@ -249,7 +249,6 @@ signal i_pcie_irq_msi_pending_status: std_logic;
 signal i_uapp_irq_clr          : std_logic;
 signal i_uapp_irq_set          : std_logic;
 signal i_uapp_irq_ack          : std_logic;
-signal i_uapp_irq_req          : std_logic_vector(C_HIRQ_COUNT - 1 downto 0);
 
 --signal tst_in                  : std_logic_vector(127 downto 0);
 
@@ -409,7 +408,6 @@ p_in_dma_mrd_done     => i_dma_mrd_done,
 p_out_irq_clr      => i_uapp_irq_clr,
 p_out_irq_set      => i_uapp_irq_set,
 p_in_irq_ack       => i_uapp_irq_ack,
-p_out_irq_req      => i_uapp_irq_req,
 
 --System
 p_in_clk   => i_trn_clk,
