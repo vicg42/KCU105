@@ -249,11 +249,11 @@ constant C_TMR_REG_CTRL_NUM_M_WBIT             : integer := 2;
 --module switch_data.vhd
 ----------------------------------------------------------------
 constant C_SWT_REG_CTRL                       : integer := 16#00#;
-constant C_SWT_REG_DBG                        : integer := 16#01#;
-constant C_SWT_REG_ETH2HOST_FRR0              : integer := 16#02#;
-constant C_SWT_REG_ETH2HOST_FRR1              : integer := 16#03#;
-constant C_SWT_REG_ETH2FG_FRR0                : integer := 16#04#;
-constant C_SWT_REG_ETH2FG_FRR1                : integer := 16#05#;
+constant C_SWT_REG_ETH2HOST_FRR0              : integer := 16#01#;
+constant C_SWT_REG_ETH2HOST_FRR1              : integer := 16#02#;
+constant C_SWT_REG_ETH2FG_FRR0                : integer := 16#03#;
+constant C_SWT_REG_ETH2FG_FRR1                : integer := 16#04#;
+constant C_SWT_REG_DBG                        : integer := 16#1C#;
 
 --Register C_SWT_REG_DBG / Bit Map:
 constant C_SWT_REG_DBG_HOST2FG_BIT            : integer := 0; --HOST(over ETH BUF) -> FG
@@ -275,10 +275,10 @@ constant C_SWT_ETH_FG_FRR_COUNT               : integer := C_PCFG_FG_VCH_COUNT;
 ----------------------------------------------------------------
 --module  fg.vhd
 ----------------------------------------------------------------
-constant C_FG_REG_CTRL                     : integer := 16#000#;
-constant C_FG_REG_DATA                     : integer := 16#001#;
-constant C_FG_REG_MEM_CTRL                 : integer := 16#002#;--(15..8)(7..0) - trn_mem_rd;trn_mem_wr
-constant C_FG_REG_DBG                      : integer := 16#003#;
+constant C_FG_REG_CTRL                     : integer := 16#00#;
+constant C_FG_REG_DATA                     : integer := 16#01#;
+constant C_FG_REG_MEM_CTRL                 : integer := 16#02#;--(15..8)(7..0) - trn_mem_rd;trn_mem_wr
+constant C_FG_REG_DBG                      : integer := 16#1C#;
 
 
 --Register C_FG_REG_CTRL / Bit Map:
@@ -295,14 +295,21 @@ constant C_FG_REG_CTRL_WR : std_logic := '1';
 constant C_FG_PKT_HD_SIZE_BYTE : integer := 16;
 
 --Index of parametr video channel:
-constant C_FG_PRM_MEM_ADR_WR               : integer := 0;
-constant C_FG_PRM_MEM_ADR_RD               : integer := 1;
-constant C_FG_PRM_FR_ZONE_SKIP             : integer := 2;
-constant C_FG_PRM_FR_ZONE_ACTIVE           : integer := 3;
-constant C_FG_PRM_FR_OPTIONS               : integer := 4;
-constant C_FG_PRM_FR_STEP_RD_LINE          : integer := 5;
+constant C_FG_PRM_ZONE_SKIP             : integer := 0;
+constant C_FG_PRM_ZONE_ACTIVE           : integer := 1;
+constant C_FG_PRM_OPTIONS               : integer := 2;
+constant C_FG_PRM_STEP_RD_LINE          : integer := 3;
 
 constant C_FG_PRM_COUNT_MAX                : integer := pwr(2, (C_FG_REG_CTRL_PRM_M_BIT - C_FG_REG_CTRL_PRM_L_BIT + 1));
+
+constant C_FG_PIX_L    : integer := 0;
+constant C_FG_PIX_M    : integer := 15;
+constant C_FG_ROW_L    : integer := 16;
+constant C_FG_ROW_M    : integer := 31;
+
+constant C_FG_PRM_OPTIONS_MIRX_BIT      : integer := 0;
+constant C_FG_PRM_OPTIONS_MIRY_BIT      : integer := 1;
+
 
 --Count video channel:
 constant C_FG_VBUF_COUNT                   : integer := C_PCFG_FG_VBUF_COUNT;
@@ -385,8 +392,8 @@ row : std_logic;
 end record;
 
 type TFG_FrXY is record
-pixcount : unsigned(15 downto 0);
-rowcount : unsigned(15 downto 0);
+pixcount : unsigned((C_FG_PIX_M - C_FG_PIX_L) downto 0);
+rowcount : unsigned((C_FG_ROW_M - C_FG_ROW_L) downto 0);
 end record;
 Type TFG_FrXYs is array (0 to (C_FG_VCH_COUNT - 1)) of TFG_FrXY;
 
@@ -399,13 +406,13 @@ Type TFG_FrXYPrms is array (0 to (C_FG_VCH_COUNT - 1)) of TFG_FrXYPrm;
 type TFG_VCHPrm is record
 fr     : TFG_FrXYPrm;
 mirror : TFG_FrMirror;
-steprd : unsigned(15 downto 0); --Step read frame (Count Line)
+steprd : unsigned((C_FG_ROW_M - C_FG_ROW_L) downto 0); --Step read frame (Count Line)
 end record;
 type TFG_VCHPrms is array (0 to (C_FG_VCH_COUNT - 1)) of TFG_VCHPrm;
 
 type TFG_Prm is record
-memwr_trnlen : std_logic_vector(7 downto 0);
-memrd_trnlen : std_logic_vector(7 downto 0);
+memwr_trnlen : std_logic_vector((C_HREG_MEM_CTRL_TRNWR_M_BIT - C_HREG_MEM_CTRL_TRNWR_L_BIT) downto 0);
+memrd_trnlen : std_logic_vector((C_HREG_MEM_CTRL_TRNRD_M_BIT - C_HREG_MEM_CTRL_TRNRD_L_BIT) downto 0);
 ch : TFG_VCHPrms;
 end record;
 

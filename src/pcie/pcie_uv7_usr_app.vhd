@@ -90,7 +90,6 @@ p_in_dma_mrd_rcv_err  : in    std_logic;
 p_out_irq_clr : out   std_logic;
 p_out_irq_set : out   std_logic;
 p_in_irq_ack  : in    std_logic;
-p_out_irq_req : out   std_logic_vector(C_HIRQ_COUNT - 1 downto 0);
 
 --System
 p_in_clk   : in    std_logic;
@@ -393,10 +392,8 @@ if rising_edge(p_in_clk) then
 
             for i in 0 to C_HIRQ_COUNT - 1 loop
               if (UNSIGNED(p_in_reg_din(C_HREG_IRQ_NUM_M_WBIT downto C_HREG_IRQ_NUM_L_WBIT)) = i) then
-                if (p_in_reg_din(C_HREG_IRQ_EN_WBIT) = '1') then
-                  i_irq_en(i) <= '1';
-                else
-                  i_irq_en(i) <= '0';
+                if (p_in_reg_din(C_HREG_IRQ_STATUS_CLR_WBIT) = '0' and p_in_reg_din(C_HREG_IRQ_CLR_WBIT) = '0') then
+                  i_irq_en(i) <= p_in_reg_din(C_HREG_IRQ_EN_WBIT);
                 end if;
               end if;
             end loop;
@@ -424,8 +421,8 @@ if rising_edge(p_in_clk) then
                     i_dev_reg.fg.dbg <= p_in_reg_din(i_dev_reg.fg.dbg'range);
 
                 elsif (i_cfg_dreg = TO_UNSIGNED(C_FG_REG_MEM_CTRL, i_cfg_dreg'length)) then
-                    i_dev_reg.fg.prm.memwr_trnlen(7 downto 0) <= p_in_reg_din(7 downto 0);
-                    i_dev_reg.fg.prm.memrd_trnlen(7 downto 0) <= p_in_reg_din(15 downto 8);
+                    i_dev_reg.fg.prm.memwr_trnlen <= p_in_reg_din(C_HREG_MEM_CTRL_TRNWR_M_BIT downto C_HREG_MEM_CTRL_TRNWR_L_BIT);
+                    i_dev_reg.fg.prm.memrd_trnlen <= p_in_reg_din(C_HREG_MEM_CTRL_TRNRD_M_BIT downto C_HREG_MEM_CTRL_TRNRD_L_BIT);
 
                 elsif (i_cfg_dreg = TO_UNSIGNED(C_FG_REG_CTRL, i_cfg_dreg'length)) then
 
@@ -445,20 +442,20 @@ if rising_edge(p_in_clk) then
                         for ch in 0 to C_FG_VCH_COUNT - 1 loop
                           if (ch = fg_vch) then
 
-                            if (fg_prm = TO_UNSIGNED(C_FG_PRM_FR_ZONE_ACTIVE, fg_prm'length)) then
-                              i_dev_reg.fg.prm.ch(ch).fr.act.pixcount <= UNSIGNED(i_reg.fg_data(15 downto  0));
-                              i_dev_reg.fg.prm.ch(ch).fr.act.rowcount <= UNSIGNED(i_reg.fg_data(31 downto 16));
+                            if (fg_prm = TO_UNSIGNED(C_FG_PRM_ZONE_ACTIVE, fg_prm'length)) then
+                              i_dev_reg.fg.prm.ch(ch).fr.act.pixcount <= UNSIGNED(i_reg.fg_data(C_FG_PIX_M downto  C_FG_PIX_L));
+                              i_dev_reg.fg.prm.ch(ch).fr.act.rowcount <= UNSIGNED(i_reg.fg_data(C_FG_ROW_M downto  C_FG_ROW_L));
 
-                            elsif (fg_prm = TO_UNSIGNED(C_FG_PRM_FR_ZONE_SKIP, fg_prm'length)) then
-                              i_dev_reg.fg.prm.ch(ch).fr.skp.pixcount <= UNSIGNED(i_reg.fg_data(15 downto  0));
-                              i_dev_reg.fg.prm.ch(ch).fr.skp.rowcount <= UNSIGNED(i_reg.fg_data(31 downto 16));
+                            elsif (fg_prm = TO_UNSIGNED(C_FG_PRM_ZONE_SKIP, fg_prm'length)) then
+                              i_dev_reg.fg.prm.ch(ch).fr.skp.pixcount <= UNSIGNED(i_reg.fg_data(C_FG_PIX_M downto  C_FG_PIX_L));
+                              i_dev_reg.fg.prm.ch(ch).fr.skp.rowcount <= UNSIGNED(i_reg.fg_data(C_FG_ROW_M downto  C_FG_ROW_L));
 
-                            elsif (fg_prm = TO_UNSIGNED(C_FG_PRM_FR_OPTIONS, fg_prm'length)) then
-                              i_dev_reg.fg.prm.ch(ch).mirror.pix <= i_reg.fg_data(0); --i_reg.fg_data(4);
-                              i_dev_reg.fg.prm.ch(ch).mirror.row <= i_reg.fg_data(1); --i_reg.fg_data(5);
+                            elsif (fg_prm = TO_UNSIGNED(C_FG_PRM_OPTIONS, fg_prm'length)) then
+                              i_dev_reg.fg.prm.ch(ch).mirror.pix <= i_reg.fg_data(C_FG_PRM_OPTIONS_MIRX_BIT);
+                              i_dev_reg.fg.prm.ch(ch).mirror.row <= i_reg.fg_data(C_FG_PRM_OPTIONS_MIRY_BIT);
 
-                            elsif (fg_prm = TO_UNSIGNED(C_FG_PRM_FR_STEP_RD_LINE, fg_prm'length)) then
-                              i_dev_reg.fg.prm.ch(ch).steprd <= UNSIGNED(i_reg.fg_data(15 downto 0));
+                            elsif (fg_prm = TO_UNSIGNED(C_FG_PRM_STEP_RD_LINE, fg_prm'length)) then
+                              i_dev_reg.fg.prm.ch(ch).steprd <= UNSIGNED(i_reg.fg_data(i_dev_reg.fg.prm.ch(ch).steprd'range));
 
                             end if;
                           end if;
@@ -738,28 +735,28 @@ if rising_edge(p_in_clk) then
                     for ch in 0 to C_FG_VCH_COUNT - 1 loop
                       if (ch = i_fg_vch) then
 
-                        if (i_fg_prm = TO_UNSIGNED(C_FG_PRM_FR_ZONE_ACTIVE, i_fg_prm'length)) then
-                          txd(15 downto  0) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).fr.act.pixcount);
-                          txd(31 downto 16) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).fr.act.rowcount);
+                        if (i_fg_prm = TO_UNSIGNED(C_FG_PRM_ZONE_ACTIVE, i_fg_prm'length)) then
+                          txd(C_FG_PIX_M downto C_FG_PIX_L) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).fr.act.pixcount);
+                          txd(C_FG_ROW_M downto C_FG_ROW_L) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).fr.act.rowcount);
 
-                        elsif (i_fg_prm = TO_UNSIGNED(C_FG_PRM_FR_ZONE_SKIP, i_fg_prm'length)) then
-                          txd(15 downto  0) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).fr.skp.pixcount);
-                          txd(31 downto 16) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).fr.skp.rowcount);
+                        elsif (i_fg_prm = TO_UNSIGNED(C_FG_PRM_ZONE_SKIP, i_fg_prm'length)) then
+                          txd(C_FG_PIX_M downto C_FG_PIX_L) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).fr.skp.pixcount);
+                          txd(C_FG_ROW_M downto C_FG_ROW_L) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).fr.skp.rowcount);
 
-                        elsif (i_fg_prm = TO_UNSIGNED(C_FG_PRM_FR_OPTIONS, i_fg_prm'length)) then
-                          txd(0) := i_dev_reg.fg.prm.ch(ch).mirror.pix;--txd(4)
-                          txd(1) := i_dev_reg.fg.prm.ch(ch).mirror.row;--txd(5)
+                        elsif (i_fg_prm = TO_UNSIGNED(C_FG_PRM_OPTIONS, i_fg_prm'length)) then
+                          txd(C_FG_PRM_OPTIONS_MIRX_BIT) := i_dev_reg.fg.prm.ch(ch).mirror.pix;
+                          txd(C_FG_PRM_OPTIONS_MIRY_BIT) := i_dev_reg.fg.prm.ch(ch).mirror.row;
 
-                        elsif (i_fg_prm = TO_UNSIGNED(C_FG_PRM_FR_STEP_RD_LINE, i_fg_prm'length)) then
-                          txd(15 downto 0) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).steprd);
+                        elsif (i_fg_prm = TO_UNSIGNED(C_FG_PRM_STEP_RD_LINE, i_fg_prm'length)) then
+                          txd(i_dev_reg.fg.prm.ch(ch).steprd'range) := std_logic_vector(i_dev_reg.fg.prm.ch(ch).steprd);
 
                         end if;
                       end if;
                     end loop;
 
                 elsif (i_cfg_dreg = TO_UNSIGNED(C_FG_REG_MEM_CTRL, i_cfg_dreg'length)) then
-                    txd(7  downto 0) := i_dev_reg.fg.prm.memwr_trnlen;
-                    txd(15 downto 8) := i_dev_reg.fg.prm.memrd_trnlen;
+                    txd(C_HREG_MEM_CTRL_TRNWR_M_BIT downto C_HREG_MEM_CTRL_TRNWR_L_BIT) := i_dev_reg.fg.prm.memwr_trnlen;
+                    txd(C_HREG_MEM_CTRL_TRNRD_M_BIT downto C_HREG_MEM_CTRL_TRNRD_L_BIT) := i_dev_reg.fg.prm.memrd_trnlen;
 
                 end if;--fg reg
 

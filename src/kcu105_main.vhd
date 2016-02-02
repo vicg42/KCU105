@@ -21,7 +21,6 @@ use work.prj_def.all;
 use work.kcu105_main_unit_pkg.all;
 use work.mem_ctrl_pkg.all;
 use work.mem_wr_pkg.all;
-use work.cfgdev_pkg.all;
 use work.fg_pkg.all;
 use work.eth_pkg.all;
 use work.ust_cfg.all;
@@ -144,22 +143,6 @@ signal i_host_tst_out      : std_logic_vector(127 downto 0);
 signal i_host_tst2_out     : std_logic_vector(255 downto 0);
 signal i_host_dbg          : TPCIE_dbg;
 
-constant CI_CFG_DWIDTH     : integer := 16;--bit
-signal i_cfg_rst           : std_logic;
-signal i_cfg_dadr          : std_logic_vector(C_CFGPKT_DADR_M_BIT - C_CFGPKT_DADR_L_BIT downto 0);
-signal i_cfg_radr          : std_logic_vector(C_CFGPKT_RADR_M_BIT - C_CFGPKT_RADR_L_BIT downto 0);
-signal i_cfg_radr_ld       : std_logic;
---signal i_cfg_radr_fifo     : std_logic;
-signal i_cfg_wr            : std_logic;
-signal i_cfg_rd            : std_logic;
-signal i_cfg_txd           : std_logic_vector(CI_CFG_DWIDTH - 1 downto 0);
-signal i_cfg_rxd           : std_logic_vector(CI_CFG_DWIDTH - 1 downto 0);
-Type TCfgRxD is array (0 to C_CFGDEV_COUNT - 1) of std_logic_vector(i_cfg_rxd'range);
-signal i_cfg_rxd_dev       : TCfgRxD;
-signal i_cfg_wr_dev        : std_logic_vector(C_CFGDEV_COUNT - 1 downto 0);
-signal i_cfg_rd_dev        : std_logic_vector(C_CFGDEV_COUNT - 1 downto 0);
-signal i_cfg_tst_out       : std_logic_vector(31 downto 0);
-
 signal i_tmr_clk           : std_logic;
 signal i_tmr_irq           : std_logic_vector(C_TMR_COUNT - 1 downto 0);
 signal i_tmr_en            : std_logic_vector(C_TMR_COUNT - 1 downto 0);
@@ -189,7 +172,7 @@ signal i_fg_rst            : std_logic;
 signal i_fgwr_chen         : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
 signal i_fg_rd_start       : std_logic;
 signal i_fg_tst_in         : std_logic_vector(31 downto 0);
-signal i_fg_tst_out        : std_logic_vector(31 downto 0);
+signal i_fg_tst_out        : std_logic_vector(255 downto 0);
 
 signal i_fg_bufi_do        : std_logic_vector((C_PCFG_ETH_DWIDTH * C_PCFG_ETH_CH_COUNT_MAX) - 1 downto 0);
 signal i_fg_bufi_rd        : std_logic_vector(C_PCFG_ETH_CH_COUNT_MAX - 1 downto 0);
@@ -253,14 +236,14 @@ attribute keep of i_ethio_clk : signal is "true";
 component dbgcs_ila_hostclk is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(87 downto 0)
+probe0 : in std_logic_vector(177 downto 0)
 );
 end component dbgcs_ila_hostclk;
 
 component dbgcs_ila_usr_highclk is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(74 downto 0)
+probe0 : in std_logic_vector(142 downto 0)
 );
 end component dbgcs_ila_usr_highclk;
 
@@ -327,6 +310,13 @@ ethio_rx_axi_tkeep  : std_logic_vector(7 downto 0) ;
 ethio_rx_axi_tvalid : std_logic                    ;
 ethio_rx_axi_tuser  : std_logic_vector(1 downto 0) ;
 
+ethio_tx_axi_tdata  : std_logic_vector(63 downto 0);
+ethio_tx_axi_tready : std_logic;
+ethio_tx_axi_tvalid : std_logic;
+ethio_tx_axi_done   : std_logic;
+
+h2eth_buf_empty     : std_logic;
+
 --fgbuf_fltr_den : std_logic;
 --eth2fg_frr : std_logic;
 
@@ -339,6 +329,19 @@ ethio_rx_axi_tuser  : std_logic_vector(1 downto 0) ;
 --vbufi_empty : std_logic;
 --eth_rxbuf_den : std_logic;
 --vbufi_fltr_den : std_logic;
+end record;
+
+type TFGRD_dbg is record
+fsm             : std_logic_vector(3 downto 0);
+vch_num         : std_logic_vector(2 downto 0);
+hrd_start       : std_logic;
+fr_skp_pixcount : std_logic_vector(15 downto 0);
+fr_skp_rowcount : std_logic_vector(15 downto 0);
+fr_act_pixcount : std_logic_vector(15 downto 0);
+fr_act_rowcount : std_logic_vector(15 downto 0);
+steprd          : std_logic_vector(15 downto 0);
+mirror_pix      : std_logic;
+mirror_row      : std_logic;
 end record;
 
 type TFGWR_vbufi is array (0 to 1) of std_logic_vector(31 downto 0);
@@ -370,11 +373,11 @@ vbufi_full_det : std_logic;--<= i_fg_tst_out(20);-- <= tst_vbufi_full_detect;
 vbufi_rd    : std_logic_vector(0 downto 0);--<= i_fg_tst_out(21);-- <= tst_vbufi_rd(0);
 vbufi_empty : std_logic_vector(0 downto 0);--<= i_fg_tst_out(22);-- <= tst_vbufi_empty(0);
 vbufi_full  : std_logic_vector(0 downto 0);--<= i_fg_tst_out(23);-- <= tst_vbufi_full(0);
-
 end record;
 --
 type TFG_dbg is record
 fgwr : TFGWR_dbg;
+fgrd : TFGRD_dbg;
 --hirq : std_logic;
 --hdrdy : std_logic;
 end record;
@@ -408,7 +411,6 @@ begin --architecture struct
 i_mem_ctrl_rst <= i_host_gctrl(C_HREG_CTRL_RST_MEM_BIT);--or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT) not i_host_rst_n or
 i_arb_mem_rst <= not OR_reduce(i_mem_ctrl_status.rdy);
 i_eth_rst <= i_host_gctrl(C_HREG_CTRL_RST_ETH_BIT) or i_usrclk_rst;
-i_cfg_rst <= i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT) or i_host_tst_out(0);
 i_swt_rst <= i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT);
 i_fg_rst <= i_arb_mem_rst;
 
@@ -592,7 +594,7 @@ p_in_clk => g_usrclk(0),
 p_in_rst => i_ust_rst
 );
 
-i_ust_rst_mnl <= i_eth_status_rdy(0) or i_ust_rst;
+i_ust_rst <= i_eth_status_rdy(0) or i_ust_rst_mnl;
 
 
 --#########################################
@@ -1103,6 +1105,17 @@ i_dbg.fg.fgwr.vbufi_full(0) <= i_fg_tst_out(23);-- <= tst_vbufi_full(0);
 --i_dbg.fg.fgwr.vbufi_empty(1) <= i_fg_tst_out(25);-- <= tst_vbufi_empty(1);
 --i_dbg.fg.fgwr.vbufi_full(1) <= i_fg_tst_out(26);-- <= tst_vbufi_full(1);
 
+i_dbg.fg.fgrd.fsm             <= i_fg_tst_out((128 + 3) downto (128 + 0))  ;--<= std_logic_vector(tst_fsm_fgrd);
+i_dbg.fg.fgrd.vch_num         <= i_fg_tst_out((128 + 6) downto (128 + 4))  ;--<= i_vch_num;
+i_dbg.fg.fgrd.hrd_start       <= i_fg_tst_out(128 + 7)                     ;--<= p_in_hrd_start;
+i_dbg.fg.fgrd.fr_skp_pixcount <= i_fg_tst_out((128 + 23) downto (128 + 8 ));--<= i_vch_prm.fr.skp.pixcount;
+i_dbg.fg.fgrd.fr_skp_rowcount <= i_fg_tst_out((128 + 39) downto (128 + 24));--<= i_vch_prm.fr.skp.rowcount;
+i_dbg.fg.fgrd.fr_act_pixcount <= i_fg_tst_out((128 + 55) downto (128 + 40));--<= i_vch_prm.fr.act.pixcount;
+i_dbg.fg.fgrd.fr_act_rowcount <= i_fg_tst_out((128 + 71) downto (128 + 56));--<= i_vch_prm.fr.act.rowcount;
+i_dbg.fg.fgrd.steprd          <= i_fg_tst_out((128 + 87) downto (128 + 72));--<= i_vch_prm.steprd;
+i_dbg.fg.fgrd.mirror_pix      <= i_fg_tst_out(128 + 88)          ;--<= i_vch_prm.mirror.pix;
+i_dbg.fg.fgrd.mirror_row      <= i_fg_tst_out(128 + 89)          ;--<= i_vch_prm.mirror.row;
+
 
 --i_dbg.fg.fgwr.fsm <= i_fg_tst_out(3  downto 0);
 --i_dbg.fg.fgwr.vbufi_rd <= i_fg_tst_out(4);
@@ -1135,6 +1148,14 @@ i_dbg.swt.ethio_rx_axi_tdata  <= i_ethio_rx_axi_tdata (63 downto 0);
 i_dbg.swt.ethio_rx_axi_tkeep  <= i_ethio_rx_axi_tkeep (7 downto 0);
 i_dbg.swt.ethio_rx_axi_tvalid <= i_ethio_rx_axi_tvalid(0);
 i_dbg.swt.ethio_rx_axi_tuser  <= i_ethio_rx_axi_tuser (1 downto 0);
+
+
+i_dbg.swt.ethio_tx_axi_tdata  <= i_ethio_tx_axi_tdata (63 downto 0);
+i_dbg.swt.ethio_tx_axi_tready <= i_ethio_tx_axi_tready(0);
+i_dbg.swt.ethio_tx_axi_tvalid <= i_ethio_tx_axi_tvalid(0);
+i_dbg.swt.ethio_tx_axi_done   <= i_ethio_tx_axi_done  (0);
+i_dbg.swt.h2eth_buf_empty     <= i_swt_tst_out(1);-- <= i_eth_txbuf_empty;
+
 
 ----i_dbg.swt.ethio_rx_axi_tvalid <= i_swt_tst_out(6);
 ----i_dbg.swt.ethio_rx_axi_tuser  <= i_swt_tst_out(7) & i_swt_tst_out(8);
@@ -1611,7 +1632,14 @@ clk => i_ethio_clk(0),
 probe0(0)           => i_dbg.swt.ethio_rx_axi_tvalid,
 probe0(2 downto 1)  => i_dbg.swt.ethio_rx_axi_tuser,
 probe0(66 downto 3) => i_dbg.swt.ethio_rx_axi_tdata,
-probe0(74 downto 67)=> i_dbg.swt.ethio_rx_axi_tkeep
+probe0(74 downto 67)=> i_dbg.swt.ethio_rx_axi_tkeep,
+
+probe0(138 downto 75)=> i_dbg.swt.ethio_tx_axi_tdata ,
+probe0(139)          => i_dbg.swt.ethio_tx_axi_tready,
+probe0(140)          => i_dbg.swt.ethio_tx_axi_tvalid,
+probe0(141)          => i_dbg.swt.ethio_tx_axi_done  ,
+
+probe0(142)          => i_dbg.swt.h2eth_buf_empty
 );
 
 
@@ -1632,7 +1660,19 @@ probe0(83) => i_dbg.fg.fgwr.fr_rdy0,
 probe0(84) => i_dbg.fg.fgwr.vbufi_full_det,
 probe0(85) => i_dbg.fg.fgwr.vbufi_rd(0),
 probe0(86) => i_dbg.fg.fgwr.vbufi_empty(0),
-probe0(87) => i_dbg.fg.fgwr.vbufi_full(0)
+probe0(87) => i_dbg.fg.fgwr.vbufi_full(0),
+
+probe0(91 downto 88)   => i_dbg.fg.fgrd.fsm            ,
+probe0(94 downto 92)   => i_dbg.fg.fgrd.vch_num        ,
+probe0(95)             => i_dbg.fg.fgrd.hrd_start      ,
+probe0(111 downto 96)  => i_dbg.fg.fgrd.fr_skp_pixcount,
+probe0(127 downto 112) => i_dbg.fg.fgrd.fr_skp_rowcount,
+probe0(143 downto 128) => i_dbg.fg.fgrd.fr_act_pixcount,
+probe0(159 downto 144) => i_dbg.fg.fgrd.fr_act_rowcount,
+probe0(175 downto 160) => i_dbg.fg.fgrd.steprd         ,
+probe0(176)            => i_dbg.fg.fgrd.mirror_pix     ,
+probe0(177)            => i_dbg.fg.fgrd.mirror_row
+
 );
 
 end architecture struct;

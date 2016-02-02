@@ -71,7 +71,7 @@ p_in_mem             : in    TMemOUT;
 --DBG
 -------------------------------
 p_in_tst             : in    std_logic_vector(31 downto 0);
-p_out_tst            : out   std_logic_vector(31 downto 0);
+p_out_tst            : out   std_logic_vector(127 downto 0);
 
 -------------------------------
 --System
@@ -118,7 +118,7 @@ signal i_steprd_cnt           : unsigned(15 downto 0);
 signal i_data_null            : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
 signal tst_mem_wr_out         : std_logic_vector(31 downto 0);
-signal tst_fsmstate,tst_fsm_cs_dly : unsigned(3 downto 0) := (others => '0');
+signal tst_fsm_fgrd           : unsigned(3 downto 0) := (others => '0');
 
 
 begin --architecture behavioral
@@ -395,21 +395,30 @@ p_in_rst             => p_in_rst
 ------------------------------------
 --DBG
 ------------------------------------
-p_out_tst(5 downto 0) <= tst_mem_wr_out(5 downto 0);
-p_out_tst(7 downto 6) <= (others => '0');
-p_out_tst(11 downto 8) <= std_logic_vector(tst_fsm_cs_dly(3 downto 0));
-p_out_tst(31 downto 12) <= (others => '0');
+--p_out_tst(5 downto 0) <= tst_mem_wr_out(5 downto 0);
+--p_out_tst(7 downto 6) <= (others => '0');
+--p_out_tst(11 downto 8) <= std_logic_vector(tst_fsm_fgrd(3 downto 0));
+--p_out_tst(31 downto 12) <= (others => '0');
+
+p_out_tst(3 downto 0) <= std_logic_vector(tst_fsm_fgrd);
+p_out_tst(6 downto 4) <= std_logic_vector(i_vch_num);
+p_out_tst(7) <= p_in_hrd_start;
+
+p_out_tst(23 downto 8) <= std_logic_vector(i_vch_prm.fr.skp.pixcount);
+p_out_tst(39 downto 24) <= std_logic_vector(i_vch_prm.fr.skp.rowcount);
+p_out_tst(55 downto 40) <= std_logic_vector(i_vch_prm.fr.act.pixcount);
+p_out_tst(71 downto 56) <= std_logic_vector(i_vch_prm.fr.act.rowcount);
+p_out_tst(87 downto 72) <= std_logic_vector(i_vch_prm.steprd);
+p_out_tst(88) <= i_vch_prm.mirror.pix;
+p_out_tst(89) <= i_vch_prm.mirror.row;
 
 
-process(p_in_clk)
-begin
-  if rising_edge(p_in_clk) then
-    tst_fsm_cs_dly <= tst_fsmstate;
-  end if;
-end process;
-tst_fsmstate <= TO_UNSIGNED(16#01#,tst_fsmstate'length) when i_fsm_fgrd = S_MEM_START       else
-                TO_UNSIGNED(16#02#,tst_fsmstate'length) when i_fsm_fgrd = S_MEM_RD          else
-                TO_UNSIGNED(16#00#,tst_fsmstate'length); --i_fsm_fgrd = S_IDLE              else
-
+tst_fsm_fgrd <= TO_UNSIGNED(16#01#,tst_fsm_fgrd'length) when i_fsm_fgrd = S_SET_PRMS       else
+                TO_UNSIGNED(16#02#,tst_fsm_fgrd'length) when i_fsm_fgrd = S_MEM_SET_ADR    else
+                TO_UNSIGNED(16#03#,tst_fsm_fgrd'length) when i_fsm_fgrd = S_MEM_START      else
+                TO_UNSIGNED(16#04#,tst_fsm_fgrd'length) when i_fsm_fgrd = S_MEM_RD         else
+                TO_UNSIGNED(16#05#,tst_fsm_fgrd'length) when i_fsm_fgrd = S_ROW_NXT        else
+                TO_UNSIGNED(16#06#,tst_fsm_fgrd'length) when i_fsm_fgrd = S_WAIT_HOST_ACK  else
+                TO_UNSIGNED(16#00#,tst_fsm_fgrd'length); --i_fsm_fgrd = S_IDLE              else
 
 end architecture behavioral;
