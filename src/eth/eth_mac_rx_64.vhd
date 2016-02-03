@@ -214,7 +214,7 @@ if rising_edge(p_in_clk) then
                 end if;
 
             else
-            --Bad
+            --Bad (don`t write current packet to USR RXBUF)
                 i_eth_axi_tready <= '1';
 
                 if (p_in_eth_axi_tlast = '1') then
