@@ -4,7 +4,7 @@
 -- Create Date : 13.11.2015 10:08:38
 -- Module Name : eth_mac_tx
 --
--- To user stream data add MacDst and MacSrc
+-- To user stream data insert MacDst and MacSrc
 --
 -- USR_Port : Len + Data;
 -- Eth_Port : MacDst + MacSrc + Len + Data;
@@ -79,7 +79,7 @@ signal i_rd_chunk_cnt      : unsigned(15 downto 0);
 signal i_rd_chunk_count    : unsigned(15 downto 0);
 signal i_rd_chunk_rem      : unsigned(15 downto 0);
 
-constant CI_CHUNK    : integer := 8;
+constant CI_CHUNK    : natural := 8;
 signal sr_txbuf_do         : std_logic_vector((CI_CHUNK * 4) - 1 downto (CI_CHUNK * 0));
 
 signal i_eth_axi_tdata     : std_logic_vector(G_AXI_DWIDTH - 1 downto 0);
@@ -87,8 +87,8 @@ signal i_eth_axi_tkeep     : std_logic_vector((G_AXI_DWIDTH / 8) - 1 downto 0);
 signal i_eth_axi_tvalid    : std_logic;
 signal i_eth_axi_tlast     : std_logic;
 
-constant CI_MAC_LEN  : integer := 2;--Field Length/Type - count byte
-constant CI_ADD      : integer := CI_MAC_LEN;
+constant CI_MAC_LEN  : natural := 2;--Field Length/Type - count byte
+constant CI_ADD      : natural := CI_MAC_LEN;
 
 signal i_usr_axi_done      : std_logic;
 signal i_usr_axi_rd        : std_logic;
@@ -171,7 +171,7 @@ if rising_edge(p_in_clk) then
               i_eth_axi_tdata((CI_CHUNK * 6) - 1 downto CI_CHUNK * 5) <= p_in_cfg.mac.dst(5);
 
               i_eth_axi_tdata((CI_CHUNK * 7) - 1 downto CI_CHUNK * 6) <= p_in_cfg.mac.src(0);
-              i_eth_axi_tdata((CI_CHUNK * CI_CHUNK) - 1 downto CI_CHUNK * 7) <= p_in_cfg.mac.src(1);
+              i_eth_axi_tdata((CI_CHUNK * 8) - 1 downto CI_CHUNK * 7) <= p_in_cfg.mac.src(1);
 
               i_eth_axi_tkeep(7 downto 0) <= "11111111";
 
@@ -205,11 +205,13 @@ if rising_edge(p_in_clk) then
               i_eth_axi_tdata((CI_CHUNK * 7) - 1 downto CI_CHUNK * 6) <= p_in_usr_axi_tdata((CI_CHUNK * 3) - 1 downto CI_CHUNK * 2);
               i_eth_axi_tdata((CI_CHUNK * 8) - 1 downto CI_CHUNK * 7) <= p_in_usr_axi_tdata((CI_CHUNK * 4) - 1 downto CI_CHUNK * 3);
 
+              --Save data for next step
               sr_txbuf_do((CI_CHUNK * 4) - 1 downto (CI_CHUNK * 0)) <= p_in_usr_axi_tdata((CI_CHUNK * 8) - 1 downto (CI_CHUNK * 4));
 
               if (i_rd_chunk_cnt = (i_rd_chunk_count - 1)) then
 
                 i_rd_chunk_cnt <= (others => '0');
+                i_usr_axi_rden <= '0';
 
                 if (i_rd_chunk_rem(3 downto 0) < TO_UNSIGNED(4, 4)) then
 
@@ -260,6 +262,7 @@ if rising_edge(p_in_clk) then
             i_eth_axi_tdata((CI_CHUNK * 4) - 1 downto (CI_CHUNK * 0)) <= sr_txbuf_do((CI_CHUNK * 4) - 1 downto (CI_CHUNK * 0));
             i_eth_axi_tdata((CI_CHUNK * 8) - 1 downto (CI_CHUNK * 4)) <= p_in_usr_axi_tdata((CI_CHUNK * 4) - 1 downto (CI_CHUNK * 0));
 
+            --Save data for next step
             sr_txbuf_do((CI_CHUNK * 4) - 1 downto (CI_CHUNK * 0)) <= p_in_usr_axi_tdata((CI_CHUNK * 8) - 1 downto (CI_CHUNK * 4));
 
             if (i_rd_chunk_cnt = (i_rd_chunk_count - 1)) then
@@ -337,7 +340,7 @@ if rising_edge(p_in_clk) then
           i_eth_axi_tvalid <= '0';
           i_eth_axi_tlast <= '0';
 
-          if (p_in_eth_axi_tready = '1') then -- and p_in_usr_axi_tvalid = '0') then
+          if (p_in_eth_axi_tready = '1') then
 
             i_fsm_eth_tx <= S_TX_IDLE;
 
