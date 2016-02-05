@@ -21,10 +21,9 @@ use work.prj_def.all;
 use work.kcu105_main_unit_pkg.all;
 use work.mem_ctrl_pkg.all;
 use work.mem_wr_pkg.all;
-use work.fg_pkg.all;
 use work.eth_pkg.all;
-use work.ust_cfg.all;
-use work.cam_cl_pkg.all;
+--use work.ust_cfg.all;
+--use work.cam_cl_pkg.all;
 
 entity kcu105_main is
 port(
@@ -34,20 +33,20 @@ port(
 pin_in_btn          : in    std_logic_vector(1 downto 0);
 pin_out_led         : out   std_logic_vector(7 downto 0);
 
-pin_in_cl_tfg_n : in  std_logic;
-pin_in_cl_tfg_p : in  std_logic;
-pin_out_cl_tc_n : out std_logic;
-pin_out_cl_tc_p : out std_logic;
-
---X,Y,Z : 0,1,2
-pin_in_cl_clk_p : in  std_logic_vector(C_USTCFG_CAM0_CL_CHCOUNT - 1 downto 0);
-pin_in_cl_clk_n : in  std_logic_vector(C_USTCFG_CAM0_CL_CHCOUNT - 1 downto 0);
-pin_in_cl_di_p  : in  std_logic_vector((4 * C_USTCFG_CAM0_CL_CHCOUNT) - 1 downto 0);
-pin_in_cl_di_n  : in  std_logic_vector((4 * C_USTCFG_CAM0_CL_CHCOUNT) - 1 downto 0);
-
---RS232(PC)
-pin_in_rs232_rx  : in  std_logic;
-pin_out_rs232_tx : out std_logic;
+--pin_in_cl_tfg_n : in  std_logic;
+--pin_in_cl_tfg_p : in  std_logic;
+--pin_out_cl_tc_n : out std_logic;
+--pin_out_cl_tc_p : out std_logic;
+--
+----X,Y,Z : 0,1,2
+--pin_in_cl_clk_p : in  std_logic_vector(C_USTCFG_CAM0_CL_CHCOUNT - 1 downto 0);
+--pin_in_cl_clk_n : in  std_logic_vector(C_USTCFG_CAM0_CL_CHCOUNT - 1 downto 0);
+--pin_in_cl_di_p  : in  std_logic_vector((4 * C_USTCFG_CAM0_CL_CHCOUNT) - 1 downto 0);
+--pin_in_cl_di_n  : in  std_logic_vector((4 * C_USTCFG_CAM0_CL_CHCOUNT) - 1 downto 0);
+--
+----RS232(PC)
+--pin_in_rs232_rx  : in  std_logic;
+--pin_out_rs232_tx : out std_logic;
 
 --------------------------------------------------
 --FMC
@@ -91,19 +90,19 @@ end entity kcu105_main;
 
 architecture struct of kcu105_main is
 
-component debounce is
-generic(
-G_PUSH_LEVEL : std_logic := '0'; --Лог. уровень когда кнопка нажата
-G_DEBVAL : integer := 4
-);
-port(
-p_in_btn  : in    std_logic;
-p_out_btn : out   std_logic;
-
-p_in_clk_en : in    std_logic;
-p_in_clk    : in    std_logic
-);
-end component debounce;
+--component debounce is
+--generic(
+--G_PUSH_LEVEL : std_logic := '0'; --Лог. уровень когда кнопка нажата
+--G_DEBVAL : integer := 4
+--);
+--port(
+--p_in_btn  : in    std_logic;
+--p_out_btn : out   std_logic;
+--
+--p_in_clk_en : in    std_logic;
+--p_in_clk    : in    std_logic
+--);
+--end component debounce;
 
 signal i_glob_rst          : std_logic;
 signal i_usrclk_rst        : std_logic;
@@ -191,15 +190,15 @@ signal i_ethio_tx_axi_tready : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0
 signal i_ethio_tx_axi_tvalid : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 signal i_ethio_tx_axi_done   : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 
-signal i_swt_ethio_tx_axi_tdata  : std_logic_vector((C_PCFG_ETH_DWIDTH * C_PCFG_ETH_CH_COUNT) - 1 downto 0);
-signal i_swt_ethio_tx_axi_tready : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
-signal i_swt_ethio_tx_axi_tvalid : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
-signal i_swt_ethio_tx_axi_done   : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
+--signal i_swt_ethio_tx_axi_tdata  : std_logic_vector((C_PCFG_ETH_DWIDTH * C_PCFG_ETH_CH_COUNT) - 1 downto 0);
+--signal i_swt_ethio_tx_axi_tready : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
+--signal i_swt_ethio_tx_axi_tvalid : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
+--signal i_swt_ethio_tx_axi_done   : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 
-signal i_ust_ethio_tx_axi_tdata  : std_logic_vector(C_PCFG_ETH_DWIDTH - 1 downto 0);
-signal i_ust_ethio_tx_axi_tready : std_logic;
-signal i_ust_ethio_tx_axi_tvalid : std_logic;
-signal i_ust_ethio_tx_axi_done   : std_logic;
+--signal i_ust_ethio_tx_axi_tdata  : std_logic_vector(C_PCFG_ETH_DWIDTH - 1 downto 0);
+--signal i_ust_ethio_tx_axi_tready : std_logic;
+--signal i_ust_ethio_tx_axi_tvalid : std_logic;
+--signal i_ust_ethio_tx_axi_done   : std_logic;
 
 signal i_ethio_clk           : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 signal i_ethio_rst           : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
@@ -218,12 +217,12 @@ signal i_test_led          : std_logic_vector(1 downto 0);
 signal i_swt_rst           : std_logic;
 signal i_swt_tst_out       : std_logic_vector(31 downto 0);
 
-signal i_ust_tst_in        : std_logic_vector(2 downto 0);
-signal i_ust_tst_out       : std_logic_vector(2 downto 0);
-signal i_ust_frprm_restart_btn : std_logic;
-signal i_ust_rst           : std_logic;
-signal i_ust_rst_mnl       : std_logic;
-signal i_ust_cam0_status   : std_logic_vector(C_CAM_STATUS_LASTBIT downto 0);
+--signal i_ust_tst_in        : std_logic_vector(2 downto 0);
+--signal i_ust_tst_out       : std_logic_vector(2 downto 0);
+--signal i_ust_frprm_restart_btn : std_logic;
+--signal i_ust_rst           : std_logic;
+--signal i_ust_rst_mnl       : std_logic;
+--signal i_ust_cam0_status   : std_logic_vector(C_CAM_STATUS_LASTBIT downto 0);
 
 signal i_1ms               : std_logic;
 
@@ -236,7 +235,7 @@ attribute keep of i_ethio_clk : signal is "true";
 component dbgcs_ila_hostclk is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(177 downto 0)
+probe0 : in std_logic_vector(193 downto 0)
 );
 end component dbgcs_ila_hostclk;
 
@@ -335,13 +334,21 @@ type TFGRD_dbg is record
 fsm             : std_logic_vector(3 downto 0);
 vch_num         : std_logic_vector(2 downto 0);
 hrd_start       : std_logic;
-fr_skp_pixcount : std_logic_vector(15 downto 0);
-fr_skp_rowcount : std_logic_vector(15 downto 0);
-fr_act_pixcount : std_logic_vector(15 downto 0);
+--fr_act_pixcount : std_logic_vector(15 downto 0);
 fr_act_rowcount : std_logic_vector(15 downto 0);
-steprd          : std_logic_vector(15 downto 0);
-mirror_pix      : std_logic;
-mirror_row      : std_logic;
+--steprd          : std_logic_vector(15 downto 0);
+--fr_skp_pixcount : std_logic_vector(15 downto 0);
+--fr_skp_rowcount : std_logic_vector(15 downto 0);
+--mirror_pix      : std_logic;
+--mirror_row      : std_logic;
+rowcnt : std_logic_vector(15 downto 0);
+
+axir_adr    : std_logic_vector(30 downto 0);
+axir_d      : std_logic_vector(31 downto 0);
+axir_dvalid : std_logic;
+axir_dlast  : std_logic;
+axir_aready : std_logic;
+
 end record;
 
 type TFGWR_vbufi is array (0 to 1) of std_logic_vector(31 downto 0);
@@ -360,17 +367,24 @@ type TFGWR_dbg is record
 --mem_done : std_logic;
 --chk : std_logic;
 
-vbufi_do       : TFGWR_vbufi;
+axiw_adr    : std_logic_vector(30 downto 0);
+axiw_d      : std_logic_vector(31 downto 0);-- <= i_memin_ch(1).axiw.data((32 * 1) - 1 downto 32 * 0);
+axiw_dvalid : std_logic;
+axiw_dlast  : std_logic;
+axiw_wready : std_logic;
+axiw_aready : std_logic;
+
+--vbufi_do       : TFGWR_vbufi;
 fsm            : std_logic_vector(2 downto 0);--<= i_fg_tst_out(2 downto 0);-- <= std_logic_vector(tst_fgwr_fsm);
 fr_rownum      : std_logic_vector(10 downto 0);--<= i_fg_tst_out(13 downto 3);-- <= std_logic_vector(i_fr_rownum(10 downto 0));
-mem_start      : std_logic;--<= i_fg_tst_out(14);-- <= i_mem_start;
-mem_done       : std_logic;--<= i_fg_tst_out(15);-- <= i_mem_done;
+--mem_start      : std_logic;--<= i_fg_tst_out(14);-- <= i_mem_start;
+--mem_done       : std_logic;--<= i_fg_tst_out(15);-- <= i_mem_done;
 err            : std_logic;--<= i_fg_tst_out(16);-- <= i_err;
 vbufi_sel      : std_logic;--<= i_fg_tst_out(17);-- <= i_vbufi_sel;
 vbufi_empty_all: std_logic;--<= i_fg_tst_out(18);-- <= i_vbufi_empty;
 fr_rdy0        : std_logic;--<= i_fg_tst_out(19);-- <= i_fr_rdy(0);
 vbufi_full_det : std_logic;--<= i_fg_tst_out(20);-- <= tst_vbufi_full_detect;
-vbufi_rd    : std_logic_vector(0 downto 0);--<= i_fg_tst_out(21);-- <= tst_vbufi_rd(0);
+--vbufi_rd    : std_logic_vector(0 downto 0);--<= i_fg_tst_out(21);-- <= tst_vbufi_rd(0);
 vbufi_empty : std_logic_vector(0 downto 0);--<= i_fg_tst_out(22);-- <= tst_vbufi_empty(0);
 vbufi_full  : std_logic_vector(0 downto 0);--<= i_fg_tst_out(23);-- <= tst_vbufi_full(0);
 end record;
@@ -534,67 +548,67 @@ p_in_rst => i_eth_rst --i_usrclk_rst
 );
 
 
---ETH_TX(0) <- SWT
-i_ethio_tx_axi_tdata((C_PCFG_ETH_DWIDTH * (0 + 1)) - 1 downto (C_PCFG_ETH_DWIDTH * 0)) <= i_swt_ethio_tx_axi_tdata((C_PCFG_ETH_DWIDTH * (0 + 1)) - 1 downto (C_PCFG_ETH_DWIDTH * 0));
-i_ethio_tx_axi_tvalid(0) <= i_swt_ethio_tx_axi_tvalid(0);
-i_swt_ethio_tx_axi_tready(0) <= i_ethio_tx_axi_tready(0);
-i_swt_ethio_tx_axi_done(0) <= i_ethio_tx_axi_done(0);
-
---ETH_TX(1) <- UST
-i_ethio_tx_axi_tdata((C_PCFG_ETH_DWIDTH * (1 + 1)) - 1 downto (C_PCFG_ETH_DWIDTH * 1)) <= i_ust_ethio_tx_axi_tdata;
-i_ethio_tx_axi_tvalid(1) <= i_ust_ethio_tx_axi_tvalid;
-i_ust_ethio_tx_axi_tready <= i_ethio_tx_axi_tready(1);
-i_ust_ethio_tx_axi_done <= i_ethio_tx_axi_done(1);
-
-
---#########################################
---UST DBG
---#########################################
-m_ust : ust_main
-generic map(
-G_SIM => "OFF"
-)
-port map(
---------------------------------------------------
---CameraLink Interface
---------------------------------------------------
-p_in_cam0_cl_tfg_n => pin_in_cl_tfg_n,
-p_in_cam0_cl_tfg_p => pin_in_cl_tfg_p,
-p_out_cam0_cl_tc_n => pin_out_cl_tc_n,
-p_out_cam0_cl_tc_p => pin_out_cl_tc_p,
-
---X,Y,Z : 0,1,2
-p_in_cam0_cl_clk_p => pin_in_cl_clk_p,
-p_in_cam0_cl_clk_n => pin_in_cl_clk_n,
-p_in_cam0_cl_di_p  => pin_in_cl_di_p ,
-p_in_cam0_cl_di_n  => pin_in_cl_di_n ,
-
-p_out_cam0_status  => i_ust_cam0_status,
-
---------------------------------------------------
---To ETH
---------------------------------------------------
---user -> eth
-p_out_eth_tx_axi_tdata  => i_ust_ethio_tx_axi_tdata,
-p_in_eth_tx_axi_tready  => i_ust_ethio_tx_axi_tready,
-p_out_eth_tx_axi_tvalid => i_ust_ethio_tx_axi_tvalid,
-p_in_eth_tx_axi_done    => i_ust_ethio_tx_axi_done,
-p_in_eth_clk            => i_ethio_clk(1),
-
---------------------------------------------------
---DBG
---------------------------------------------------
-p_out_tst => i_ust_tst_out,
-p_in_tst  => i_ust_tst_in,
-
---------------------------------------------------
---SYSTEM
---------------------------------------------------
-p_in_clk => g_usrclk(0),
-p_in_rst => i_ust_rst
-);
-
-i_ust_rst <= i_eth_status_rdy(0) or i_ust_rst_mnl;
+----ETH_TX(0) <- SWT
+--i_ethio_tx_axi_tdata((C_PCFG_ETH_DWIDTH * (0 + 1)) - 1 downto (C_PCFG_ETH_DWIDTH * 0)) <= i_swt_ethio_tx_axi_tdata((C_PCFG_ETH_DWIDTH * (0 + 1)) - 1 downto (C_PCFG_ETH_DWIDTH * 0));
+--i_ethio_tx_axi_tvalid(0) <= i_swt_ethio_tx_axi_tvalid(0);
+--i_swt_ethio_tx_axi_tready(0) <= i_ethio_tx_axi_tready(0);
+--i_swt_ethio_tx_axi_done(0) <= i_ethio_tx_axi_done(0);
+--
+----ETH_TX(1) <- UST
+--i_ethio_tx_axi_tdata((C_PCFG_ETH_DWIDTH * (1 + 1)) - 1 downto (C_PCFG_ETH_DWIDTH * 1)) <= i_ust_ethio_tx_axi_tdata;
+--i_ethio_tx_axi_tvalid(1) <= i_ust_ethio_tx_axi_tvalid;
+--i_ust_ethio_tx_axi_tready <= i_ethio_tx_axi_tready(1);
+--i_ust_ethio_tx_axi_done <= i_ethio_tx_axi_done(1);
+--
+--
+----#########################################
+----UST DBG
+----#########################################
+--m_ust : ust_main
+--generic map(
+--G_SIM => "OFF"
+--)
+--port map(
+----------------------------------------------------
+----CameraLink Interface
+----------------------------------------------------
+--p_in_cam0_cl_tfg_n => pin_in_cl_tfg_n,
+--p_in_cam0_cl_tfg_p => pin_in_cl_tfg_p,
+--p_out_cam0_cl_tc_n => pin_out_cl_tc_n,
+--p_out_cam0_cl_tc_p => pin_out_cl_tc_p,
+--
+----X,Y,Z : 0,1,2
+--p_in_cam0_cl_clk_p => pin_in_cl_clk_p,
+--p_in_cam0_cl_clk_n => pin_in_cl_clk_n,
+--p_in_cam0_cl_di_p  => pin_in_cl_di_p ,
+--p_in_cam0_cl_di_n  => pin_in_cl_di_n ,
+--
+--p_out_cam0_status  => i_ust_cam0_status,
+--
+----------------------------------------------------
+----To ETH
+----------------------------------------------------
+----user -> eth
+--p_out_eth_tx_axi_tdata  => i_ust_ethio_tx_axi_tdata,
+--p_in_eth_tx_axi_tready  => i_ust_ethio_tx_axi_tready,
+--p_out_eth_tx_axi_tvalid => i_ust_ethio_tx_axi_tvalid,
+--p_in_eth_tx_axi_done    => i_ust_ethio_tx_axi_done,
+--p_in_eth_clk            => i_ethio_clk(1),
+--
+----------------------------------------------------
+----DBG
+----------------------------------------------------
+--p_out_tst => i_ust_tst_out,
+--p_in_tst  => i_ust_tst_in,
+--
+----------------------------------------------------
+----SYSTEM
+----------------------------------------------------
+--p_in_clk => g_usrclk(0),
+--p_in_rst => i_ust_rst
+--);
+--
+--i_ust_rst <= i_eth_status_rdy(0) or i_ust_rst_mnl;
 
 
 --#########################################
@@ -647,10 +661,10 @@ p_in_ethio_rx_axi_tvalid  => i_ethio_rx_axi_tvalid,
 p_in_ethio_rx_axi_tuser   => i_ethio_rx_axi_tuser ,
 
 --txbuf -> eth
-p_out_ethio_tx_axi_tdata  => i_swt_ethio_tx_axi_tdata , --i_ethio_tx_axi_tdata ,--
-p_in_ethio_tx_axi_tready  => i_swt_ethio_tx_axi_tready, --i_ethio_tx_axi_tready,--
-p_out_ethio_tx_axi_tvalid => i_swt_ethio_tx_axi_tvalid, --i_ethio_tx_axi_tvalid,--
-p_in_ethio_tx_axi_done    => i_swt_ethio_tx_axi_done  , --i_ethio_tx_axi_done  ,--
+p_out_ethio_tx_axi_tdata  => i_ethio_tx_axi_tdata ,--i_swt_ethio_tx_axi_tdata , --
+p_in_ethio_tx_axi_tready  => i_ethio_tx_axi_tready,--i_swt_ethio_tx_axi_tready, --
+p_out_ethio_tx_axi_tvalid => i_ethio_tx_axi_tvalid,--i_swt_ethio_tx_axi_tvalid, --
+p_in_ethio_tx_axi_done    => i_ethio_tx_axi_done  ,--i_swt_ethio_tx_axi_done  , --
 
 p_in_ethio_clk            => i_ethio_clk,
 p_in_ethio_rst            => i_ethio_rst,
@@ -775,8 +789,8 @@ p_out_hclk      => g_host_clk        ,
 p_out_gctrl     => i_host_gctrl      ,
 
 p_out_dev_ctrl  => i_host_dev_ctrl   ,
-p_out_dev_din   => i_host_dev_txd    ,
-p_in_dev_dout   => i_host_dev_rxd    ,
+p_out_dev_di    => i_host_dev_txd    ,
+p_in_dev_do     => i_host_dev_rxd    ,
 p_out_dev_wr    => i_host_dev_wr     ,
 p_out_dev_rd    => i_host_dev_rd     ,
 p_in_dev_status => i_host_dev_status ,
@@ -1019,14 +1033,14 @@ pin_out_led(7) <= '0';
 end generate gen_eth_count1;
 
 
---pin_out_led_hpc(0) <= i_swt_tst_out(4);-- <= OR_reduce(h_reg_eth2fg_frr(0))
---pin_out_led_hpc(1) <= i_swt_tst_out(5);-- <= h_reg_ctrl(C_SWT_REG_CTRL_DBG_HOST2FG_BIT);
---pin_out_led_hpc(2) <= i_tmr_irq(0) and i_tmr_en(0);
---pin_out_led_hpc(3) <= i_test_led(1);
-pin_out_led_hpc(0) <= i_ust_cam0_status(C_CAM_STATUS_CL_LINKTOTAL_BIT);
-pin_out_led_hpc(1) <= i_ust_cam0_status(C_CAM_STATUS_CLX_LINK_BIT);
-pin_out_led_hpc(2) <= i_ust_cam0_status(C_CAM_STATUS_CLY_LINK_BIT);
-pin_out_led_hpc(3) <= i_ust_cam0_status(C_CAM_STATUS_CLZ_LINK_BIT);
+pin_out_led_hpc(0) <= i_swt_tst_out(4);-- <= OR_reduce(h_reg_eth2fg_frr(0))
+pin_out_led_hpc(1) <= i_swt_tst_out(5);-- <= h_reg_ctrl(C_SWT_REG_CTRL_DBG_HOST2FG_BIT);
+pin_out_led_hpc(2) <= i_tmr_irq(0) and i_tmr_en(0);
+pin_out_led_hpc(3) <= i_test_led(1);
+--pin_out_led_hpc(0) <= i_ust_cam0_status(C_CAM_STATUS_CL_LINKTOTAL_BIT);
+--pin_out_led_hpc(1) <= i_ust_cam0_status(C_CAM_STATUS_CLX_LINK_BIT);
+--pin_out_led_hpc(2) <= i_ust_cam0_status(C_CAM_STATUS_CLY_LINK_BIT);
+--pin_out_led_hpc(3) <= i_ust_cam0_status(C_CAM_STATUS_CLZ_LINK_BIT);
 
 pin_out_led_lpc(0) <= i_swt_tst_out(4);-- <= OR_reduce(h_reg_eth2fg_frr(0))
 pin_out_led_lpc(1) <= i_swt_tst_out(5);-- <= h_reg_ctrl(C_SWT_REG_CTRL_DBG_HOST2FG_BIT);
@@ -1054,27 +1068,27 @@ p_in_clk   => i_ethio_clk(0),
 p_in_rst   => i_ethio_rst(0)
 );
 
-i_ust_tst_in(0) <= i_ust_frprm_restart_btn;
-i_ust_tst_in(2) <= pin_in_rs232_rx;--p_in_tst(2); --cam_ctrl_rx (UART)
-
---i_ust_tst_out(0);--i_fval(0)
---i_ust_tst_out(1);--i_lval(0)
-pin_out_rs232_tx <= i_ust_tst_out(2);--cam_ctrl_tx (UART)
-
-i_ust_rst_mnl <= pin_in_btn(0); --CPU_RESET
-
-m_btn : debounce
-generic map(
-G_PUSH_LEVEL => '0', --Лог. уровень когда кнопка нажата
-G_DEBVAL => 250
-)
-port map(
-p_in_btn  => pin_in_btn(1), --SW_C (SW7)
-p_out_btn => i_ust_frprm_restart_btn,
-
-p_in_clk_en => i_1ms,
-p_in_clk    => g_usrclk(0)
-);
+--i_ust_tst_in(0) <= i_ust_frprm_restart_btn;
+--i_ust_tst_in(2) <= pin_in_rs232_rx;--p_in_tst(2); --cam_ctrl_rx (UART)
+--
+----i_ust_tst_out(0);--i_fval(0)
+----i_ust_tst_out(1);--i_lval(0)
+--pin_out_rs232_tx <= i_ust_tst_out(2);--cam_ctrl_tx (UART)
+--
+--i_ust_rst_mnl <= pin_in_btn(0); --CPU_RESET
+--
+--m_btn : debounce
+--generic map(
+--G_PUSH_LEVEL => '0', --Лог. уровень когда кнопка нажата
+--G_DEBVAL => 250
+--)
+--port map(
+--p_in_btn  => pin_in_btn(1), --SW_C (SW7)
+--p_out_btn => i_ust_frprm_restart_btn,
+--
+--p_in_clk_en => i_1ms,
+--p_in_clk    => g_usrclk(0)
+--);
 
 
 
@@ -1087,18 +1101,18 @@ p_in_clk    => g_usrclk(0)
 --i_dbg.pcie <= i_host_dbg;
 --
 
-i_dbg.fg.fgwr.vbufi_do(0) <= i_fg_bufi_do((32 * 1) - 1 downto (32 * 0));
-i_dbg.fg.fgwr.vbufi_do(1) <= i_fg_bufi_do((32 * 2) - 1 downto (32 * 1));
+--i_dbg.fg.fgwr.vbufi_do(0) <= i_fg_bufi_do((32 * 1) - 1 downto (32 * 0));
+--i_dbg.fg.fgwr.vbufi_do(1) <= i_fg_bufi_do((32 * 2) - 1 downto (32 * 1));
 i_dbg.fg.fgwr.fsm <= i_fg_tst_out(2 downto 0);-- <= std_logic_vector(tst_fgwr_fsm);
 i_dbg.fg.fgwr.fr_rownum <= i_fg_tst_out(13 downto 3);-- <= std_logic_vector(i_fr_rownum(10 downto 0));
-i_dbg.fg.fgwr.mem_start <= i_fg_tst_out(14);-- <= i_mem_start;
-i_dbg.fg.fgwr.mem_done <= i_fg_tst_out(15);-- <= i_mem_done;
+--i_dbg.fg.fgwr.mem_start <= i_fg_tst_out(14);-- <= i_mem_start;
+--i_dbg.fg.fgwr.mem_done <= i_fg_tst_out(15);-- <= i_mem_done;
 i_dbg.fg.fgwr.err <= i_fg_tst_out(16);-- <= i_err;
 i_dbg.fg.fgwr.vbufi_sel <= i_fg_tst_out(17);-- <= i_vbufi_sel;
 i_dbg.fg.fgwr.vbufi_empty_all <= i_fg_tst_out(18);-- <= i_vbufi_empty;
 i_dbg.fg.fgwr.fr_rdy0 <= i_fg_tst_out(19);-- <= i_fr_rdy(0);
 i_dbg.fg.fgwr.vbufi_full_det <= i_fg_tst_out(20);-- <= tst_vbufi_full_detect;
-i_dbg.fg.fgwr.vbufi_rd(0) <= i_fg_tst_out(21);-- <= tst_vbufi_rd(0);
+--i_dbg.fg.fgwr.vbufi_rd(0) <= i_fg_tst_out(21);-- <= tst_vbufi_rd(0);
 i_dbg.fg.fgwr.vbufi_empty(0) <= i_fg_tst_out(22);-- <= tst_vbufi_empty(0);
 i_dbg.fg.fgwr.vbufi_full(0) <= i_fg_tst_out(23);-- <= tst_vbufi_full(0);
 --i_dbg.fg.fgwr.vbufi_rd(1) <= i_fg_tst_out(24);-- <= tst_vbufi_rd(1);
@@ -1108,13 +1122,27 @@ i_dbg.fg.fgwr.vbufi_full(0) <= i_fg_tst_out(23);-- <= tst_vbufi_full(0);
 i_dbg.fg.fgrd.fsm             <= i_fg_tst_out((128 + 3) downto (128 + 0))  ;--<= std_logic_vector(tst_fsm_fgrd);
 i_dbg.fg.fgrd.vch_num         <= i_fg_tst_out((128 + 6) downto (128 + 4))  ;--<= i_vch_num;
 i_dbg.fg.fgrd.hrd_start       <= i_fg_tst_out(128 + 7)                     ;--<= p_in_hrd_start;
-i_dbg.fg.fgrd.fr_skp_pixcount <= i_fg_tst_out((128 + 23) downto (128 + 8 ));--<= i_vch_prm.fr.skp.pixcount;
-i_dbg.fg.fgrd.fr_skp_rowcount <= i_fg_tst_out((128 + 39) downto (128 + 24));--<= i_vch_prm.fr.skp.rowcount;
-i_dbg.fg.fgrd.fr_act_pixcount <= i_fg_tst_out((128 + 55) downto (128 + 40));--<= i_vch_prm.fr.act.pixcount;
-i_dbg.fg.fgrd.fr_act_rowcount <= i_fg_tst_out((128 + 71) downto (128 + 56));--<= i_vch_prm.fr.act.rowcount;
-i_dbg.fg.fgrd.steprd          <= i_fg_tst_out((128 + 87) downto (128 + 72));--<= i_vch_prm.steprd;
-i_dbg.fg.fgrd.mirror_pix      <= i_fg_tst_out(128 + 88)          ;--<= i_vch_prm.mirror.pix;
-i_dbg.fg.fgrd.mirror_row      <= i_fg_tst_out(128 + 89)          ;--<= i_vch_prm.mirror.row;
+--i_dbg.fg.fgrd.fr_act_pixcount <= i_fg_tst_out((128 + 23) downto (128 + 8 ));--<= i_vch_prm.fr.act.pixcount;
+i_dbg.fg.fgrd.fr_act_rowcount <= i_fg_tst_out((128 + 39) downto (128 + 24));--<= i_vch_prm.fr.act.rowcount;
+--i_dbg.fg.fgrd.steprd          <= i_fg_tst_out((128 + 55) downto (128 + 40));--<= i_vch_prm.steprd;
+--i_dbg.fg.fgrd.fr_skp_pixcount <= i_fg_tst_out((128 + 71) downto (128 + 56));--<= i_vch_prm.fr.skp.pixcount;
+--i_dbg.fg.fgrd.fr_skp_rowcount <= i_fg_tst_out((128 + 87) downto (128 + 72));--<= i_vch_prm.fr.skp.rowcount;
+--i_dbg.fg.fgrd.mirror_pix      <= i_fg_tst_out(128 + 88)          ;--<= i_vch_prm.mirror.pix;
+--i_dbg.fg.fgrd.mirror_row      <= i_fg_tst_out(128 + 89)          ;--<= i_vch_prm.mirror.row;
+i_dbg.fg.fgrd.rowcnt      <= i_fg_tst_out((128 + 105) downto (128 + 90));
+
+i_dbg.fg.fgwr.axiw_adr    <= i_memin_ch(1).axiw.adr(30 downto 0);
+i_dbg.fg.fgwr.axiw_d      <= i_memin_ch(1).axiw.data((32 * 1) - 1 downto 32 * 0);
+i_dbg.fg.fgwr.axiw_dvalid <= i_memin_ch(1).axiw.dvalid;
+i_dbg.fg.fgwr.axiw_dlast  <= i_memin_ch(1).axiw.dlast ;
+i_dbg.fg.fgwr.axiw_wready <= i_memout_ch(1).axiw.wready;
+i_dbg.fg.fgwr.axiw_aready <= i_memout_ch(1).axiw.aready;
+
+i_dbg.fg.fgrd.axir_adr    <= i_memin_ch(0).axiw.adr(30 downto 0);
+i_dbg.fg.fgrd.axir_d      <= i_memout_ch(0).axir.data((32 * 1) - 1 downto 32 * 0);
+i_dbg.fg.fgrd.axir_dvalid <= i_memout_ch(0).axir.dvalid;
+i_dbg.fg.fgrd.axir_dlast  <= i_memout_ch(0).axir.dlast ;
+i_dbg.fg.fgrd.axir_aready <= i_memout_ch(0).axir.aready;
 
 
 --i_dbg.fg.fgwr.fsm <= i_fg_tst_out(3  downto 0);
@@ -1643,37 +1671,78 @@ probe0(142)          => i_dbg.swt.h2eth_buf_empty
 );
 
 
+--m_dbg_fg : dbgcs_ila_hostclk
+--port map (
+--clk => g_usr_highclk,
+--
+--probe0(31 downto 0) => i_dbg.fg.fgwr.vbufi_do(0),
+--probe0(63 downto 32) => i_dbg.fg.fgwr.vbufi_do(1),
+--probe0(66 downto 64) => i_dbg.fg.fgwr.fsm,
+--probe0(77 downto 67) => i_dbg.fg.fgwr.fr_rownum,
+--probe0(78) => i_dbg.fg.fgwr.mem_start,
+--probe0(79) => i_dbg.fg.fgwr.mem_done,
+--probe0(80) => i_dbg.fg.fgwr.err,
+--probe0(81) => i_dbg.fg.fgwr.vbufi_sel,
+--probe0(82) => i_dbg.fg.fgwr.vbufi_empty_all,
+--probe0(83) => i_dbg.fg.fgwr.fr_rdy0,
+--probe0(84) => i_dbg.fg.fgwr.vbufi_full_det,
+--probe0(85) => i_dbg.fg.fgwr.vbufi_rd(0),
+--probe0(86) => i_dbg.fg.fgwr.vbufi_empty(0),
+--probe0(87) => i_dbg.fg.fgwr.vbufi_full(0),
+--
+--probe0(91 downto 88)   => i_dbg.fg.fgrd.fsm            ,
+--probe0(94 downto 92)   => i_dbg.fg.fgrd.vch_num        ,
+--probe0(95)             => i_dbg.fg.fgrd.hrd_start      ,
+--probe0(111 downto 96)  => i_dbg.fg.fgrd.fr_act_pixcount,
+--probe0(127 downto 112) => i_dbg.fg.fgrd.fr_act_rowcount
+----probe0(143 downto 128) => i_dbg.fg.fgrd.steprd,
+----probe0(159 downto 144) => i_dbg.fg.fgrd.fr_skp_pixcount,
+----probe0(175 downto 160) => i_dbg.fg.fgrd.fr_skp_rowcount,
+----probe0(176)            => i_dbg.fg.fgrd.mirror_pix     ,
+----probe0(177)            => i_dbg.fg.fgrd.mirror_row
+--
+--);
+
 m_dbg_fg : dbgcs_ila_hostclk
 port map (
 clk => g_usr_highclk,
 
-probe0(31 downto 0) => i_dbg.fg.fgwr.vbufi_do(0),
-probe0(63 downto 32) => i_dbg.fg.fgwr.vbufi_do(1),
+probe0(31 downto 0) => i_dbg.fg.fgwr.axiw_d,
+probe0(63 downto 32) => i_dbg.fg.fgrd.axir_d,
 probe0(66 downto 64) => i_dbg.fg.fgwr.fsm,
 probe0(77 downto 67) => i_dbg.fg.fgwr.fr_rownum,
-probe0(78) => i_dbg.fg.fgwr.mem_start,
-probe0(79) => i_dbg.fg.fgwr.mem_done,
+probe0(78) => i_dbg.fg.fgwr.axiw_dvalid, --i_dbg.fg.fgwr.mem_start,
+probe0(79) => i_dbg.fg.fgwr.axiw_dlast , --i_dbg.fg.fgwr.mem_done,
 probe0(80) => i_dbg.fg.fgwr.err,
 probe0(81) => i_dbg.fg.fgwr.vbufi_sel,
 probe0(82) => i_dbg.fg.fgwr.vbufi_empty_all,
 probe0(83) => i_dbg.fg.fgwr.fr_rdy0,
 probe0(84) => i_dbg.fg.fgwr.vbufi_full_det,
-probe0(85) => i_dbg.fg.fgwr.vbufi_rd(0),
+probe0(85) => i_dbg.fg.fgwr.axiw_wready,--i_dbg.fg.fgwr.vbufi_rd(0),
 probe0(86) => i_dbg.fg.fgwr.vbufi_empty(0),
 probe0(87) => i_dbg.fg.fgwr.vbufi_full(0),
 
 probe0(91 downto 88)   => i_dbg.fg.fgrd.fsm            ,
 probe0(94 downto 92)   => i_dbg.fg.fgrd.vch_num        ,
 probe0(95)             => i_dbg.fg.fgrd.hrd_start      ,
-probe0(111 downto 96)  => i_dbg.fg.fgrd.fr_skp_pixcount,
-probe0(127 downto 112) => i_dbg.fg.fgrd.fr_skp_rowcount,
-probe0(143 downto 128) => i_dbg.fg.fgrd.fr_act_pixcount,
-probe0(159 downto 144) => i_dbg.fg.fgrd.fr_act_rowcount,
-probe0(175 downto 160) => i_dbg.fg.fgrd.steprd         ,
-probe0(176)            => i_dbg.fg.fgrd.mirror_pix     ,
-probe0(177)            => i_dbg.fg.fgrd.mirror_row
+probe0(111 downto 96)  => i_dbg.fg.fgrd.rowcnt, --i_dbg.fg.fgrd.fr_act_pixcount,
+probe0(127 downto 112) => i_dbg.fg.fgrd.fr_act_rowcount,
 
+probe0(128) => i_dbg.fg.fgwr.axiw_aready,
+probe0(129) => i_dbg.fg.fgrd.axir_dvalid,
+probe0(130) => i_dbg.fg.fgrd.axir_dlast ,
+probe0(131) => i_dbg.fg.fgrd.axir_aready,
+
+probe0(162 downto 132) => i_dbg.fg.fgwr.axiw_adr,
+probe0(193 downto 163) => i_dbg.fg.fgrd.axir_adr
 );
+
+
+
+
+
+
+
 
 end architecture struct;
 

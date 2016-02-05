@@ -33,8 +33,8 @@ p_out_hclk           : out   std_logic ;
 p_out_gctrl          : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
 p_out_dev_ctrl       : out   TDevCtrl;
-p_out_dev_din        : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
-p_in_dev_dout        : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
+p_out_dev_di         : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
+p_in_dev_do          : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 p_out_dev_wr         : out   std_logic;
 p_out_dev_rd         : out   std_logic;
 p_in_dev_status      : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto C_HREG_DEV_STATUS_FST_BIT);
@@ -282,8 +282,8 @@ p_out_gctrl     : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
 --CTRL user devices
 p_out_dev_ctrl  : out   TDevCtrl;
-p_out_dev_din   : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
-p_in_dev_dout   : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
+p_out_dev_di    : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
+p_in_dev_do   : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 p_out_dev_wr    : out   std_logic;
 p_out_dev_rd    : out   std_logic;
 p_in_dev_status : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto C_HREG_DEV_STATUS_FST_BIT);
@@ -798,8 +798,8 @@ p_out_gctrl     => p_out_gctrl,
 
 --CTRL user devices
 p_out_dev_ctrl  => p_out_dev_ctrl ,
-p_out_dev_din   => p_out_dev_din  ,
-p_in_dev_dout   => p_in_dev_dout  ,
+p_out_dev_di    => p_out_dev_di  ,
+p_in_dev_do   => p_in_dev_do  ,
 p_out_dev_wr    => p_out_dev_wr   ,
 p_out_dev_rd    => p_out_dev_rd   ,
 p_in_dev_status => p_in_dev_status,

@@ -26,7 +26,6 @@ use ieee.numeric_std.all;
 library work;
 use work.reduce_pack.all;
 use work.vicg_common_pkg.all;
---use work.fg_pkg.all;
 use work.mem_wr_pkg.all;
 use work.prj_def.all;
 
@@ -52,7 +51,7 @@ port(
 -------------------------------
 --CFG
 -------------------------------
-p_in_memtrn : in  std_logic_vector(7 downto 0);
+p_in_memtrn : in  std_logic_vector((C_HREG_MEM_CTRL_TRNWR_M_BIT - C_HREG_MEM_CTRL_TRNWR_L_BIT) downto 0);
 --p_in_work_en : in  std_logic;
 
 p_in_frbuf  : in  TFG_FrBufs;
@@ -253,7 +252,7 @@ if rising_edge(p_in_clk) then
 
     i_mem_adr <= (others => '0');
     i_mem_rqlen <= (others => '0');
-    i_mem_dir <= '0';
+    i_mem_dir <= C_MEMWR_WRITE;
     i_mem_start <= '0';
 
     i_pixcount_byte <= (others => '0');

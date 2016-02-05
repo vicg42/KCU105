@@ -16,7 +16,6 @@ use work.clocks_pkg.all;
 use work.pcie_pkg.all;
 use work.mem_wr_pkg.all;
 use work.mem_ctrl_pkg.all;
---use work.fg_pkg.all;
 use work.eth_pkg.all;
 use work.ust_cfg.all;
 use work.cam_cl_pkg.all;
@@ -69,8 +68,8 @@ p_out_hclk       : out   std_logic ;
 p_out_gctrl      : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
 p_out_dev_ctrl   : out   TDevCtrl;
-p_out_dev_din    : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
-p_in_dev_dout    : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
+p_out_dev_di     : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
+p_in_dev_do      : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 p_out_dev_wr     : out   std_logic;
 p_out_dev_rd     : out   std_logic;
 p_in_dev_status  : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto C_HREG_DEV_STATUS_FST_BIT);

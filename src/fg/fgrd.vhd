@@ -38,7 +38,7 @@ port(
 --CFG
 -------------------------------
 p_in_usrprm          : in    TFG_VCHPrms;
-p_in_memtrn          : in    std_logic_vector(7 downto 0);
+p_in_memtrn          : in    std_logic_vector((C_HREG_MEM_CTRL_TRNRD_M_BIT - C_HREG_MEM_CTRL_TRNRD_L_BIT) downto 0);
 
 p_in_hrd_chsel       : in    std_logic_vector(2 downto 0);--Host: Channel number for read
 p_in_hrd_start       : in    std_logic;                   --Host: Start read data
@@ -145,7 +145,7 @@ if rising_edge(p_in_clk) then
 
     i_mem_adr <= (others => '0');
     i_mem_rqlen <= (others => '0');
-    i_mem_dir <= '0';
+    i_mem_dir <= C_MEMWR_READ;
     i_mem_start <= '0';
 
     i_vfr_buf <= (others => '0');
@@ -404,13 +404,14 @@ p_out_tst(3 downto 0) <= std_logic_vector(tst_fsm_fgrd);
 p_out_tst(6 downto 4) <= std_logic_vector(i_vch_num);
 p_out_tst(7) <= p_in_hrd_start;
 
-p_out_tst(23 downto 8) <= std_logic_vector(i_vch_prm.fr.skp.pixcount);
-p_out_tst(39 downto 24) <= std_logic_vector(i_vch_prm.fr.skp.rowcount);
-p_out_tst(55 downto 40) <= std_logic_vector(i_vch_prm.fr.act.pixcount);
-p_out_tst(71 downto 56) <= std_logic_vector(i_vch_prm.fr.act.rowcount);
-p_out_tst(87 downto 72) <= std_logic_vector(i_vch_prm.steprd);
+p_out_tst(23 downto 8)  <= std_logic_vector(i_vch_prm.fr.act.pixcount);
+p_out_tst(39 downto 24) <= std_logic_vector(i_vch_prm.fr.act.rowcount);
+p_out_tst(55 downto 40) <= std_logic_vector(i_vch_prm.steprd);
+p_out_tst(71 downto 56) <= std_logic_vector(i_vch_prm.fr.skp.pixcount);
+p_out_tst(87 downto 72) <= std_logic_vector(i_vch_prm.fr.skp.rowcount);
 p_out_tst(88) <= i_vch_prm.mirror.pix;
 p_out_tst(89) <= i_vch_prm.mirror.row;
+p_out_tst(105 downto 90) <= std_logic_vector(RESIZE(i_vfr_row_cnt, 16));
 
 
 tst_fsm_fgrd <= TO_UNSIGNED(16#01#,tst_fsm_fgrd'length) when i_fsm_fgrd = S_SET_PRMS       else

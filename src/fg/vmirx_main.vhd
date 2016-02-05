@@ -276,22 +276,23 @@ clkb  => p_in_clk
 ------------------------------------
 --DBG
 ------------------------------------
-p_out_tst(0) <= OR_reduce(tst_fsm_out) or tst_buf_enb or tst_hbufo_pfull;
-p_out_tst(31 downto 1) <= (others => '0');
-
-process(p_in_clk)
-begin
-  if rising_edge(p_in_clk) then
-    tst_fsm_out <= tst_fsm;
-    tst_buf_enb <= i_buf_enb;
-    tst_hbufo_pfull <= p_in_dwnp_rdy_n;
-  end if;
-end process;
-
-tst_fsm <= TO_UNSIGNED(16#01#, tst_fsm'length) when i_fsm_mir = S_BUF_RD_SOF  else
-           TO_UNSIGNED(16#02#, tst_fsm'length) when i_fsm_mir = S_BUF_RD      else
-           TO_UNSIGNED(16#03#, tst_fsm'length) when i_fsm_mir = S_BUF_RD_EOF  else
-           TO_UNSIGNED(16#00#, tst_fsm'length); --i_fsm_mir = S_BUF_WR          else
+p_out_tst <= (others => '0');
+--p_out_tst(0) <= OR_reduce(tst_fsm_out) or tst_buf_enb or tst_hbufo_pfull;
+--p_out_tst(31 downto 1) <= (others => '0');
+--
+--process(p_in_clk)
+--begin
+--  if rising_edge(p_in_clk) then
+--    tst_fsm_out <= tst_fsm;
+--    tst_buf_enb <= i_buf_enb;
+--    tst_hbufo_pfull <= p_in_dwnp_rdy_n;
+--  end if;
+--end process;
+--
+--tst_fsm <= TO_UNSIGNED(16#01#, tst_fsm'length) when i_fsm_mir = S_BUF_RD_SOF  else
+--           TO_UNSIGNED(16#02#, tst_fsm'length) when i_fsm_mir = S_BUF_RD      else
+--           TO_UNSIGNED(16#03#, tst_fsm'length) when i_fsm_mir = S_BUF_RD_EOF  else
+--           TO_UNSIGNED(16#00#, tst_fsm'length); --i_fsm_mir = S_BUF_WR          else
 
 
 end architecture behavioral;

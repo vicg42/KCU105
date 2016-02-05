@@ -224,8 +224,8 @@ p_out_gctrl     : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);--global
 
 --CTRL user devices
 p_out_dev_ctrl  : out   TDevCtrl;
-p_out_dev_din   : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);--DEV<-HOST
-p_in_dev_dout   : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);--DEV->HOST
+p_out_dev_di    : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);--DEV<-HOST
+p_in_dev_do     : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);--DEV->HOST
 p_out_dev_wr    : out   std_logic;
 p_out_dev_rd    : out   std_logic;
 p_in_dev_status : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto C_HREG_DEV_STATUS_FST_BIT);
@@ -244,8 +244,8 @@ p_in_pcie_prm  : in  TPCIE_cfgprm;
 
 --Target mode
 p_in_reg_adr   : in  std_logic_vector(7 downto 0);
-p_out_reg_dout : out std_logic_vector(31 downto 0);
-p_in_reg_din   : in  std_logic_vector(31 downto 0);
+p_out_reg_do   : out std_logic_vector(31 downto 0);
+p_in_reg_di    : in  std_logic_vector(31 downto 0);
 p_in_reg_wr    : in  std_logic;
 p_in_reg_rd    : in  std_logic;
 

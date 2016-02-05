@@ -12,6 +12,7 @@ use ieee.std_logic_1164.all;
 
 library work;
 use work.prj_cfg.all;
+use work.prj_def.all;
 
 package pcie_pkg is
 
@@ -20,8 +21,8 @@ dir       : std_logic; --C_MEMWR_WRITE/READ from mem_wr_pkg.vhd
 start     : std_logic;
 adr       : std_logic_vector(31 downto 0);--Adress(BYTE)
 req_len   : std_logic_vector(17 downto 0);--Size(BYTE) max=128KB
-trnwr_len : std_logic_vector(7 downto 0); --
-trnrd_len : std_logic_vector(7 downto 0); --
+trnwr_len : std_logic_vector((C_HREG_MEM_CTRL_TRNWR_M_BIT - C_HREG_MEM_CTRL_TRNWR_L_BIT) downto 0); --
+trnrd_len : std_logic_vector((C_HREG_MEM_CTRL_TRNRD_M_BIT - C_HREG_MEM_CTRL_TRNRD_L_BIT) downto 0); --
 end record;
 
 type TPce2Mem_Status is record

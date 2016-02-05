@@ -141,7 +141,7 @@ port(
 -------------------------------
 --CFG
 -------------------------------
-p_in_memtrn    : in    std_logic_vector(7 downto 0);
+p_in_memtrn    : in    std_logic_vector((C_HREG_MEM_CTRL_TRNWR_M_BIT - C_HREG_MEM_CTRL_TRNWR_L_BIT) downto 0);
 --p_in_work_en   : in    std_logic;
 
 p_in_frbuf     : in    TFG_FrBufs;
@@ -198,7 +198,7 @@ port(
 --CFG
 -------------------------------
 p_in_usrprm        : in    TFG_VCHPrms;
-p_in_memtrn        : in    std_logic_vector(7 downto 0);
+p_in_memtrn        : in    std_logic_vector((C_HREG_MEM_CTRL_TRNRD_M_BIT - C_HREG_MEM_CTRL_TRNRD_L_BIT) downto 0);
 
 p_in_hrd_chsel     : in    std_logic_vector(2 downto 0);
 p_in_hrd_start     : in    std_logic;
@@ -575,7 +575,7 @@ port map(
 -------------------------------
 --CFG
 -------------------------------
-p_in_memtrn    => p_in_reg.prm.memwr_trnlen(7 downto 0),
+p_in_memtrn    => p_in_reg.prm.memwr_trnlen,
 
 p_in_frbuf     => i_vbuf_wr,
 p_out_frrdy    => i_fgwr_frrdy,
@@ -634,7 +634,7 @@ port map(
 --CFG
 -------------------------------
 p_in_usrprm          => p_in_reg.prm.ch,
-p_in_memtrn          => p_in_reg.prm.memrd_trnlen(7 downto 0),
+p_in_memtrn          => p_in_reg.prm.memrd_trnlen,
 
 p_in_hrd_chsel       => i_hchsel,
 p_in_hrd_start       => i_hrdstart,

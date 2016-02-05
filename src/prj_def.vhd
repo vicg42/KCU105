@@ -195,15 +195,15 @@ constant C_HDEV_OPTIN_LAST_BIT                : integer := C_HDEV_OPTIN_ETH_HEAD
 --Port of module pcie_main.vhd /p_out_dev_option/ Bit Map:
 constant C_HDEV_OPTOUT_MEM_ADR_L_BIT          : integer := 0;
 constant C_HDEV_OPTOUT_MEM_ADR_M_BIT          : integer := 31;
-constant C_HDEV_OPTOUT_MEM_RQLEN_L_BIT        : integer := 32;
-constant C_HDEV_OPTOUT_MEM_RQLEN_M_BIT        : integer := 49;--mem_rqlen: BYTE(max 128KB)
-constant C_HDEV_OPTOUT_MEM_TRNWR_LEN_L_BIT    : integer := 50;
-constant C_HDEV_OPTOUT_MEM_TRNWR_LEN_M_BIT    : integer := 57;--mem_trnwr:
-constant C_HDEV_OPTOUT_MEM_TRNRD_LEN_L_BIT    : integer := 58;
-constant C_HDEV_OPTOUT_MEM_TRNRD_LEN_M_BIT    : integer := 65;--mem_trnrd:
+constant C_HDEV_OPTOUT_MEM_TRNWR_LEN_L_BIT    : integer := 32;
+constant C_HDEV_OPTOUT_MEM_TRNWR_LEN_M_BIT    : integer := 32 + (C_HREG_MEM_CTRL_TRNWR_M_BIT - C_HREG_MEM_CTRL_TRNWR_L_BIT);--max(msb..lsb)=16bit
+constant C_HDEV_OPTOUT_MEM_TRNRD_LEN_L_BIT    : integer := 48;
+constant C_HDEV_OPTOUT_MEM_TRNRD_LEN_M_BIT    : integer := 48 + (C_HREG_MEM_CTRL_TRNRD_M_BIT - C_HREG_MEM_CTRL_TRNRD_L_BIT);--max(msb..lsb)=16bit
+constant C_HDEV_OPTOUT_MEM_RQLEN_L_BIT        : integer := 64;
+constant C_HDEV_OPTOUT_MEM_RQLEN_M_BIT        : integer := 81;--mem_rqlen: BYTE(max 128KB)
 
 constant C_HDEV_OPTOUT_FST_BIT                : integer := 0;
-constant C_HDEV_OPTOUT_LAST_BIT               : integer := C_HDEV_OPTOUT_MEM_TRNRD_LEN_M_BIT;
+constant C_HDEV_OPTOUT_LAST_BIT               : integer := C_HDEV_OPTOUT_MEM_RQLEN_M_BIT;
 
 
 --Register C_HREG_CFGD_CTRL / Bit Map:
@@ -286,12 +286,12 @@ constant C_FG_REG_CTRL_VCH_L_BIT           : integer := 0; --Index of video chan
 constant C_FG_REG_CTRL_VCH_M_BIT           : integer := 3;
 constant C_FG_REG_CTRL_PRM_L_BIT           : integer := 4; --Index of parameter video channel
 constant C_FG_REG_CTRL_PRM_M_BIT           : integer := 6;
-constant C_FG_REG_CTRL_WR_BIT              : integer := 7; --Write/Read parametrs
+constant C_FG_REG_CTRL_DIR_BIT             : integer := 7; --Write/Read parametrs
 constant C_FG_REG_CTRL_SET_IDLE_BIT        : integer := 8;
 constant C_FG_REG_CTRL_LAST_BIT            : integer := C_FG_REG_CTRL_SET_IDLE_BIT;
 
 --
-constant C_FG_REG_CTRL_WR : std_logic := '1';
+constant C_FG_REG_CTRL_DIR_WR : std_logic := '1';
 constant C_FG_PKT_HD_SIZE_BYTE : integer := 16;
 
 --Index of parametr video channel:
