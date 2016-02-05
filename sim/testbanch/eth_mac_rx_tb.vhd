@@ -13,8 +13,6 @@ library work;
 use work.vicg_common_pkg.all;
 use work.prj_cfg.all;
 use work.prj_def.all;
---use work.mem_glob_pkg.all;
---use work.mem_wr_pkg.all;
 use work.eth_pkg.all;
 
 
@@ -190,8 +188,19 @@ signal i_rx_fifo_full   : std_logic;
 
 signal i_frmac_length : unsigned(15 downto 0);
 
+type TEth_MacAdr is array (0 to 5) of unsigned(7 downto 0);
+
+type TEth_MAC is record
+dst : TEth_MacAdr;
+src : TEth_MacAdr;
+end record;
+
+type TEth_Cfg is record
+mac : TEth_MAC;
+end record;
+
 signal i_cfg   : TEthCfg;
-signal i_simcfg   : TEthCfg;
+signal i_simcfg   : TEth_Cfg;
 
 signal i_txbuf_dout : unsigned(G_USRBUF_DWIDTH - 1 downto 0);
 
@@ -290,22 +299,24 @@ fifo_full       => i_rx_fifo_full   --: out std_logic;
 
 
 
-i_cfg.mac.dst(0) <= TO_UNSIGNED(16#A0#, i_cfg.mac.dst(0)'length);
-i_cfg.mac.dst(1) <= TO_UNSIGNED(16#A1#, i_cfg.mac.dst(1)'length);
-i_cfg.mac.dst(2) <= TO_UNSIGNED(16#A2#, i_cfg.mac.dst(2)'length);
-i_cfg.mac.dst(3) <= TO_UNSIGNED(16#A3#, i_cfg.mac.dst(3)'length);
-i_cfg.mac.dst(4) <= TO_UNSIGNED(16#A4#, i_cfg.mac.dst(4)'length);
-i_cfg.mac.dst(5) <= TO_UNSIGNED(16#A5#, i_cfg.mac.dst(5)'length);
+i_cfg.mac.dst(0) <= std_logic_vector(TO_UNSIGNED(16#A0#, i_cfg.mac.dst(0)'length));
+i_cfg.mac.dst(1) <= std_logic_vector(TO_UNSIGNED(16#A1#, i_cfg.mac.dst(1)'length));
+i_cfg.mac.dst(2) <= std_logic_vector(TO_UNSIGNED(16#A2#, i_cfg.mac.dst(2)'length));
+i_cfg.mac.dst(3) <= std_logic_vector(TO_UNSIGNED(16#A3#, i_cfg.mac.dst(3)'length));
+i_cfg.mac.dst(4) <= std_logic_vector(TO_UNSIGNED(16#A4#, i_cfg.mac.dst(4)'length));
+i_cfg.mac.dst(5) <= std_logic_vector(TO_UNSIGNED(16#A5#, i_cfg.mac.dst(5)'length));
 
-i_cfg.mac.src(0) <= TO_UNSIGNED(16#B0#, i_cfg.mac.dst(0)'length);
-i_cfg.mac.src(1) <= TO_UNSIGNED(16#B1#, i_cfg.mac.dst(1)'length);
-i_cfg.mac.src(2) <= TO_UNSIGNED(16#B2#, i_cfg.mac.dst(2)'length);
-i_cfg.mac.src(3) <= TO_UNSIGNED(16#B3#, i_cfg.mac.dst(3)'length);
-i_cfg.mac.src(4) <= TO_UNSIGNED(16#B4#, i_cfg.mac.dst(4)'length);
-i_cfg.mac.src(5) <= TO_UNSIGNED(16#B5#, i_cfg.mac.dst(5)'length);
+i_cfg.mac.src(0) <= std_logic_vector(TO_UNSIGNED(16#B0#, i_cfg.mac.dst(0)'length));
+i_cfg.mac.src(1) <= std_logic_vector(TO_UNSIGNED(16#B1#, i_cfg.mac.dst(1)'length));
+i_cfg.mac.src(2) <= std_logic_vector(TO_UNSIGNED(16#B2#, i_cfg.mac.dst(2)'length));
+i_cfg.mac.src(3) <= std_logic_vector(TO_UNSIGNED(16#B3#, i_cfg.mac.dst(3)'length));
+i_cfg.mac.src(4) <= std_logic_vector(TO_UNSIGNED(16#B4#, i_cfg.mac.dst(4)'length));
+i_cfg.mac.src(5) <= std_logic_vector(TO_UNSIGNED(16#B5#, i_cfg.mac.dst(5)'length));
 
-i_simcfg.mac.src <= i_cfg.mac.dst;
-i_simcfg.mac.dst <= i_cfg.mac.src;
+gen_mac : for i in 0 to (i_simcfg.mac.src'length - 1) generate begin
+i_simcfg.mac.src(i) <= UNSIGNED(i_cfg.mac.dst(i));
+i_simcfg.mac.dst(i) <= UNSIGNED(i_cfg.mac.src(i));
+end generate gen_mac;
 
 
 gen_d : for i in 0 to i_rx_mac_tdata'length - 1 generate
@@ -488,6 +499,6 @@ p_in_clk => p_in_clk,
 p_in_rst => p_in_rst
 );
 
-i_txbuf_dout <= TO_UNSIGNED(16#A0001#, i_txbuf_dout'length);
+i_txbuf_dout <= TO_UNSIGNED(16#10006#, i_txbuf_dout'length);
 
 end architecture behavior;

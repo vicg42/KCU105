@@ -18,7 +18,7 @@ vlib msim/xil_defaultlib
 vcom -64 -93 -work xil_defaultlib "../../../../../lib/common/hw/lib/vicg/vicg_common_pkg.vhd"
 vcom -64 -93 -work xil_defaultlib "../../../../../lib/common/hw/lib/vicg/reduce_pack.vhd"
 
-vcom -64 -93 -work xil_defaultlib "../testbanch/prj_cfg_sim.vhd"
+vcom -64 -93 -work xil_defaultlib "../../src/prj_cfg.vhd"
 vcom -64 -93 -work xil_defaultlib "../../src/prj_def.vhd"
 
 vcom -64 -93 -work xil_defaultlib "../../src/mem_ctrl/mem_glob_pkg.vhd"

@@ -1,6 +1,6 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
-add wave -noupdate -expand /eth_mac_rx_tb/i_rx_mac_tdata
+add wave -noupdate /eth_mac_rx_tb/i_rx_mac_tdata
 add wave -noupdate /eth_mac_rx_tb/i_rx_mac_tkeep
 add wave -noupdate /eth_mac_rx_tb/m_macbuf/wr_axis_aresetn
 add wave -noupdate /eth_mac_rx_tb/m_macbuf/wr_axis_aclk
@@ -10,6 +10,21 @@ add wave -noupdate /eth_mac_rx_tb/m_macbuf/wr_axis_tvalid
 add wave -noupdate /eth_mac_rx_tb/m_macbuf/wr_axis_tlast
 add wave -noupdate /eth_mac_rx_tb/m_macbuf/wr_axis_tready
 add wave -noupdate /eth_mac_rx_tb/m_macbuf/wr_axis_tuser
+add wave -noupdate /eth_mac_rx_tb/m_eth_tx/p_in_usr_axi_tdata
+add wave -noupdate /eth_mac_rx_tb/m_eth_tx/p_in_usr_axi_tvalid
+add wave -noupdate /eth_mac_rx_tb/m_eth_tx/p_out_usr_axi_tready
+add wave -noupdate /eth_mac_rx_tb/m_eth_tx/p_out_usr_axi_done
+add wave -noupdate /eth_mac_rx_tb/m_eth_tx/i_fsm_eth_tx
+add wave -noupdate /eth_mac_rx_tb/m_eth_tx/i_total_count_byte
+add wave -noupdate /eth_mac_rx_tb/m_eth_tx/i_rd_chunk_cnt
+add wave -noupdate /eth_mac_rx_tb/m_eth_tx/i_rd_chunk_count
+add wave -noupdate /eth_mac_rx_tb/m_eth_tx/i_rd_chunk_rem
+add wave -noupdate /eth_mac_rx_tb/m_eth_tx/i_usr_axi_rden
+add wave -noupdate /eth_mac_rx_tb/m_eth_tx/i_usr_axi_rd
+add wave -noupdate /eth_mac_rx_tb/m_eth_tx/p_out_eth_axi_tdata
+add wave -noupdate /eth_mac_rx_tb/m_eth_tx/p_out_eth_axi_tkeep
+add wave -noupdate /eth_mac_rx_tb/m_eth_tx/p_out_eth_axi_tvalid
+add wave -noupdate /eth_mac_rx_tb/m_eth_tx/p_out_eth_axi_tlast
 add wave -noupdate /eth_mac_rx_tb/m_macbuf/rd_axis_aresetn
 add wave -noupdate /eth_mac_rx_tb/m_macbuf/rd_axis_aclk
 add wave -noupdate /eth_mac_rx_tb/m_macbuf/rd_axis_tdata
@@ -32,7 +47,7 @@ add wave -noupdate /eth_mac_rx_tb/m_eth_rx/p_in_usr_axi_tready
 add wave -noupdate /eth_mac_rx_tb/m_eth_rx/p_out_usr_axi_tdata
 add wave -noupdate /eth_mac_rx_tb/m_eth_rx/p_out_usr_axi_tkeep
 add wave -noupdate /eth_mac_rx_tb/m_eth_rx/p_out_usr_axi_tvalid
-add wave -noupdate -expand /eth_mac_rx_tb/m_eth_rx/p_out_usr_axi_tuser
+add wave -noupdate /eth_mac_rx_tb/m_eth_rx/p_out_usr_axi_tuser
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {0 ps} 0}
 quietly wave cursor active 0
@@ -50,4 +65,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {1744903 ps} {2595433 ps}
+WaveRestoreZoom {3974616 ps} {4001336 ps}
