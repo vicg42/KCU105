@@ -412,6 +412,7 @@ p_out_tst(87 downto 72) <= std_logic_vector(i_vch_prm.fr.skp.rowcount);
 p_out_tst(88) <= i_vch_prm.mirror.pix;
 p_out_tst(89) <= i_vch_prm.mirror.row;
 p_out_tst(105 downto 90) <= std_logic_vector(RESIZE(i_vfr_row_cnt, 16));
+p_out_tst(106) <= p_in_hrd_done;
 
 
 tst_fsm_fgrd <= TO_UNSIGNED(16#01#,tst_fsm_fgrd'length) when i_fsm_fgrd = S_SET_PRMS       else

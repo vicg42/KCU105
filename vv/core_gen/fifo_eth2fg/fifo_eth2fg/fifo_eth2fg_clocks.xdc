@@ -50,4 +50,13 @@
 #                         Native FIFO Constraints                              #
 #------------------------------------------------------------------------------#
 
+set wr_clock          [get_clocks -of_objects [get_ports wr_clk]]
+set rd_clock          [get_clocks -of_objects [get_ports rd_clk]]
+
+
+# Set max delay on cross clock domain path for Block/Distributed RAM based FIFO
+
+set_max_delay -from [get_cells inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gcx.clkx/rd_pntr_gc_reg[*]] -to [get_cells inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gcx.clkx/gsync_stage[*].wr_stg_inst/Q_reg_reg[*]] -datapath_only [get_property -min PERIOD $rd_clock]
+
+set_max_delay -from [get_cells inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gcx.clkx/wr_pntr_gc_reg[*]] -to [get_cells inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gcx.clkx/gsync_stage[*].rd_stg_inst/Q_reg_reg[*]] -datapath_only [get_property -min PERIOD $wr_clock]
 ################################################################################

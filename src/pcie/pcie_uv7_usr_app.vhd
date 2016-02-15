@@ -158,8 +158,7 @@ signal i_usr_grst                  : std_logic;
 signal i_dma_ctrl                  : std_logic_vector(C_HREG_DMA_CTRL_LAST_BIT downto C_HREG_DMA_CTRL_DRDY_BIT);
 signal i_dma_start                 : std_logic;--DEV_CTRL(DMA_START) - rising_edge
 signal sr_dma_start                : std_logic;
-signal i_dmatrn_len                : std_logic_vector(31 downto 0);--DMATRN size (Byte)
-signal i_dmatrn_adr                : std_logic_vector(31 downto 0);
+signal i_dmaprm                    : TPCIE_dmaprm;
 signal i_dmatrn_init               : std_logic;
 signal i_dmatrn_start              : std_logic;
 signal i_dmatrn_work               : std_logic;
@@ -214,7 +213,6 @@ signal i_mem_adr_cnt               : unsigned(31 - log2(C_HDEV_DWIDTH / 8) downt
 constant CI_TESTDATA_WIDTH : integer := 32;
 signal tst_mem_dcnt,tst_mem_dcnt_swap : unsigned(C_HDEV_DWIDTH - 1 downto 0);
 
-signal tst_dmatrn_init : std_logic;
 
 
 begin --architecture behavioral
@@ -230,8 +228,7 @@ p_out_dma_mwr_en  <= i_dmatrn_work and i_reg.dev_ctrl(C_HREG_DMA_CTRL_DMA_DIR_BI
 --MEMORY READ - DMATRN_RD (PC->FPGA)
 p_out_dma_mrd_en  <= i_dmatrn_work and not i_reg.dev_ctrl(C_HREG_DMA_CTRL_DMA_DIR_BIT);
 
-p_out_dma_prm.addr <= i_dmatrn_adr(31 downto 0);
-p_out_dma_prm.len  <= i_dmatrn_len;
+p_out_dma_prm <= i_dmaprm;
 
 --p_out_rd_metering       <= '1';
 
@@ -588,6 +585,9 @@ if rising_edge(p_in_clk) then
         if (i_reg_adr = TO_UNSIGNED(C_HREG_FIRMWARE, i_reg_adr'length)) then
             txd := std_logic_vector(RESIZE(UNSIGNED(i_reg.firmware), txd'length));
 
+        elsif (i_reg_adr = TO_UNSIGNED(C_HREG_CTRL, i_reg_adr'length)) then
+            txd := std_logic_vector(RESIZE(UNSIGNED(i_reg.ctrl), txd'length));
+
         elsif (i_reg_adr = TO_UNSIGNED(C_HREG_DMAPRM_ADR, i_reg_adr'length)) then
             txd := std_logic_vector(RESIZE(UNSIGNED(i_host_dmaprm_do), txd'length));
 
@@ -855,7 +855,7 @@ if rising_edge(p_in_clk) then
       i_mrd_rcv_size_ok <= '0';
     else
       if (p_in_dma_mrd_rcv_size(31 downto 0) /= (p_in_dma_mrd_rcv_size'range => '0')) then
-        if (("00" & i_dmatrn_len(31 downto 2)) = p_in_dma_mrd_rcv_size(31 downto 0)) then
+        if (("00" & i_dmaprm.len(31 downto 2)) = p_in_dma_mrd_rcv_size(31 downto 0)) then
           i_mrd_rcv_size_ok <= '1';
         end if;
       end if;
@@ -911,8 +911,8 @@ if rising_edge(p_in_clk) then
     sr_dma_work <= '0';
     i_dma_irq <= '0';
 
-    i_dmatrn_adr <= (others => '0');
-    i_dmatrn_len <= (others => '0');
+    i_dmaprm.addr <= (others => '0');
+    i_dmaprm.len <= (others => '0');
 
     i_dmabuf_num_cnt <= (others => '0');
     i_dmabuf_done_cnt <= (others => '0');
@@ -975,11 +975,11 @@ if rising_edge(p_in_clk) then
     --Load DMATRN param for use PCI-Express core
     if (sr_hw_dmaprm_rd(0) = '1') then
       if (sr_hw_dmaprm_cnt = "00") then
-        i_dmatrn_len <= i_hw_dmaprm_do; --Size (Byte)
+        i_dmaprm.len <= i_hw_dmaprm_do; --Size (Byte)
         i_dmatrn_init <= '0';
 
       elsif (sr_hw_dmaprm_cnt = "01") then
-        i_dmatrn_adr(31 downto 0) <= i_hw_dmaprm_do; --Adress(Byte)
+        i_dmaprm.addr <= i_hw_dmaprm_do; --Adress(Byte)
         i_dmatrn_init <= '1';
 
       end if;
@@ -1161,7 +1161,7 @@ p_out_dev_opt(C_HDEV_OPTOUT_MEM_ADR_M_BIT downto C_HDEV_OPTOUT_MEM_ADR_L_BIT)
   <= std_logic_vector(i_mem_adr_cnt) & i_reg.mem_adr(log2(C_HDEV_DWIDTH / 8) - 1 downto 0); --Cnt BYTE
 
 p_out_dev_opt(C_HDEV_OPTOUT_MEM_RQLEN_M_BIT downto C_HDEV_OPTOUT_MEM_RQLEN_L_BIT)
-  <= i_dmatrn_len(C_HDEV_OPTOUT_MEM_RQLEN_M_BIT - C_HDEV_OPTOUT_MEM_RQLEN_L_BIT downto 0);
+  <= i_dmaprm.len(C_HDEV_OPTOUT_MEM_RQLEN_M_BIT - C_HDEV_OPTOUT_MEM_RQLEN_L_BIT downto 0);
 
 p_out_dev_opt(C_HDEV_OPTOUT_MEM_TRNWR_LEN_M_BIT downto C_HDEV_OPTOUT_MEM_TRNWR_LEN_L_BIT)
   <= i_reg.mem_ctrl(C_HREG_MEM_CTRL_TRNWR_M_BIT downto C_HREG_MEM_CTRL_TRNWR_L_BIT);
@@ -1182,27 +1182,22 @@ p_out_tst(61 downto 58)   <= i_hdev_adr;
 p_out_tst(62)             <= i_reg.dev_ctrl(C_HREG_DMA_CTRL_DMA_DIR_BIT);
 p_out_tst(63)             <= i_reg_bar and (p_in_reg_wr or i_reg_rd);
 p_out_tst(64)             <= i_memtrn_done;
-p_out_tst(95 downto 65)   <= (others => '0');
+p_out_tst(72 downto 65)   <= std_logic_vector(i_dmabuf_num_cnt);
+p_out_tst(73)             <= i_dmatrn_done;
+p_out_tst(74)             <= i_dmatrn_init;
+p_out_tst(95 downto 75)   <= (others => '0');
 p_out_tst(96)             <= i_irq_status_clr;
 p_out_tst(100 downto 97)  <= std_logic_vector(RESIZE(UNSIGNED(i_reg.irq(C_HREG_IRQ_NUM_M_WBIT downto C_HREG_IRQ_NUM_L_WBIT)), 4));
 p_out_tst(108 downto 101) <= std_logic_vector(RESIZE(UNSIGNED(i_irq_status), 8));
 p_out_tst(116 downto 109) <= std_logic_vector(RESIZE(UNSIGNED(i_irq_set(C_HIRQ_COUNT - 1 downto 0)), 8));
 p_out_tst(120 downto 117) <= i_reg.dev_ctrl(C_HREG_DMA_CTRL_ADR_M_BIT downto C_HREG_DMA_CTRL_ADR_L_BIT); --(22..19)
-p_out_tst(121)            <= tst_dmatrn_init;
+p_out_tst(121)            <= '0';
 p_out_tst(122)            <= i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 p_out_tst(123)            <= p_in_txbuf_wr;
 p_out_tst(124)            <= p_in_rxbuf_rd;
 p_out_tst(125)            <= p_in_txbuf_wr or p_in_rxbuf_rd;
 p_out_tst(126)            <= i_dma_work;
 p_out_tst(127)            <= i_dmatrn_work;
-
-
-process(p_in_clk)
-begin
-if rising_edge(p_in_clk) then
-  tst_dmatrn_init <= i_dmatrn_init;
-end if;
-end process;
 
 
 

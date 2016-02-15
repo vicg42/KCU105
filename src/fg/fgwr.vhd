@@ -489,21 +489,21 @@ end generate gen_dbgcs_off;
 
 gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
 p_out_tst(2  downto 0) <= std_logic_vector(tst_fgwr_fsm);
-p_out_tst(13 downto 3) <= std_logic_vector(i_fr_rownum(10 downto 0));
-p_out_tst(14) <= i_mem_start;
-p_out_tst(15) <= i_mem_done;
-p_out_tst(16) <= i_err;
-p_out_tst(17) <= i_vbufi_sel;
-p_out_tst(18) <= i_vbufi_empty;
-p_out_tst(19) <= i_fr_rdy(0);
-p_out_tst(20) <= tst_vbufi_full_detect;
-p_out_tst(21) <= tst_vbufi_rd(0);
-p_out_tst(22) <= tst_vbufi_empty(0);
-p_out_tst(23) <= tst_vbufi_full(0);
-p_out_tst(24) <= tst_vbufi_rd(1);
-p_out_tst(25) <= tst_vbufi_empty(1);
-p_out_tst(26) <= tst_vbufi_full(1);
-p_out_tst(31 downto 27) <= (others => '0');
+p_out_tst(15 downto 3) <= std_logic_vector(i_fr_rownum(12 downto 0));
+p_out_tst(16) <= i_mem_start;
+p_out_tst(17) <= i_mem_done;
+p_out_tst(18) <= i_err;
+p_out_tst(19) <= i_vbufi_sel;
+p_out_tst(20) <= i_vbufi_empty;
+p_out_tst(21) <= i_fr_rdy(0);
+p_out_tst(22) <= tst_vbufi_full_detect;
+p_out_tst(23) <= tst_vbufi_rd(0);
+p_out_tst(24) <= tst_vbufi_empty(0);
+p_out_tst(25) <= tst_vbufi_full(0);
+p_out_tst(26) <= tst_vbufi_rd(1);
+p_out_tst(27) <= tst_vbufi_empty(1);
+p_out_tst(28) <= tst_vbufi_full(1);
+p_out_tst(31 downto 29) <= (others => '0');
 
 process(p_in_clk)
 begin

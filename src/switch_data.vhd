@@ -157,13 +157,13 @@ empty     : out std_logic;
 full      : out std_logic;
 prog_full : out std_logic;
 
---rst       : in  std_logic
+rst       : in  std_logic
 
-wr_rst_busy : out std_logic;
-rd_rst_busy : out std_logic;
-
---clk       : in  std_logic;
-srst      : in  std_logic
+--wr_rst_busy : out std_logic;
+--rd_rst_busy : out std_logic;
+--
+----clk       : in  std_logic;
+--srst      : in  std_logic
 );
 end component fifo_eth2fg;
 
@@ -586,14 +586,14 @@ empty     => p_out_fgbufi_empty(eth_ch),
 full      => p_out_fgbufi_full (eth_ch),
 prog_full => p_out_fgbufi_pfull(eth_ch),
 
---rst  => b_rst_fg_bufs
---);
-wr_rst_busy => open,
-rd_rst_busy => open,
-
---clk  : in  std_logic;
-srst => b_rst_fg_bufs(eth_ch)
+rst  => b_rst_fg_bufs(eth_ch)
 );
+--wr_rst_busy => open,
+--rd_rst_busy => open,
+--
+----clk  : in  std_logic;
+--srst => b_rst_fg_bufs(eth_ch)
+--);
 
 end generate gen_fgbuf;
 

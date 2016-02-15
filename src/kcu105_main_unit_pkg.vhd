@@ -17,7 +17,7 @@ use work.pcie_pkg.all;
 use work.mem_wr_pkg.all;
 use work.mem_ctrl_pkg.all;
 use work.eth_pkg.all;
-use work.ust_cfg.all;
+--use work.ust_cfg.all;
 use work.cam_cl_pkg.all;
 
 package kcu105_main_unit_pkg is
@@ -392,50 +392,50 @@ p_in_rst : in  std_logic
 );
 end component eth_main;
 
-component ust_main is
-generic(
-G_SIM : string := "OFF"
-);
-port(
---------------------------------------------------
---CameraLink Interface
---------------------------------------------------
-p_in_cam0_cl_tfg_n : in  std_logic; --Camera -> FG
-p_in_cam0_cl_tfg_p : in  std_logic;
-p_out_cam0_cl_tc_n : out std_logic; --Camera <- FG
-p_out_cam0_cl_tc_p : out std_logic;
-
---X,Y,Z : 0,1,2
-p_in_cam0_cl_clk_p : in  std_logic_vector(C_USTCFG_CAM0_CL_CHCOUNT - 1 downto 0);
-p_in_cam0_cl_clk_n : in  std_logic_vector(C_USTCFG_CAM0_CL_CHCOUNT - 1 downto 0);
-p_in_cam0_cl_di_p  : in  std_logic_vector((4 * C_USTCFG_CAM0_CL_CHCOUNT) - 1 downto 0);
-p_in_cam0_cl_di_n  : in  std_logic_vector((4 * C_USTCFG_CAM0_CL_CHCOUNT) - 1 downto 0);
-
-p_out_cam0_status  : out  std_logic_vector(C_CAM_STATUS_LASTBIT downto 0);
-
---------------------------------------------------
---To ETH
---------------------------------------------------
---user -> eth
-p_out_eth_tx_axi_tdata   : out  std_logic_vector(63 downto 0);
-p_in_eth_tx_axi_tready   : in   std_logic;
-p_out_eth_tx_axi_tvalid  : out  std_logic;
-p_in_eth_tx_axi_done     : in   std_logic;
-p_in_eth_clk             : in   std_logic;
-
---------------------------------------------------
---DBG
---------------------------------------------------
-p_out_tst : out  std_logic_vector(2 downto 0);
-p_in_tst  : in   std_logic_vector(2 downto 0);
-
---------------------------------------------------
---SYSTEM
---------------------------------------------------
-p_in_clk : in std_logic;
-p_in_rst : in std_logic
-);
-end component ust_main;
+--component ust_main is
+--generic(
+--G_SIM : string := "OFF"
+--);
+--port(
+----------------------------------------------------
+----CameraLink Interface
+----------------------------------------------------
+--p_in_cam0_cl_tfg_n : in  std_logic; --Camera -> FG
+--p_in_cam0_cl_tfg_p : in  std_logic;
+--p_out_cam0_cl_tc_n : out std_logic; --Camera <- FG
+--p_out_cam0_cl_tc_p : out std_logic;
+--
+----X,Y,Z : 0,1,2
+--p_in_cam0_cl_clk_p : in  std_logic_vector(C_USTCFG_CAM0_CL_CHCOUNT - 1 downto 0);
+--p_in_cam0_cl_clk_n : in  std_logic_vector(C_USTCFG_CAM0_CL_CHCOUNT - 1 downto 0);
+--p_in_cam0_cl_di_p  : in  std_logic_vector((4 * C_USTCFG_CAM0_CL_CHCOUNT) - 1 downto 0);
+--p_in_cam0_cl_di_n  : in  std_logic_vector((4 * C_USTCFG_CAM0_CL_CHCOUNT) - 1 downto 0);
+--
+--p_out_cam0_status  : out  std_logic_vector(C_CAM_STATUS_LASTBIT downto 0);
+--
+----------------------------------------------------
+----To ETH
+----------------------------------------------------
+----user -> eth
+--p_out_eth_tx_axi_tdata   : out  std_logic_vector(63 downto 0);
+--p_in_eth_tx_axi_tready   : in   std_logic;
+--p_out_eth_tx_axi_tvalid  : out  std_logic;
+--p_in_eth_tx_axi_done     : in   std_logic;
+--p_in_eth_clk             : in   std_logic;
+--
+----------------------------------------------------
+----DBG
+----------------------------------------------------
+--p_out_tst : out  std_logic_vector(2 downto 0);
+--p_in_tst  : in   std_logic_vector(2 downto 0);
+--
+----------------------------------------------------
+----SYSTEM
+----------------------------------------------------
+--p_in_clk : in std_logic;
+--p_in_rst : in std_logic
+--);
+--end component ust_main;
 
 
 end package kcu105_main_unit_pkg;

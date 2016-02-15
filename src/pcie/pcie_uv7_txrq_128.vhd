@@ -156,6 +156,7 @@ if rising_edge(p_in_clk) then
 end if;
 end process;--init
 
+i_mem_tpl_max_byte(log2(128) - 1 downto 0) <= (others => '0');
 
 i_mem_tpl_dw <= RESIZE(i_mem_tpl_byte(i_mem_tpl_byte'high downto 2), i_mem_tpl_dw'length)
                   + (TO_UNSIGNED(0, i_mem_tpl_dw'length - 2)
@@ -189,7 +190,7 @@ if rising_edge(p_in_clk) then
     i_mem_tpl_tag <= (others => '0');
     i_mem_tpl_last <= '0';
 
-    i_mem_tpl_max_byte <= (others => '0');
+    i_mem_tpl_max_byte(10 downto log2(128)) <= (others => '0');
     i_mwr_work <= '0';
     i_mwr_done <= '0';
     i_mrd_done <= '0';
@@ -216,12 +217,10 @@ if rising_edge(p_in_clk) then
 
                   --max 1024 because pcie_core support max value 1024 (max_payload)
                   case p_in_pcie_prm.max_payload is
---                  when C_PCIE_MAX_PAYLOAD_4096_BYTE => i_mem_tpl_max_byte <= TO_UNSIGNED(4096, i_mem_tpl_max_byte'length);
---                  when C_PCIE_MAX_PAYLOAD_2048_BYTE => i_mem_tpl_max_byte <= TO_UNSIGNED(2048, i_mem_tpl_max_byte'length);
-                  when C_PCIE_MAX_PAYLOAD_1024_BYTE => i_mem_tpl_max_byte <= TO_UNSIGNED(1024, i_mem_tpl_max_byte'length);
-                  when C_PCIE_MAX_PAYLOAD_512_BYTE  => i_mem_tpl_max_byte <= TO_UNSIGNED(512 , i_mem_tpl_max_byte'length);
-                  when C_PCIE_MAX_PAYLOAD_256_BYTE  => i_mem_tpl_max_byte <= TO_UNSIGNED(256 , i_mem_tpl_max_byte'length);
-                  when C_PCIE_MAX_PAYLOAD_128_BYTE  => i_mem_tpl_max_byte <= TO_UNSIGNED(128 , i_mem_tpl_max_byte'length);
+                  when C_PCIE_MAX_PAYLOAD_1024_BYTE => i_mem_tpl_max_byte(10 downto log2(128)) <= TO_UNSIGNED((1024 / 128), (10 - log2(128) + 1));
+                  when C_PCIE_MAX_PAYLOAD_512_BYTE  => i_mem_tpl_max_byte(10 downto log2(128)) <= TO_UNSIGNED((512  / 128), (10 - log2(128) + 1));
+                  when C_PCIE_MAX_PAYLOAD_256_BYTE  => i_mem_tpl_max_byte(10 downto log2(128)) <= TO_UNSIGNED((256  / 128), (10 - log2(128) + 1));
+                  when C_PCIE_MAX_PAYLOAD_128_BYTE  => i_mem_tpl_max_byte(10 downto log2(128)) <= TO_UNSIGNED((128  / 128), (10 - log2(128) + 1));
                   when others => null;
                   end case;
 
@@ -238,12 +237,10 @@ if rising_edge(p_in_clk) then
                 if (i_dma_init = '1') then
 
                   case p_in_pcie_prm.max_rd_req is
---                  when C_PCIE_MAX_RD_REQ_4096_BYTE => i_mem_tpl_max_byte <= TO_UNSIGNED(4096, i_mem_tpl_max_byte'length);
---                  when C_PCIE_MAX_RD_REQ_2048_BYTE => i_mem_tpl_max_byte <= TO_UNSIGNED(2048, i_mem_tpl_max_byte'length);
-                  when C_PCIE_MAX_RD_REQ_1024_BYTE => i_mem_tpl_max_byte <= TO_UNSIGNED(1024, i_mem_tpl_max_byte'length);
-                  when C_PCIE_MAX_RD_REQ_512_BYTE  => i_mem_tpl_max_byte <= TO_UNSIGNED(512, i_mem_tpl_max_byte'length);
-                  when C_PCIE_MAX_RD_REQ_256_BYTE  => i_mem_tpl_max_byte <= TO_UNSIGNED(256, i_mem_tpl_max_byte'length);
-                  when C_PCIE_MAX_RD_REQ_128_BYTE  => i_mem_tpl_max_byte <= TO_UNSIGNED(128, i_mem_tpl_max_byte'length);
+                  when C_PCIE_MAX_RD_REQ_1024_BYTE => i_mem_tpl_max_byte(10 downto log2(128)) <= TO_UNSIGNED((1024 / 128), (10 - log2(128) + 1));
+                  when C_PCIE_MAX_RD_REQ_512_BYTE  => i_mem_tpl_max_byte(10 downto log2(128)) <= TO_UNSIGNED((512  / 128), (10 - log2(128) + 1));
+                  when C_PCIE_MAX_RD_REQ_256_BYTE  => i_mem_tpl_max_byte(10 downto log2(128)) <= TO_UNSIGNED((256  / 128), (10 - log2(128) + 1));
+                  when C_PCIE_MAX_RD_REQ_128_BYTE  => i_mem_tpl_max_byte(10 downto log2(128)) <= TO_UNSIGNED((128  / 128), (10 - log2(128) + 1));
                   when others => null;
                   end case;
 
@@ -355,6 +352,8 @@ if rising_edge(p_in_clk) then
 
                 i_mem_adr_byte <= i_mem_adr_byte + RESIZE(i_mem_tpl_byte, i_mem_adr_byte'length);
 
+                i_mem_tpl_tag <= i_mem_tpl_tag + 1;
+
                 i_mwr_work <= '1';
 
                 i_fsm_txrq <= S_TXRQ_MWR_DN;
@@ -375,8 +374,6 @@ if rising_edge(p_in_clk) then
                 if (i_mem_tpl_cnt = (i_mem_tpl_len - 1)) then
 
                     i_mwr_work <= '0';
-
-                    i_mem_tpl_tag <= i_mem_tpl_tag + 1;
 
                     i_mem_tpl_cnt <= (others => '0');
 

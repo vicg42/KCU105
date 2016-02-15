@@ -235,14 +235,14 @@ attribute keep of i_ethio_clk : signal is "true";
 component dbgcs_ila_hostclk is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(193 downto 0)
+probe0 : in std_logic_vector(178 downto 0)
 );
 end component dbgcs_ila_hostclk;
 
 component dbgcs_ila_usr_highclk is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(142 downto 0)
+probe0 : in std_logic_vector(176 downto 0)
 );
 end component dbgcs_ila_usr_highclk;
 
@@ -349,6 +349,9 @@ axir_dvalid : std_logic;
 axir_dlast  : std_logic;
 axir_aready : std_logic;
 
+bufo_empty  : std_logic;
+vbuf_hold   : std_logic_vector(C_FG_VCH_COUNT - 1 downto 0);
+hrd_done    : std_logic;
 end record;
 
 type TFGWR_vbufi is array (0 to 1) of std_logic_vector(31 downto 0);
@@ -362,7 +365,7 @@ type TFGWR_dbg is record
 --vbufi_empty      : std_logic;
 --vbufi_full_lacth : std_logic;
 --frrdy         : std_logic;
---fr_rownum : std_logic_vector(10 downto 0);
+--fr_rownum : std_logic_vector(12 downto 0);
 --mem_start : std_logic;
 --mem_done : std_logic;
 --chk : std_logic;
@@ -371,12 +374,12 @@ axiw_adr    : std_logic_vector(30 downto 0);
 axiw_d      : std_logic_vector(31 downto 0);-- <= i_memin_ch(1).axiw.data((32 * 1) - 1 downto 32 * 0);
 axiw_dvalid : std_logic;
 axiw_dlast  : std_logic;
-axiw_wready : std_logic;
+--axiw_wready : std_logic;
 axiw_aready : std_logic;
 
 --vbufi_do       : TFGWR_vbufi;
 fsm            : std_logic_vector(2 downto 0);--<= i_fg_tst_out(2 downto 0);-- <= std_logic_vector(tst_fgwr_fsm);
-fr_rownum      : std_logic_vector(10 downto 0);--<= i_fg_tst_out(13 downto 3);-- <= std_logic_vector(i_fr_rownum(10 downto 0));
+fr_rownum      : std_logic_vector(12 downto 0);--<= i_fg_tst_out(13 downto 3);-- <= std_logic_vector(i_fr_rownum(10 downto 0));
 --mem_start      : std_logic;--<= i_fg_tst_out(14);-- <= i_mem_start;
 --mem_done       : std_logic;--<= i_fg_tst_out(15);-- <= i_mem_done;
 err            : std_logic;--<= i_fg_tst_out(16);-- <= i_err;
@@ -402,10 +405,10 @@ end record;
 --end record;
 --
 type TMAIN_dbg is record
---pcie : TPCIE_dbg;
+pcie : TPCIE_dbg;
 ----h2m  : TH2M_dbg;
 --cfg : TCFG_dbg;
-swt : TSWT_dbg;
+--swt : TSWT_dbg;
 fg : TFG_dbg;
 --eth : TEth_dbg;
 end record;
@@ -425,8 +428,8 @@ begin --architecture struct
 i_mem_ctrl_rst <= i_host_gctrl(C_HREG_CTRL_RST_MEM_BIT);--or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT) not i_host_rst_n or
 i_arb_mem_rst <= not OR_reduce(i_mem_ctrl_status.rdy);
 i_eth_rst <= i_host_gctrl(C_HREG_CTRL_RST_ETH_BIT) or i_usrclk_rst;
-i_swt_rst <= i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT);
-i_fg_rst <= i_arb_mem_rst;
+i_swt_rst <= i_arb_mem_rst or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT);
+i_fg_rst <= i_arb_mem_rst or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT);
 
 i_host_mem_tst_in(0) <= i_arb_mem_rst;
 
@@ -1020,7 +1023,7 @@ pin_out_led(3) <= i_eth_status_qplllock;
 gen_eth_status : for i in 0 to C_PCFG_ETH_CH_COUNT - 1 generate
 begin
 pin_out_led(4 + i) <= i_sfp_signal_detect(i);
-pin_out_led(6 + i) <= i_eth_status_rdy(1);
+pin_out_led(6 + i) <= i_eth_status_rdy(i);
 
 i_sfp_signal_detect(i) <= not pin_in_sfp_los(i);
 
@@ -1098,26 +1101,25 @@ p_in_rst   => i_ethio_rst(0)
 ----gen_dbgcs_on : if strcmp(C_PCFG_MAIN_DBGCS, "ON") generate
 ----begin
 ----
---i_dbg.pcie <= i_host_dbg;
---
+i_dbg.pcie <= i_host_dbg;
 
 --i_dbg.fg.fgwr.vbufi_do(0) <= i_fg_bufi_do((32 * 1) - 1 downto (32 * 0));
 --i_dbg.fg.fgwr.vbufi_do(1) <= i_fg_bufi_do((32 * 2) - 1 downto (32 * 1));
 i_dbg.fg.fgwr.fsm <= i_fg_tst_out(2 downto 0);-- <= std_logic_vector(tst_fgwr_fsm);
-i_dbg.fg.fgwr.fr_rownum <= i_fg_tst_out(13 downto 3);-- <= std_logic_vector(i_fr_rownum(10 downto 0));
---i_dbg.fg.fgwr.mem_start <= i_fg_tst_out(14);-- <= i_mem_start;
---i_dbg.fg.fgwr.mem_done <= i_fg_tst_out(15);-- <= i_mem_done;
-i_dbg.fg.fgwr.err <= i_fg_tst_out(16);-- <= i_err;
-i_dbg.fg.fgwr.vbufi_sel <= i_fg_tst_out(17);-- <= i_vbufi_sel;
-i_dbg.fg.fgwr.vbufi_empty_all <= i_fg_tst_out(18);-- <= i_vbufi_empty;
-i_dbg.fg.fgwr.fr_rdy0 <= i_fg_tst_out(19);-- <= i_fr_rdy(0);
-i_dbg.fg.fgwr.vbufi_full_det <= i_fg_tst_out(20);-- <= tst_vbufi_full_detect;
---i_dbg.fg.fgwr.vbufi_rd(0) <= i_fg_tst_out(21);-- <= tst_vbufi_rd(0);
-i_dbg.fg.fgwr.vbufi_empty(0) <= i_fg_tst_out(22);-- <= tst_vbufi_empty(0);
-i_dbg.fg.fgwr.vbufi_full(0) <= i_fg_tst_out(23);-- <= tst_vbufi_full(0);
---i_dbg.fg.fgwr.vbufi_rd(1) <= i_fg_tst_out(24);-- <= tst_vbufi_rd(1);
---i_dbg.fg.fgwr.vbufi_empty(1) <= i_fg_tst_out(25);-- <= tst_vbufi_empty(1);
---i_dbg.fg.fgwr.vbufi_full(1) <= i_fg_tst_out(26);-- <= tst_vbufi_full(1);
+i_dbg.fg.fgwr.fr_rownum <= i_fg_tst_out(15 downto 3);-- <= std_logic_vector(i_fr_rownum(10 downto 0));
+--i_dbg.fg.fgwr.mem_start <= i_fg_tst_out(16);-- <= i_mem_start;
+--i_dbg.fg.fgwr.mem_done <= i_fg_tst_out(17);-- <= i_mem_done;
+i_dbg.fg.fgwr.err <= i_fg_tst_out(18);-- <= i_err;
+i_dbg.fg.fgwr.vbufi_sel <= i_fg_tst_out(19);-- <= i_vbufi_sel;
+i_dbg.fg.fgwr.vbufi_empty_all <= i_fg_tst_out(20);-- <= i_vbufi_empty;
+i_dbg.fg.fgwr.fr_rdy0 <= i_fg_tst_out(21);-- <= i_fr_rdy(0);
+i_dbg.fg.fgwr.vbufi_full_det <= i_fg_tst_out(22);-- <= tst_vbufi_full_detect;
+--i_dbg.fg.fgwr.vbufi_rd(0) <= i_fg_tst_out(23);-- <= tst_vbufi_rd(0);
+i_dbg.fg.fgwr.vbufi_empty(0) <= i_fg_tst_out(24);-- <= tst_vbufi_empty(0);
+i_dbg.fg.fgwr.vbufi_full(0) <= i_fg_tst_out(25);-- <= tst_vbufi_full(0);
+--i_dbg.fg.fgwr.vbufi_rd(1) <= i_fg_tst_out(26);-- <= tst_vbufi_rd(1);
+--i_dbg.fg.fgwr.vbufi_empty(1) <= i_fg_tst_out(27);-- <= tst_vbufi_empty(1);
+--i_dbg.fg.fgwr.vbufi_full(1) <= i_fg_tst_out(28);-- <= tst_vbufi_full(1);
 
 i_dbg.fg.fgrd.fsm             <= i_fg_tst_out((128 + 3) downto (128 + 0))  ;--<= std_logic_vector(tst_fsm_fgrd);
 i_dbg.fg.fgrd.vch_num         <= i_fg_tst_out((128 + 6) downto (128 + 4))  ;--<= i_vch_num;
@@ -1130,12 +1132,16 @@ i_dbg.fg.fgrd.fr_act_rowcount <= i_fg_tst_out((128 + 39) downto (128 + 24));--<=
 --i_dbg.fg.fgrd.mirror_pix      <= i_fg_tst_out(128 + 88)          ;--<= i_vch_prm.mirror.pix;
 --i_dbg.fg.fgrd.mirror_row      <= i_fg_tst_out(128 + 89)          ;--<= i_vch_prm.mirror.row;
 i_dbg.fg.fgrd.rowcnt      <= i_fg_tst_out((128 + 105) downto (128 + 90));
+i_dbg.fg.fgrd.hrd_done       <= i_fg_tst_out(128 + 106)                     ;--<= p_in_hrd_start;
+i_dbg.fg.fgrd.bufo_empty <= i_host_rxbuf_empty(C_HDEV_FG);
+i_dbg.fg.fgrd.vbuf_hold <= i_host_dev_status((C_HREG_DEV_STATUS_FG_VCH0_RDY_BIT
+                                        + C_FG_VCH_COUNT) - 1 downto C_HREG_DEV_STATUS_FG_VCH0_RDY_BIT);
 
 i_dbg.fg.fgwr.axiw_adr    <= i_memin_ch(1).axiw.adr(30 downto 0);
 i_dbg.fg.fgwr.axiw_d      <= i_memin_ch(1).axiw.data((32 * 1) - 1 downto 32 * 0);
 i_dbg.fg.fgwr.axiw_dvalid <= i_memin_ch(1).axiw.dvalid;
 i_dbg.fg.fgwr.axiw_dlast  <= i_memin_ch(1).axiw.dlast ;
-i_dbg.fg.fgwr.axiw_wready <= i_memout_ch(1).axiw.wready;
+--i_dbg.fg.fgwr.axiw_wready <= i_memout_ch(1).axiw.wready;
 i_dbg.fg.fgwr.axiw_aready <= i_memout_ch(1).axiw.aready;
 
 i_dbg.fg.fgrd.axir_adr    <= i_memin_ch(0).axiw.adr(30 downto 0);
@@ -1143,6 +1149,12 @@ i_dbg.fg.fgrd.axir_d      <= i_memout_ch(0).axir.data((32 * 1) - 1 downto 32 * 0
 i_dbg.fg.fgrd.axir_dvalid <= i_memout_ch(0).axir.dvalid;
 i_dbg.fg.fgrd.axir_dlast  <= i_memout_ch(0).axir.dlast ;
 i_dbg.fg.fgrd.axir_aready <= i_memout_ch(0).axir.aready;
+
+
+
+
+
+
 
 
 --i_dbg.fg.fgwr.fsm <= i_fg_tst_out(3  downto 0);
@@ -1172,17 +1184,17 @@ i_dbg.fg.fgrd.axir_aready <= i_memout_ch(0).axir.aready;
 ----i_dbg.swt.eth_rxbuf_den <= i_swt_tst_out(6);-- <= tst_eth_rxbuf_den;
 ----i_dbg.swt.vbufi_fltr_den <= i_swt_tst_out(7);-- <= i_vbufi_fltr_den;
 
-i_dbg.swt.ethio_rx_axi_tdata  <= i_ethio_rx_axi_tdata (63 downto 0);
-i_dbg.swt.ethio_rx_axi_tkeep  <= i_ethio_rx_axi_tkeep (7 downto 0);
-i_dbg.swt.ethio_rx_axi_tvalid <= i_ethio_rx_axi_tvalid(0);
-i_dbg.swt.ethio_rx_axi_tuser  <= i_ethio_rx_axi_tuser (1 downto 0);
-
-
-i_dbg.swt.ethio_tx_axi_tdata  <= i_ethio_tx_axi_tdata (63 downto 0);
-i_dbg.swt.ethio_tx_axi_tready <= i_ethio_tx_axi_tready(0);
-i_dbg.swt.ethio_tx_axi_tvalid <= i_ethio_tx_axi_tvalid(0);
-i_dbg.swt.ethio_tx_axi_done   <= i_ethio_tx_axi_done  (0);
-i_dbg.swt.h2eth_buf_empty     <= i_swt_tst_out(1);-- <= i_eth_txbuf_empty;
+--i_dbg.swt.ethio_rx_axi_tdata  <= i_ethio_rx_axi_tdata (63 downto 0);
+--i_dbg.swt.ethio_rx_axi_tkeep  <= i_ethio_rx_axi_tkeep (7 downto 0);
+--i_dbg.swt.ethio_rx_axi_tvalid <= i_ethio_rx_axi_tvalid(0);
+--i_dbg.swt.ethio_rx_axi_tuser  <= i_ethio_rx_axi_tuser (1 downto 0);
+--
+--
+--i_dbg.swt.ethio_tx_axi_tdata  <= i_ethio_tx_axi_tdata (63 downto 0);
+--i_dbg.swt.ethio_tx_axi_tready <= i_ethio_tx_axi_tready(0);
+--i_dbg.swt.ethio_tx_axi_tvalid <= i_ethio_tx_axi_tvalid(0);
+--i_dbg.swt.ethio_tx_axi_done   <= i_ethio_tx_axi_done  (0);
+--i_dbg.swt.h2eth_buf_empty     <= i_swt_tst_out(1);-- <= i_eth_txbuf_empty;
 
 
 ----i_dbg.swt.ethio_rx_axi_tvalid <= i_swt_tst_out(6);
@@ -1653,22 +1665,22 @@ i_dbg.swt.h2eth_buf_empty     <= i_swt_tst_out(1);-- <= i_eth_txbuf_empty;
 ----end generate gen_dbgcs_on;
 
 
-m_dbg_swt : dbgcs_ila_usr_highclk
-port map (
-clk => i_ethio_clk(0),
-
-probe0(0)           => i_dbg.swt.ethio_rx_axi_tvalid,
-probe0(2 downto 1)  => i_dbg.swt.ethio_rx_axi_tuser,
-probe0(66 downto 3) => i_dbg.swt.ethio_rx_axi_tdata,
-probe0(74 downto 67)=> i_dbg.swt.ethio_rx_axi_tkeep,
-
-probe0(138 downto 75)=> i_dbg.swt.ethio_tx_axi_tdata ,
-probe0(139)          => i_dbg.swt.ethio_tx_axi_tready,
-probe0(140)          => i_dbg.swt.ethio_tx_axi_tvalid,
-probe0(141)          => i_dbg.swt.ethio_tx_axi_done  ,
-
-probe0(142)          => i_dbg.swt.h2eth_buf_empty
-);
+--m_dbg_swt : dbgcs_ila_usr_highclk
+--port map (
+--clk => i_ethio_clk(0),
+--
+--probe0(0)           => i_dbg.swt.ethio_rx_axi_tvalid,
+--probe0(2 downto 1)  => i_dbg.swt.ethio_rx_axi_tuser,
+--probe0(66 downto 3) => i_dbg.swt.ethio_rx_axi_tdata,
+--probe0(74 downto 67)=> i_dbg.swt.ethio_rx_axi_tkeep,
+--
+--probe0(138 downto 75)=> i_dbg.swt.ethio_tx_axi_tdata ,
+--probe0(139)          => i_dbg.swt.ethio_tx_axi_tready,
+--probe0(140)          => i_dbg.swt.ethio_tx_axi_tvalid,
+--probe0(141)          => i_dbg.swt.ethio_tx_axi_done  ,
+--
+--probe0(142)          => i_dbg.swt.h2eth_buf_empty
+--);
 
 
 --m_dbg_fg : dbgcs_ila_hostclk
@@ -1694,13 +1706,18 @@ probe0(142)          => i_dbg.swt.h2eth_buf_empty
 --probe0(94 downto 92)   => i_dbg.fg.fgrd.vch_num        ,
 --probe0(95)             => i_dbg.fg.fgrd.hrd_start      ,
 --probe0(111 downto 96)  => i_dbg.fg.fgrd.fr_act_pixcount,
---probe0(127 downto 112) => i_dbg.fg.fgrd.fr_act_rowcount
-----probe0(143 downto 128) => i_dbg.fg.fgrd.steprd,
-----probe0(159 downto 144) => i_dbg.fg.fgrd.fr_skp_pixcount,
-----probe0(175 downto 160) => i_dbg.fg.fgrd.fr_skp_rowcount,
-----probe0(176)            => i_dbg.fg.fgrd.mirror_pix     ,
-----probe0(177)            => i_dbg.fg.fgrd.mirror_row
+--probe0(127 downto 112) => i_dbg.fg.fgrd.fr_act_rowcount,
+--probe0(143 downto 128) => i_dbg.fg.fgrd.steprd,
+--probe0(159 downto 144) => i_dbg.fg.fgrd.fr_skp_pixcount,
+--probe0(175 downto 160) => i_dbg.fg.fgrd.fr_skp_rowcount,
+--probe0(176)            => i_dbg.fg.fgrd.mirror_pix     ,
+--probe0(177)            => i_dbg.fg.fgrd.mirror_row     ,
 --
+--probe0(193 downto 178) => i_dbg.fg.fgrd.rowcnt,
+--probe0(194) => i_dbg.fg.fgrd.hrd_done,
+--probe0(195) => i_dbg.fg.fgrd.bufo_empty,
+--probe0(198 downto 196) => i_dbg.fg.fgrd.vbuf_hold,
+--probe0(199) => i_dbg.fg.fgrd.axir_dvalid
 --);
 
 m_dbg_fg : dbgcs_ila_hostclk
@@ -1710,37 +1727,102 @@ clk => g_usr_highclk,
 probe0(31 downto 0) => i_dbg.fg.fgwr.axiw_d,
 probe0(63 downto 32) => i_dbg.fg.fgrd.axir_d,
 probe0(66 downto 64) => i_dbg.fg.fgwr.fsm,
-probe0(77 downto 67) => i_dbg.fg.fgwr.fr_rownum,
-probe0(78) => i_dbg.fg.fgwr.axiw_dvalid, --i_dbg.fg.fgwr.mem_start,
-probe0(79) => i_dbg.fg.fgwr.axiw_dlast , --i_dbg.fg.fgwr.mem_done,
-probe0(80) => i_dbg.fg.fgwr.err,
-probe0(81) => i_dbg.fg.fgwr.vbufi_sel,
-probe0(82) => i_dbg.fg.fgwr.vbufi_empty_all,
-probe0(83) => i_dbg.fg.fgwr.fr_rdy0,
-probe0(84) => i_dbg.fg.fgwr.vbufi_full_det,
-probe0(85) => i_dbg.fg.fgwr.axiw_wready,--i_dbg.fg.fgwr.vbufi_rd(0),
-probe0(86) => i_dbg.fg.fgwr.vbufi_empty(0),
-probe0(87) => i_dbg.fg.fgwr.vbufi_full(0),
+probe0(79 downto 67) => i_dbg.fg.fgwr.fr_rownum,
+probe0(80) => i_dbg.fg.fgwr.axiw_dvalid, --i_dbg.fg.fgwr.mem_start,
+probe0(81) => i_dbg.fg.fgwr.axiw_dlast , --i_dbg.fg.fgwr.mem_done,
+probe0(82) => i_dbg.fg.fgwr.err,
+probe0(83) => i_dbg.fg.fgwr.vbufi_sel,
+probe0(84) => i_dbg.fg.fgwr.vbufi_empty_all,
+probe0(85) => i_dbg.fg.fgwr.fr_rdy0,
+probe0(86) => i_dbg.fg.fgwr.vbufi_full_det,
+probe0(87) => i_dbg.fg.fgrd.bufo_empty,--i_dbg.fg.fgwr.vbufi_rd(0),
+probe0(88) => i_dbg.fg.fgwr.vbufi_empty(0),
+probe0(89) => i_dbg.fg.fgwr.vbufi_full(0),
 
-probe0(91 downto 88)   => i_dbg.fg.fgrd.fsm            ,
-probe0(94 downto 92)   => i_dbg.fg.fgrd.vch_num        ,
-probe0(95)             => i_dbg.fg.fgrd.hrd_start      ,
-probe0(111 downto 96)  => i_dbg.fg.fgrd.rowcnt, --i_dbg.fg.fgrd.fr_act_pixcount,
-probe0(127 downto 112) => i_dbg.fg.fgrd.fr_act_rowcount,
+probe0(93 downto 90)   => i_dbg.fg.fgrd.fsm            ,
+probe0(96 downto 94)   => i_dbg.fg.fgrd.vch_num        ,
+probe0(97)             => i_dbg.fg.fgrd.hrd_start      ,
+probe0(113 downto 98)  => i_dbg.fg.fgrd.rowcnt, --i_dbg.fg.fgrd.fr_act_pixcount,
+probe0(114) => i_dbg.fg.fgrd.axir_dvalid,
+probe0(115) => i_dbg.fg.fgrd.axir_dlast ,
 
-probe0(128) => i_dbg.fg.fgwr.axiw_aready,
-probe0(129) => i_dbg.fg.fgrd.axir_dvalid,
-probe0(130) => i_dbg.fg.fgrd.axir_dlast ,
-probe0(131) => i_dbg.fg.fgrd.axir_aready,
-
-probe0(162 downto 132) => i_dbg.fg.fgwr.axiw_adr,
-probe0(193 downto 163) => i_dbg.fg.fgrd.axir_adr
+probe0(146 downto 116) => i_dbg.fg.fgrd.axir_adr,
+probe0(177 downto 147) => i_dbg.fg.fgwr.axiw_adr,
+probe0(178) => i_dbg.fg.fgrd.hrd_done
 );
 
+--m_dbg_fg : dbgcs_ila_hostclk
+--port map (
+--clk => g_usr_highclk,
+--
+--probe0(15 downto 0)  => i_dbg.fg.fgrd.fr_act_pixcount,
+--probe0(31 downto 16) => i_dbg.fg.fgrd.fr_act_rowcount,
+--probe0(47 downto 32) => i_dbg.fg.fgrd.fr_skp_pixcount,
+--probe0(63 downto 48) => i_dbg.fg.fgrd.fr_skp_rowcount,
+--probe0(66 downto 64) => i_dbg.fg.fgwr.fsm,
+--probe0(77 downto 67) => i_dbg.fg.fgwr.fr_rownum,
+--probe0(78) => i_dbg.fg.fgrd.axir_dvalid,
+--probe0(79) => i_dbg.fg.fgwr.axiw_dvalid,
+--probe0(80) => i_dbg.fg.fgwr.err,
+--probe0(81) => i_dbg.fg.fgwr.vbufi_sel,
+--probe0(82) => i_dbg.fg.fgwr.vbufi_empty_all,
+--probe0(83) => i_dbg.fg.fgwr.fr_rdy0,
+--probe0(84) => i_dbg.fg.fgwr.vbufi_full_det,
+----probe0(85) => i_dbg.fg.fgwr.vbufi_rd(0),
+--probe0(85) => i_dbg.fg.fgrd.hrd_done,
+--probe0(86) => i_dbg.fg.fgwr.vbufi_empty(0),
+--probe0(87) => i_dbg.fg.fgwr.vbufi_full(0),
+--
+--probe0(91 downto 88)   => i_dbg.fg.fgrd.fsm            ,
+--probe0(94 downto 92)   => i_dbg.fg.fgrd.vch_num        ,
+--probe0(95)             => i_dbg.fg.fgrd.hrd_start      ,
+--probe0(111 downto 96) => i_dbg.fg.fgrd.steprd,
+--
+--probe0(112)            => i_dbg.fg.fgrd.mirror_pix     ,
+--probe0(113)            => i_dbg.fg.fgrd.mirror_row     ,
+--
+--probe0(114) => i_dbg.fg.fgrd.bufo_empty,
+--probe0(130 downto 115) => i_dbg.fg.fgrd.rowcnt,
+--probe0(132 downto 131) => i_dbg.fg.fgrd.vbuf_hold,
+--probe0(133) => '0'
+--
+--);
 
 
+m_dbg_pci : dbgcs_ila_usr_highclk
+port map (
+clk => g_host_clk,
 
+probe0(3 downto 0) => i_dbg.pcie.dev_num   ,
+probe0(4)          => i_dbg.pcie.dma_dir   ,
+probe0(12 downto 5)=> i_dbg.pcie.dma_bufnum,
+probe0(13)         => i_dbg.pcie.dma_done  ,
+probe0(14)         => i_dbg.pcie.dma_init  ,
 
+probe0(15)         => i_dbg.pcie.axi_rq_tready,
+probe0(16)         => i_dbg.pcie.axi_rq_tvalid,
+probe0(17)         => i_dbg.pcie.axi_rq_tlast ,
+
+probe0(18)         => i_dbg.pcie.d2h_buf_rd   ,
+probe0(19)         => i_dbg.pcie.d2h_buf_empty,
+
+probe0(51 downto 20) => i_dbg.pcie.axi_rq_tdata(0),
+probe0(83 downto 52) => i_dbg.pcie.axi_rq_tdata(2),
+probe0(87 downto 84) => i_dbg.pcie.axi_rq_tkeep,
+probe0(119 downto 88) => i_dbg.pcie.dma_bufadr ,
+probe0(151 downto 120) => i_dbg.pcie.dma_bufsize,
+probe0(167 downto 152) => i_dbg.fg.fgrd.rowcnt,
+probe0(175 downto 168) => i_dbg.pcie.axi_rq_tuser,
+probe0(176)            => i_dbg.pcie.dma_timeout
+
+--probe0(208 downto 177) => i_dbg.pcie.axi_rq_tdata(2)
+
+--probe0(148 downto 117) => i_dbg.pcie.d2h_buf_d(1),
+--probe0(152 downto 149) => i_dbg.pcie.axi_rq_tkeep,
+--probe0(184 downto 153) => i_dbg.pcie.dma_bufadr ,
+--probe0(216 downto 185) => i_dbg.pcie.dma_bufsize,
+--probe0(232 downto 217) => i_dbg.fg.fgrd.rowcnt
+);
 
 
 

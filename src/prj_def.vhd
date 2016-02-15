@@ -95,16 +95,14 @@ constant C_HDEV_COUNT_MAX                     : integer := pwr(2, (C_HREG_DMA_CT
 --Register C_HOST_REG_STATUS_DEV / Bit Map:
 constant C_HREG_DEV_STATUS_DMA_BUSY_BIT       : integer := 0; --PCIE_DMA
 constant C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT    : integer := 1;
---constant C_HREG_DEV_STATUS_CFG_RXRDY_BIT      : integer := 2;
---constant C_HREG_DEV_STATUS_CFG_TXRDY_BIT      : integer := 3;
-constant C_HREG_DEV_STATUS_ETH_RDY_BIT        : integer := 4;
-constant C_HREG_DEV_STATUS_ETH_LINK_BIT       : integer := 5;
-constant C_HREG_DEV_STATUS_ETH_RXRDY_BIT      : integer := 6;
-constant C_HREG_DEV_STATUS_ETH_TXRDY_BIT      : integer := 7;
-constant C_HREG_DEV_STATUS_FG_VCH0_RDY_BIT    : integer := 8;
-constant C_HREG_DEV_STATUS_FG_VCH1_RDY_BIT    : integer := 9;
-constant C_HREG_DEV_STATUS_FG_VCH2_RDY_BIT    : integer := 10;
-constant C_HREG_DEV_STATUS_FG_VCH3_RDY_BIT    : integer := 11;
+constant C_HREG_DEV_STATUS_ETH_RDY_BIT        : integer := 2;
+constant C_HREG_DEV_STATUS_ETH_LINK_BIT       : integer := 3;
+constant C_HREG_DEV_STATUS_ETH_RXRDY_BIT      : integer := 4;
+constant C_HREG_DEV_STATUS_ETH_TXRDY_BIT      : integer := 5;
+constant C_HREG_DEV_STATUS_FG_VCH0_RDY_BIT    : integer := 6;
+constant C_HREG_DEV_STATUS_FG_VCH1_RDY_BIT    : integer := 7;
+constant C_HREG_DEV_STATUS_FG_VCH2_RDY_BIT    : integer := 8;
+constant C_HREG_DEV_STATUS_FG_VCH3_RDY_BIT    : integer := 9;
 
 constant C_HREG_DEV_STATUS_FST_BIT            : integer := 1;
 constant C_HREG_DEV_STATUS_LAST_BIT           : integer := C_HREG_DEV_STATUS_FG_VCH0_RDY_BIT + C_PCFG_FG_VCH_COUNT - 1;
@@ -144,21 +142,16 @@ constant C_HREG_MEM_CTRL_LAST_BIT             : integer := C_HREG_MEM_CTRL_TRNRD
 
 
 --Register C_HREG_PCIE / Bit Map:
---constant RESERV                             : integer := 5..0;
-constant C_HREG_PCIE_NEG_LINK_L_RBIT          : integer := 6;
-constant C_HREG_PCIE_NEG_LINK_M_RBIT          : integer := 11;
---constant RESERV                             : integer := 14...12;
-constant C_HREG_PCIE_NEG_MAX_PAYLOAD_L_BIT    : integer := 15;
-constant C_HREG_PCIE_NEG_MAX_PAYLOAD_M_BIT    : integer := 17;
-constant C_HREG_PCIE_NEG_MAX_RD_REQ_L_BIT     : integer := 18;
-constant C_HREG_PCIE_NEG_MAX_RD_REQ_M_BIT     : integer := 20;
---constant RESERV                             : integer := 23...21;
-constant C_HREG_PCIE_MASTER_EN_BIT            : integer := 24;
---constant RESERV                             : integer := 27...25;
-constant C_HREG_PCIE_SPEED_TESTING_BIT        : integer := 28;
-constant C_HREG_PCIE_EN_TESTD_GEN_BIT         : integer := 29;
+constant C_HREG_PCIE_NEG_LINK_L_RBIT          : integer := 0;
+constant C_HREG_PCIE_NEG_LINK_M_RBIT          : integer := 5;
+constant C_HREG_PCIE_NEG_MAX_PAYLOAD_L_BIT    : integer := 6;
+constant C_HREG_PCIE_NEG_MAX_PAYLOAD_M_BIT    : integer := 8;
+constant C_HREG_PCIE_NEG_MAX_RD_REQ_L_BIT     : integer := 9;
+constant C_HREG_PCIE_NEG_MAX_RD_REQ_M_BIT     : integer := 11;
+constant C_HREG_PCIE_MASTER_EN_BIT            : integer := 12;
+constant C_HREG_PCIE_SPEED_TESTING_BIT        : integer := 13;
+constant C_HREG_PCIE_EN_TESTD_GEN_BIT         : integer := 14;
 constant C_HREG_PCIE_LAST_BIT                 : integer := C_HREG_PCIE_EN_TESTD_GEN_BIT;
-
 
 --Register C_HREG_FUNC / Bit Map:
 --1/0 - use/(not use) into project FPGA

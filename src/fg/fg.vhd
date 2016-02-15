@@ -109,13 +109,13 @@ empty       : OUT std_logic;
 full        : OUT std_logic;
 prog_full   : OUT std_logic;
 
---rst         : IN  std_logic
+rst         : IN  std_logic
 
-wr_rst_busy : out std_logic;
-rd_rst_busy : out std_logic;
-
---clk       : in  std_logic;
-srst      : in  std_logic
+--wr_rst_busy : out std_logic;
+--rd_rst_busy : out std_logic;
+--
+----clk       : in  std_logic;
+--srst      : in  std_logic
 );
 end component fg_bufo;
 
@@ -735,13 +735,13 @@ empty     => p_out_vbufo_empty,
 full      => open,
 prog_full => i_vbufo_full,
 
---rst       => i_vbufo_rst
+rst       => i_vbufo_rst
 
-wr_rst_busy => open,
-rd_rst_busy => open,
-
---clk       : in  std_logic;
-srst      => i_vbufo_rst
+--wr_rst_busy => open,
+--rd_rst_busy => open,
+--
+----clk       : in  std_logic;
+--srst      => i_vbufo_rst
 );
 
 i_vbufo_rst <= p_in_rst or p_in_tst(0);
@@ -783,6 +783,7 @@ gen_dbgcs_off : if strcmp(G_DBGCS,"OFF") generate
 p_out_tst(22 downto 0) <= (others => '0');
 p_out_tst(23) <= tst_pkt_err;
 p_out_tst(p_out_tst'high downto 24) <= (others => '0');
+
 end generate gen_dbgcs_off;
 
 gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate

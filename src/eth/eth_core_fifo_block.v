@@ -319,7 +319,7 @@ endgenerate
 
 
 //generate
-//if (G_GTCH_COUNT == 1) begin
+//if (G_GTCH_COUNT == 2) begin
   //---------------------------------------------------------------------------
   // Instantiate the AXI 10G Ethernet core
   //---------------------------------------------------------------------------
@@ -384,8 +384,8 @@ endgenerate
       .tx_disable                      (tx_disable[1]),
       .pcspma_status                   (pcspma_status[(8 * (1 + 1)) - 1 : (8 * 1)])
    );
-//
-//end //if (G_GTCH_COUNT = 1) begin
+
+//end //if (G_GTCH_COUNT = 2) begin
 //endgenerate
 
 endmodule
