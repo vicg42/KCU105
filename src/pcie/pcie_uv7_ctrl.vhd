@@ -266,6 +266,13 @@ signal tst_axi_rq_tlast  : std_logic;
 signal tst_axi_rq_tvalid : std_logic;
 signal tst_axi_rq_tready : std_logic;
 
+signal tst_axi_cc_tdata  : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+signal tst_axi_cc_tuser  : std_logic_vector(32 downto 0)              ;
+signal tst_axi_cc_tlast  : std_logic                                  ;
+signal tst_axi_cc_tkeep  : std_logic_vector((G_DATA_WIDTH / 32) - 1  downto 0);
+signal tst_axi_cc_tvalid : std_logic                                  ;
+signal tst_axi_cc_tready : std_logic_vector(3 downto 0)               ;
+
 signal tst_dma_timeout_cnt         : unsigned(12 downto 0);
 signal tst_dma_timeout             : std_logic;
 
@@ -514,18 +521,25 @@ p_out_axi_rq_tvalid <= tst_axi_rq_tvalid;
 p_out_axi_rq_tuser  <= tst_axi_rq_tuser ;
 tst_axi_rq_tready  <= p_in_axi_rq_tready(0);
 
+p_out_axi_cc_tdata  <= tst_axi_cc_tdata    ;
+p_out_axi_cc_tkeep  <= tst_axi_cc_tkeep    ;
+p_out_axi_cc_tlast  <= tst_axi_cc_tlast    ;
+p_out_axi_cc_tvalid <= tst_axi_cc_tvalid   ;
+p_out_axi_cc_tuser  <= tst_axi_cc_tuser    ;
+tst_axi_cc_tready  <= p_in_axi_cc_tready;
+
 m_tx : pcie_tx
 generic map (
 G_DATA_WIDTH => G_DATA_WIDTH
 )
 port map(
 --AXI-S Completer Competion Interface
-p_out_axi_cc_tdata  => p_out_axi_cc_tdata   ,
-p_out_axi_cc_tkeep  => p_out_axi_cc_tkeep   ,
-p_out_axi_cc_tlast  => p_out_axi_cc_tlast   ,
-p_out_axi_cc_tvalid => p_out_axi_cc_tvalid  ,
-p_out_axi_cc_tuser  => p_out_axi_cc_tuser   ,
-p_in_axi_cc_tready  => p_in_axi_cc_tready(0),
+p_out_axi_cc_tdata  => tst_axi_cc_tdata    ,--p_out_axi_cc_tdata   ,
+p_out_axi_cc_tkeep  => tst_axi_cc_tkeep    ,--p_out_axi_cc_tkeep   ,
+p_out_axi_cc_tlast  => tst_axi_cc_tlast    ,--p_out_axi_cc_tlast   ,
+p_out_axi_cc_tvalid => tst_axi_cc_tvalid   ,--p_out_axi_cc_tvalid  ,
+p_out_axi_cc_tuser  => tst_axi_cc_tuser    ,--p_out_axi_cc_tuser   ,
+p_in_axi_cc_tready  => tst_axi_cc_tready(0),--p_in_axi_cc_tready(0),
 
 --AXI-S Requester Request Interface
 p_out_axi_rq_tdata  => tst_axi_rq_tdata   ,--p_out_axi_rq_tdata   ,
@@ -794,6 +808,7 @@ p_out_dbg.dma_dir   <= tst_uapp_out(62) ;-- i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMA_D
 p_out_dbg.dma_bufnum <= tst_uapp_out(72 downto 65);-- <= i_dmabuf_num_cnt;
 p_out_dbg.dma_done   <= tst_uapp_out(73)          ;-- <= i_dmatrn_done;
 p_out_dbg.dma_init   <= tst_uapp_out(74)          ;-- <= i_dmatrn_init;
+p_out_dbg.dma_work   <= tst_uapp_out(126); --i_dma_work
 
 --gen_dbg_rq_tdata : for i in 1 to 0 generate begin
 --p_out_dbg.axi_rq_tdata(i) <= tst_tx_out(((280 * 1) + 11 + (32 * (i + 1)) - 1) downto ((280 * 1) + 11 + (32 * i))); --p_in_axi_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
@@ -806,7 +821,7 @@ p_out_dbg.dma_init   <= tst_uapp_out(74)          ;-- <= i_dmatrn_init;
 p_out_dbg.axi_rq_tdata(0) <= tst_axi_rq_tdata((32 * 1) - 1 downto (32 * 0));
 p_out_dbg.axi_rq_tdata(1) <= tst_axi_rq_tdata((32 * 2) - 1 downto (32 * 1));
 p_out_dbg.axi_rq_tdata(2) <= tst_axi_rq_tdata((32 * 3) - 1 downto (32 * 2));
-p_out_dbg.axi_rq_tkeep(3 downto 0) <= tst_axi_rq_tkeep(3 downto 0);
+--p_out_dbg.axi_rq_tkeep(3 downto 0) <= tst_axi_rq_tkeep(3 downto 0);
 p_out_dbg.axi_rq_tready <= tst_axi_rq_tready;
 p_out_dbg.axi_rq_tvalid <= tst_axi_rq_tvalid;
 p_out_dbg.axi_rq_tlast  <= tst_axi_rq_tlast;
@@ -822,32 +837,59 @@ p_out_dbg.d2h_buf_empty <= i_d2h_buf_empty;
 
 p_out_dbg.dma_bufadr <= i_dma_prm.addr;
 p_out_dbg.dma_bufsize<= i_dma_prm.len;
-p_out_dbg.dma_timeout<= tst_dma_timeout;
+--p_out_dbg.dma_timeout<= tst_dma_timeout;
+
+p_out_dbg.req_compl <= i_req_compl;
+p_out_dbg.compl_done <= i_compl_done;
 
 
-process(i_trn_clk)
-begin
-if rising_edge(i_trn_clk) then
-  if (tst_uapp_out(126) = '1') then --i_dma_work
+p_out_dbg.axi_cc_tready <= tst_axi_cc_tready(0);
+p_out_dbg.axi_cc_tvalid <= tst_axi_cc_tvalid   ;
+p_out_dbg.axi_cc_tlast  <= tst_axi_cc_tlast    ;
+--p_out_axi_cc_tdata  => tst_axi_cc_tdata    ,--p_out_axi_cc_tdata   ,
+--p_out_axi_cc_tkeep  => tst_axi_cc_tkeep    ,--p_out_axi_cc_tkeep   ,
+--p_out_axi_cc_tuser  => tst_axi_cc_tuser    ,--p_out_axi_cc_tuser   ,
 
-    if tst_uapp_out(62) = '1' then --i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
-    --dma: pc <- fpga
-        if (tst_axi_rq_tready = '1' and tst_axi_rq_tvalid = '1' and tst_axi_rq_tlast = '1') then
-          tst_dma_timeout_cnt <= (others => '0');
-        else
-          tst_dma_timeout_cnt <= tst_dma_timeout_cnt + 1;
-        end if;
-    else
-      tst_dma_timeout_cnt <= (others => '0');
-    end if;
-  else
-    tst_dma_timeout_cnt <= (others => '0');
-  end if;
-end if;
-end process;
+p_out_dbg.axi_cq_tready <= i_axi_cq_tready   ;
+p_out_dbg.axi_cq_tvalid <= p_in_axi_cq_tvalid;
+p_out_dbg.axi_cq_tlast  <= p_in_axi_cq_tlast ;
+--p_in_axi_cq_tuser   => p_in_axi_cq_tuser ,
+--p_in_axi_cq_tkeep   => p_in_axi_cq_tkeep ,
+--p_in_axi_cq_tdata   => p_in_axi_cq_tdata ,
 
+p_out_dbg.cfg_fc_ph   <= p_in_cfg_fc_ph       ;--: in   std_logic_vector( 7 downto 0);
+p_out_dbg.cfg_fc_pd   <= p_in_cfg_fc_pd       ;--: in   std_logic_vector(11 downto 0);
+p_out_dbg.cfg_fc_nph  <= p_in_cfg_fc_nph      ;--: in   std_logic_vector( 7 downto 0);
+p_out_dbg.cfg_fc_npd  <= p_in_cfg_fc_npd      ;--: in   std_logic_vector(11 downto 0);
+p_out_dbg.cfg_fc_cplh <= p_in_cfg_fc_cplh     ;--: in   std_logic_vector( 7 downto 0);
+p_out_dbg.cfg_fc_cpld <= p_in_cfg_fc_cpld     ;--: in   std_logic_vector(11 downto 0);
 
-tst_dma_timeout <= '1' when tst_dma_timeout_cnt >= TO_UNSIGNED(2048, tst_dma_timeout_cnt'length) else '0';
+p_out_dbg.tfc_nph_av  <= p_in_pcie_tfc_nph_av ;--: in   std_logic_vector(1 downto 0)                ;
+p_out_dbg.tfc_npd_av  <= p_in_pcie_tfc_npd_av ;--: in   std_logic_vector(1 downto 0)                ;
+
+--process(i_trn_clk)
+--begin
+--if rising_edge(i_trn_clk) then
+--  if (tst_uapp_out(126) = '1') then --i_dma_work
+--
+--    if tst_uapp_out(62) = '1' then --i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
+--    --dma: pc <- fpga
+--        if (tst_axi_rq_tready = '1' and tst_axi_rq_tvalid = '1' and tst_axi_rq_tlast = '1') then
+--          tst_dma_timeout_cnt <= (others => '0');
+--        else
+--          tst_dma_timeout_cnt <= tst_dma_timeout_cnt + 1;
+--        end if;
+--    else
+--      tst_dma_timeout_cnt <= (others => '0');
+--    end if;
+--  else
+--    tst_dma_timeout_cnt <= (others => '0');
+--  end if;
+--end if;
+--end process;
+--
+--
+--tst_dma_timeout <= '1' when tst_dma_timeout_cnt >= TO_UNSIGNED(2048, tst_dma_timeout_cnt'length) else '0';
 
 end architecture struct;
 

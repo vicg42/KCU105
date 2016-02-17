@@ -133,6 +133,7 @@ p_in_pcie_rq_seq_num_vld  : in  std_logic;
 p_in_req_compl    : in  std_logic;
 p_in_req_compl_ur : in  std_logic;
 p_out_compl_done  : out std_logic;
+p_in_txrq_busy    : in  std_logic;
 
 p_in_req_prm      : in TPCIE_reqprm;
 
@@ -177,6 +178,10 @@ p_in_completer_id : in  std_logic_vector(15 downto 0);
 
 p_in_pcie_prm    : in  TPCIE_cfgprm;
 
+--Completion
+p_out_txrq_busy     : out  std_logic;
+p_in_txcc_req_compl : in   std_logic;
+
 --usr app
 p_in_urxbuf_empty : in  std_logic;
 p_in_urxbuf_do    : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
@@ -201,6 +206,7 @@ p_in_rst_n : in  std_logic
 );
 end component pcie_tx_rq;
 
+signal i_txrq_busy  : std_logic;
 
 begin --architecture behavioral of pcie_tx
 
@@ -237,6 +243,7 @@ p_in_pcie_rq_seq_num_vld  => p_in_pcie_rq_seq_num_vld ,
 p_in_req_compl    => p_in_req_compl   ,
 p_in_req_compl_ur => p_in_req_compl_ur,
 p_out_compl_done  => p_out_compl_done ,
+p_in_txrq_busy    => i_txrq_busy,
 
 p_in_req_prm      => p_in_req_prm,
 
@@ -281,6 +288,10 @@ p_in_completer_id => p_in_completer_id,
 
 p_in_pcie_prm    => p_in_pcie_prm,
 
+--Completion
+p_out_txrq_busy     => i_txrq_busy,
+p_in_txcc_req_compl => p_in_req_compl,
+
 --usr app
 p_in_urxbuf_empty => p_in_urxbuf_empty,
 p_in_urxbuf_do    => p_in_urxbuf_do   ,
@@ -305,7 +316,7 @@ p_in_rst_n => p_in_rst_n
 );
 
 
-p_out_cfg_fc_sel <= (others => '0');
+p_out_cfg_fc_sel <= std_logic_vector(TO_UNSIGNED(4 ,p_out_cfg_fc_sel'length));--(others => '0');
 
 end architecture behavioral;
 

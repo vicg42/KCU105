@@ -194,6 +194,7 @@ dma_dir    : std_logic;
 dma_bufnum : std_logic_vector(7 downto 0);
 dma_done   : std_logic;
 dma_init   : std_logic;
+dma_work   : std_logic;
 
 axi_rq_tdata  : TDBG_darray;
 axi_rq_tkeep  : std_logic_vector(3 downto 0);
@@ -210,8 +211,28 @@ d2h_buf_empty : std_logic;
 dma_bufadr : std_logic_vector(31 downto 0);
 dma_bufsize: std_logic_vector(31 downto 0);
 
-dma_timeout: std_logic;
+--dma_timeout: std_logic;
+req_compl: std_logic;
+compl_done: std_logic;
 
+axi_cc_tready : std_logic;
+axi_cc_tvalid : std_logic;
+axi_cc_tlast  : std_logic;
+
+axi_cq_tready : std_logic;
+axi_cq_tvalid : std_logic;
+axi_cq_tlast  : std_logic;
+
+
+cfg_fc_ph   : std_logic_vector( 7 downto 0);
+cfg_fc_pd   : std_logic_vector(11 downto 0);
+cfg_fc_nph  : std_logic_vector( 7 downto 0);
+cfg_fc_npd  : std_logic_vector(11 downto 0);
+cfg_fc_cplh : std_logic_vector( 7 downto 0);
+cfg_fc_cpld : std_logic_vector(11 downto 0);
+
+tfc_nph_av  : std_logic_vector(1 downto 0)                ;
+tfc_npd_av  : std_logic_vector(1 downto 0)                ;
 end record;
 
 end package pcie_pkg;

@@ -42,6 +42,10 @@ p_in_pcie_prm     : in  TPCIE_cfgprm;
 
 p_in_completer_id : in  std_logic_vector(15 downto 0);
 
+--Completion
+p_out_txrq_busy     : out  std_logic;
+p_in_txcc_req_compl : in   std_logic;
+
 --usr app
 p_in_urxbuf_empty : in  std_logic;
 p_in_urxbuf_do    : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
@@ -120,6 +124,8 @@ begin --architecture behavioral of pcie_tx_rq
 
 p_out_dma_mrd_done <= i_mrd_done;
 p_out_dma_mwr_done <= i_mwr_done;
+
+p_out_txrq_busy <= i_mwr_work;
 
 i_urxbuf_rd <= (p_in_axi_rq_tready and not p_in_urxbuf_empty);
 p_out_urxbuf_rd <= i_urxbuf_rd and i_mwr_work;
@@ -211,6 +217,7 @@ if rising_edge(p_in_clk) then
             i_mwr_work <= '0';
             i_mem_tpl_last <= '0';
 
+          if (p_in_txcc_req_compl = '0') then
             if (p_in_dma_mwr_en = '1' and i_mwr_done = '0' and p_in_pcie_prm.master_en(0) = '1') then
 
                 if (i_dma_init = '1') then
@@ -234,6 +241,7 @@ if rising_edge(p_in_clk) then
                 i_fsm_txrq <= S_TXRQ_MWR_C0;
 
             elsif (p_in_dma_mrd_en = '1' and i_mrd_done = '0' and p_in_pcie_prm.master_en(0) = '1') then
+
                 if (i_dma_init = '1') then
 
                   case p_in_pcie_prm.max_rd_req is
@@ -261,6 +269,7 @@ if rising_edge(p_in_clk) then
                 end if;
 
             end if;
+          end if;
 
           end if;
 
