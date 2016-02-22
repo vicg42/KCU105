@@ -41,9 +41,6 @@ C_PCGF_PCIE_DWIDTH);
 
 constant C_MEM_ARB_CH_COUNT  : integer := C_PCFG_MEMARB_CH_COUNT;
 
-constant C_MEM_BANK_COUNT    : integer := 1;
-constant C_MEM_BANK_COUNT_MAX: integer := C_MEM_BANK_COUNT;
-
 constant CI_CK_WIDTH      : integer := 1 ;-- # of CK/CK# outputs to memory.
 constant CI_CKE_WIDTH     : integer := 1 ;-- # of CKE outputs to memory.
 constant CI_CS_WIDTH      : integer := 1 ;-- # of unique CS outputs to memory.
@@ -74,7 +71,7 @@ dqs_t    : std_logic_vector(CI_DQS_WIDTH - 1  downto 0);
 end record;
 
 type TMEMCTRL_status is record
-rdy   : std_logic_vector(C_MEM_BANK_COUNT - 1 downto 0);
+rdy   : std_logic;
 end record;
 
 type TMEMCTRL_pinin is record
@@ -88,15 +85,8 @@ clk   : std_logic;
 end record;
 
 -- Types for memory interface
-type TMEMCTRL_pinouts   is array(0 to C_MEM_BANK_COUNT_MAX - 1) of TMEMCTRL_pinout  ;
-type TMEMCTRL_pininouts is array(0 to C_MEM_BANK_COUNT_MAX - 1) of TMEMCTRL_pininout;
-type TMEMCTRL_pinins    is array(0 to C_MEM_BANK_COUNT_MAX - 1) of TMEMCTRL_pinin   ;
-
 Type TMemINCh is array (0 to C_MEM_ARB_CH_COUNT - 1) of TMemIN;
 Type TMemOUTCh is array (0 to C_MEM_ARB_CH_COUNT - 1) of TMemOUT;
-
-Type TMemINBank  is array (0 to C_MEM_BANK_COUNT - 1) of TMemIN; --TMemINCh;
-Type TMemOUTBank is array (0 to C_MEM_BANK_COUNT - 1) of TMemOUT;--TMemOUTCh;
 
 Type TMemINChVD is array (0 to C_PCFG_FG_VCH_COUNT - 1) of TMemIN;
 Type TMemOUTChVD is array (0 to C_PCFG_FG_VCH_COUNT - 1) of TMemOUT;
@@ -109,22 +99,22 @@ port(
 ------------------------------------
 --USER Port
 ------------------------------------
-p_in_mem       : in    TMemINBank;
-p_out_mem      : out   TMemOUTBank;
+p_in_mem       : in    TMemIN;
+p_out_mem      : out   TMemOUT;
 
 p_out_status   : out   TMEMCTRL_status;
 
 ------------------------------------
 --Memory physical interface
 ------------------------------------
-p_out_phymem   : out   TMEMCTRL_pinouts;
-p_inout_phymem : inout TMEMCTRL_pininouts;
+p_out_phymem   : out   TMEMCTRL_pinout;
+p_inout_phymem : inout TMEMCTRL_pininout;
 
 ------------------------------------
 --System
 ------------------------------------
 p_out_sys      : out   TMEMCTRL_sysout;
-p_in_sys       : in    TMEMCTRL_pinins;
+p_in_sys       : in    TMEMCTRL_pinin;
 p_in_rst       : in    std_logic
 );
 end component mem_ctrl;
