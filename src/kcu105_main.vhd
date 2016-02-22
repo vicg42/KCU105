@@ -70,9 +70,9 @@ pin_out_sfp_tx_dis     : out std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 --------------------------------------------------
 --RAM
 --------------------------------------------------
-pin_out_phymem      : out   TMEMCTRL_pinouts;
-pin_inout_phymem    : inout TMEMCTRL_pininouts;
-pin_in_phymem       : in    TMEMCTRL_pinins;
+pin_out_phymem      : out   TMEMCTRL_pinout;
+pin_inout_phymem    : inout TMEMCTRL_pininout;
+pin_in_phymem       : in    TMEMCTRL_pinin;
 
 --------------------------------------------------
 --PCIE
@@ -156,8 +156,6 @@ signal i_memin_fgwrch      : TMemINChVD;
 signal i_memout_fgwrch     : TMemOUTChVD;
 signal i_memin_ch          : TMemINCh;
 signal i_memout_ch         : TMemOUTCh;
-signal i_memin_bank        : TMemINBank;
-signal i_memout_bank       : TMemOUTBank;
 
 signal i_arb_mem_rst       : std_logic;
 signal i_arb_memin         : TMemIN;
@@ -235,7 +233,7 @@ attribute keep of i_ethio_clk : signal is "true";
 component dbgcs_ila_hostclk is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(178 downto 0)
+probe0 : in std_logic_vector(278 downto 0)
 );
 end component dbgcs_ila_hostclk;
 
@@ -426,7 +424,7 @@ begin --architecture struct
 --RESET
 --***********************************************************
 i_mem_ctrl_rst <= i_host_gctrl(C_HREG_CTRL_RST_MEM_BIT);--or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT) not i_host_rst_n or
-i_arb_mem_rst <= not OR_reduce(i_mem_ctrl_status.rdy);
+i_arb_mem_rst <= not i_mem_ctrl_status.rdy;
 i_eth_rst <= i_host_gctrl(C_HREG_CTRL_RST_ETH_BIT) or i_usrclk_rst;
 i_swt_rst <= i_arb_mem_rst or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT);
 i_fg_rst <= i_arb_mem_rst or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT);
@@ -827,7 +825,7 @@ i_host_tst_in(127 downto 66) <= (others => '0');
 i_host_devadr <= UNSIGNED(i_host_dev_ctrl.dma(C_HREG_DMA_CTRL_ADR_M_BIT downto C_HREG_DMA_CTRL_ADR_L_BIT));
 
 --Status User Devices
-i_host_dev_status(C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT) <= OR_reduce(i_mem_ctrl_status.rdy);
+i_host_dev_status(C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT) <= i_mem_ctrl_status.rdy;
 
 i_host_dev_status(C_HREG_DEV_STATUS_ETH_RDY_BIT) <= i_eth_status_qplllock;
 i_host_dev_status(C_HREG_DEV_STATUS_ETH_LINK_BIT) <= i_eth_status_rdy(0);
@@ -960,8 +958,6 @@ p_in_clk    => g_usr_highclk,
 p_in_rst    => i_arb_mem_rst
 );
 
-i_memin_bank(0) <= i_arb_memin;
-i_arb_memout    <= i_memout_bank(0);
 
 m_mem_ctrl : mem_ctrl
 generic map(
@@ -971,8 +967,8 @@ port map(
 ------------------------------------
 --USER Port
 ------------------------------------
-p_in_mem   => i_memin_bank,
-p_out_mem  => i_memout_bank,
+p_in_mem   => i_arb_memin ,
+p_out_mem  => i_arb_memout,
 
 p_out_status    => i_mem_ctrl_status,
 
@@ -1015,9 +1011,9 @@ p_in_clk   => g_usrclk(0),
 p_in_rst   => i_usrclk_rst
 );
 
-pin_out_led(0) <= i_test_led(0);
+pin_out_led(0) <= i_test_led(0) and (not i_host_tst_out(121)); --axi_rc_err_detect;
 pin_out_led(1) <= i_host_tst2_out(0);--i_user_lnk_up
-pin_out_led(2) <= OR_reduce(i_mem_ctrl_status.rdy);
+pin_out_led(2) <= i_mem_ctrl_status.rdy;
 pin_out_led(3) <= i_eth_status_qplllock;
 
 gen_eth_status : for i in 0 to C_PCFG_ETH_CH_COUNT - 1 generate
@@ -1789,7 +1785,7 @@ i_dbg.fg.fgrd.rowcnt      <= i_fg_tst_out((128 + 105) downto (128 + 90));
 --);
 
 
-m_dbg_pci : dbgcs_ila_usr_highclk
+m_dbg_pci : dbgcs_ila_hostclk
 port map (
 clk => g_host_clk,
 
@@ -1798,46 +1794,62 @@ probe0(4)          => i_dbg.pcie.dma_dir   ,
 probe0(12 downto 5)=> i_dbg.pcie.dma_bufnum,
 probe0(13)         => i_dbg.pcie.dma_done  ,
 probe0(14)         => i_dbg.pcie.dma_init  ,
+probe0(15)         => i_dbg.pcie.dma_work  ,
+probe0(16) => i_dbg.pcie.test_speed,
 
-probe0(15)         => i_dbg.pcie.axi_rq_tready,
-probe0(16)         => i_dbg.pcie.axi_rq_tvalid,
-probe0(17)         => i_dbg.pcie.axi_rq_tlast ,
+--PCIE<-FPGA (DMA_WR/RD)
+probe0(17) => i_dbg.pcie.axi_rq_tready,
+probe0(18) => i_dbg.pcie.axi_rq_tvalid,
+probe0(19) => i_dbg.pcie.axi_rq_tlast ,
 
-probe0(18)         => i_dbg.pcie.d2h_buf_rd   ,
-probe0(19)         => i_dbg.pcie.d2h_buf_empty,
+--PCIE->FPGA (USR_WR/RD)
+probe0(20) => i_dbg.pcie.axi_cq_tready,
+probe0(21) => i_dbg.pcie.axi_cq_tvalid,
+probe0(22) => i_dbg.pcie.axi_cq_tlast ,
 
-probe0(51 downto 20) => i_dbg.pcie.axi_rq_tdata(0),
-probe0(83 downto 52) => i_dbg.pcie.axi_rq_tdata(2),
---probe0(87 downto 84) => i_dbg.pcie.axi_rq_tkeep,
-probe0(84) => i_dbg.pcie.axi_cc_tready,
-probe0(85) => i_dbg.pcie.axi_cc_tvalid,
-probe0(86) => i_dbg.pcie.axi_cc_tlast ,
-probe0(87) => i_dbg.pcie.req_compl,
-probe0(119 downto 88) => i_dbg.pcie.dma_bufadr ,
-probe0(151 downto 120) => i_dbg.pcie.dma_bufsize,
-probe0(167 downto 152) => i_dbg.fg.fgrd.rowcnt,
-probe0(175 downto 168) => i_dbg.pcie.axi_rq_tuser,
-probe0(176)            => i_dbg.pcie.compl_done,
+--PCIE->FPGA (DMA_RD(CPL))
+probe0(23) => i_dbg.pcie.axi_rc_tready,
+probe0(24) => i_dbg.pcie.axi_rc_tvalid,
+probe0(25) => i_dbg.pcie.axi_rc_tlast ,
 
---probe0(208 downto 177) => i_dbg.pcie.axi_rq_tdata(2)
+--PCIE<-FPGA (USR_RD(CPL))
+probe0(26) => i_dbg.pcie.axi_cc_tready,
+probe0(27) => i_dbg.pcie.axi_cc_tvalid,
+probe0(28) => i_dbg.pcie.axi_cc_tlast ,
 
---probe0(148 downto 117) => i_dbg.pcie.d2h_buf_d(1),
---probe0(152 downto 149) => i_dbg.pcie.axi_rq_tkeep,
---probe0(184 downto 153) => i_dbg.pcie.dma_bufadr ,
---probe0(216 downto 185) => i_dbg.pcie.dma_bufsize,
---probe0(232 downto 217) => i_dbg.fg.fgrd.rowcnt
+probe0(29) => i_dbg.pcie.req_compl,
+probe0(30) => i_dbg.pcie.compl_done,
 
-probe0(177) => i_dbg.pcie.dma_work,
-probe0(185 downto 178) => i_dbg.pcie.cfg_fc_ph   ,--: in   std_logic_vector( 7 downto 0);
-probe0(197 downto 186) => i_dbg.pcie.cfg_fc_pd   ,--: in   std_logic_vector(11 downto 0);
-probe0(205 downto 198) => i_dbg.pcie.cfg_fc_nph  ,--: in   std_logic_vector( 7 downto 0);
-probe0(217 downto 206) => i_dbg.pcie.cfg_fc_npd  ,--: in   std_logic_vector(11 downto 0);
-probe0(225 downto 218) => i_dbg.pcie.cfg_fc_cplh ,--: in   std_logic_vector( 7 downto 0);
-probe0(237 downto 226) => i_dbg.pcie.cfg_fc_cpld ,--: in   std_logic_vector(11 downto 0);
+probe0(31) => i_dbg.pcie.d2h_buf_rd,
+probe0(32) => i_dbg.pcie.d2h_buf_empty,
 
-probe0(239 downto 238) => i_dbg.pcie.tfc_nph_av  ,--: in   std_logic_vector(1 downto 0);
-probe0(241 downto 240) => i_dbg.pcie.tfc_npd_av   --: in   std_logic_vector(1 downto 0);
+probe0(33) => i_dbg.pcie.h2d_buf_wr,
+probe0(34) => i_dbg.pcie.h2d_buf_full,
 
+probe0(35) => i_dbg.pcie.irq_int,
+probe0(36) => i_dbg.pcie.irq_pending,
+--probe0(37) => i_dbg.pcie.irq_sent,
+probe0(37) => i_dbg.pcie.axi_rc_err_detect,
+
+probe0(69 downto 38) => i_dbg.pcie.axi_rq_tdata(0),
+probe0(101 downto 70) => i_dbg.pcie.axi_rq_tdata(1),
+probe0(133 downto 102) => i_dbg.pcie.axi_rq_tdata(2),
+
+probe0(137 downto 134) => i_dbg.pcie.axi_cc_tkeep(3 downto 0),
+probe0(141 downto 138) => i_dbg.pcie.axi_rc_tkeep(3 downto 0),
+probe0(145 downto 142) => i_dbg.pcie.axi_rq_tkeep(3 downto 0),
+
+probe0(148 downto 146) => i_dbg.pcie.axi_rc_fsm,
+probe0(174 downto 149) => i_dbg.pcie.dma_mrd_rxdwcount(25 downto 0),
+probe0(180 downto 175) => i_dbg.pcie.axi_rc_err(6 downto 0),
+--probe0(180 downto 149) => i_dbg.pcie.dma_mrd_rxdwcount,
+--probe0(180 downto 149) => i_dbg.pcie.axi_rc_err,
+
+probe0(212 downto 181) => i_dbg.pcie.axi_rc_tdata(0),
+probe0(244 downto 213) => i_dbg.pcie.axi_rc_tdata(1),
+probe0(276 downto 245) => i_dbg.pcie.axi_rc_tdata(2),
+probe0(277) => i_dbg.pcie.axi_rc_sof(0),
+probe0(278) => i_dbg.pcie.axi_rc_discon
 );
 
 
