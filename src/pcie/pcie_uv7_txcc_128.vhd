@@ -48,7 +48,7 @@ p_in_pcie_rq_seq_num_vld  : in  std_logic;
 p_in_req_compl    : in  std_logic;
 p_in_req_compl_ur : in  std_logic;
 p_out_compl_done  : out std_logic;
-p_in_txrq_busy    : in  std_logic;
+p_in_dma_tlp_work : in  std_logic;
 
 p_in_req_prm      : in TPCIE_reqprm;
 
@@ -190,7 +190,9 @@ if rising_edge(p_in_clk) then
         --#######################################################################
         when S_TXCC_IDLE =>
 
-          if (sr_req_compl(sr_req_compl'high) = '1' and p_in_axi_cc_tready = '1' and p_in_txrq_busy = '0') then
+        if (p_in_dma_tlp_work = '0') then
+
+          if (sr_req_compl(sr_req_compl'high) = '1' and p_in_axi_cc_tready = '1') then
 
             i_axi_cc_tlast  <= '1';
 
@@ -252,6 +254,8 @@ if rising_edge(p_in_clk) then
             i_fsm_txcc <= S_TXCC_DONE;
 
           end if;
+
+        end if; --if (p_in_dma_tlp_work = '0') then
 
         when S_TXCC_DONE =>
 

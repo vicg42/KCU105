@@ -250,8 +250,7 @@ signal i_uapp_irq_clr          : std_logic;
 signal i_uapp_irq_set          : std_logic;
 signal i_uapp_irq_ack          : std_logic;
 
---signal tst_in                  : std_logic_vector(127 downto 0);
-
+signal tst_uapp_in             : std_logic_vector(127 downto 0);
 signal tst_uapp_out            : std_logic_vector(127 downto 0);
 signal tst_rx_out              : std_logic_vector(63 downto 0);
 signal tst_tx_out              : std_logic_vector((280 * 2) - 1 downto (280 * 0));
@@ -377,7 +376,7 @@ p_out_dev_opt   => p_out_dev_opt  ,
 
 --DBG
 p_out_tst       => tst_uapp_out,
-p_in_tst        => (others => '0'), --tst_in ,
+p_in_tst        => tst_uapp_in ,
 
 --------------------------------------
 --PCIE_Rx/Tx  Port
@@ -432,6 +431,7 @@ p_in_rst_n => i_rst_n
 );
 
 p_out_tst <= tst_uapp_out;
+tst_uapp_in(0) <= tst_rx_out(32 + 10);--axi_rc_err_detect;
 
 
 
@@ -718,178 +718,81 @@ cfg_power_state_change_ack       => p_out_cfg_power_state_change_ack
 --#############################################
 --DBG
 --#############################################
+p_out_dbg.dev_num    <= tst_uapp_out(120 downto 117);-- i_reg.dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT); --(22..19)
+p_out_dbg.dma_dir    <= tst_uapp_out(62)            ;-- i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
+p_out_dbg.dma_bufnum <= tst_uapp_out(72 downto 65)  ;-- <= i_dmabuf_num_cnt;
+p_out_dbg.dma_done   <= tst_uapp_out(73)            ;-- <= i_dmatrn_done;
+p_out_dbg.dma_init   <= tst_uapp_out(74)            ;-- <= i_dmatrn_init;
+p_out_dbg.dma_work   <= tst_uapp_out(126)           ; --i_dma_work
 
-----gen_dbg_rc_tdata : for i in 0 to 0 generate begin
-------p_out_dbg.axi_rc_tdata(i) <= i_h2d_buf_d((32 * (i + 1)) - 1 downto (32 * i));
-----p_out_dbg.axi_rc_tdata(i) <= p_in_axi_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
-----end generate gen_dbg_rc_tdata;
-----p_out_dbg.axi_rc_tkeep(1 downto 0) <= p_in_axi_rc_tkeep(1 downto 0);
---p_out_dbg.axi_rc_tready <= i_axi_rc_tready;
---p_out_dbg.axi_rc_tvalid <= p_in_axi_rc_tvalid;
---p_out_dbg.axi_rc_tlast  <= p_in_axi_rc_tlast;
-----p_out_dbg.axi_rc_fsm <= tst_rx_out(32 + 2 downto 32 + 0); --tst_fsm
---
-----gen_dbg_rq_tdata : for i in 0 to 0 generate begin
-----p_out_dbg.axi_rq_tdata(i) <= tst_tx_out(((280 * 1) + 11 + (32 * (i + 1)) - 1) downto ((280 * 1) + 11 + (32 * i))); --p_in_axi_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
-----end generate gen_dbg_rq_tdata;
-----p_out_dbg.axi_rq_tkeep(1 downto 0) <= tst_tx_out( (280 * 1) + 267 + 1 downto (280 * 1) + 267);
---p_out_dbg.axi_rq_tready <= tst_tx_out( (280 * 1) + 10);
---p_out_dbg.axi_rq_tvalid <= tst_tx_out( (280 * 1) +  8);
---p_out_dbg.axi_rq_tlast  <= tst_tx_out( (280 * 1) +  9);
-----p_out_dbg.axi_rq_fsm <= tst_tx_out(((280 * 1) +  3) downto ((280 * 1) + 0));
---
---p_out_dbg.dev_num   <= tst_uapp_out(120 downto 117);-- i_reg.dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT); --(22..19)
---p_out_dbg.dma_start <= tst_uapp_out(121);-- i_dma_start;
---p_out_dbg.dma_dir   <= tst_uapp_out(62) ;-- i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
---p_out_dbg.dma_irq_clr <= i_uapp_irq_clr;
-----p_out_dbg.dma_work    <= tst_uapp_out(126);
-----p_out_dbg.dma_worktrn <= tst_uapp_out(127);
-----p_out_dbg.dma_timeout  <= tst_timeout;
-----
-----
-----process(i_trn_clk)
-----begin
-----if rising_edge(i_trn_clk) then
-----  if (i_rst_n = '0') then
-----    tst_timeout_cnt <= (others => '0');
-----    tst_timeout <= '0';
-----  else
-----    if tst_uapp_out(126) = '1' then
-----      tst_timeout_cnt <= tst_timeout_cnt + 1;
-----
-----      if tst_timeout_cnt = TO_UNSIGNED(2048, tst_timeout_cnt'length) then
-----        tst_timeout <= '1';
-----      end if;
-----    else
-----      tst_timeout_cnt <= (others => '0');
-----      tst_timeout <= '0';
-----    end if;
-----  end if;
-----end if;
-----end process;
---
---gen_dbg_d2h_buf_d : for i in 0 to 1 generate begin
---p_out_dbg.d2h_buf_d(i) <= i_d2h_buf_d((32 * (i + 1)) - 1 downto (32 * i));
---end generate gen_dbg_d2h_buf_d;
---p_out_dbg.d2h_buf_rd    <= i_d2h_buf_rd   ;
-----p_out_dbg.d2h_buf_empty <= i_d2h_buf_empty;
---
---gen_dbg_h2d_buf_d : for i in 0 to 1 generate begin
---p_out_dbg.h2d_buf_d(i) <= i_h2d_buf_d((32 * (i + 1)) - 1 downto (32 * i));
---end generate gen_dbg_h2d_buf_d;
---p_out_dbg.h2d_buf_wr   <= i_h2d_buf_wr  ;
-----p_out_dbg.h2d_buf_full <= i_h2d_buf_full;
---
---p_out_dbg.irq_stat  <= tst_uapp_out(108 downto 101); --i_irq_status
---p_out_dbg.irq_int  <= i_pcie_irq;
---p_out_dbg.irq_pend <= i_pcie_irq_assert;
-----p_out_dbg.irq_sent <= p_in_cfg_interrupt_sent;
-----
-----p_out_dbg.irq_msi_en  <= p_in_cfg_interrupt_msi_enable(0);
-----p_out_dbg.irq_msi_int <= i_pcie_irq_msi_int(0);
-----p_out_dbg.irq_msi_pending_status  <= i_pcie_irq_msi_pending_status;
-----p_out_dbg.irq_msi_send <= p_in_cfg_interrupt_msi_sent;
-----p_out_dbg.irq_msi_fail <= p_in_cfg_interrupt_msi_fail;
-----p_out_dbg.irq_msi_vf_enable <= p_in_cfg_interrupt_msi_vf_enable;
-----p_out_dbg.irq_msi_mmenable <= p_in_cfg_interrupt_msi_mmenable;
---
-----p_out_dbg.axi_rc_sop(0) <= p_in_axi_rc_tuser(32);
-----p_out_dbg.axi_rc_sop(1) <= p_in_axi_rc_tuser(33);
-----p_out_dbg.axi_rc_disc   <= p_in_axi_rc_tuser(42);
---
-----p_out_dbg.test_speed_bit <= tst_uapp_out(122);-- i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
-
-
-
-
-p_out_dbg.dev_num   <= tst_uapp_out(120 downto 117);-- i_reg.dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT); --(22..19)
---p_out_dbg.dma_start <= tst_uapp_out(121);-- i_dma_start;
-p_out_dbg.dma_dir   <= tst_uapp_out(62) ;-- i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
-p_out_dbg.dma_bufnum <= tst_uapp_out(72 downto 65);-- <= i_dmabuf_num_cnt;
-p_out_dbg.dma_done   <= tst_uapp_out(73)          ;-- <= i_dmatrn_done;
-p_out_dbg.dma_init   <= tst_uapp_out(74)          ;-- <= i_dmatrn_init;
-p_out_dbg.dma_work   <= tst_uapp_out(126); --i_dma_work
-
---gen_dbg_rq_tdata : for i in 1 to 0 generate begin
---p_out_dbg.axi_rq_tdata(i) <= tst_tx_out(((280 * 1) + 11 + (32 * (i + 1)) - 1) downto ((280 * 1) + 11 + (32 * i))); --p_in_axi_rc_tdata((32 * (i + 1)) - 1 downto (32 * i));
---end generate gen_dbg_rq_tdata;
---p_out_dbg.axi_rq_tkeep(3 downto 0) <= tst_tx_out( (280 * 1) + 267 + 3 downto (280 * 1) + 267);
---p_out_dbg.axi_rq_tready <= tst_tx_out( (280 * 1) + 10);
---p_out_dbg.axi_rq_tvalid <= tst_tx_out( (280 * 1) +  8);
---p_out_dbg.axi_rq_tlast  <= tst_tx_out( (280 * 1) +  9);
+--PCIE<-FPGA (DMA_WR/RD)
+p_out_dbg.axi_rq_tready <= tst_axi_rq_tready;
+p_out_dbg.axi_rq_tvalid <= tst_axi_rq_tvalid;
+p_out_dbg.axi_rq_tlast  <= tst_axi_rq_tlast;
+p_out_dbg.axi_rq_tkeep(3 downto 0) <= tst_axi_rq_tkeep(3 downto 0);
 
 p_out_dbg.axi_rq_tdata(0) <= tst_axi_rq_tdata((32 * 1) - 1 downto (32 * 0));
 p_out_dbg.axi_rq_tdata(1) <= tst_axi_rq_tdata((32 * 2) - 1 downto (32 * 1));
 p_out_dbg.axi_rq_tdata(2) <= tst_axi_rq_tdata((32 * 3) - 1 downto (32 * 2));
---p_out_dbg.axi_rq_tkeep(3 downto 0) <= tst_axi_rq_tkeep(3 downto 0);
-p_out_dbg.axi_rq_tready <= tst_axi_rq_tready;
-p_out_dbg.axi_rq_tvalid <= tst_axi_rq_tvalid;
-p_out_dbg.axi_rq_tlast  <= tst_axi_rq_tlast;
-p_out_dbg.axi_rq_tuser  <= tst_axi_rq_tuser(7 downto 0);
+--p_out_dbg.axi_rq_tuser  <= tst_axi_rq_tuser(7 downto 0);
 
---gen_dbg_d2h_buf_d : for i in 0 to 1 generate begin
---p_out_dbg.d2h_buf_d(i) <= i_d2h_buf_d((32 * (i + 1)) - 1 downto (32 * i));
---end generate gen_dbg_d2h_buf_d;
---p_out_dbg.d2h_buf_d0 <= i_d2h_buf_d(31 downto 0);
+--PCIE->FPGA (USR_WR/RD)
+p_out_dbg.axi_cq_tready <= i_axi_cq_tready   ;
+p_out_dbg.axi_cq_tvalid <= p_in_axi_cq_tvalid;
+p_out_dbg.axi_cq_tlast  <= p_in_axi_cq_tlast ;
 
-p_out_dbg.d2h_buf_rd    <= i_d2h_buf_rd;
-p_out_dbg.d2h_buf_empty <= i_d2h_buf_empty;
+--PCIE->FPGA (DMA_RD(CPL))
+p_out_dbg.axi_rc_err_detect <= tst_rx_out(32 + 10);--i_err_detect;
+p_out_dbg.axi_rc_fsm <= tst_rx_out((32 + 2) downto (32 + 0));
+p_out_dbg.axi_rc_tready <= i_axi_rc_tready   ;
+p_out_dbg.axi_rc_tvalid <= p_in_axi_rc_tvalid;
+p_out_dbg.axi_rc_tlast  <= p_in_axi_rc_tlast ;
+p_out_dbg.axi_rc_tkeep(3 downto 0) <= p_in_axi_rc_tkeep(3 downto 0);
+p_out_dbg.axi_rc_tdata(0) <= p_in_axi_rc_tdata((32 * 1) - 1 downto (32 * 0));
+p_out_dbg.axi_rc_tdata(1) <= p_in_axi_rc_tdata((32 * 2) - 1 downto (32 * 1));
+p_out_dbg.axi_rc_tdata(2) <= p_in_axi_rc_tdata((32 * 3) - 1 downto (32 * 2));
+p_out_dbg.axi_rc_sof(0) <= p_in_axi_rc_tuser(32);
+p_out_dbg.axi_rc_sof(1) <= p_in_axi_rc_tuser(33);
+p_out_dbg.axi_rc_discon <= p_in_axi_rc_tuser(42);
 
-p_out_dbg.dma_bufadr <= i_dma_prm.addr;
-p_out_dbg.dma_bufsize<= i_dma_prm.len;
---p_out_dbg.dma_timeout<= tst_dma_timeout;
+--PCIE<-FPGA (USR_RD(CPL))
+p_out_dbg.axi_cc_tready <= tst_axi_cc_tready(0);
+p_out_dbg.axi_cc_tvalid <= tst_axi_cc_tvalid   ;
+p_out_dbg.axi_cc_tlast  <= tst_axi_cc_tlast    ;
+p_out_dbg.axi_cc_tkeep(3 downto 0) <= tst_axi_cc_tkeep(3 downto 0);
 
 p_out_dbg.req_compl <= i_req_compl;
 p_out_dbg.compl_done <= i_compl_done;
 
+p_out_dbg.d2h_buf_rd    <= i_d2h_buf_rd;
+p_out_dbg.d2h_buf_empty <= i_d2h_buf_empty;
 
-p_out_dbg.axi_cc_tready <= tst_axi_cc_tready(0);
-p_out_dbg.axi_cc_tvalid <= tst_axi_cc_tvalid   ;
-p_out_dbg.axi_cc_tlast  <= tst_axi_cc_tlast    ;
---p_out_axi_cc_tdata  => tst_axi_cc_tdata    ,--p_out_axi_cc_tdata   ,
---p_out_axi_cc_tkeep  => tst_axi_cc_tkeep    ,--p_out_axi_cc_tkeep   ,
---p_out_axi_cc_tuser  => tst_axi_cc_tuser    ,--p_out_axi_cc_tuser   ,
+p_out_dbg.h2d_buf_wr <= i_h2d_buf_wr;
+p_out_dbg.h2d_buf_full <= i_h2d_buf_full;
 
-p_out_dbg.axi_cq_tready <= i_axi_cq_tready   ;
-p_out_dbg.axi_cq_tvalid <= p_in_axi_cq_tvalid;
-p_out_dbg.axi_cq_tlast  <= p_in_axi_cq_tlast ;
---p_in_axi_cq_tuser   => p_in_axi_cq_tuser ,
---p_in_axi_cq_tkeep   => p_in_axi_cq_tkeep ,
---p_in_axi_cq_tdata   => p_in_axi_cq_tdata ,
+p_out_dbg.irq_int <= i_pcie_irq_assert and not p_in_cfg_interrupt_msi_enable(0);
+p_out_dbg.irq_pending <= i_pcie_irq and not p_in_cfg_interrupt_msi_enable(0);
+p_out_dbg.irq_sent <= p_in_cfg_interrupt_sent;
 
-p_out_dbg.cfg_fc_ph   <= p_in_cfg_fc_ph       ;--: in   std_logic_vector( 7 downto 0);
-p_out_dbg.cfg_fc_pd   <= p_in_cfg_fc_pd       ;--: in   std_logic_vector(11 downto 0);
-p_out_dbg.cfg_fc_nph  <= p_in_cfg_fc_nph      ;--: in   std_logic_vector( 7 downto 0);
-p_out_dbg.cfg_fc_npd  <= p_in_cfg_fc_npd      ;--: in   std_logic_vector(11 downto 0);
-p_out_dbg.cfg_fc_cplh <= p_in_cfg_fc_cplh     ;--: in   std_logic_vector( 7 downto 0);
-p_out_dbg.cfg_fc_cpld <= p_in_cfg_fc_cpld     ;--: in   std_logic_vector(11 downto 0);
+p_out_dbg.test_speed <= tst_uapp_out(122);--   <= i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 
-p_out_dbg.tfc_nph_av  <= p_in_pcie_tfc_nph_av ;--: in   std_logic_vector(1 downto 0)                ;
-p_out_dbg.tfc_npd_av  <= p_in_pcie_tfc_npd_av ;--: in   std_logic_vector(1 downto 0)                ;
+p_out_dbg.dma_mrd_rxdwcount <= i_dma_mrd_rxdwcount;
+p_out_dbg.axi_rc_err <= tst_rx_out((32 + 9) downto (32 + 3));
 
---process(i_trn_clk)
---begin
---if rising_edge(i_trn_clk) then
---  if (tst_uapp_out(126) = '1') then --i_dma_work
+--p_out_dbg.irq_set <= tst_uapp_out(111 downto 109);--tst_uapp_out(116 downto 109) <= std_logic_vector(RESIZE(UNSIGNED(i_irq_set(C_HIRQ_COUNT - 1 downto 0)), 8));
+
+--p_out_dbg.dma_bufadr <= i_dma_prm.addr;
+--p_out_dbg.dma_bufsize<= i_dma_prm.len;
+
+--p_out_dbg.cfg_fc_ph   <= p_in_cfg_fc_ph       ;--: in   std_logic_vector( 7 downto 0);
+--p_out_dbg.cfg_fc_pd   <= p_in_cfg_fc_pd       ;--: in   std_logic_vector(11 downto 0);
+--p_out_dbg.cfg_fc_nph  <= p_in_cfg_fc_nph      ;--: in   std_logic_vector( 7 downto 0);
+--p_out_dbg.cfg_fc_npd  <= p_in_cfg_fc_npd      ;--: in   std_logic_vector(11 downto 0);
+--p_out_dbg.cfg_fc_cplh <= p_in_cfg_fc_cplh     ;--: in   std_logic_vector( 7 downto 0);
+--p_out_dbg.cfg_fc_cpld <= p_in_cfg_fc_cpld     ;--: in   std_logic_vector(11 downto 0);
 --
---    if tst_uapp_out(62) = '1' then --i_reg.dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
---    --dma: pc <- fpga
---        if (tst_axi_rq_tready = '1' and tst_axi_rq_tvalid = '1' and tst_axi_rq_tlast = '1') then
---          tst_dma_timeout_cnt <= (others => '0');
---        else
---          tst_dma_timeout_cnt <= tst_dma_timeout_cnt + 1;
---        end if;
---    else
---      tst_dma_timeout_cnt <= (others => '0');
---    end if;
---  else
---    tst_dma_timeout_cnt <= (others => '0');
---  end if;
---end if;
---end process;
---
---
---tst_dma_timeout <= '1' when tst_dma_timeout_cnt >= TO_UNSIGNED(2048, tst_dma_timeout_cnt'length) else '0';
+--p_out_dbg.tfc_nph_av  <= p_in_pcie_tfc_nph_av ;--: in   std_logic_vector(1 downto 0);
+--p_out_dbg.tfc_npd_av  <= p_in_pcie_tfc_npd_av ;--: in   std_logic_vector(1 downto 0);
 
 end architecture struct;
 

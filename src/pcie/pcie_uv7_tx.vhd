@@ -133,7 +133,7 @@ p_in_pcie_rq_seq_num_vld  : in  std_logic;
 p_in_req_compl    : in  std_logic;
 p_in_req_compl_ur : in  std_logic;
 p_out_compl_done  : out std_logic;
-p_in_txrq_busy    : in  std_logic;
+p_in_dma_tlp_work : in  std_logic;
 
 p_in_req_prm      : in TPCIE_reqprm;
 
@@ -179,7 +179,7 @@ p_in_completer_id : in  std_logic_vector(15 downto 0);
 p_in_pcie_prm    : in  TPCIE_cfgprm;
 
 --Completion
-p_out_txrq_busy     : out  std_logic;
+p_out_dma_tlp_work  : out  std_logic;
 p_in_txcc_req_compl : in   std_logic;
 
 --usr app
@@ -206,10 +206,14 @@ p_in_rst_n : in  std_logic
 );
 end component pcie_tx_rq;
 
-signal i_txrq_busy  : std_logic;
+signal i_dma_tlp_work  : std_logic;
+signal i_compl_done    : std_logic;
+signal i_req_compl     : std_logic;
 
 begin --architecture behavioral of pcie_tx
 
+p_out_compl_done <= i_compl_done;
+i_req_compl <= p_in_req_compl or i_compl_done;
 
 m_tx_cc : pcie_tx_cc
 generic map(
@@ -242,8 +246,8 @@ p_in_pcie_rq_seq_num_vld  => p_in_pcie_rq_seq_num_vld ,
 --Completion
 p_in_req_compl    => p_in_req_compl   ,
 p_in_req_compl_ur => p_in_req_compl_ur,
-p_out_compl_done  => p_out_compl_done ,
-p_in_txrq_busy    => i_txrq_busy,
+p_out_compl_done  => i_compl_done ,
+p_in_dma_tlp_work => i_dma_tlp_work,
 
 p_in_req_prm      => p_in_req_prm,
 
@@ -289,8 +293,8 @@ p_in_completer_id => p_in_completer_id,
 p_in_pcie_prm    => p_in_pcie_prm,
 
 --Completion
-p_out_txrq_busy     => i_txrq_busy,
-p_in_txcc_req_compl => p_in_req_compl,
+p_out_dma_tlp_work  => i_dma_tlp_work,
+p_in_txcc_req_compl => i_req_compl,
 
 --usr app
 p_in_urxbuf_empty => p_in_urxbuf_empty,

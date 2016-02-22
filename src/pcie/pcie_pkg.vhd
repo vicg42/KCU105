@@ -131,6 +131,8 @@ constant C_PCIE3_PKT_TYPE_MSG          : std_logic_vector(3 downto 0) := "1100";
 constant C_PCIE3_PKT_TYPE_MSG_VD       : std_logic_vector(3 downto 0) := "1101"; --MSG Transaction apart from Vendor Defined and ATS
 constant C_PCIE3_PKT_TYPE_MSG_ATS      : std_logic_vector(3 downto 0) := "1110"; --MSG Transaction apart from Vendor Defined and ATS
 
+constant C_PCIE3_COMPL_ERR_CODE_OK     : std_logic_vector(3 downto 0) := "0000"; --Normal termination (all data recieved)
+
 
 
 type TDBG_darray is array (0 to 2) of std_logic_vector(31 downto 0);
@@ -189,50 +191,70 @@ type TDBG_darray is array (0 to 2) of std_logic_vector(31 downto 0);
 
 type TPCIE_dbg is record
 dev_num    : std_logic_vector(3 downto 0);
---dma_start  : std_logic;
 dma_dir    : std_logic;
 dma_bufnum : std_logic_vector(7 downto 0);
 dma_done   : std_logic;
 dma_init   : std_logic;
 dma_work   : std_logic;
 
-axi_rq_tdata  : TDBG_darray;
-axi_rq_tkeep  : std_logic_vector(3 downto 0);
 axi_rq_tready : std_logic;
 axi_rq_tvalid : std_logic;
 axi_rq_tlast  : std_logic;
-axi_rq_tuser  : std_logic_vector(7 downto 0);
-
---d2h_buf_d    : TDBG_darray;
---d2h_buf_d0    : std_logic_vector(31 downto 0);
-d2h_buf_rd    : std_logic;
-d2h_buf_empty : std_logic;
-
-dma_bufadr : std_logic_vector(31 downto 0);
-dma_bufsize: std_logic_vector(31 downto 0);
-
---dma_timeout: std_logic;
-req_compl: std_logic;
-compl_done: std_logic;
-
-axi_cc_tready : std_logic;
-axi_cc_tvalid : std_logic;
-axi_cc_tlast  : std_logic;
+axi_rq_tkeep  : std_logic_vector(3 downto 0);
+axi_rq_tdata  : TDBG_darray;
+--axi_rq_tuser  : std_logic_vector(7 downto 0);
 
 axi_cq_tready : std_logic;
 axi_cq_tvalid : std_logic;
 axi_cq_tlast  : std_logic;
 
+axi_rc_err    : std_logic_vector(6 downto 0);
+axi_rc_err_detect: std_logic;
+axi_rc_fsm    : std_logic_vector(2 downto 0);
+axi_rc_tready : std_logic;
+axi_rc_tvalid : std_logic;
+axi_rc_tlast  : std_logic;
+axi_rc_tkeep  : std_logic_vector(3 downto 0);
+axi_rc_tdata  : TDBG_darray;
+axi_rc_sof    : std_logic_vector(1 downto 0);
+axi_rc_discon : std_logic;
 
-cfg_fc_ph   : std_logic_vector( 7 downto 0);
-cfg_fc_pd   : std_logic_vector(11 downto 0);
-cfg_fc_nph  : std_logic_vector( 7 downto 0);
-cfg_fc_npd  : std_logic_vector(11 downto 0);
-cfg_fc_cplh : std_logic_vector( 7 downto 0);
-cfg_fc_cpld : std_logic_vector(11 downto 0);
+axi_cc_tready : std_logic;
+axi_cc_tvalid : std_logic;
+axi_cc_tlast  : std_logic;
+axi_cc_tkeep  : std_logic_vector(3 downto 0);
 
-tfc_nph_av  : std_logic_vector(1 downto 0)                ;
-tfc_npd_av  : std_logic_vector(1 downto 0)                ;
+req_compl: std_logic;
+compl_done: std_logic;
+
+d2h_buf_rd    : std_logic;
+d2h_buf_empty : std_logic;
+
+h2d_buf_wr   : std_logic;
+h2d_buf_full : std_logic;
+
+--irq_set     : std_logic_vector(2 downto 0);
+irq_int     : std_logic;
+irq_pending : std_logic;
+irq_sent    : std_logic;
+
+test_speed   : std_logic;
+
+dma_mrd_rxdwcount: std_logic_vector(31 downto 0);
+
+--dma_bufadr : std_logic_vector(31 downto 0);
+--dma_bufsize: std_logic_vector(31 downto 0);
+
+--cfg_fc_ph   : std_logic_vector( 7 downto 0);
+--cfg_fc_pd   : std_logic_vector(11 downto 0);
+--cfg_fc_nph  : std_logic_vector( 7 downto 0);
+--cfg_fc_npd  : std_logic_vector(11 downto 0);
+--cfg_fc_cplh : std_logic_vector( 7 downto 0);
+--cfg_fc_cpld : std_logic_vector(11 downto 0);
+--
+--tfc_nph_av  : std_logic_vector(1 downto 0)                ;
+--tfc_npd_av  : std_logic_vector(1 downto 0)                ;
+
 end record;
 
 end package pcie_pkg;

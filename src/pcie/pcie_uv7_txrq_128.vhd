@@ -43,7 +43,7 @@ p_in_pcie_prm     : in  TPCIE_cfgprm;
 p_in_completer_id : in  std_logic_vector(15 downto 0);
 
 --Completion
-p_out_txrq_busy     : out  std_logic;
+p_out_dma_tlp_work  : out  std_logic;
 p_in_txcc_req_compl : in   std_logic;
 
 --usr app
@@ -115,6 +115,7 @@ signal i_mem_tpl_max_byte   : unsigned(10 downto 0);
 signal i_mwr_work           : std_logic;
 signal i_mwr_done           : std_logic;
 signal i_mrd_done           : std_logic;
+signal i_mrd_work           : std_logic;
 
 signal tst_fsm              : unsigned(3 downto 0);
 
@@ -125,7 +126,7 @@ begin --architecture behavioral of pcie_tx_rq
 p_out_dma_mrd_done <= i_mrd_done;
 p_out_dma_mwr_done <= i_mwr_done;
 
-p_out_txrq_busy <= i_mwr_work;
+p_out_dma_tlp_work <= i_mwr_work or i_mrd_work;
 
 i_urxbuf_rd <= (p_in_axi_rq_tready and not p_in_urxbuf_empty);
 p_out_urxbuf_rd <= i_urxbuf_rd and i_mwr_work;
@@ -197,7 +198,7 @@ if rising_edge(p_in_clk) then
     i_mem_tpl_last <= '0';
 
     i_mem_tpl_max_byte(10 downto log2(128)) <= (others => '0');
-    i_mwr_work <= '0';
+    i_mwr_work <= '0'; i_mrd_work <= '0';
     i_mwr_done <= '0';
     i_mrd_done <= '0';
 
@@ -214,10 +215,11 @@ if rising_edge(p_in_clk) then
             i_axi_rq_tlast  <= '0';
             i_axi_rq_tvalid <= '0';
 
-            i_mwr_work <= '0';
+            i_mwr_work <= '0'; i_mrd_work <= '0';
             i_mem_tpl_last <= '0';
 
           if (p_in_txcc_req_compl = '0') then
+
             if (p_in_dma_mwr_en = '1' and i_mwr_done = '0' and p_in_pcie_prm.master_en(0) = '1') then
 
                 if (i_dma_init = '1') then
@@ -269,7 +271,8 @@ if rising_edge(p_in_clk) then
                 end if;
 
             end if;
-          end if;
+
+          end if;--if (p_in_txcc_req_compl = '0') then
 
           end if;
 
@@ -501,6 +504,8 @@ if rising_edge(p_in_clk) then
 
                 i_mem_tpl_tag <= i_mem_tpl_tag + 1;
 
+                i_mrd_work <= '1';
+
                 if (i_mem_tpl_last = '1') then
                   i_mem_tx_byte <= (others => '0');
                   i_mrd_done <= '1';
@@ -520,7 +525,8 @@ if rising_edge(p_in_clk) then
               i_axi_rq_tlast  <= '0';
               i_axi_rq_tvalid <= '0';
 
-              i_mwr_work <= '0';
+              i_mrd_work <= '0';
+
               i_mem_tpl_last <= '0';
 
               if (i_mem_tx_dw = UNSIGNED(p_in_dma_mrd_rxdwcount)) then

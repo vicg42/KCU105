@@ -59,7 +59,8 @@ S_RXRC_IDLE,
 S_RXRC_DH,
 S_RXRC_DN,
 S_RXRC_DE,
-S_RXRC_CHKE
+S_RXRC_CHKE,
+S_RXRC_ERR
 );
 signal i_fsm_rxrc         : TFsmRx_state;
 
@@ -85,7 +86,8 @@ signal sr_axi_data        : TData;
 signal i_axi_data         : TData;
 signal i_utxbuf_di        : TData;
 signal i_utxbuf_wr        : std_logic := '0';
-
+signal i_err_detect       : std_logic;
+signal i_err              : std_logic_vector(6 downto 0);
 signal tst_fsm            : unsigned(2 downto 0);
 
 
@@ -194,6 +196,9 @@ if rising_edge(p_in_clk) then
 
     i_mrd_done <= '0';
 
+    i_err <= (others => '0');
+    i_err_detect <= '0';
+
   else
 
     case i_fsm_rxrc is
@@ -232,15 +237,19 @@ if rising_edge(p_in_clk) then
 
             if (i_sof(0) = '1' and i_sof(1) = '0' and p_in_axi_rc_tvalid = '1') then
 
-                if (p_in_axi_rc_tkeep = "1111") then
+                if (p_in_axi_rc_tkeep(2 downto 0) = "111") then
 
                     for i in 3 to sr_axi_data'length - 1 loop
                     sr_axi_data(i) <= i_axi_data(i); --user data
                     sr_axi_be(i) <= p_in_axi_rc_tuser((i * 4) + 3 downto (i * 4)); --(15...12)
                     end loop;
 
+                    i_err(3 downto 0) <= i_axi_data(0)(15 downto 12);
+                    i_err(6 downto 4) <= i_axi_data(1)(13 downto 11);
+
                     --Check Completion Status
-                    if (i_axi_data(1)(13 downto 11) = C_PCIE_COMPL_STATUS_SC) then
+                    if ((i_axi_data(1)(13 downto 11) = C_PCIE_COMPL_STATUS_SC)
+                      and (i_axi_data(0)(15 downto 12) = C_PCIE3_COMPL_ERR_CODE_OK)) then
 
                         i_cpld_tlp_work <= '1';
 
@@ -261,7 +270,9 @@ if rising_edge(p_in_clk) then
 
                     else
                       --Check Error Code
-                      i_fsm_rxrc <= S_RXRC_IDLE;
+                        i_axi_rc_tready <= '0';
+
+                        i_fsm_rxrc <= S_RXRC_ERR;
 
                     end if;
 
@@ -344,6 +355,18 @@ if rising_edge(p_in_clk) then
 
             i_fsm_rxrc <= S_RXRC_IDLE;
 
+
+        --#######################################################################
+        --Check ERR
+        --#######################################################################
+        when S_RXRC_ERR =>
+
+            i_axi_rc_tready <= '1';
+
+            i_err_detect <= '1';
+
+            i_fsm_rxrc <= S_RXRC_IDLE;
+
     end case; --case i_fsm_rxrc is
 
   end if;--p_in_rst_n
@@ -355,16 +378,17 @@ end process; --fsm
 --#######################################################################
 --DBG
 --#######################################################################
-tst_fsm <= TO_UNSIGNED(4, tst_fsm'length) when i_fsm_rxrc = S_RXRC_CHKE else
+tst_fsm <= TO_UNSIGNED(5, tst_fsm'length) when i_fsm_rxrc = S_RXRC_ERR  else
+           TO_UNSIGNED(4, tst_fsm'length) when i_fsm_rxrc = S_RXRC_CHKE else
            TO_UNSIGNED(3, tst_fsm'length) when i_fsm_rxrc = S_RXRC_DE   else
            TO_UNSIGNED(2, tst_fsm'length) when i_fsm_rxrc = S_RXRC_DN   else
            TO_UNSIGNED(1, tst_fsm'length) when i_fsm_rxrc = S_RXRC_DH   else
            TO_UNSIGNED(0, tst_fsm'length);-- when i_fsm_rxrc = S_RXRC_IDLE else
 
 p_out_tst(2 downto 0) <= std_logic_vector(tst_fsm);
-p_out_tst(5 downto 3) <= (others => '0');
-p_out_tst(7 downto 6) <= (others => '0');
-p_out_tst(31 downto 3) <= (others => '0');
+p_out_tst(9 downto 3) <= i_err;
+p_out_tst(10) <= i_err_detect;
+p_out_tst(31 downto 11) <= (others => '0');
 
 
 end architecture behavioral;
