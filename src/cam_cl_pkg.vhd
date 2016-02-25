@@ -41,6 +41,7 @@ fval_edge1 : std_logic;
 --lval_edge0 : std_logic;
 --lval_edge1 : std_logic;
 rxbyte : TCL_rxbyte_dbg;
+clk_synval : std_logic_vector(6 downto 0);
 end record;
 type TCLDBG_CHs is array (0 to 2) of TCLDBG_CH;
 

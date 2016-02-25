@@ -62,6 +62,7 @@ p_out_rxclk  : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 --------------------------------------------------
 --DBG
 --------------------------------------------------
+p_out_cl_clk_synval : out std_logic_vector((7 * G_CL_CHCOUNT) - 1 downto 0);
 --p_out_tst : out  std_logic_vector(31 downto 0);
 --p_in_tst  : in   std_logic_vector(31 downto 0);
 
@@ -97,9 +98,10 @@ p_out_rxd     : out std_logic_vector(27 downto 0);
 p_out_rxclk   : out std_logic;
 p_out_link    : out std_logic;
 
--------------------------------
-----DBG
--------------------------------
+-----------------------------
+--DBG
+-----------------------------
+p_out_cl_clk_synval : out  std_logic_vector(6 downto 0);
 --p_out_tst : out  std_logic_vector(31 downto 0);
 --p_in_tst  : in   std_logic_vector(31 downto 0);
 --p_out_dbg : out  TCL_core_dbg;
@@ -127,6 +129,7 @@ signal i_cl_tstout     : TCL_tstout;
 
 type TCL_rxbyte is array (0 to C_CL_TAP_MAX - 1) of std_logic_vector(G_CL_PIXBIT - 1 downto 0);
 signal i_cl_rxbyte     : TCL_rxbyte;
+
 
 --type TCL_core_dbgs is array (0 to G_CL_CHCOUNT - 1) of TCL_core_dbg;
 --signal i_cl_core_dbg   : TCL_core_dbgs;
@@ -208,9 +211,10 @@ p_out_link    => i_cl_link(i),
 -----------------------------
 --DBG
 -----------------------------
+p_out_cl_clk_synval => p_out_cl_clk_synval((7 * (i + 1)) - 1 downto 7 * i),
 --p_out_tst => i_cl_tstout(i),
 --p_in_tst  => p_in_tst,
---p_out_dbg => open,--i_cl_core_dbg(i),
+--p_out_dbg => i_cl_core_dbg(i),
 
 --p_in_refclk => p_in_refclk,
 --p_in_clk => p_in_clk,

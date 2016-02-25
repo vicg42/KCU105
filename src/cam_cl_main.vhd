@@ -82,14 +82,17 @@ architecture struct of cam_cl_main is
 
 component cl_main is
 generic(
-G_DCM_TYPE : TCL_DCM_TYPE_ARRAY := (C_CL_PLL, C_CL_PLL, C_CL_MMCM);
-G_DCM_CLKIN_PERIOD : real := 11.764000; --85MHz
+G_DCM_TYPE : TCL_DCM_TYPE_ARRAY := (C_CL_PLL, --type dcm for chanal 3
+                                    C_CL_PLL, --type dcm for chanal 2
+                                    C_CL_MMCM --type dcm for chanal 1
+                                   );
+G_DCM_CLKIN_PERIOD : real := 11.764000; --85MHz => clkx7 = ((85/1)*14)/2 = 1190/2 = 595MHz
 G_DCM_DIVCLK_DIVIDE : natural := 1;
-G_DCM_CLKFBOUT_MULT : natural := 2;
+G_DCM_CLKFBOUT_MULT : natural := 14;
 G_DCM_CLKOUT0_DIVIDE : natural := 2;
-G_CL_PIXBIT : natural := 1;
-G_CL_TAP : natural := 1;
-G_CL_CHCOUNT : natural := 1
+G_CL_PIXBIT : natural := 8; --Number of bit per 1 pix
+G_CL_TAP : natural := 8; --Number of pixel per 1 clk
+G_CL_CHCOUNT : natural := 1 --Number of channel: Base/Medium/Full Configuration = 1/2/3
 );
 port(
 --------------------------------------------------
@@ -115,6 +118,7 @@ p_out_rxclk  : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 --------------------------------------------------
 --DBG
 --------------------------------------------------
+p_out_cl_clk_synval : out std_logic_vector((7 * G_CL_CHCOUNT) - 1 downto 0);
 --p_out_tst : out  std_logic_vector(31 downto 0);
 --p_in_tst  : in   std_logic_vector(31 downto 0);
 
@@ -145,12 +149,6 @@ p_in_dval   : in std_logic;
 p_in_rxclk  : in std_logic;
 
 --------------------------------------------------
---DBG
---------------------------------------------------
---p_out_tst : out  std_logic_vector(31 downto 0);
---p_in_tst  : in   std_logic_vector(31 downto 0);
-
---------------------------------------------------
 --params video
 --------------------------------------------------
 p_out_pixcount  : out std_logic_vector(15 downto 0);
@@ -175,12 +173,6 @@ p_in_dval   : in  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --data valid
 p_in_rxbyte : in  std_logic_vector((G_CL_PIXBIT * G_CL_TAP) - 1 downto 0);
 p_in_rxclk  : in  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 
-----------------------------------------------------
-----DBG
-----------------------------------------------------
---p_out_tst : out  std_logic_vector(31 downto 0);
---p_in_tst  : in   std_logic_vector(31 downto 0)
-
 --------------------------------------------------
 --Output
 --------------------------------------------------
@@ -188,7 +180,7 @@ p_out_buf_empty : out  std_logic;
 p_out_buf_do    : out  std_logic_vector(63 downto 0);
 p_in_buf_rd     : in   std_logic;
 p_in_buf_rdclk  : in   std_logic;
-p_in_buf_rst    : in   std_logic
+p_in_buf_rstn   : in   std_logic
 );
 end component cl_bufline;
 
@@ -204,7 +196,7 @@ port(
 ----------------------------
 --Ctrl
 ----------------------------
-p_in_rdy           : in std_logic;
+p_in_det_frprm     : in std_logic;
 p_in_det_pixcount  : in std_logic_vector(15 downto 0);
 p_in_det_linecount : in std_logic_vector(15 downto 0);
 p_in_time          : in std_logic_vector(31 downto 0);
@@ -212,7 +204,6 @@ p_in_time          : in std_logic_vector(31 downto 0);
 ----------------------------
 --VBUF (source of video data)
 ----------------------------
-p_out_bufi_rst  : out  std_logic;
 p_out_bufi_rd   : out  std_logic;
 p_in_bufi_do    : in   std_logic_vector(63 downto 0);
 p_in_bufi_empty : in   std_logic;
@@ -224,6 +215,7 @@ p_in_hsync      : in   std_logic;
 ----------------------------
 p_out_pkt_do   : out  std_logic_vector(63 downto 0);
 p_out_pkt_wr   : out  std_logic;
+p_in_pkt_wrclk : in   std_logic;
 
 ----------------------------
 --DBG
@@ -234,7 +226,6 @@ p_in_tst  : in   std_logic_vector(31 downto 0);
 ----------------------------
 --SYS
 ----------------------------
-p_in_clk : in std_logic;
 p_in_rst : in std_logic
 );
 end component pktvd_create;
@@ -304,6 +295,8 @@ signal tst_fval_t_edge0    : std_logic;
 signal tst_fval_t_edge1    : std_logic;
 --signal tst_lval_t_edge0    : std_logic;
 --signal tst_lval_t_edge1    : std_logic;
+
+signal tst_cl_clk_synval   : std_logic_vector((7 * G_CL_CHCOUNT) - 1 downto 0);
 
 signal i_dbg : TCAM_dbg;
 
@@ -376,6 +369,7 @@ p_out_rxclk  => i_rxclk ,
 --------------------------------------------------
 --DBG
 --------------------------------------------------
+p_out_cl_clk_synval => tst_cl_clk_synval,
 --p_out_tst => open,
 --p_in_tst  => (others => '0'),
 
@@ -409,12 +403,6 @@ p_in_lval  => i_lval(0),
 p_in_dval  => i_dval(0),
 p_in_rxclk => i_rxclk(0),
 
-----------------------------------------------------
-----DBG
-----------------------------------------------------
---p_out_tst => open,
---p_in_tst  => (others => '0'),
-
 --------------------------------------------------
 --params video
 --------------------------------------------------
@@ -422,7 +410,6 @@ p_out_pixcount  => i_pixcount_detect,
 p_out_linecount => i_linecount_detect,
 p_out_det_rdy   => i_frprm_detect
 );
-
 
 
 m_cl_bufline : cl_bufline
@@ -441,12 +428,6 @@ p_in_dval   => i_dval  ,
 p_in_rxbyte => i_rxbyte,
 p_in_rxclk  => i_rxclk ,
 
-----------------------------------------------------
-----DBG
-----------------------------------------------------
---p_out_tst : out  std_logic_vector(31 downto 0);
---p_in_tst  : in   std_logic_vector(31 downto 0)
-
 --------------------------------------------------
 --Output
 --------------------------------------------------
@@ -454,8 +435,9 @@ p_out_buf_empty => i_bufi_empty,
 p_out_buf_do    => i_bufi_do,
 p_in_buf_rd     => i_bufi_rd,
 p_in_buf_rdclk  => p_in_bufpkt_rdclk,
-p_in_buf_rst    => i_bufi_rst
+p_in_buf_rstn   => i_frprm_detect
 );
+
 
 --i_pixcount_detect <= std_logic_vector(TO_UNSIGNED(2157, i_pixcount_detect'length));
 m_vpkt : pktvd_create
@@ -470,7 +452,7 @@ port map(
 ----------------------------
 --Ctrl
 ----------------------------
-p_in_rdy           => i_frprm_detect,
+p_in_det_frprm     => i_frprm_detect,
 p_in_det_pixcount  => i_pixcount_detect ,
 p_in_det_linecount => i_linecount_detect,
 p_in_time          => p_in_time,
@@ -478,7 +460,6 @@ p_in_time          => p_in_time,
 ----------------------------
 --VBUF (source of video data)
 ----------------------------
-p_out_bufi_rst  => i_bufi_rst,
 p_out_bufi_rd   => i_bufi_rd,
 p_in_bufi_do    => i_bufi_do,
 p_in_bufi_empty => i_bufi_empty,
@@ -490,6 +471,7 @@ p_in_hsync      => i_lval(0),
 ----------------------------
 p_out_pkt_do   => i_bufpkt_di,
 p_out_pkt_wr   => i_bufpkt_wr,
+p_in_pkt_wrclk => p_in_bufpkt_rdclk,
 
 ----------------------------
 --DBG
@@ -500,8 +482,7 @@ p_in_tst  => (others => '0'),
 ----------------------------
 --SYS
 ----------------------------
-p_in_clk => p_in_bufpkt_rdclk,
-p_in_rst => p_in_rst
+p_in_rst => '0' --p_in_rst
 );
 
 
@@ -569,6 +550,7 @@ i_dbg.cl(0).fval_edge1 <= tst_fval_edge1(0);
 i_dbg.cl(0).rxbyte(0) <= i_rxbyte((8 * (0 + 1)) - 1 downto (8 * 0));
 i_dbg.cl(0).rxbyte(1) <= i_rxbyte((8 * (1 + 1)) - 1 downto (8 * 1));
 i_dbg.cl(0).rxbyte(2) <= i_rxbyte((8 * (2 + 1)) - 1 downto (8 * 2));
+i_dbg.cl(0).clk_synval <= tst_cl_clk_synval((7 * (0 + 1)) - 1 downto (7 * 0));
 
 i_dbg.cl(1).clk <= i_rxclk(1);
 i_dbg.cl(1).link <= i_link(1);
@@ -581,6 +563,7 @@ i_dbg.cl(1).fval_edge1 <= tst_fval_edge1(1);
 i_dbg.cl(1).rxbyte(0) <= i_rxbyte((8 * (3 + 1)) - 1 downto (8 * 3));
 i_dbg.cl(1).rxbyte(1) <= i_rxbyte((8 * (4 + 1)) - 1 downto (8 * 4));
 i_dbg.cl(1).rxbyte(2) <= i_rxbyte((8 * (5 + 1)) - 1 downto (8 * 5));
+i_dbg.cl(1).clk_synval <= tst_cl_clk_synval((7 * (1 + 1)) - 1 downto (7 * 1));
 
 i_dbg.cl(2).clk <= i_rxclk(2);
 i_dbg.cl(2).link <= i_link(2);
@@ -593,6 +576,7 @@ i_dbg.cl(2).fval_edge1 <= tst_fval_edge1(2);
 i_dbg.cl(2).rxbyte(0) <= i_rxbyte((8 * (6 + 1)) - 1 downto (8 * 6));
 i_dbg.cl(2).rxbyte(1) <= i_rxbyte((8 * (7 + 1)) - 1 downto (8 * 7));
 i_dbg.cl(2).rxbyte(2) <= i_rxbyte((8 * (7 + 1)) - 1 downto (8 * 7));
+i_dbg.cl(2).clk_synval <= tst_cl_clk_synval((7 * (2 + 1)) - 1 downto (7 * 2));
 
 i_dbg.cam.bufpkt_empty <= i_bufpkt_empty;
 i_dbg.cam.bufpkt_rd <= i_bufpkt_rd;

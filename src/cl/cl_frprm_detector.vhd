@@ -34,12 +34,6 @@ p_in_lval   : in std_logic;
 p_in_dval   : in std_logic;
 p_in_rxclk  : in std_logic;
 
-----------------------------------------------------
-----DBG
-----------------------------------------------------
---p_out_tst : out  std_logic_vector(31 downto 0);
---p_in_tst  : in   std_logic_vector(31 downto 0);
-
 --------------------------------------------------
 --params video
 --------------------------------------------------
@@ -62,7 +56,7 @@ S_DONE
 signal i_fsm_vprm     : TFsm_vprm;
 
 signal i_cnt       : unsigned(15 downto 0);
-signal i_flag      : std_logic;
+
 signal i_det_done  : std_logic;
 signal i_pixcount  : unsigned(31 downto 0);
 signal i_linecount : unsigned(15 downto 0);
@@ -93,7 +87,7 @@ begin
 if (p_in_link = '0' or p_in_restart = '1') then
 i_fsm_vprm <= S_IDLE;
 i_cnt <= (others => '0');
-i_flag <= '0';
+
 i_det_done <= '0';
 
 i_pixcount <= (others => '0');
@@ -106,6 +100,7 @@ case i_fsm_vprm is
 
     i_det_done <= '0';
 
+    --wait any frame before begin counting pixels into line of frame
     if (sr_fval(0) = '0' and sr_fval(1) = '1') then
       if ((i_cnt = TO_UNSIGNED(64, i_cnt'length)) and strcmp(G_SIM, "OFF"))
            or ((i_cnt = TO_UNSIGNED(4, i_cnt'length)) and strcmp(G_SIM, "ON")) then
@@ -167,13 +162,6 @@ case i_fsm_vprm is
 end case;
 end if;
 end process;
-
-
-
-----#########################################
-----DBG
-----#########################################
---p_out_tst <= (others => '0');
 
 
 end architecture behavioral;

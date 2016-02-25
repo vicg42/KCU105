@@ -243,7 +243,7 @@ end component ila_dbg_cl;
 component ila_dbg2_cl is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(28 downto 0)
+probe0 : in std_logic_vector(35 downto 0)
 );
 end component ila_dbg2_cl;
 
@@ -452,7 +452,8 @@ probe0(10 downto 3)  => i_cam_dbg.cl(0).rxbyte(0),
 probe0(18 downto 11) => i_cam_dbg.cl(0).rxbyte(1),
 probe0(26 downto 19) => i_cam_dbg.cl(0).rxbyte(2),
 probe0(27)           => i_cam_dbg.cl(0).fval_edge0,
-probe0(28)           => i_cam_dbg.cl(0).fval_edge1
+probe0(28)           => i_cam_dbg.cl(0).fval_edge1,
+probe0(35 downto 29) => i_cam_dbg.cl(0).clk_synval
 );
 
 dbg2_cly : ila_dbg2_cl
@@ -465,7 +466,8 @@ probe0(10 downto 3)  => i_cam_dbg.cl(1).rxbyte(0),
 probe0(18 downto 11) => i_cam_dbg.cl(1).rxbyte(1),
 probe0(26 downto 19) => i_cam_dbg.cl(1).rxbyte(2),
 probe0(27)           => i_cam_dbg.cl(1).fval_edge0,
-probe0(28)           => i_cam_dbg.cl(1).fval_edge1
+probe0(28)           => i_cam_dbg.cl(1).fval_edge1,
+probe0(35 downto 29) => i_cam_dbg.cl(1).clk_synval
 );
 
 dbg2_clz : ila_dbg2_cl
@@ -478,7 +480,8 @@ probe0(10 downto 3)  => i_cam_dbg.cl(2).rxbyte(0),
 probe0(18 downto 11) => i_cam_dbg.cl(2).rxbyte(1),
 probe0(26 downto 19) => i_cam_dbg.cl(2).rxbyte(2),
 probe0(27)           => i_cam_dbg.cl(2).fval_edge0,
-probe0(28)           => i_cam_dbg.cl(2).fval_edge1
+probe0(28)           => i_cam_dbg.cl(2).fval_edge1,
+probe0(35 downto 29) => i_cam_dbg.cl(2).clk_synval
 );
 
 dbg_cam : ila_dbg_cam

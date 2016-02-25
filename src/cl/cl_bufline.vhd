@@ -30,12 +30,6 @@ p_in_dval   : in  std_logic_vector(G_CL_CHCOUNT - 1 downto 0); --data valid
 p_in_rxbyte : in  std_logic_vector((G_CL_PIXBIT * G_CL_TAP) - 1 downto 0);
 p_in_rxclk  : in  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 
-----------------------------------------------------
-----DBG
-----------------------------------------------------
---p_out_tst : out  std_logic_vector(31 downto 0);
---p_in_tst  : in   std_logic_vector(31 downto 0)
-
 --------------------------------------------------
 --Output
 --------------------------------------------------
@@ -43,7 +37,7 @@ p_out_buf_empty : out  std_logic;
 p_out_buf_do    : out  std_logic_vector(63 downto 0);
 p_in_buf_rd     : in   std_logic;
 p_in_buf_rdclk  : in   std_logic;
-p_in_buf_rst    : in   std_logic
+p_in_buf_rstn   : in   std_logic
 );
 end entity cl_bufline;
 
@@ -63,13 +57,13 @@ empty     : out std_logic;
 full      : out std_logic;
 --prog_full : out std_logic;
 
-rst       : in  std_logic
+--rst       : in  std_logic
 
---wr_rst_busy : out std_logic;
---rd_rst_busy : out std_logic;
---
-----clk       : in  std_logic;
---srst      : in  std_logic
+wr_rst_busy : out std_logic;
+rd_rst_busy : out std_logic;
+
+--clk       : in  std_logic;
+srst      : in  std_logic
 );
 end component cl_fifo_line;
 
@@ -84,7 +78,7 @@ begin --architecture behavioral
 
 p_out_buf_empty <= OR_reduce(i_buf_empty(G_CL_TAP - 1 downto 0));
 
-i_buf_rst <= (p_in_buf_rst);
+i_buf_rst <= (not p_in_buf_rstn);
 
 
 --##############################
@@ -106,13 +100,13 @@ empty     => i_buf_empty(0),
 full      => open,
 --prog_full => open,
 
-rst       => i_buf_rst
+--rst       => i_buf_rst
 
---wr_rst_busy => open,
---rd_rst_busy => open,
+wr_rst_busy => open,
+rd_rst_busy => open,
 
 --clk       : in  std_logic;
---srst      => i_buf_rst
+srst      => i_buf_rst
 );
 
 m_buf_byteB : cl_fifo_line
@@ -129,13 +123,13 @@ empty     => i_buf_empty(1),
 full      => open,
 --prog_full => open,
 
-rst       => i_buf_rst
+--rst       => i_buf_rst
 
---wr_rst_busy => open,
---rd_rst_busy => open,
---
-----clk       : in  std_logic;
---srst      => i_buf_rst
+wr_rst_busy => open,
+rd_rst_busy => open,
+
+--clk       : in  std_logic;
+srst      => i_buf_rst
 );
 
 m_buf_byteC : cl_fifo_line
@@ -152,13 +146,13 @@ empty     => i_buf_empty(2),
 full      => open,
 --prog_full => open,
 
-rst       => i_buf_rst
+--rst       => i_buf_rst
 
---wr_rst_busy => open,
---rd_rst_busy => open,
---
-----clk       : in  std_logic;
---srst      => i_buf_rst
+wr_rst_busy => open,
+rd_rst_busy => open,
+
+--clk       : in  std_logic;
+srst      => i_buf_rst
 );
 
 
@@ -182,13 +176,13 @@ empty     => i_buf_empty(3),
 full      => open,
 --prog_full => open,
 
-rst       => i_buf_rst
+--rst       => i_buf_rst
 
---wr_rst_busy => open,
---rd_rst_busy => open,
---
-----clk       : in  std_logic;
---srst      => i_buf_rst
+wr_rst_busy => open,
+rd_rst_busy => open,
+
+--clk       : in  std_logic;
+srst      => i_buf_rst
 );
 
 m_buf_byteE : cl_fifo_line
@@ -205,13 +199,13 @@ empty     => i_buf_empty(4),
 full      => open,
 --prog_full => open,
 
-rst       => i_buf_rst
+--rst       => i_buf_rst
 
---wr_rst_busy => open,
---rd_rst_busy => open,
---
-----clk       : in  std_logic;
---srst      => i_buf_rst
+wr_rst_busy => open,
+rd_rst_busy => open,
+
+--clk       : in  std_logic;
+srst      => i_buf_rst
 );
 
 m_buf_byteF : cl_fifo_line
@@ -228,13 +222,13 @@ empty     => i_buf_empty(5),
 full      => open,
 --prog_full => open,
 
-rst       => i_buf_rst
+--rst       => i_buf_rst
 
---wr_rst_busy => open,
---rd_rst_busy => open,
---
-----clk       : in  std_logic;
---srst      => i_buf_rst
+wr_rst_busy => open,
+rd_rst_busy => open,
+
+--clk       : in  std_logic;
+srst      => i_buf_rst
 );
 
 
@@ -257,13 +251,13 @@ empty     => i_buf_empty(6),
 full      => open,
 --prog_full => open,
 
-rst       => i_buf_rst
+--rst       => i_buf_rst
 
---wr_rst_busy => open,
---rd_rst_busy => open,
---
-----clk       : in  std_logic;
---srst      => i_buf_rst
+wr_rst_busy => open,
+rd_rst_busy => open,
+
+--clk       : in  std_logic;
+srst      => i_buf_rst
 );
 
 m_buf_byteH : cl_fifo_line
@@ -280,13 +274,13 @@ empty     => i_buf_empty(7),
 full      => open,
 --prog_full => open,
 
-rst       => i_buf_rst
+--rst       => i_buf_rst
 
---wr_rst_busy => open,
---rd_rst_busy => open,
---
-----clk       : in  std_logic;
---srst      => i_buf_rst
+wr_rst_busy => open,
+rd_rst_busy => open,
+
+--clk       : in  std_logic;
+srst      => i_buf_rst
 );
 
 
