@@ -275,8 +275,6 @@ p_in_clk   => pin_in_refclk
 );
 
 
-i_usr_rst <= pin_in_btn(0);
-
 
 m_cam : cam_cl_main
 generic map(
@@ -335,6 +333,9 @@ p_out_dbg => i_cam_dbg,
 --p_in_clk => g_usrclk(0),
 p_in_rst => i_usr_rst
 );
+
+i_usr_rst <= pin_in_btn(0);
+
 
 i_cam_bufpkt_rd <= (not i_cam_bufpkt_empty);
 i_cam_bufpkt_rdclk <= g_usrclk(0);
@@ -395,9 +396,9 @@ p_in_rst   => i_usrclk_rst
 );
 
 pin_out_led(0) <= i_test_led(0);
-pin_out_led(1) <= '0';
+pin_out_led(1) <= i_usr_rst;
 pin_out_led(2) <= '0'; --i_det
-pin_out_led(3) <= i_usr_rst;
+pin_out_led(3) <= '0';
 pin_out_led(4) <= '0';
 
 
@@ -411,6 +412,7 @@ pin_out_TP(1) <= i_cam_tst_out(1);--PMOD1_6  (SSI)
 
 
 i_cam_tst_in(0) <= i_btn;
+i_cam_tst_in(1) <= '0';
 i_cam_tst_in(2) <= pin_in_rs232_rx;--p_in_tst(2); --cam_ctrl_rx (UART)
 pin_out_rs232_tx <= i_cam_tst_out(2);--cam_ctrl_tx (UART)
 

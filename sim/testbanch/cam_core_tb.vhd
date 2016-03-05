@@ -9,8 +9,18 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+use work.cl_pkg.all;
+
 entity cl_main is
 generic(
+G_DCM_TYPE : TCL_DCM_TYPE_ARRAY := (C_CL_PLL, --type dcm for chanal 3
+                                    C_CL_PLL, --type dcm for chanal 2
+                                    C_CL_MMCM --type dcm for chanal 1
+                                   );
+G_DCM_CLKIN_PERIOD : real := 11.764000; --85MHz => clkx7 = ((85/1)*14)/2 = 1190/2 = 595MHz
+G_DCM_DIVCLK_DIVIDE : natural := 1;
+G_DCM_CLKFBOUT_MULT : natural := 14;
+G_DCM_CLKOUT0_DIVIDE : natural := 2;
 G_CL_PIXBIT : natural := 8; --Amount bit per 1 pix
 G_CL_TAP : natural := 8; --Amount pixel per 1 clk
 G_CL_CHCOUNT : natural := 1

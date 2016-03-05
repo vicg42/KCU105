@@ -28,6 +28,7 @@ G_DCM_TYPE : natural := 0
 port(
 p_in_clk     : in  std_logic;
 p_out_gclkx7 : out std_logic;
+p_out_gdlyctrl: out std_logic;
 p_in_rst     : in  std_logic;
 p_out_locked : out std_logic
 );
@@ -38,13 +39,19 @@ architecture behavioral of cl_mmcm is
 signal i_clkx7 : std_logic;
 signal i_clkfbi: std_logic;
 signal i_clkfbo: std_logic;
+signal i_clk_idlayctrl: std_logic;
 
 
 begin --architecture behavioral
 
+
 m_bufg_out : BUFG port map(I => i_clkx7, O => p_out_gclkx7);
 
+
 gen_pll : if (G_DCM_TYPE = C_CL_PLL) generate begin
+
+p_out_gdlyctrl <= '0';
+
 --PLL_FVCO = 600...1335 !!!
 m_plle3_adv : PLLE3_ADV
 generic map (
@@ -98,21 +105,25 @@ DWE => '0',                 -- 1-bit input: DRP write enable
 CLKFBIN => i_clkfbi          -- 1-bit input: Feedback clock
 );
 
-i_clkfbi <= i_clkfbo;
+m_clkfb : BUFG port map(I => i_clkfbo, O => i_clkfbi);
+
 end generate gen_pll;
 
 
 gen_mmcm : if (G_DCM_TYPE = C_CL_MMCM) generate begin
+
+p_out_gdlyctrl <= '0'; --m_bufg_idlyctrl : BUFG port map(I => i_clk_idlayctrl, O => p_out_gdlyctrl);
+
 --MMCM_FVCO = 600...1440 !!!
 mmcme3_adv_inst: unisim.vcomponents.MMCME3_ADV
 generic map (
 BANDWIDTH => "OPTIMIZED",        -- Jitter programming (HIGH, LOW, OPTIMIZED)
-CLKFBOUT_MULT_F => real(G_CLKFBOUT_MULT),          -- Multiply value for all CLKOUT (2.000-64.000)
+CLKFBOUT_MULT_F => real(G_CLKFBOUT_MULT), --16.625, -- Multiply value for all CLKOUT (2-64) or (2.000-64.000 : incr of 0.125)
 CLKFBOUT_PHASE => 0.0,           -- Phase offset in degrees of CLKFB (-360.000-360.000)
 -- CLKIN_PERIOD: Input clock period in ns units, ps resolution (i.e. 33.333 is 30 MHz).
 CLKIN1_PERIOD => G_CLKIN_PERIOD,
 CLKIN2_PERIOD => 0.0,
-CLKOUT0_DIVIDE_F => 1.0,         -- Divide amount for CLKOUT0 (1.000-128.000)
+CLKOUT0_DIVIDE_F => real(G_CLKOUT0_DIVIDE),--2.375,--Divide amount for CLKOUT0 (1-128) or (2.000-128.000 : incr of 0.125)
 -- CLKOUT0_DUTY_CYCLE - CLKOUT6_DUTY_CYCLE: Duty cycle for CLKOUT outputs (0.001-0.999).
 CLKOUT0_DUTY_CYCLE => 0.5,
 CLKOUT1_DUTY_CYCLE => 0.5,
@@ -130,7 +141,7 @@ CLKOUT4_PHASE => 0.0,
 CLKOUT5_PHASE => 0.0,
 CLKOUT6_PHASE => 0.0,
 -- CLKOUT1_DIVIDE - CLKOUT6_DIVIDE: Divide amount for CLKOUT (1-128)
-CLKOUT1_DIVIDE => G_CLKOUT0_DIVIDE,
+CLKOUT1_DIVIDE => 2,--G_CLKOUT0_DIVIDE,
 CLKOUT2_DIVIDE => 1,
 CLKOUT3_DIVIDE => 1,
 CLKOUT4_CASCADE => "FALSE",
@@ -138,7 +149,7 @@ CLKOUT4_DIVIDE => 1,
 CLKOUT5_DIVIDE => 1,
 CLKOUT6_DIVIDE => 1,
 COMPENSATION => "AUTO",          -- AUTO, BUF_IN, EXTERNAL, INTERNAL, ZHOLD
-DIVCLK_DIVIDE => G_DIVCLK_DIVIDE,              -- Master division value (1-106)
+DIVCLK_DIVIDE => 1, --G_DIVCLK_DIVIDE, -- Master division value (1-106)
 -- Programmable Inversion Attributes: Specifies built-in programmable inversion on specific pins
 IS_CLKFBIN_INVERTED => '0',      -- Optional inversion for CLKFBIN
 IS_CLKIN1_INVERTED => '0',       -- Optional inversion for CLKIN1
@@ -168,9 +179,9 @@ CLKOUT6_USE_FINE_PS => "FALSE"
 )
 port map (
 -- Clock Outputs outputs: User configurable clock outputs
-CLKOUT0 => open,           -- 1-bit output: CLKOUT0
+CLKOUT0 => i_clkx7,           -- 1-bit output: CLKOUT0
 CLKOUT0B => open,         -- 1-bit output: Inverted CLKOUT0
-CLKOUT1 => i_clkx7,           -- 1-bit output: Primary clock
+CLKOUT1 => i_clk_idlayctrl,           -- 1-bit output: Primary clock
 CLKOUT1B => open,         -- 1-bit output: Inverted CLKOUT1
 CLKOUT2 => open,           -- 1-bit output: CLKOUT2
 CLKOUT2B => open,         -- 1-bit output: Inverted CLKOUT2
@@ -214,7 +225,7 @@ PSINCDEC => '0',         -- 1-bit input: Phase shift increment/decrement
 CLKFBIN => i_clkfbi            -- 1-bit input: Feedback clock
 );
 
-i_clkfbi <= i_clkfbo;
+m_clkfb : BUFG port map(I => i_clkfbo, O => i_clkfbi);
 end generate gen_mmcm;
 
 

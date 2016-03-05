@@ -118,11 +118,11 @@ p_out_rxclk  : out  std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 --------------------------------------------------
 --DBG
 --------------------------------------------------
-p_out_cl_clk_synval : out std_logic_vector((7 * G_CL_CHCOUNT) - 1 downto 0);
+p_out_clk_synval : out std_logic_vector((7 * G_CL_CHCOUNT) - 1 downto 0);
 --p_out_tst : out  std_logic_vector(31 downto 0);
 --p_in_tst  : in   std_logic_vector(31 downto 0);
 
---p_in_refclk : in std_logic;
+p_in_refclk : in std_logic;
 --p_in_clk : in std_logic;
 p_in_rst : in std_logic
 );
@@ -285,18 +285,18 @@ signal sr_btn              : std_logic_vector(0 to 2);
 type TCL_Tst0 is array (0 to G_CL_CHCOUNT - 1) of std_logic_vector(0 to 1);
 signal sr_fval             : TCL_Tst0;
 signal sr_lval             : TCL_Tst0;
-signal tst_fval_edge0      : std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
-signal tst_fval_edge1      : std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
+signal tst_fval_edge0      : std_logic_vector(G_CL_CHCOUNT - 1 downto 0) := (others => '0');
+signal tst_fval_edge1      : std_logic_vector(G_CL_CHCOUNT - 1 downto 0) := (others => '0');
 --signal tst_lval_edge0      : std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
 --signal tst_lval_edge1      : std_logic_vector(G_CL_CHCOUNT - 1 downto 0);
-signal sr_fval_t           : std_logic_vector(0 to 1);
-signal sr_lval_t           : std_logic_vector(0 to 1);
-signal tst_fval_t_edge0    : std_logic;
-signal tst_fval_t_edge1    : std_logic;
+signal sr_fval_t           : std_logic_vector(0 to 1) := (others => '0');
+signal sr_lval_t           : std_logic_vector(0 to 1) := (others => '0');
+signal tst_fval_t_edge0    : std_logic := '0';
+signal tst_fval_t_edge1    : std_logic := '0';
 --signal tst_lval_t_edge0    : std_logic;
 --signal tst_lval_t_edge1    : std_logic;
 
-signal tst_cl_clk_synval   : std_logic_vector((7 * G_CL_CHCOUNT) - 1 downto 0);
+signal tst_clk_synval   : std_logic_vector((7 * G_CL_CHCOUNT) - 1 downto 0);
 
 signal i_dbg : TCAM_dbg;
 
@@ -320,19 +320,6 @@ end generate gen_status1;
 
 p_out_status(C_CAM_STATUS_CL_LINKTOTAL_BIT) <= i_link_total;
 
-
-
-
---m_IDELAYCTRL : IDELAYCTRL
---generic map (
---SIM_DEVICE => "ULTRASCALE"  -- Set the device version (7SERIES, ULTRASCALE)
---)
---port map (
---RDY    => i_idelayctrl_rdy, -- 1-bit output: Ready output
---REFCLK => p_in_refclk     , -- 1-bit input: Reference clock input
---RST    => i_idelayctrl_rst  -- 1-bit input: Active high reset input. Asynchronous assert, synchronous deassert to
---                            -- REFCLK.
---);
 
 m_cam_core : cl_main
 generic map(
@@ -369,11 +356,11 @@ p_out_rxclk  => i_rxclk ,
 --------------------------------------------------
 --DBG
 --------------------------------------------------
-p_out_cl_clk_synval => tst_cl_clk_synval,
+p_out_clk_synval => tst_clk_synval,
 --p_out_tst => open,
 --p_in_tst  => (others => '0'),
 
---p_in_refclk => p_in_refclk,
+p_in_refclk => '0',--p_in_refclk,
 --p_in_clk => p_in_clk,
 p_in_rst => p_in_rst
 );
@@ -550,7 +537,7 @@ i_dbg.cl(0).fval_edge1 <= tst_fval_edge1(0);
 i_dbg.cl(0).rxbyte(0) <= i_rxbyte((8 * (0 + 1)) - 1 downto (8 * 0));
 i_dbg.cl(0).rxbyte(1) <= i_rxbyte((8 * (1 + 1)) - 1 downto (8 * 1));
 i_dbg.cl(0).rxbyte(2) <= i_rxbyte((8 * (2 + 1)) - 1 downto (8 * 2));
-i_dbg.cl(0).clk_synval <= tst_cl_clk_synval((7 * (0 + 1)) - 1 downto (7 * 0));
+i_dbg.cl(0).clk_synval <= tst_clk_synval((7 * (0 + 1)) - 1 downto (7 * 0));
 
 i_dbg.cl(1).clk <= i_rxclk(1);
 i_dbg.cl(1).link <= i_link(1);
@@ -563,7 +550,7 @@ i_dbg.cl(1).fval_edge1 <= tst_fval_edge1(1);
 i_dbg.cl(1).rxbyte(0) <= i_rxbyte((8 * (3 + 1)) - 1 downto (8 * 3));
 i_dbg.cl(1).rxbyte(1) <= i_rxbyte((8 * (4 + 1)) - 1 downto (8 * 4));
 i_dbg.cl(1).rxbyte(2) <= i_rxbyte((8 * (5 + 1)) - 1 downto (8 * 5));
-i_dbg.cl(1).clk_synval <= tst_cl_clk_synval((7 * (1 + 1)) - 1 downto (7 * 1));
+i_dbg.cl(1).clk_synval <= tst_clk_synval((7 * (1 + 1)) - 1 downto (7 * 1));
 
 i_dbg.cl(2).clk <= i_rxclk(2);
 i_dbg.cl(2).link <= i_link(2);
@@ -575,8 +562,8 @@ i_dbg.cl(2).fval_edge1 <= tst_fval_edge1(2);
 --i_dbg.cl(2).lval_edge1 <= tst_lval_edge1(2);
 i_dbg.cl(2).rxbyte(0) <= i_rxbyte((8 * (6 + 1)) - 1 downto (8 * 6));
 i_dbg.cl(2).rxbyte(1) <= i_rxbyte((8 * (7 + 1)) - 1 downto (8 * 7));
-i_dbg.cl(2).rxbyte(2) <= i_rxbyte((8 * (7 + 1)) - 1 downto (8 * 7));
-i_dbg.cl(2).clk_synval <= tst_cl_clk_synval((7 * (2 + 1)) - 1 downto (7 * 2));
+i_dbg.cl(2).rxbyte(2) <= (others => '0'); --i_rxbyte((8 * (7 + 1)) - 1 downto (8 * 7));
+i_dbg.cl(2).clk_synval <= tst_clk_synval((7 * (2 + 1)) - 1 downto (7 * 2));
 
 i_dbg.cam.bufpkt_empty <= i_bufpkt_empty;
 i_dbg.cam.bufpkt_rd <= i_bufpkt_rd;
@@ -588,12 +575,15 @@ i_dbg.cam.fval <= i_fval(0);
 i_dbg.cam.lval <= i_lval(0);
 
 
-process(i_link_total, i_rxclk(0))
+--process(i_link_total, i_rxclk(0))
+--begin
+--if (i_link_total = '0') then
+--  sr_btn <= (others => '0');
+--  i_restart <= '0';
+--elsif rising_edge(i_rxclk(0)) then
+process(i_rxclk(0))
 begin
-if (i_link_total = '0') then
-  sr_btn <= (others => '0');
-  i_restart <= '0';
-elsif rising_edge(i_rxclk(0)) then
+if rising_edge(i_rxclk(0)) then
   sr_btn <= p_in_tst(0) & sr_btn(0 to 1);
   i_restart <= sr_btn(1) and (not sr_btn(2));
 end if;
@@ -601,18 +591,19 @@ end process;
 
 
 gen_tst0 : for i in 0 to (G_CL_CHCOUNT - 1) generate begin
-process(i_link_total, i_rxclk(i))
+--process(i_link_total, i_rxclk(i))
+--begin
+--if (i_link_total = '0') then
+--  sr_fval(i) <= (others => '0');
+--  sr_lval(i) <= (others => '0');
+--
+--  tst_fval_edge0(i) <= '0';
+--  tst_fval_edge1(i) <= '0';
+----  tst_lval_edge0(i) <= '0';
+----  tst_lval_edge1(i) <= '0';
+process(i_rxclk(i))
 begin
-if (i_link_total = '0') then
-  sr_fval(i) <= (others => '0');
-  sr_lval(i) <= (others => '0');
-
-  tst_fval_edge0(i) <= '0';
-  tst_fval_edge1(i) <= '0';
---  tst_lval_edge0(i) <= '0';
---  tst_lval_edge1(i) <= '0';
-
-elsif rising_edge(i_rxclk(i)) then
+if rising_edge(i_rxclk(i)) then
 
   sr_fval(i) <= i_fval(i) & sr_fval(i)(0 to 0);
   sr_lval(i) <= i_lval(i) & sr_lval(i)(0 to 0);
@@ -625,20 +616,22 @@ elsif rising_edge(i_rxclk(i)) then
 
 end if;
 end process;
+
 end generate gen_tst0;
 
-process(i_link_total, p_in_bufpkt_rdclk)
+--process(i_link_total, p_in_bufpkt_rdclk)
+--begin
+--if (i_link_total = '0') then
+--  sr_fval_t <= (others => '0');
+--  sr_lval_t <= (others => '0');
+--
+--  tst_fval_t_edge0 <= '0';
+--  tst_fval_t_edge1 <= '0';
+----  tst_lval_t_edge0 <= '0';
+----  tst_lval_t_edge1 <= '0';
+process(p_in_bufpkt_rdclk)
 begin
-if (i_link_total = '0') then
-  sr_fval_t <= (others => '0');
-  sr_lval_t <= (others => '0');
-
-  tst_fval_t_edge0 <= '0';
-  tst_fval_t_edge1 <= '0';
---  tst_lval_t_edge0 <= '0';
---  tst_lval_t_edge1 <= '0';
-
-elsif rising_edge(p_in_bufpkt_rdclk) then
+if rising_edge(p_in_bufpkt_rdclk) then
 
   sr_fval_t <= i_fval(0) & sr_fval_t(0 to 0);
   sr_lval_t <= i_lval(0) & sr_lval_t(0 to 0);

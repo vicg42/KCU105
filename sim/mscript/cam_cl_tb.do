@@ -32,9 +32,13 @@ vcom -64 -93 -64 -93 -work xil_defaultlib  \
 
 vcom -64 -93 -work xil_defaultlib "../../src/lib/reduce_pack.vhd";
 vcom -64 -93 -work xil_defaultlib "../../src/lib/vicg_common_pkg.vhd" ;
+vcom -64 -93 -work xil_defaultlib "../../src/prj_cfg.vhd";
+vcom -64 -93 -work xil_defaultlib "../../src/prj_def.vhd";
 vcom -64 -93 -work xil_defaultlib "../../src/cl/cl_pkg.vhd";
-vcom -64 -93 -work xil_defaultlib "../../src/cl/cl_bufline.vhd";
+#vcom -64 -93 -work xil_defaultlib "../../src/cl/cl_mmcm.vhd";
 #vcom -64 -93 -work xil_defaultlib "../../src/cl/cl_core.vhd";
+#vcom -64 -93 -work xil_defaultlib "../../src/cl/cl_main.vhd";
+vcom -64 -93 -work xil_defaultlib "../../src/cl/cl_bufline.vhd";
 vcom -64 -93 -work xil_defaultlib "../../src/cl/cl_frprm_detector.vhd";
 vcom -64 -93 -work xil_defaultlib "../../src/cl/gearbox_4_to_7.vhd";
 vcom -64 -93 -work xil_defaultlib "../../src/pktvd_create.vhd";

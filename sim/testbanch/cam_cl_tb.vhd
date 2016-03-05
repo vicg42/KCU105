@@ -14,7 +14,7 @@ use work.reduce_pack.all;
 use work.cl_pkg.all;
 use work.cam_cl_pkg.all;
 use work.eth_pkg.all;
-
+use work.prj_def.all;
 
 entity cam_cl_tb is
 generic(
@@ -70,10 +70,10 @@ component cam_cl_main is
 generic(
 G_VCH_NUM : natural := 0;
 G_PKT_TYPE : natural := 1;
-G_PKT_HEADER_BYTECOUNT : natural := 16; --Header Byte Count
-G_PKT_PIXCHUNK_BYTECOUNT : natural := 1024; --Data Chunk
-G_CL_PIXBIT : natural := 1; --Amount bit per 1 pix
-G_CL_TAP : natural := 8; --Amount pixel per 1 clk
+G_PKT_HEADER_BYTECOUNT : natural := 16;
+G_PKT_PIXCHUNK_BYTECOUNT : natural := 1024;
+G_CL_PIXBIT : natural := 1; --Number of bit per 1 pix
+G_CL_TAP : natural := 8; --Number of pixel per 1 clk
 G_CL_CHCOUNT : natural := 1;
 G_SIM : string := "OFF"
 );
@@ -81,8 +81,8 @@ port(
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_cam_ctrl_rx  : in  std_logic;
-p_out_cam_ctrl_tx : out std_logic;
+--p_in_cam_ctrl_rx  : in  std_logic;
+--p_out_cam_ctrl_tx : out std_logic;
 p_in_time         : in  std_logic_vector(31 downto 0);
 
 --------------------------------------------------
@@ -115,8 +115,8 @@ p_out_status   : out  std_logic_vector(C_CAM_STATUS_LASTBIT downto 0);
 --------------------------------------------------
 --DBG
 --------------------------------------------------
-p_out_tst : out  std_logic_vector(1 downto 0);
-p_in_tst  : in   std_logic_vector(0 downto 0);
+p_out_tst : out  std_logic_vector(2 downto 0);
+p_in_tst  : in   std_logic_vector(2 downto 0);
 p_out_dbg : out  TCAM_dbg;
 
 --p_in_refclk : in std_logic;
@@ -269,8 +269,8 @@ port map(
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_cam_ctrl_rx  => '1',
-p_out_cam_ctrl_tx => open,
+--p_in_cam_ctrl_rx  => '1',
+--p_out_cam_ctrl_tx => open,
 p_in_time         => std_logic_vector(i_time),
 
 --------------------------------------------------
