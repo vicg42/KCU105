@@ -126,8 +126,8 @@ set_property IOSTANDARD LVDS        [get_ports {pin_in_cl_di_p[*]}]
 
 #FMC HPC (Board FMC CAMERALINK : CL(CTRL))
 set_property IOSTANDARD LVDS [get_ports pin_in_cl_tfg_n]
-set_property PACKAGE_PIN B10 [get_ports pin_in_cl_tfg_p]
 set_property PACKAGE_PIN A10 [get_ports pin_in_cl_tfg_n]
+set_property PACKAGE_PIN B10 [get_ports pin_in_cl_tfg_p]
 set_property IOSTANDARD LVDS [get_ports pin_in_cl_tfg_p]
 set_property DIFF_TERM_ADV TERM_100 [get_ports pin_in_cl_tfg_p]
 set_property IOSTANDARD LVDS [get_ports pin_out_cl_tc_n]

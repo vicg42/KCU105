@@ -147,13 +147,13 @@ set_property OFFCHIP_TERM NONE [get_ports pin_out_led_hpc[*]]
 #set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[11]}]
 
 set_property IOSTANDARD LVDS [get_ports pin_in_cl_tfg_n]
-set_property PACKAGE_PIN B10 [get_ports pin_in_cl_tfg_p]
 set_property PACKAGE_PIN A10 [get_ports pin_in_cl_tfg_n]
+set_property PACKAGE_PIN B10 [get_ports pin_in_cl_tfg_p]
 set_property IOSTANDARD LVDS [get_ports pin_in_cl_tfg_p]
 set_property DIFF_TERM_ADV TERM_100 [get_ports pin_in_cl_tfg_p]
 set_property IOSTANDARD LVDS [get_ports pin_out_cl_tc_n]
-set_property PACKAGE_PIN D8 [get_ports pin_out_cl_tc_p]
 set_property PACKAGE_PIN C8 [get_ports pin_out_cl_tc_n]
+set_property PACKAGE_PIN D8 [get_ports pin_out_cl_tc_p]
 set_property IOSTANDARD LVDS [get_ports pin_out_cl_tc_p]
 
 #CL(Z)
