@@ -346,6 +346,8 @@ signal tst_pkt_err             : std_logic := '0';
 --signal tst_dbg_pictire         : std_logic;
 --signal tst_dbg_rd_hold         : std_logic;
 
+signal tst_err_vbuf_overflow   : std_logic_vector(G_VCH_COUNT - 1 downto 0);
+
 
 begin --architecture behavioral
 
@@ -444,18 +446,20 @@ if rising_edge(p_in_clk) then
     for buf in 0 to C_FG_VBUF_COUNT - 1 loop
     i_frmrk_save(ch)(buf) <= (others => '0');
     end loop;
-    i_frskip(ch) <= (others => '0');
+    i_frskip(ch) <= (others => '0'); tst_err_vbuf_overflow(ch) <= '0';
 
   else
 
         --Set vbuf for write
         if i_idle(ch) = '1' then
-          i_vbuf_wr(ch) <= (others => '0');
+          i_vbuf_wr(ch) <= (others => '0'); tst_err_vbuf_overflow(ch) <= '0';
 
         elsif i_fgwr_frrdy(ch) = '1' then
             if i_vbuf_hold(ch) = '1' then
                 if i_vbuf_wr(ch) /= i_vbuf_rd(ch) then
                   i_vbuf_wr(ch) <= i_vbuf_wr(ch) + 1;
+                else
+                  tst_err_vbuf_overflow(ch) <= '1';
                 end if;
             else
               i_vbuf_wr(ch) <= i_vbuf_wr(ch) + 1;
@@ -805,6 +809,15 @@ gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
 ----p_out_tst(25 downto 11) <= (others => '0');
 ----p_out_tst(31 downto 26) <= tst_fgwr_out(31 downto 26);
 p_out_tst(26 downto 0) <= i_fgwr_tst_out(26 downto 0);
+
+p_out_tst(34 downto 32) <= i_fgrd_vch;
+p_out_tst(35)           <= i_fgrd_rddone;
+p_out_tst(37 downto 36) <= i_fgwr_frrdy(1 downto 0);
+p_out_tst(39 downto 38) <= i_irq(1 downto 0);
+p_out_tst(41 downto 40) <= i_vbuf_hold(1 downto 0);
+p_out_tst(43 downto 42) <= tst_err_vbuf_overflow(1 downto 0);
+p_out_tst(46 downto 44) <= std_logic_vector(i_frskip(0));
+p_out_tst(49 downto 47) <= std_logic_vector(i_frskip(1));
 
 p_out_tst(p_out_tst'high downto 128) <= i_fgrd_tst_out;
 end generate gen_dbgcs_on;
