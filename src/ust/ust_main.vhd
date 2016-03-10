@@ -164,15 +164,15 @@ signal i_cam0_bufpkt_empty : std_logic;
 
 signal i_cam_dbg           : TCAM_dbg;
 
---component ila_dbg_cam is
---port (
---clk : in std_logic;
---probe0 : in std_logic_vector(70 downto 0)
---);
---end component ila_dbg_cam;
---
---attribute mark_debug : string;
---attribute mark_debug of i_cam_dbg  : signal is "true";
+component ila_dbg_cam is
+port (
+clk : in std_logic;
+probe0 : in std_logic_vector(70 downto 0)
+);
+end component ila_dbg_cam;
+
+attribute mark_debug : string;
+attribute mark_debug of i_cam_dbg  : signal is "true";
 
 
 
@@ -295,17 +295,17 @@ p_out_tst(2) <= i_cam0_tst_out(2);--cam_ctrl_tx (UART)
 
 
 
---dbg_cam : ila_dbg_cam
---port map(
---clk                 => i_cam0_bufpkt_rdclk,
---probe0(0)           => i_cam_dbg.cam.bufpkt_empty,
---probe0(1)           => i_cam_dbg.cam.bufpkt_rd   ,
---probe0(65 downto 2) => i_cam_dbg.cam.bufpkt_do   ,
---probe0(66)          => i_cam_dbg.cam.vpkt_err    ,
---probe0(67)          => i_cam_dbg.cam.fval,
---probe0(68)          => i_cam_dbg.cam.lval,
---probe0(69)          => i_cam_dbg.cam.fval_edge0,
---probe0(70)          => i_cam_dbg.cam.fval_edge1
---);
+dbg_cam : ila_dbg_cam
+port map(
+clk                 => i_cam0_bufpkt_rdclk,
+probe0(0)           => i_cam_dbg.cam.bufpkt_empty,
+probe0(1)           => i_cam_dbg.cam.bufpkt_rd   ,
+probe0(65 downto 2) => i_cam_dbg.cam.bufpkt_do   ,
+probe0(66)          => i_cam_dbg.cam.vpkt_err    ,
+probe0(67)          => i_cam_dbg.cam.fval,
+probe0(68)          => i_cam_dbg.cam.lval,
+probe0(69)          => i_cam_dbg.cam.fval_edge0,
+probe0(70)          => i_cam_dbg.cam.fval_edge1
+);
 
 end architecture struct;
