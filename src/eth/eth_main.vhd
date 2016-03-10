@@ -266,6 +266,7 @@ signal i_rx_fifo_tready  : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 signal i_coreclk_out     : std_logic;
 signal i_block_lock      : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 signal i_buf_rst         : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+signal i_status_rdy      : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
 signal dbg_rx_axis_mac_tdata   : std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0)      ;
 signal dbg_rx_axis_mac_tkeep   : std_logic_vector(((G_ETH_DWIDTH / 8) * G_ETH_CH_COUNT) - 1 downto 0);
@@ -395,8 +396,10 @@ p_in_rst => i_buf_rst(i) --p_in_rst
 );
 
 p_out_buf_clk(i) <= i_coreclk_out;
-i_buf_rst(i) <= not i_block_lock(i);
+i_buf_rst(i) <= (not i_status_rdy(i));
 p_out_buf_rst(i) <= i_buf_rst(i);
+
+p_out_status_rdy(i) <= i_status_rdy(i);
 
 p_out_dbg.rx(i).fsm <= i_eth_mac_rx_tst_out((32 * i) + 2 downto (32 * i) + 0);
 
@@ -448,7 +451,7 @@ sim_speedup_control => p_in_sim_speedup_control,
 frame_error  => open,
 
 block_lock => i_block_lock,
-core_ready  => p_out_status_rdy,
+core_ready  => i_status_rdy,
 qplllock_out => p_out_status_qplllock,
 
 signal_detect => p_in_sfp_signal_detect,
