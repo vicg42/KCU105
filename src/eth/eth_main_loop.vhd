@@ -330,11 +330,11 @@ p_out_usr_axi_done   => p_out_txbuf_axi_done(i),
 --------------------------------------
 --ETH core (Tx)
 --------------------------------------
-p_in_eth_axi_tready  => i_tx_fifo_tready(i),
-p_out_eth_axi_tdata  => i_tx_fifo_tdata((G_ETH_DWIDTH * (i + 1)) - 1 downto (G_ETH_DWIDTH * i)),
-p_out_eth_axi_tkeep  => i_tx_fifo_tkeep(((G_ETH_DWIDTH / 8) * (i + 1)) - 1 downto ((G_ETH_DWIDTH / 8) * i)),
-p_out_eth_axi_tvalid => i_tx_fifo_tvalid(i),
-p_out_eth_axi_tlast  => i_tx_fifo_tlast(i),
+p_in_eth_axi_tready  => i_rx_fifo_tready(i),
+p_out_eth_axi_tdata  => i_rx_fifo_tdata((G_ETH_DWIDTH * (i + 1)) - 1 downto (G_ETH_DWIDTH * i)),
+p_out_eth_axi_tkeep  => i_rx_fifo_tkeep(((G_ETH_DWIDTH / 8) * (i + 1)) - 1 downto ((G_ETH_DWIDTH / 8) * i)),
+p_out_eth_axi_tvalid => i_rx_fifo_tvalid(i),
+p_out_eth_axi_tlast  => i_rx_fifo_tlast(i),
 
 --------------------------------------------------
 --DBG
@@ -394,8 +394,8 @@ p_in_clk => i_coreclk_out,
 p_in_rst => i_buf_rst(i) --p_in_rst
 );
 
-p_out_buf_clk(i) <= i_coreclk_out;
-i_buf_rst(i) <= not i_block_lock(i);
+p_out_buf_clk(i) <= p_in_dclk;
+i_buf_rst(i) <= p_in_rst;
 p_out_buf_rst(i) <= i_buf_rst(i);
 
 p_out_dbg.rx(i).fsm <= i_eth_mac_rx_tst_out((32 * i) + 2 downto (32 * i) + 0);
@@ -421,77 +421,12 @@ p_out_dbg.tx(i).fifo_tvalid <= dbg_tx_axis_fifo_tvalid(i)                       
 p_out_dbg.tx(i).fifo_tlast  <= dbg_tx_axis_fifo_tlast (i)                                                                 ;
 p_out_dbg.tx(i).fifo_tready <= dbg_tx_axis_fifo_tready(i)                                                                 ;
 
+
+p_out_sfp_tx_disable(i) <= p_in_sfp_signal_detect(i) or p_in_sfp_tx_fault(i);
+
 end generate gen_mac_ch;
 
 
-m_eth_app : eth_app
-generic map(
-G_FIFO_SIZE => 2048, -- Set FIFO memory size
-G_AXI_DWIDTH => G_ETH_DWIDTH,
-G_GTCH_COUNT => G_ETH_CH_COUNT
-)
-port map(
---Clock inputs
-clk_in => p_in_dclk,  --Freerunning clock source
-
-refclk_p => p_in_ethphy_refclk_p, --Transceiver reference clock source
-refclk_n => p_in_ethphy_refclk_n,
-
-coreclk_out => i_coreclk_out,
-
---Example design control inputs
-reset    => p_in_rst,
-
-sim_speedup_control => p_in_sim_speedup_control,
-
---Example design status outputs
-frame_error  => open,
-
-block_lock => i_block_lock,
-core_ready  => p_out_status_rdy,
-qplllock_out => p_out_status_qplllock,
-
-signal_detect => p_in_sfp_signal_detect,
-tx_fault      => p_in_sfp_tx_fault,
-tx_disable    => p_out_sfp_tx_disable,
-
-tx_axis_tdata   => i_tx_fifo_tdata,
-tx_axis_tkeep   => i_tx_fifo_tkeep,
-tx_axis_tvalid  => i_tx_fifo_tvalid,
-tx_axis_tlast   => i_tx_fifo_tlast,
-tx_axis_tready  => i_tx_fifo_tready,
-
-rx_axis_tdata   => i_rx_fifo_tdata,
-rx_axis_tkeep   => i_rx_fifo_tkeep,
-rx_axis_tvalid  => i_rx_fifo_tvalid,
-rx_axis_tlast   => i_rx_fifo_tlast,
-rx_axis_tready  => i_rx_fifo_tready,
-
-dbg_rx_axis_mac_tdata   => dbg_rx_axis_mac_tdata ,
-dbg_rx_axis_mac_tkeep   => dbg_rx_axis_mac_tkeep ,
-dbg_rx_axis_mac_tvalid  => dbg_rx_axis_mac_tvalid,
-dbg_rx_axis_mac_tlast   => dbg_rx_axis_mac_tlast ,
-dbg_rx_axis_mac_tuser   => dbg_rx_axis_mac_tuser ,
-
-dbg_tx_axis_mac_tdata   => dbg_tx_axis_mac_tdata ,
-dbg_tx_axis_mac_tkeep   => dbg_tx_axis_mac_tkeep ,
-dbg_tx_axis_mac_tvalid  => dbg_tx_axis_mac_tvalid,
-dbg_tx_axis_mac_tlast   => dbg_tx_axis_mac_tlast ,
-dbg_tx_axis_mac_tready  => dbg_tx_axis_mac_tready,
-
-dbg_tx_axis_fifo_tdata  => dbg_tx_axis_fifo_tdata ,
-dbg_tx_axis_fifo_tkeep  => dbg_tx_axis_fifo_tkeep ,
-dbg_tx_axis_fifo_tvalid => dbg_tx_axis_fifo_tvalid,
-dbg_tx_axis_fifo_tlast  => dbg_tx_axis_fifo_tlast ,
-dbg_tx_axis_fifo_tready => dbg_tx_axis_fifo_tready,
-
-
---Serial I/O from/to transceiver
-txp => p_out_ethphy_txp,
-txn => p_out_ethphy_txn,
-rxp => p_in_ethphy_rxp,
-rxn => p_in_ethphy_rxn
-);
 
 
 ----------------------------------------------------
