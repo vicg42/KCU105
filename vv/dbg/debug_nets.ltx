@@ -1,734 +1,739 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <probeData version="1" minor="2">
   <probeset name="EDA_PROBESET" active="true">
-    <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
+    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
       <probeOptions Id="DebugProbeParams">
         <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
+        <Option Id="HW_ILA" value="m_dbg_eth0"/>
         <Option Id="PROBE_PORT" value="0"/>
         <Option Id="PROBE_PORT_BITS" value="0"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="4"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
       </probeOptions>
       <nets>
-        <net name="i_dbg[pcie][dev_num][3]"/>
-        <net name="i_dbg[pcie][dev_num][2]"/>
-        <net name="i_dbg[pcie][dev_num][1]"/>
-        <net name="i_dbg[pcie][dev_num][0]"/>
+        <net name="i_dbg[eth][rx][0][mac_tvalid]"/>
       </nets>
     </probe>
     <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
       <probeOptions Id="DebugProbeParams">
         <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
+        <Option Id="HW_ILA" value="m_dbg_eth0"/>
         <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="4"/>
+        <Option Id="PROBE_PORT_BITS" value="1"/>
         <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
       </probeOptions>
       <nets>
-        <net name="i_dbg[pcie][dma_dir]"/>
+        <net name="i_dbg[eth][rx][0][mac_tuser]"/>
       </nets>
     </probe>
     <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
       <probeOptions Id="DebugProbeParams">
         <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
+        <Option Id="HW_ILA" value="m_dbg_eth0"/>
         <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="5"/>
+        <Option Id="PROBE_PORT_BITS" value="2"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="64"/>
+      </probeOptions>
+      <nets>
+        <net name="i_dbg[eth][rx][0][mac_tdata][63]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][62]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][61]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][60]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][59]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][58]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][57]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][56]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][55]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][54]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][53]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][52]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][51]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][50]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][49]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][48]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][47]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][46]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][45]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][44]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][43]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][42]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][41]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][40]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][39]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][38]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][37]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][36]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][35]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][34]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][33]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][32]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][31]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][30]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][29]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][28]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][27]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][26]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][25]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][24]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][23]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][22]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][21]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][20]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][19]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][18]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][17]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][16]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][15]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][14]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][13]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][12]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][11]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][10]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][9]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][8]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][7]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][6]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][5]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][4]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][3]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][2]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][1]"/>
+        <net name="i_dbg[eth][rx][0][mac_tdata][0]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:0"/>
+        <Option Id="HW_ILA" value="m_dbg_eth0"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="66"/>
         <Option Id="PROBE_PORT_BIT_COUNT" value="8"/>
       </probeOptions>
       <nets>
-        <net name="i_dbg[pcie][dma_bufnum][7]"/>
-        <net name="i_dbg[pcie][dma_bufnum][6]"/>
-        <net name="i_dbg[pcie][dma_bufnum][5]"/>
-        <net name="i_dbg[pcie][dma_bufnum][4]"/>
-        <net name="i_dbg[pcie][dma_bufnum][3]"/>
-        <net name="i_dbg[pcie][dma_bufnum][2]"/>
-        <net name="i_dbg[pcie][dma_bufnum][1]"/>
-        <net name="i_dbg[pcie][dma_bufnum][0]"/>
+        <net name="i_dbg[eth][rx][0][mac_tkeep][7]"/>
+        <net name="i_dbg[eth][rx][0][mac_tkeep][6]"/>
+        <net name="i_dbg[eth][rx][0][mac_tkeep][5]"/>
+        <net name="i_dbg[eth][rx][0][mac_tkeep][4]"/>
+        <net name="i_dbg[eth][rx][0][mac_tkeep][3]"/>
+        <net name="i_dbg[eth][rx][0][mac_tkeep][2]"/>
+        <net name="i_dbg[eth][rx][0][mac_tkeep][1]"/>
+        <net name="i_dbg[eth][rx][0][mac_tkeep][0]"/>
       </nets>
     </probe>
     <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
       <probeOptions Id="DebugProbeParams">
         <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
+        <Option Id="HW_ILA" value="m_dbg_eth0"/>
         <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="13"/>
+        <Option Id="PROBE_PORT_BITS" value="74"/>
         <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
       </probeOptions>
       <nets>
-        <net name="i_dbg[pcie][dma_done]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="14"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][dma_init]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="15"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][dma_work]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="16"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][test_speed]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="17"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][axi_rq_tready]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="18"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][axi_rq_tvalid]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="19"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][axi_rq_tlast]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="20"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][axi_cq_tready]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="21"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][axi_cq_tvalid]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="22"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][axi_cq_tlast]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="23"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][axi_rc_tready]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="24"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][axi_rc_tvalid]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="25"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][axi_rc_tlast]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="26"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][axi_cc_tready]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="27"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][axi_cc_tvalid]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="28"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][axi_cc_tlast]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="29"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][req_compl]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="30"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][compl_done]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="31"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][d2h_buf_rd]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="32"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][d2h_buf_empty]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="33"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][h2d_buf_wr]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="34"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][h2d_buf_full]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="35"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][irq_int]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="36"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][irq_pending]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="37"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][axi_rc_err_detect]"/>
+        <net name="i_dbg[eth][rx][0][mac_tlast]"/>
       </nets>
     </probe>
     <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
       <probeOptions Id="DebugProbeParams">
         <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
+        <Option Id="HW_ILA" value="m_dbg_eth0"/>
         <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="38"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="32"/>
+        <Option Id="PROBE_PORT_BITS" value="75"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="64"/>
       </probeOptions>
       <nets>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][31]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][30]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][29]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][28]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][27]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][26]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][25]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][24]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][23]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][22]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][21]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][20]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][19]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][18]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][17]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][16]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][15]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][14]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][13]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][12]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][11]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][10]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][9]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][8]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][7]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][6]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][5]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][4]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][3]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][2]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][1]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][0][0]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][63]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][62]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][61]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][60]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][59]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][58]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][57]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][56]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][55]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][54]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][53]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][52]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][51]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][50]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][49]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][48]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][47]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][46]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][45]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][44]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][43]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][42]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][41]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][40]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][39]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][38]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][37]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][36]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][35]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][34]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][33]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][32]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][31]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][30]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][29]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][28]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][27]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][26]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][25]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][24]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][23]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][22]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][21]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][20]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][19]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][18]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][17]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][16]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][15]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][14]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][13]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][12]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][11]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][10]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][9]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][8]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][7]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][6]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][5]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][4]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][3]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][2]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][1]"/>
+        <net name="i_dbg[eth][tx][0][mac_tdata][0]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:0"/>
+        <Option Id="HW_ILA" value="m_dbg_eth0"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="139"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
+      </probeOptions>
+      <nets>
+        <net name="i_dbg[eth][tx][0][mac_tready]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:0"/>
+        <Option Id="HW_ILA" value="m_dbg_eth0"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="140"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
+      </probeOptions>
+      <nets>
+        <net name="i_dbg[eth][tx][0][mac_tvalid]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:0"/>
+        <Option Id="HW_ILA" value="m_dbg_eth0"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="141"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
+      </probeOptions>
+      <nets>
+        <net name="i_dbg[eth][tx][0][mac_tlast]"/>
       </nets>
     </probe>
     <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
       <probeOptions Id="DebugProbeParams">
         <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="70"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="32"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][31]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][30]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][29]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][28]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][27]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][26]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][25]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][24]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][23]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][22]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][21]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][20]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][19]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][18]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][17]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][16]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][15]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][14]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][13]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][12]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][11]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][10]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][9]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][8]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][7]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][6]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][5]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][4]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][3]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][2]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][1]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][1][0]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="102"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="32"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][31]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][30]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][29]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][28]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][27]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][26]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][25]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][24]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][23]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][22]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][21]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][20]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][19]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][18]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][17]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][16]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][15]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][14]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][13]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][12]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][11]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][10]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][9]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][8]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][7]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][6]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][5]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][4]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][3]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][2]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][1]"/>
-        <net name="i_dbg[pcie][axi_rq_tdata][2][0]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="134"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="4"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][axi_cc_tkeep][3]"/>
-        <net name="i_dbg[pcie][axi_cc_tkeep][2]"/>
-        <net name="i_dbg[pcie][axi_cc_tkeep][1]"/>
-        <net name="i_dbg[pcie][axi_cc_tkeep][0]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="138"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="4"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][axi_rc_tkeep][3]"/>
-        <net name="i_dbg[pcie][axi_rc_tkeep][2]"/>
-        <net name="i_dbg[pcie][axi_rc_tkeep][1]"/>
-        <net name="i_dbg[pcie][axi_rc_tkeep][0]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
+        <Option Id="HW_ILA" value="m_dbg_eth0"/>
         <Option Id="PROBE_PORT" value="0"/>
         <Option Id="PROBE_PORT_BITS" value="142"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="4"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="8"/>
       </probeOptions>
       <nets>
-        <net name="i_dbg[pcie][axi_rq_tkeep][3]"/>
-        <net name="i_dbg[pcie][axi_rq_tkeep][2]"/>
-        <net name="i_dbg[pcie][axi_rq_tkeep][1]"/>
-        <net name="i_dbg[pcie][axi_rq_tkeep][0]"/>
+        <net name="i_dbg[eth][tx][0][mac_tkeep][7]"/>
+        <net name="i_dbg[eth][tx][0][mac_tkeep][6]"/>
+        <net name="i_dbg[eth][tx][0][mac_tkeep][5]"/>
+        <net name="i_dbg[eth][tx][0][mac_tkeep][4]"/>
+        <net name="i_dbg[eth][tx][0][mac_tkeep][3]"/>
+        <net name="i_dbg[eth][tx][0][mac_tkeep][2]"/>
+        <net name="i_dbg[eth][tx][0][mac_tkeep][1]"/>
+        <net name="i_dbg[eth][tx][0][mac_tkeep][0]"/>
       </nets>
     </probe>
     <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
       <probeOptions Id="DebugProbeParams">
         <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
+        <Option Id="HW_ILA" value="m_dbg_eth0"/>
         <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="146"/>
+        <Option Id="PROBE_PORT_BITS" value="150"/>
         <Option Id="PROBE_PORT_BIT_COUNT" value="3"/>
       </probeOptions>
       <nets>
-        <net name="i_dbg[pcie][axi_rc_fsm][2]"/>
-        <net name="i_dbg[pcie][axi_rc_fsm][1]"/>
-        <net name="i_dbg[pcie][axi_rc_fsm][0]"/>
+        <net name="i_dbg[eth][rx][0][fsm][2]"/>
+        <net name="i_dbg[eth][rx][0][fsm][1]"/>
+        <net name="i_dbg[eth][rx][0][fsm][0]"/>
       </nets>
     </probe>
     <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
       <probeOptions Id="DebugProbeParams">
         <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
+        <Option Id="HW_ILA" value="m_dbg_eth0"/>
         <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="149"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="26"/>
+        <Option Id="PROBE_PORT_BITS" value="153"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="3"/>
       </probeOptions>
       <nets>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][25]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][24]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][23]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][22]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][21]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][20]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][19]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][18]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][17]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][16]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][15]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][14]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][13]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][12]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][11]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][10]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][9]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][8]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][7]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][6]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][5]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][4]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][3]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][2]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][1]"/>
-        <net name="i_dbg[pcie][dma_mrd_rxdwcount][0]"/>
+        <net name="i_dbg[eth][tx][0][fsm][2]"/>
+        <net name="i_dbg[eth][tx][0][fsm][1]"/>
+        <net name="i_dbg[eth][tx][0][fsm][0]"/>
       </nets>
     </probe>
-    <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
+    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
       <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
+        <Option Id="CORE_LOCATION" value="1:1"/>
+        <Option Id="HW_ILA" value="m_dbg_eth1"/>
         <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="175"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="7"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][axi_rc_err][6]"/>
-        <net name="i_dbg[pcie][axi_rc_err][5]"/>
-        <net name="i_dbg[pcie][axi_rc_err][4]"/>
-        <net name="i_dbg[pcie][axi_rc_err][3]"/>
-        <net name="i_dbg[pcie][axi_rc_err][2]"/>
-        <net name="i_dbg[pcie][axi_rc_err][1]"/>
-        <net name="i_dbg[pcie][axi_rc_err][0]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="182"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="32"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][31]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][30]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][29]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][28]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][27]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][26]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][25]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][24]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][23]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][22]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][21]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][20]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][19]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][18]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][17]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][16]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][15]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][14]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][13]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][12]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][11]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][10]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][9]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][8]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][7]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][6]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][5]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][4]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][3]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][2]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][1]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][0][0]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="214"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="32"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][31]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][30]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][29]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][28]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][27]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][26]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][25]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][24]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][23]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][22]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][21]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][20]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][19]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][18]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][17]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][16]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][15]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][14]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][13]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][12]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][11]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][10]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][9]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][8]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][7]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][6]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][5]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][4]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][3]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][2]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][1]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][1][0]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="246"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="32"/>
-      </probeOptions>
-      <nets>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][31]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][30]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][29]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][28]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][27]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][26]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][25]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][24]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][23]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][22]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][21]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][20]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][19]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][18]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][17]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][16]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][15]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][14]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][13]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][12]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][11]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][10]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][9]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][8]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][7]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][6]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][5]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][4]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][3]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][2]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][1]"/>
-        <net name="i_dbg[pcie][axi_rc_tdata][2][0]"/>
-      </nets>
-    </probe>
-    <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
-      <probeOptions Id="DebugProbeParams">
-        <Option Id="CORE_LOCATION" value="1:0"/>
-        <Option Id="HW_ILA" value="m_dbg_pci"/>
-        <Option Id="PROBE_PORT" value="0"/>
-        <Option Id="PROBE_PORT_BITS" value="278"/>
+        <Option Id="PROBE_PORT_BITS" value="0"/>
         <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
       </probeOptions>
       <nets>
-        <net name="i_dbg[pcie][axi_rc_sof][0]"/>
+        <net name="i_dbg[eth][rx][1][mac_tvalid]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:1"/>
+        <Option Id="HW_ILA" value="m_dbg_eth1"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="1"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
+      </probeOptions>
+      <nets>
+        <net name="i_dbg[eth][rx][1][mac_tuser]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:1"/>
+        <Option Id="HW_ILA" value="m_dbg_eth1"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="2"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="64"/>
+      </probeOptions>
+      <nets>
+        <net name="i_dbg[eth][rx][1][mac_tdata][63]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][62]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][61]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][60]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][59]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][58]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][57]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][56]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][55]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][54]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][53]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][52]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][51]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][50]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][49]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][48]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][47]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][46]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][45]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][44]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][43]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][42]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][41]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][40]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][39]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][38]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][37]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][36]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][35]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][34]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][33]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][32]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][31]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][30]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][29]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][28]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][27]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][26]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][25]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][24]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][23]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][22]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][21]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][20]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][19]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][18]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][17]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][16]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][15]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][14]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][13]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][12]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][11]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][10]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][9]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][8]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][7]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][6]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][5]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][4]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][3]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][2]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][1]"/>
+        <net name="i_dbg[eth][rx][1][mac_tdata][0]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:1"/>
+        <Option Id="HW_ILA" value="m_dbg_eth1"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="66"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="8"/>
+      </probeOptions>
+      <nets>
+        <net name="i_dbg[eth][rx][1][mac_tkeep][7]"/>
+        <net name="i_dbg[eth][rx][1][mac_tkeep][6]"/>
+        <net name="i_dbg[eth][rx][1][mac_tkeep][5]"/>
+        <net name="i_dbg[eth][rx][1][mac_tkeep][4]"/>
+        <net name="i_dbg[eth][rx][1][mac_tkeep][3]"/>
+        <net name="i_dbg[eth][rx][1][mac_tkeep][2]"/>
+        <net name="i_dbg[eth][rx][1][mac_tkeep][1]"/>
+        <net name="i_dbg[eth][rx][1][mac_tkeep][0]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:1"/>
+        <Option Id="HW_ILA" value="m_dbg_eth1"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="74"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
+      </probeOptions>
+      <nets>
+        <net name="i_dbg[eth][rx][1][mac_tlast]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:1"/>
+        <Option Id="HW_ILA" value="m_dbg_eth1"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="75"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="64"/>
+      </probeOptions>
+      <nets>
+        <net name="i_dbg[eth][tx][1][mac_tdata][63]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][62]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][61]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][60]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][59]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][58]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][57]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][56]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][55]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][54]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][53]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][52]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][51]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][50]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][49]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][48]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][47]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][46]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][45]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][44]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][43]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][42]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][41]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][40]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][39]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][38]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][37]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][36]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][35]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][34]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][33]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][32]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][31]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][30]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][29]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][28]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][27]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][26]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][25]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][24]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][23]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][22]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][21]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][20]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][19]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][18]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][17]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][16]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][15]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][14]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][13]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][12]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][11]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][10]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][9]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][8]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][7]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][6]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][5]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][4]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][3]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][2]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][1]"/>
+        <net name="i_dbg[eth][tx][1][mac_tdata][0]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:1"/>
+        <Option Id="HW_ILA" value="m_dbg_eth1"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="139"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
+      </probeOptions>
+      <nets>
+        <net name="i_dbg[eth][tx][1][mac_tready]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:1"/>
+        <Option Id="HW_ILA" value="m_dbg_eth1"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="140"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
+      </probeOptions>
+      <nets>
+        <net name="i_dbg[eth][tx][1][mac_tvalid]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:1"/>
+        <Option Id="HW_ILA" value="m_dbg_eth1"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="141"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
+      </probeOptions>
+      <nets>
+        <net name="i_dbg[eth][tx][1][mac_tlast]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:1"/>
+        <Option Id="HW_ILA" value="m_dbg_eth1"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="142"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="8"/>
+      </probeOptions>
+      <nets>
+        <net name="i_dbg[eth][tx][1][mac_tkeep][7]"/>
+        <net name="i_dbg[eth][tx][1][mac_tkeep][6]"/>
+        <net name="i_dbg[eth][tx][1][mac_tkeep][5]"/>
+        <net name="i_dbg[eth][tx][1][mac_tkeep][4]"/>
+        <net name="i_dbg[eth][tx][1][mac_tkeep][3]"/>
+        <net name="i_dbg[eth][tx][1][mac_tkeep][2]"/>
+        <net name="i_dbg[eth][tx][1][mac_tkeep][1]"/>
+        <net name="i_dbg[eth][tx][1][mac_tkeep][0]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:1"/>
+        <Option Id="HW_ILA" value="m_dbg_eth1"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="150"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="3"/>
+      </probeOptions>
+      <nets>
+        <net name="i_dbg[eth][rx][1][fsm][2]"/>
+        <net name="i_dbg[eth][rx][1][fsm][1]"/>
+        <net name="i_dbg[eth][rx][1][fsm][0]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:1"/>
+        <Option Id="HW_ILA" value="m_dbg_eth1"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="153"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="3"/>
+      </probeOptions>
+      <nets>
+        <net name="i_dbg[eth][tx][1][fsm][2]"/>
+        <net name="i_dbg[eth][tx][1][fsm][1]"/>
+        <net name="i_dbg[eth][tx][1][fsm][0]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:3"/>
+        <Option Id="HW_ILA" value="m_ust/dbg_cam"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="0"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
+      </probeOptions>
+      <nets>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_empty]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:3"/>
+        <Option Id="HW_ILA" value="m_ust/dbg_cam"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="1"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
+      </probeOptions>
+      <nets>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_rd]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:3"/>
+        <Option Id="HW_ILA" value="m_ust/dbg_cam"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="2"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="64"/>
+      </probeOptions>
+      <nets>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][63]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][62]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][61]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][60]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][59]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][58]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][57]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][56]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][55]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][54]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][53]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][52]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][51]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][50]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][49]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][48]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][47]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][46]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][45]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][44]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][43]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][42]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][41]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][40]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][39]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][38]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][37]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][36]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][35]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][34]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][33]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][32]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][31]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][30]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][29]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][28]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][27]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][26]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][25]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][24]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][23]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][22]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][21]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][20]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][19]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][18]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][17]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][16]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][15]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][14]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][13]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][12]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][11]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][10]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][9]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][8]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][7]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][6]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][5]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][4]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][3]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][2]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][1]"/>
+        <net name="m_ust/i_cam_dbg[cam][bufpkt_do][0]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:3"/>
+        <Option Id="HW_ILA" value="m_ust/dbg_cam"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="66"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
+      </probeOptions>
+      <nets>
+        <net name="m_ust/i_cam_dbg[cam][vpkt_err]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:3"/>
+        <Option Id="HW_ILA" value="m_ust/dbg_cam"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="67"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
+      </probeOptions>
+      <nets>
+        <net name="m_ust/i_cam_dbg[cam][fval]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:3"/>
+        <Option Id="HW_ILA" value="m_ust/dbg_cam"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="68"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
+      </probeOptions>
+      <nets>
+        <net name="m_ust/i_cam_dbg[cam][lval]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:3"/>
+        <Option Id="HW_ILA" value="m_ust/dbg_cam"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="69"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
+      </probeOptions>
+      <nets>
+        <net name="m_ust/i_cam_dbg[cam][fval_edge0]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:3"/>
+        <Option Id="HW_ILA" value="m_ust/dbg_cam"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="70"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
+      </probeOptions>
+      <nets>
+        <net name="m_ust/i_cam_dbg[cam][fval_edge1]"/>
       </nets>
     </probe>
   </probeset>
