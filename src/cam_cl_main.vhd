@@ -297,6 +297,7 @@ signal tst_fval_t_edge1    : std_logic := '0';
 --signal tst_lval_t_edge1    : std_logic;
 
 signal tst_clk_synval   : std_logic_vector((7 * G_CL_CHCOUNT) - 1 downto 0);
+signal i_vpkt_tst_in    : std_logic_vector(31 downto 0);
 
 signal i_dbg : TCAM_dbg;
 
@@ -464,13 +465,15 @@ p_in_pkt_wrclk => p_in_bufpkt_rdclk,
 --DBG
 ----------------------------
 p_out_tst => i_vpkt_tst_out,
-p_in_tst  => (others => '0'),
+p_in_tst  => i_vpkt_tst_in, --(others => '0'),
 
 ----------------------------
 --SYS
 ----------------------------
 p_in_rst => '0' --p_in_rst
 );
+
+i_vpkt_tst_in(0) <= p_in_tst(1);
 
 
 m_buf_vpkt : cam_fifo_vpkt

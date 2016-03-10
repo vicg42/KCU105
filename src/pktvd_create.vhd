@@ -27,7 +27,7 @@ port(
 ----------------------------
 --Ctrl
 ----------------------------
-p_in_rdy           : in std_logic;
+p_in_det_frprm     : in std_logic;
 p_in_det_pixcount  : in std_logic_vector(15 downto 0);--pixcount(byte)
 p_in_det_linecount : in std_logic_vector(15 downto 0);
 p_in_time          : in std_logic_vector(31 downto 0);
@@ -35,7 +35,6 @@ p_in_time          : in std_logic_vector(31 downto 0);
 ----------------------------
 --VBUF (source of video data)
 ----------------------------
-p_out_bufi_rst  : out  std_logic;
 p_out_bufi_rd   : out  std_logic;
 p_in_bufi_do    : in   std_logic_vector(G_BUFI_DWIDTH - 1 downto 0);
 p_in_bufi_empty : in   std_logic;
@@ -47,6 +46,7 @@ p_in_hsync      : in   std_logic;
 ----------------------------
 p_out_pkt_do   : out  std_logic_vector(G_BUFI_DWIDTH - 1 downto 0);
 p_out_pkt_wr   : out  std_logic;
+p_in_pkt_wrclk : in   std_logic;
 
 ----------------------------
 --DBG
@@ -57,7 +57,6 @@ p_in_tst  : in   std_logic_vector(31 downto 0);
 ----------------------------
 --SYS
 ----------------------------
-p_in_clk : in std_logic;
 p_in_rst : in std_logic
 );
 end entity pktvd_create;
@@ -97,34 +96,33 @@ signal i_padding         : std_logic;
 signal i_vsync           : std_logic;
 signal i_hsync           : std_logic;
 
-signal i_bufi_rst        : std_logic;
 signal i_err             : std_logic;
+signal tst_cnt           : unsigned(7 downto 0);
 
 
 begin --architecture behavioral
 
 
-process(p_in_clk)
+process(p_in_pkt_wrclk)
 begin
-if rising_edge(p_in_clk) then
-i_rdy <= p_in_rdy;
+if rising_edge(p_in_pkt_wrclk) then
+i_rdy <= p_in_det_frprm;
 i_time <= UNSIGNED(p_in_time);
 i_vsync <= p_in_vsync;
 i_hsync <= p_in_hsync;
 end if;
 end process;
 
-p_out_bufi_rst <= i_bufi_rst;
 p_out_bufi_rd <= i_pkt_den and (not p_in_bufi_empty);
 
 p_out_pkt_do <= std_logic_vector(i_pkt_d);
 p_out_pkt_wr <= i_pkt_wr;
 
 
-process(p_in_clk)
+process(p_in_pkt_wrclk)
 variable pkt_pixcount : unsigned(15 downto 0);
 begin
-if rising_edge(p_in_clk) then
+if rising_edge(p_in_pkt_wrclk) then
 if (p_in_rst = '1') then
   i_fsm_vpkt <= S_IDLE;
 
@@ -145,9 +143,7 @@ if (p_in_rst = '1') then
 
   i_padding <= '0';
 
-  i_bufi_rst <= '1';
-
-  i_err <= '0';
+  i_err <= '0'; tst_cnt <= (others => '0');
 
 else
   case i_fsm_vpkt is
@@ -164,10 +160,7 @@ else
     i_err <= '0';
 
     if (i_rdy = '1') then
-      i_bufi_rst <= '0';
       i_fsm_vpkt <= S_WAIT_VSYNC;
-    else
-      i_bufi_rst <= '1';
     end if;
 
   when S_WAIT_VSYNC =>
@@ -188,13 +181,12 @@ else
       end if;
 
     else
-      i_bufi_rst <= '1';
       i_fsm_vpkt <= S_IDLE;
     end if;
 
   when S_WAIT_HSYNC =>
 
-    i_pkt_wr <= '0';
+    i_pkt_wr <= '0'; tst_cnt <= (others => '0');
 
     if (i_rdy = '1') then
       if (p_in_hsync = '0') then
@@ -206,7 +198,6 @@ else
         i_fsm_vpkt <= S_REMAIN_CALC;
       end if;
     else
-      i_bufi_rst <= '1';
       i_fsm_vpkt <= S_IDLE;
     end if;
 
@@ -218,7 +209,6 @@ else
       i_remain_pixcount <= i_fr_pixcount - i_tx_pixcount;
       i_fsm_vpkt <= S_PKT_HWR0;
     else
-      i_bufi_rst <= '1';
       i_fsm_vpkt <= S_IDLE;
     end if;
 
@@ -229,7 +219,6 @@ else
 
     if (i_rdy = '0') then
       i_padding <= '1';
-      i_bufi_rst <= '1';
       i_fsm_vpkt <= S_IDLE;
 
     elsif (p_in_bufi_empty = '0' and p_in_hsync = '1') then
@@ -261,7 +250,6 @@ else
 
     if (i_rdy = '0') then
       i_padding <= '1';
-      i_bufi_rst <= '1';
     end if;
 
     --current position of line & pixel  +  timestamp
@@ -282,12 +270,21 @@ else
 
     if (i_rdy = '0') then
       i_padding <= '1';
-      i_bufi_rst <= '1';
     end if;
 
     if (p_in_bufi_empty = '0' or i_padding = '1') then
 
+      if (p_in_tst(0) = '0') then
       i_pkt_d((32 * 2) - 1 downto (32 * 0)) <= UNSIGNED(p_in_bufi_do);
+
+      else
+        for i in 0 to (G_BUFI_DWIDTH / 8) - 1 loop
+        i_pkt_d((8 * (i + 1)) - 1 downto (8 * i)) <= tst_cnt + i;
+        end loop;
+        tst_cnt <= tst_cnt + (G_BUFI_DWIDTH / 8);
+
+      end if;
+
       i_pkt_wr <= '1';
 
       if (i_pkt_pixcnt >= (pkt_pixcount - TO_UNSIGNED((G_BUFI_DWIDTH / 8), i_pkt_pixcnt'length))) then
