@@ -426,7 +426,7 @@ p_in_eth_clk             : in   std_logic;
 --------------------------------------------------
 --DBG
 --------------------------------------------------
-p_out_tst : out  std_logic_vector(2 downto 0);
+p_out_tst : out  std_logic_vector(3 downto 0);
 p_in_tst  : in   std_logic_vector(2 downto 0);
 
 --------------------------------------------------

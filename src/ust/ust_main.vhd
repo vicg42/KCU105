@@ -52,7 +52,7 @@ p_in_eth_clk             : in   std_logic;
 --------------------------------------------------
 --DBG
 --------------------------------------------------
-p_out_tst : out  std_logic_vector(2 downto 0);
+p_out_tst : out  std_logic_vector(3 downto 0);
 p_in_tst  : in   std_logic_vector(2 downto 0);
 
 --------------------------------------------------
@@ -167,7 +167,7 @@ signal i_cam_dbg           : TCAM_dbg;
 component ila_dbg_cam is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(70 downto 0)
+probe0 : in std_logic_vector(75 downto 0)
 );
 end component ila_dbg_cam;
 
@@ -292,6 +292,7 @@ i_cam0_tst_in(2) <= p_in_tst(2); --cam_ctrl_rx (UART)
 p_out_tst(0) <= i_cam0_tst_out(0);--i_fval(0)
 p_out_tst(1) <= i_cam0_tst_out(1);--i_lval(0)
 p_out_tst(2) <= i_cam0_tst_out(2);--cam_ctrl_tx (UART)
+p_out_tst(3) <= i_cam_dbg.cam.frprm_detect;
 
 
 
@@ -305,7 +306,10 @@ probe0(66)          => i_cam_dbg.cam.vpkt_err    ,
 probe0(67)          => i_cam_dbg.cam.fval,
 probe0(68)          => i_cam_dbg.cam.lval,
 probe0(69)          => i_cam_dbg.cam.fval_edge0,
-probe0(70)          => i_cam_dbg.cam.fval_edge1
+probe0(70)          => i_cam_dbg.cam.fval_edge1,
+probe0(71)          => i_cam_dbg.cam.frprm_detect,
+probe0(72)          => i_cam_dbg.cam.vpkt_padding,
+probe0(75 downto 73)=> i_cam_dbg.cam.vpkt_fsm
 );
 
 end architecture struct;

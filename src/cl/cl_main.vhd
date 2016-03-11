@@ -247,12 +247,20 @@ end generate gen_ch;
 --#################################
 gen_tap8_8bit : if (G_CL_TAP = 8) and (G_CL_PIXBIT = 8) generate begin
 --!!!! cl X cahnnel Full Configuration (64bit = 8Tap/8bit)!!!!
+process(i_cl_link(0), i_cl_rxclk(0))
+begin
+if (i_cl_link(0) = '0') then
+i_cl_fval(0) <= '1';
+i_cl_lval(0) <= '1';
+elsif rising_edge(i_cl_rxclk(0)) then
+i_cl_fval(0) <= i_cl_rxd(0)((7 * 2) + 5); --FVAL(Frame value)
+i_cl_lval(0) <= i_cl_rxd(0)((7 * 2) + 4); --LVAL(Line value)
+end if;
+end process;
+
 process(i_cl_rxclk(0))
 begin
 if rising_edge(i_cl_rxclk(0)) then
-i_cl_fval(0) <= i_cl_rxd(0)((7 * 2) + 5); --FVAL(Frame value)
-i_cl_lval(0) <= i_cl_rxd(0)((7 * 2) + 4); --LVAL(Line value)
-
 --cl A(byte)
 i_cl_rxbyte(0)(0) <= i_cl_rxd(0)((7 * 0) + 0); --PortA0
 i_cl_rxbyte(0)(1) <= i_cl_rxd(0)((7 * 0) + 1); --PortA1
@@ -286,12 +294,20 @@ end if;
 end process;
 
 --!!!! cl Y cahnnel Full Configuration (64bit = 8Tap/8bit)!!!!
+process(i_cl_link(1), i_cl_rxclk(1))
+begin
+if (i_cl_link(1) = '0') then
+i_cl_fval(1) <= '1';
+i_cl_lval(1) <= '1';
+elsif rising_edge(i_cl_rxclk(1)) then
+i_cl_fval(1) <= i_cl_rxd(1)((7 * 2) + 5); --FVAL(Frame value)
+i_cl_lval(1) <= i_cl_rxd(1)((7 * 2) + 4); --LVAL(Line value)
+end if;
+end process;
+
 process(i_cl_rxclk(1))
 begin
 if rising_edge(i_cl_rxclk(1)) then
-i_cl_fval(1) <= i_cl_rxd(1)((7 * 2) + 5); --FVAL(Frame value)
-i_cl_lval(1) <= i_cl_rxd(1)((7 * 2) + 4); --LVAL(Line value)
-
 --cl D(byte)
 i_cl_rxbyte(3)(0) <= i_cl_rxd(1)((7 * 0) + 0); --PortD0
 i_cl_rxbyte(3)(1) <= i_cl_rxd(1)((7 * 0) + 1); --PortD1
@@ -325,12 +341,20 @@ end if;
 end process;
 
 --!!!! cl Z cahnnel Full Configuration (64bit = 8Tap/8bit)!!!!
+process(i_cl_link(2), i_cl_rxclk(2))
+begin
+if (i_cl_link(2) = '0') then
+i_cl_fval(2) <= '1';
+i_cl_lval(2) <= '1';
+elsif rising_edge(i_cl_rxclk(2)) then
+i_cl_fval(2) <= i_cl_rxd(2)((7 * 2) + 5); --FVAL(Frame value)
+i_cl_lval(2) <= i_cl_rxd(2)((7 * 2) + 4); --LVAL(Line value)
+end if;
+end process;
+
 process(i_cl_rxclk(2))
 begin
 if rising_edge(i_cl_rxclk(2)) then
-i_cl_fval(2) <= i_cl_rxd(2)((7 * 2) + 5); --FVAL(Frame value)
-i_cl_lval(2) <= i_cl_rxd(2)((7 * 2) + 4); --LVAL(Line value)
-
 --cl G(byte)
 i_cl_rxbyte(6)(0) <= i_cl_rxd(2)((7 * 0) + 0); --PortG0
 i_cl_rxbyte(6)(1) <= i_cl_rxd(2)((7 * 0) + 1); --PortG1
@@ -365,12 +389,20 @@ end generate gen_tap8_8bit;
 --#################################
 gen_tap10_8bit : if (G_CL_TAP = 10) and (G_CL_PIXBIT = 8) generate begin
 --!!!! cl X cahnnel Full Configuration (80bit = 10Tap/8bit)!!!!
+process(i_cl_link(0), i_cl_rxclk(0))
+begin
+if (i_cl_link(0) = '0') then
+i_cl_fval(0) <= '1';
+i_cl_lval(0) <= '1';
+elsif rising_edge(i_cl_rxclk(0)) then
+i_cl_fval(0) <= i_cl_rxd(0)((7 * 2) + 5); --FVAL(Frame value)
+i_cl_lval(0) <= i_cl_rxd(0)((7 * 2) + 4); --LVAL(Line value)
+end if;
+end process;
+
 process(i_cl_rxclk(0))
 begin
 if rising_edge(i_cl_rxclk(0)) then
-i_cl_fval(0) <= i_cl_rxd(0)((7 * 2) + 5); --FVAL(Frame value)
-i_cl_lval(0) <= i_cl_rxd(0)((7 * 2) + 4); --LVAL(Line value)
-
 --cl A(byte)
 i_cl_rxbyte(0)(0) <= i_cl_rxd(0)((7 * 0) + 0); --PortA0
 i_cl_rxbyte(0)(1) <= i_cl_rxd(0)((7 * 0) + 1); --PortA1
@@ -408,11 +440,18 @@ end if;
 end process;
 
 --!!!! cl Y cahnnel Full Configuration (80bit = 10Tap/8bit)!!!!
+process(i_cl_link(1), i_cl_rxclk(1))
+begin
+if (i_cl_link(1) = '0') then
+i_cl_lval(1) <= '1';
+elsif rising_edge(i_cl_rxclk(1)) then
+i_cl_lval(1) <= i_cl_rxd(1)((7 * 3) + 0); --LVAL(Line value)
+end if;
+end process;
+
 process(i_cl_rxclk(1))
 begin
 if rising_edge(i_cl_rxclk(1)) then
-i_cl_lval(1) <= i_cl_rxd(1)((7 * 3) + 0); --LVAL(Line value)
-
 i_cl_rxbyte(3)(2) <= i_cl_rxd(1)((7 * 0) + 0); --PortD2
 i_cl_rxbyte(3)(3) <= i_cl_rxd(1)((7 * 0) + 1); --PortD3
 i_cl_rxbyte(3)(4) <= i_cl_rxd(1)((7 * 0) + 2); --PortD4
@@ -450,11 +489,18 @@ end if;
 end process;
 
 --!!!! cl Y cahnnel Full Configuration (80bit = 10Tap/8bit)!!!!
+process(i_cl_link(2), i_cl_rxclk(2))
+begin
+if (i_cl_link(2) = '0') then
+i_cl_lval(2) <= '1';
+elsif rising_edge(i_cl_rxclk(2)) then
+i_cl_lval(2) <= i_cl_rxd(2)((7 * 3) + 0); --LVAL(Line value)
+end if;
+end process;
+
 process(i_cl_rxclk(2))
 begin
 if rising_edge(i_cl_rxclk(2)) then
-i_cl_lval(2) <= i_cl_rxd(2)((7 * 3) + 0); --LVAL(Line value)
-
 i_cl_rxbyte(6)(5) <= i_cl_rxd(2)((7 * 0) + 0); --PortG5
 i_cl_rxbyte(6)(6) <= i_cl_rxd(2)((7 * 0) + 1); --PortG6
 i_cl_rxbyte(6)(7) <= i_cl_rxd(2)((7 * 0) + 2); --PortG7
@@ -500,12 +546,20 @@ end generate gen_tap10_8bit;
 --#################################
 gen_tap2_8bit : if (G_CL_TAP = 2) and (G_CL_PIXBIT = 8) generate begin
 --!!!! cl X cahnnel !!!!
+process(i_cl_link(0), i_cl_rxclk(0))
+begin
+if (i_cl_link(0) = '0') then
+i_cl_fval(0) <= '1';
+i_cl_lval(0) <= '1';
+elsif rising_edge(i_cl_rxclk(0)) then
+i_cl_fval(0) <= i_cl_rxd(0)((7 * 2) + 5); --FVAL(Frame value)
+i_cl_lval(0) <= i_cl_rxd(0)((7 * 2) + 4); --LVAL(Line value)
+end if;
+end process;
+
 process(i_cl_rxclk(0))
 begin
 if rising_edge(i_cl_rxclk(0)) then
-i_cl_fval(0) <= i_cl_rxd(0)((7 * 2) + 5); --FVAL(Frame value)
-i_cl_lval(0) <= i_cl_rxd(0)((7 * 2) + 4); --LVAL(Line value)
-
 --cl A(byte)
 i_cl_rxbyte(0)(0) <= i_cl_rxd(0)((7 * 0) + 0); --A0
 i_cl_rxbyte(0)(1) <= i_cl_rxd(0)((7 * 0) + 1); --A1
@@ -538,12 +592,20 @@ end generate gen_tap2_8bit;
 --#################################
 gen_tap2_10bit : if (G_CL_TAP = 2) and (G_CL_PIXBIT = 10) generate begin
 --!!!! cl X cahnnel !!!!
+process(i_cl_link(0), i_cl_rxclk(0))
+begin
+if (i_cl_link(0) = '0') then
+i_cl_fval(0) <= '1';
+i_cl_lval(0) <= '1';
+elsif rising_edge(i_cl_rxclk(0)) then
+i_cl_fval(0) <= i_cl_rxd(0)((7 * 2) + 5); --FVAL(Frame value)
+i_cl_lval(0) <= i_cl_rxd(0)((7 * 2) + 4); --LVAL(Line value)
+end if;
+end process;
+
 process(i_cl_rxclk(0))
 begin
 if rising_edge(i_cl_rxclk(0)) then
-i_cl_fval(0) <= i_cl_rxd(0)((7 * 2) + 5); --FVAL(Frame value)
-i_cl_lval(0) <= i_cl_rxd(0)((7 * 2) + 4); --LVAL(Line value)
-
 --cl A(byte)
 i_cl_rxbyte(0)(0) <= i_cl_rxd(0)((7 * 0) + 0); --PortA0
 i_cl_rxbyte(0)(1) <= i_cl_rxd(0)((7 * 0) + 1); --PortA1
@@ -580,12 +642,20 @@ end generate gen_tap2_10bit;
 --#################################
 gen_tap4_10bit : if (G_CL_TAP = 4) and (G_CL_PIXBIT = 10) generate begin
 --!!!! cl X cahnnel !!!!
+process(i_cl_link(0), i_cl_rxclk(0))
+begin
+if (i_cl_link(0) = '0') then
+i_cl_fval(0) <= '1';
+i_cl_lval(0) <= '1';
+elsif rising_edge(i_cl_rxclk(0)) then
+i_cl_fval(0) <= i_cl_rxd(0)((7 * 2) + 5); --FVAL(Frame value)
+i_cl_lval(0) <= i_cl_rxd(0)((7 * 2) + 4); --LVAL(Line value)
+end if;
+end process;
+
 process(i_cl_rxclk(0))
 begin
 if rising_edge(i_cl_rxclk(0)) then
-i_cl_fval(0) <= i_cl_rxd(0)((7 * 2) + 5); --FVAL(Frame value)
-i_cl_lval(0) <= i_cl_rxd(0)((7 * 2) + 4); --LVAL(Line value)
-
 --cl A(byte)
 i_cl_rxbyte(0)(0) <= i_cl_rxd(0)((7 * 0) + 0); --PortA0
 i_cl_rxbyte(0)(1) <= i_cl_rxd(0)((7 * 0) + 1); --PortA1
@@ -614,12 +684,20 @@ end if;
 end process;
 
 --!!!! cl Y cahnnel !!!!
+process(i_cl_link(1), i_cl_rxclk(1))
+begin
+if (i_cl_link(1) = '0') then
+i_cl_fval(1) <= '1';
+i_cl_lval(1) <= '1';
+elsif rising_edge(i_cl_rxclk(1)) then
+i_cl_fval(1) <= i_cl_rxd(1)((7 * 2) + 5); --FVAL(Frame value)
+i_cl_lval(1) <= i_cl_rxd(1)((7 * 2) + 4); --LVAL(Line value)
+end if;
+end process;
+
 process(i_cl_rxclk(1))
 begin
 if rising_edge(i_cl_rxclk(1)) then
-i_cl_fval(1) <= i_cl_rxd(1)((7 * 2) + 5); --FVAL(Frame value)
-i_cl_lval(1) <= i_cl_rxd(1)((7 * 2) + 4); --LVAL(Line value)
-
 --cl C(byte)
 i_cl_rxbyte(2)(0) <= i_cl_rxd(1)((7 * 0) + 0); --PortD0
 i_cl_rxbyte(2)(1) <= i_cl_rxd(1)((7 * 0) + 1); --PortD1

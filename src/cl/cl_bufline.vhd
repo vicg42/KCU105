@@ -57,13 +57,13 @@ empty     : out std_logic;
 full      : out std_logic;
 --prog_full : out std_logic;
 
---rst       : in  std_logic
+rst       : in  std_logic
 
-wr_rst_busy : out std_logic;
-rd_rst_busy : out std_logic;
-
---clk       : in  std_logic;
-srst      : in  std_logic
+--wr_rst_busy : out std_logic;
+--rd_rst_busy : out std_logic;
+--
+----clk       : in  std_logic;
+--srst      : in  std_logic
 );
 end component cl_fifo_line;
 
@@ -86,7 +86,7 @@ i_buf_rst <= (not p_in_buf_rstn);
 --##############################
 i_buf_wr(0) <= p_in_fval(0) and p_in_lval(0) and p_in_dval(0);
 
-m_buf_byteA : cl_fifo_line
+m_buf_byte0 : cl_fifo_line
 port map(
 din       => p_in_rxbyte((8 * 1) - 1 downto (8 * 0)),
 wr_en     => i_buf_wr(0),
@@ -100,16 +100,16 @@ empty     => i_buf_empty(0),
 full      => open,
 --prog_full => open,
 
---rst       => i_buf_rst
+rst       => i_buf_rst
 
-wr_rst_busy => open,
-rd_rst_busy => open,
-
---clk       : in  std_logic;
-srst      => i_buf_rst
+--wr_rst_busy => open,
+--rd_rst_busy => open,
+--
+----clk       : in  std_logic;
+--srst      => i_buf_rst
 );
 
-m_buf_byteB : cl_fifo_line
+m_buf_byte1 : cl_fifo_line
 port map(
 din       => p_in_rxbyte((8 * 2) - 1 downto (8 * 1)),
 wr_en     => i_buf_wr(0),
@@ -123,16 +123,16 @@ empty     => i_buf_empty(1),
 full      => open,
 --prog_full => open,
 
---rst       => i_buf_rst
+rst       => i_buf_rst
 
-wr_rst_busy => open,
-rd_rst_busy => open,
-
---clk       : in  std_logic;
-srst      => i_buf_rst
+--wr_rst_busy => open,
+--rd_rst_busy => open,
+--
+----clk       : in  std_logic;
+--srst      => i_buf_rst
 );
 
-m_buf_byteC : cl_fifo_line
+m_buf_byte2 : cl_fifo_line
 port map(
 din       => p_in_rxbyte((8 * 3) - 1 downto (8 * 2)),
 wr_en     => i_buf_wr(0),
@@ -146,13 +146,13 @@ empty     => i_buf_empty(2),
 full      => open,
 --prog_full => open,
 
---rst       => i_buf_rst
+rst       => i_buf_rst
 
-wr_rst_busy => open,
-rd_rst_busy => open,
-
---clk       : in  std_logic;
-srst      => i_buf_rst
+--wr_rst_busy => open,
+--rd_rst_busy => open,
+--
+----clk       : in  std_logic;
+--srst      => i_buf_rst
 );
 
 
@@ -162,7 +162,7 @@ srst      => i_buf_rst
 --##############################
 i_buf_wr(1) <= p_in_fval(1) and p_in_lval(1) and p_in_dval(1);
 
-m_buf_byteD : cl_fifo_line
+m_buf_byte3 : cl_fifo_line
 port map(
 din       => p_in_rxbyte((8 * 4) - 1 downto (8 * 3)),
 wr_en     => i_buf_wr(1),
@@ -176,16 +176,16 @@ empty     => i_buf_empty(3),
 full      => open,
 --prog_full => open,
 
---rst       => i_buf_rst
+rst       => i_buf_rst
 
-wr_rst_busy => open,
-rd_rst_busy => open,
-
---clk       : in  std_logic;
-srst      => i_buf_rst
+--wr_rst_busy => open,
+--rd_rst_busy => open,
+--
+----clk       : in  std_logic;
+--srst      => i_buf_rst
 );
 
-m_buf_byteE : cl_fifo_line
+m_buf_byte4 : cl_fifo_line
 port map(
 din       => p_in_rxbyte((8 * 5) - 1 downto (8 * 4)),
 wr_en     => i_buf_wr(1),
@@ -199,16 +199,16 @@ empty     => i_buf_empty(4),
 full      => open,
 --prog_full => open,
 
---rst       => i_buf_rst
+rst       => i_buf_rst
 
-wr_rst_busy => open,
-rd_rst_busy => open,
-
---clk       : in  std_logic;
-srst      => i_buf_rst
+--wr_rst_busy => open,
+--rd_rst_busy => open,
+--
+----clk       : in  std_logic;
+--srst      => i_buf_rst
 );
 
-m_buf_byteF : cl_fifo_line
+m_buf_byte5 : cl_fifo_line
 port map(
 din       => p_in_rxbyte((8 * 6) - 1 downto (8 * 5)),
 wr_en     => i_buf_wr(1),
@@ -222,13 +222,13 @@ empty     => i_buf_empty(5),
 full      => open,
 --prog_full => open,
 
---rst       => i_buf_rst
+rst       => i_buf_rst
 
-wr_rst_busy => open,
-rd_rst_busy => open,
-
---clk       : in  std_logic;
-srst      => i_buf_rst
+--wr_rst_busy => open,
+--rd_rst_busy => open,
+--
+----clk       : in  std_logic;
+--srst      => i_buf_rst
 );
 
 
@@ -237,7 +237,7 @@ srst      => i_buf_rst
 --##############################
 i_buf_wr(2) <= p_in_fval(2) and p_in_lval(2) and p_in_dval(2);
 
-m_buf_byteG : cl_fifo_line
+m_buf_byte6 : cl_fifo_line
 port map(
 din       => p_in_rxbyte((8 * 7) - 1 downto (8 * 6)),
 wr_en     => i_buf_wr(2),
@@ -251,16 +251,16 @@ empty     => i_buf_empty(6),
 full      => open,
 --prog_full => open,
 
---rst       => i_buf_rst
+rst       => i_buf_rst
 
-wr_rst_busy => open,
-rd_rst_busy => open,
-
---clk       : in  std_logic;
-srst      => i_buf_rst
+--wr_rst_busy => open,
+--rd_rst_busy => open,
+--
+----clk       : in  std_logic;
+--srst      => i_buf_rst
 );
 
-m_buf_byteH : cl_fifo_line
+m_buf_byte7 : cl_fifo_line
 port map(
 din       => p_in_rxbyte((8 * 8) - 1 downto (8 * 7)),
 wr_en     => i_buf_wr(2),
@@ -274,13 +274,13 @@ empty     => i_buf_empty(7),
 full      => open,
 --prog_full => open,
 
---rst       => i_buf_rst
+rst       => i_buf_rst
 
-wr_rst_busy => open,
-rd_rst_busy => open,
-
---clk       : in  std_logic;
-srst      => i_buf_rst
+--wr_rst_busy => open,
+--rd_rst_busy => open,
+--
+----clk       : in  std_logic;
+--srst      => i_buf_rst
 );
 
 

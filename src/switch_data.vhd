@@ -523,13 +523,12 @@ begin
 
 p_out_ethio_rx_axi_tready(eth_ch) <= '1';
 
-process(p_in_ethio_clk(eth_ch))
-begin
-if rising_edge(p_in_ethio_clk(eth_ch)) then
---b_rst_fg_bufs(eth_ch) <= p_in_rst or h_reg_ctrl(C_SWT_REG_CTRL_RST_FG_BUFS_BIT);
-b_rst_fg_bufs(eth_ch) <= p_in_rst or p_in_reg.ctrl(C_SWT_REG_CTRL_RST_FG_BUFS_BIT);
-end if;
-end process;
+--process(p_in_ethio_clk(eth_ch))
+--begin
+--if rising_edge(p_in_ethio_clk(eth_ch)) then
+b_rst_fg_bufs(eth_ch) <= p_in_rst or p_in_reg.ctrl(C_SWT_REG_CTRL_RST_FG_BUFS_BIT) or p_in_ethio_rst(eth_ch);
+--end if;
+--end process;
 
 m_eth2fg_fltr: pkt_filter
 generic map(

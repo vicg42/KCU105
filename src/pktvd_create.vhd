@@ -99,6 +99,8 @@ signal i_hsync           : std_logic;
 signal i_err             : std_logic;
 signal tst_cnt           : unsigned(7 downto 0);
 
+signal tst_fsm_vpkt      : unsigned(2 downto 0);
+
 
 begin --architecture behavioral
 
@@ -329,7 +331,18 @@ end process;
 --DBG
 --#########################################
 p_out_tst(0) <= i_err;
+p_out_tst(1) <= i_rdy;
+p_out_tst(2) <= i_padding;
+p_out_tst(5 downto 3) <= std_logic_vector(tst_fsm_vpkt);
 
+
+tst_fsm_vpkt <= TO_UNSIGNED(16#01#, tst_fsm_vpkt'length) when i_fsm_vpkt = S_WAIT_VSYNC  else
+                TO_UNSIGNED(16#02#, tst_fsm_vpkt'length) when i_fsm_vpkt = S_WAIT_HSYNC  else
+                TO_UNSIGNED(16#03#, tst_fsm_vpkt'length) when i_fsm_vpkt = S_REMAIN_CALC else
+                TO_UNSIGNED(16#04#, tst_fsm_vpkt'length) when i_fsm_vpkt = S_PKT_HWR0    else
+                TO_UNSIGNED(16#05#, tst_fsm_vpkt'length) when i_fsm_vpkt = S_PKT_HWR1    else
+                TO_UNSIGNED(16#06#, tst_fsm_vpkt'length) when i_fsm_vpkt = S_PKT_DWR     else
+                TO_UNSIGNED(16#00#, tst_fsm_vpkt'length); --i_fsm_fgwr = S_IDLE      else
 
 
 end architecture behavioral;

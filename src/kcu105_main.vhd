@@ -217,7 +217,7 @@ signal i_swt_rst           : std_logic;
 signal i_swt_tst_out       : std_logic_vector(31 downto 0);
 
 signal i_ust_tst_in        : std_logic_vector(2 downto 0);
-signal i_ust_tst_out       : std_logic_vector(2 downto 0);
+signal i_ust_tst_out       : std_logic_vector(3 downto 0);
 signal i_ust_frprm_restart_btn : std_logic;
 signal i_ust_rst           : std_logic;
 signal i_ust_rst_mnl       : std_logic;
@@ -241,7 +241,7 @@ end component dbgcs_ila_hostclk;
 component dbgcs_ila_usr_highclk is
 port (
 clk : in std_logic;
-probe0 : in std_logic_vector(155 downto 0)
+probe0 : in std_logic_vector(156 downto 0)
 );
 end component dbgcs_ila_usr_highclk;
 
@@ -423,6 +423,7 @@ type TMAIN_dbg is record
 swt : TSWT_dbg;
 fg : TFG_dbg;
 eth : TEthDBG;
+vpkt_padding : std_logic;
 end record;
 
 signal i_dbg    : TMAIN_dbg;
@@ -623,8 +624,7 @@ p_in_clk => g_usrclk(0),
 p_in_rst => i_ust_rst
 );
 
---i_ust_rst <= (not i_eth_status_rdy(0)) or i_ust_rst_mnl;
-i_ust_rst <= i_ethio_rst(0) or i_ust_rst_mnl;
+i_ust_rst <= OR_reduce(i_ethio_rst) or i_ust_rst_mnl;
 
 
 
@@ -1210,17 +1210,17 @@ i_eth_tst_in(0) <= i_host_tst_out(0);
 --i_dbg.swt.h2eth_buf_empty     <= i_swt_tst_out(1);-- <= i_eth_txbuf_empty;
 
 
---i_dbg.fg.fgrd_vch          <= i_fg_tst_out(34 downto 32);--<= i_fgrd_vch;
---i_dbg.fg.fgrd_rddone       <= i_fg_tst_out(35)          ;--<= i_fgrd_rddone;
---i_dbg.fg.fgwr_frrdy        <= i_fg_tst_out(37 downto 36);--<= i_fgwr_frrdy(1 downto 0);
---i_dbg.fg.irq               <= i_fg_tst_out(39 downto 38);--<= i_irq(1 downto 0);
---i_dbg.fg.vbuf_hold         <= i_fg_tst_out(41 downto 40);--<= i_vbuf_hold(1 downto 0);
---i_dbg.fg.err_vbuf_overflow <= i_fg_tst_out(43 downto 42);--<= tst_err_vbuf_overflow(1 downto 0);
---i_dbg.fg.frskip0_count     <= i_fg_tst_out(46 downto 44);--<= i_frskip(0);
---i_dbg.fg.frskip1_count     <= i_fg_tst_out(49 downto 47);--<= i_frskip(1);
---
---i_dbg.fg.vbufi_full        <= i_fg_bufi_full;
---i_dbg.fg.vbufi_pfull       <= i_fg_bufi_pfull;
+i_dbg.fg.fgrd_vch          <= i_fg_tst_out(34 downto 32);--<= i_fgrd_vch;
+i_dbg.fg.fgrd_rddone       <= i_fg_tst_out(35)          ;--<= i_fgrd_rddone;
+i_dbg.fg.fgwr_frrdy        <= i_fg_tst_out(37 downto 36);--<= i_fgwr_frrdy(1 downto 0);
+i_dbg.fg.irq               <= i_fg_tst_out(39 downto 38);--<= i_irq(1 downto 0);
+i_dbg.fg.vbuf_hold         <= i_fg_tst_out(41 downto 40);--<= i_vbuf_hold(1 downto 0);
+i_dbg.fg.err_vbuf_overflow <= i_fg_tst_out(43 downto 42);--<= tst_err_vbuf_overflow(1 downto 0);
+i_dbg.fg.frskip0_count     <= i_fg_tst_out(46 downto 44);--<= i_frskip(0);
+i_dbg.fg.frskip1_count     <= i_fg_tst_out(49 downto 47);--<= i_frskip(1);
+
+i_dbg.fg.vbufi_full        <= i_fg_bufi_full;
+i_dbg.fg.vbufi_pfull       <= i_fg_bufi_pfull;
 
 ----i_dbg.swt.ethio_rx_axi_tvalid <= i_swt_tst_out(6);
 ----i_dbg.swt.ethio_rx_axi_tuser  <= i_swt_tst_out(7) & i_swt_tst_out(8);
@@ -1245,6 +1245,7 @@ i_eth_tst_in(0) <= i_host_tst_out(0);
 --i_dbg.swt.fgbuf_fltr_den <= i_swt_tst_out(9);-- <= i_fgbuf_fltr_den(0);
 --
 i_dbg.eth <= i_eth_dbg;
+i_dbg.vpkt_padding <= i_ust_tst_out(3);
 --i_dbg.eth.tx <= i_eth_dbg.tx(0);
 --i_dbg.eth.rx <= i_eth_dbg.rx(0);
 --
@@ -1726,7 +1727,8 @@ probe0(141)            => i_dbg.eth.tx(0).mac_tlast ,
 probe0(149 downto 142) => i_dbg.eth.tx(0).mac_tkeep ,
 
 probe0(152 downto 150) => i_dbg.eth.rx(0).fsm,
-probe0(155 downto 153) => i_dbg.eth.tx(0).fsm
+probe0(155 downto 153) => i_dbg.eth.tx(0).fsm,
+probe0(156)            => i_dbg.vpkt_padding
 );
 
 m_dbg_eth1 : dbgcs_ila_usr_highclk
@@ -1746,25 +1748,26 @@ probe0(141)            => i_dbg.eth.tx(1).mac_tlast ,
 probe0(149 downto 142) => i_dbg.eth.tx(1).mac_tkeep ,
 
 probe0(152 downto 150) => i_dbg.eth.rx(1).fsm,
-probe0(155 downto 153) => i_dbg.eth.tx(1).fsm
+probe0(155 downto 153) => i_dbg.eth.tx(1).fsm,
+probe0(156)            => i_dbg.vpkt_padding
 );
 
---m_dbg_fg : dbgcs_ila_hostclk
---port map (
---clk => g_usr_highclk,
---
---probe0(2 downto 0)   => i_dbg.fg.fgrd_vch         ,
---probe0(3)            => i_dbg.fg.fgrd_rddone      ,
---probe0(5 downto 4)   => i_dbg.fg.fgwr_frrdy       ,
---probe0(7 downto 6)   => i_dbg.fg.irq              ,
---probe0(9 downto 8)   => i_dbg.fg.vbuf_hold        ,
---probe0(11 downto 10) => i_dbg.fg.err_vbuf_overflow,
---probe0(14 downto 12) => i_dbg.fg.frskip0_count    ,
---probe0(17 downto 15) => i_dbg.fg.frskip1_count    ,
---
---probe0(19 downto 18) => i_dbg.fg.vbufi_full       ,
---probe0(21 downto 20) => i_dbg.fg.vbufi_pfull
---
+m_dbg_fg : dbgcs_ila_hostclk
+port map (
+clk => g_usr_highclk,
+
+probe0(2 downto 0)   => i_dbg.fg.fgrd_vch         ,
+probe0(3)            => i_dbg.fg.fgrd_rddone      ,
+probe0(5 downto 4)   => i_dbg.fg.fgwr_frrdy       ,
+probe0(7 downto 6)   => i_dbg.fg.irq              ,
+probe0(9 downto 8)   => i_dbg.fg.vbuf_hold        ,
+probe0(11 downto 10) => i_dbg.fg.err_vbuf_overflow,
+probe0(14 downto 12) => i_dbg.fg.frskip0_count    ,
+probe0(17 downto 15) => i_dbg.fg.frskip1_count    ,
+
+probe0(19 downto 18) => i_dbg.fg.vbufi_full       ,
+probe0(21 downto 20) => i_dbg.fg.vbufi_pfull
+
 ----probe0(31 downto 0) => i_dbg.fg.fgwr.vbufi_do(0),
 ----probe0(63 downto 32) => i_dbg.fg.fgwr.vbufi_do(1),
 ----probe0(66 downto 64) => i_dbg.fg.fgwr.fsm,
@@ -1796,7 +1799,7 @@ probe0(155 downto 153) => i_dbg.eth.tx(1).fsm
 ----probe0(195) => i_dbg.fg.fgrd.bufo_empty,
 ----probe0(198 downto 196) => i_dbg.fg.fgrd.vbuf_hold,
 ----probe0(199) => i_dbg.fg.fgrd.axir_dvalid
---);
+);
 
 --m_dbg_fg : dbgcs_ila_hostclk
 --port map (

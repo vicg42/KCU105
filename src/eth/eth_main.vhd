@@ -396,7 +396,7 @@ p_in_rst => i_buf_rst(i) --p_in_rst
 );
 
 p_out_buf_clk(i) <= i_coreclk_out;
-i_buf_rst(i) <= (not i_status_rdy(i));
+i_buf_rst(i) <= p_in_rst; --(not i_status_rdy(i));
 p_out_buf_rst(i) <= i_buf_rst(i);
 
 p_out_status_rdy(i) <= i_status_rdy(i);

@@ -8,7 +8,7 @@
 #
 set_property PACKAGE_PIN G10 [get_ports {pin_in_refclk[M125_p]}]
 set_property IOSTANDARD LVDS [get_ports {pin_in_refclk[M125_p]}]
-set_property DIFF_TERM  TRUE [get_ports {pin_in_refclk[M125_p]}]
+set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_refclk[M125_p]}]
 create_clock -period 8.000 -name {pin_in_refclk[M125_p]} -waveform {0.000 4.000} [get_ports {pin_in_refclk[M125_p]}]
 #
 #set_property PACKAGE_PIN K20 [get_ports {pin_in_refclk[M90]}]
@@ -40,7 +40,6 @@ set_property PACKAGE_PIN M22 [get_ports {pin_out_led[5]}]
 set_property PACKAGE_PIN R23 [get_ports {pin_out_led[6]}]
 set_property PACKAGE_PIN P23 [get_ports {pin_out_led[7]}]
 set_property IOSTANDARD LVCMOS18 [get_ports {pin_out_led[*]}]
-set_property OFFCHIP_TERM NONE [get_ports pin_out_led[*]]
 
 #FMC HPC (Board FMC CAMERALINK)
 set_property PACKAGE_PIN D20 [get_ports {pin_out_led_hpc[0]}]
@@ -48,7 +47,6 @@ set_property PACKAGE_PIN G20 [get_ports {pin_out_led_hpc[1]}]
 set_property PACKAGE_PIN H21 [get_ports {pin_out_led_hpc[2]}]
 set_property PACKAGE_PIN B21 [get_ports {pin_out_led_hpc[3]}]
 set_property IOSTANDARD LVCMOS18 [get_ports {pin_out_led_hpc[*]}]
-set_property OFFCHIP_TERM NONE [get_ports pin_out_led_hpc[*]]
 
 #FMC LPC (Board FMC 105)
 set_property PACKAGE_PIN W30 [get_ports {pin_out_led_lpc[0]}]
@@ -56,7 +54,6 @@ set_property PACKAGE_PIN Y30 [get_ports {pin_out_led_lpc[1]}]
 set_property PACKAGE_PIN W33 [get_ports {pin_out_led_lpc[2]}]
 set_property PACKAGE_PIN Y33 [get_ports {pin_out_led_lpc[3]}]
 set_property IOSTANDARD LVCMOS18 [get_ports {pin_out_led_lpc[*]}]
-set_property OFFCHIP_TERM NONE [get_ports pin_out_led_lpc[*]]
 
 
 ###############################################################################
@@ -97,12 +94,12 @@ set_property LOC GTHE3_COMMON_X0Y1 [get_cells m_host/m_refclk_ibuf]
 ###############################################################################
 #MEMCTRL
 ###############################################################################
-set_property PACKAGE_PIN AK17 [get_ports {pin_in_phymem[clk_p]}]
 set_property PACKAGE_PIN AK16 [get_ports {pin_in_phymem[clk_n]}]
+set_property PACKAGE_PIN AK17 [get_ports {pin_in_phymem[clk_p]}]
 set_property IOSTANDARD DIFF_SSTL12 [get_ports {pin_in_phymem[clk_p]}]
 set_property IOSTANDARD DIFF_SSTL12 [get_ports {pin_in_phymem[clk_n]}]
-set_property ODT        RTT_48      [get_ports {pin_in_phymem[clk_p]}]
-set_property ODT        RTT_48      [get_ports {pin_in_phymem[clk_n]}]
+set_property ODT RTT_48 [get_ports {pin_in_phymem[clk_p]}]
+set_property ODT RTT_48 [get_ports {pin_in_phymem[clk_n]}]
 
 set_property PACKAGE_PIN AE17 [get_ports {pin_out_phymem[addr][0]}]
 set_property PACKAGE_PIN AH17 [get_ports {pin_out_phymem[addr][1]}]
@@ -217,86 +214,88 @@ set_property PACKAGE_PIN AL19 [get_ports {pin_out_phymem[cs_n][0]}]
 set_property PACKAGE_PIN AJ18 [get_ports {pin_out_phymem[odt][0]}]
 set_property PACKAGE_PIN AL18 [get_ports {pin_out_phymem[reset_n]}]
 set_property PACKAGE_PIN AH14 [get_ports {pin_out_phymem[act_n]}]
-set_property PACKAGE_PIN AE15 [get_ports {pin_out_phymem[ck_c][0]}]
+
+
 set_property PACKAGE_PIN AE16 [get_ports {pin_out_phymem[ck_t][0]}]
+set_property PACKAGE_PIN AE15 [get_ports {pin_out_phymem[ck_c][0]}]
 
 
 ###############################################################################
 #RS232(PC)
 ###############################################################################
-set_property PACKAGE_PIN     G25  [get_ports {pin_in_rs232_rx}];
-set_property IOSTANDARD   LVCMOS18 [get_ports {pin_in_rs232_rx}];
-set_property PACKAGE_PIN     K26  [get_ports {pin_out_rs232_tx}];
-set_property IOSTANDARD   LVCMOS18 [get_ports {pin_out_rs232_tx}];
+set_property PACKAGE_PIN G25 [get_ports pin_in_rs232_rx]
+set_property IOSTANDARD LVCMOS18 [get_ports pin_in_rs232_rx]
+set_property PACKAGE_PIN K26 [get_ports pin_out_rs232_tx]
+set_property IOSTANDARD LVCMOS18 [get_ports pin_out_rs232_tx]
 
 ###############################################################################
 #CameraLink
 ###############################################################################
 #FMC HPC (Board FMC CAMERALINK : CL(X))
-set_property PACKAGE_PIN G11        [get_ports {pin_in_cl_clk_n[0]}]
-set_property PACKAGE_PIN H11        [get_ports {pin_in_cl_clk_p[0]}]
-set_property DIFF_TERM         TRUE [get_ports {pin_in_cl_clk_p[0]}]
-set_property PACKAGE_PIN J10        [get_ports {pin_in_cl_di_n[0]}]
-set_property PACKAGE_PIN K10        [get_ports {pin_in_cl_di_p[0]}]
-set_property DIFF_TERM         TRUE [get_ports {pin_in_cl_di_p[0]}]
-set_property PACKAGE_PIN A12        [get_ports {pin_in_cl_di_n[1]}]
-set_property PACKAGE_PIN A13        [get_ports {pin_in_cl_di_p[1]}]
-set_property DIFF_TERM         TRUE [get_ports {pin_in_cl_di_p[1]}]
-set_property PACKAGE_PIN K12        [get_ports {pin_in_cl_di_n[2]}]
-set_property PACKAGE_PIN L12        [get_ports {pin_in_cl_di_p[2]}]
-set_property DIFF_TERM         TRUE [get_ports {pin_in_cl_di_p[2]}]
-set_property PACKAGE_PIN K13        [get_ports {pin_in_cl_di_n[3]}]
-set_property PACKAGE_PIN L13        [get_ports {pin_in_cl_di_p[3]}]
-set_property DIFF_TERM         TRUE [get_ports {pin_in_cl_di_p[3]}]
+set_property PACKAGE_PIN H11 [get_ports {pin_in_cl_clk_p[0]}]
+set_property PACKAGE_PIN G11 [get_ports {pin_in_cl_clk_n[0]}]
+set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_clk_p[0]}]
+set_property PACKAGE_PIN K10 [get_ports {pin_in_cl_di_p[0]}]
+set_property PACKAGE_PIN J10 [get_ports {pin_in_cl_di_n[0]}]
+set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[0]}]
+set_property PACKAGE_PIN A13 [get_ports {pin_in_cl_di_p[1]}]
+set_property PACKAGE_PIN A12 [get_ports {pin_in_cl_di_n[1]}]
+set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[1]}]
+set_property PACKAGE_PIN L12 [get_ports {pin_in_cl_di_p[2]}]
+set_property PACKAGE_PIN K12 [get_ports {pin_in_cl_di_n[2]}]
+set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[2]}]
+set_property PACKAGE_PIN L13 [get_ports {pin_in_cl_di_p[3]}]
+set_property PACKAGE_PIN K13 [get_ports {pin_in_cl_di_n[3]}]
+set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[3]}]
 
 #FMC HPC (Board FMC CAMERALINK : CL(Y))
-set_property PACKAGE_PIN F9         [get_ports {pin_in_cl_clk_n[1]}]
-set_property PACKAGE_PIN G9         [get_ports {pin_in_cl_clk_p[1]}]
-set_property DIFF_TERM         TRUE [get_ports {pin_in_cl_clk_p[1]}]
-set_property PACKAGE_PIN C13        [get_ports {pin_in_cl_di_n[4]}]
-set_property PACKAGE_PIN D13        [get_ports {pin_in_cl_di_p[4]}]
-set_property DIFF_TERM         TRUE [get_ports {pin_in_cl_di_p[4]}]
-set_property PACKAGE_PIN E8         [get_ports {pin_in_cl_di_n[5]}]
-set_property PACKAGE_PIN F8         [get_ports {pin_in_cl_di_p[5]}]
-set_property DIFF_TERM         TRUE [get_ports {pin_in_cl_di_p[5]}]
-set_property PACKAGE_PIN H8         [get_ports {pin_in_cl_di_n[6]}]
-set_property PACKAGE_PIN J8         [get_ports {pin_in_cl_di_p[6]}]
-set_property DIFF_TERM         TRUE [get_ports {pin_in_cl_di_p[6]}]
-set_property PACKAGE_PIN H9         [get_ports {pin_in_cl_di_n[7]}]
-set_property PACKAGE_PIN J9         [get_ports {pin_in_cl_di_p[7]}]
-set_property DIFF_TERM         TRUE [get_ports {pin_in_cl_di_p[7]}]
+set_property PACKAGE_PIN G9 [get_ports {pin_in_cl_clk_p[1]}]
+set_property PACKAGE_PIN F9 [get_ports {pin_in_cl_clk_n[1]}]
+set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_clk_p[1]}]
+set_property PACKAGE_PIN D13 [get_ports {pin_in_cl_di_p[4]}]
+set_property PACKAGE_PIN C13 [get_ports {pin_in_cl_di_n[4]}]
+set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[4]}]
+set_property PACKAGE_PIN F8 [get_ports {pin_in_cl_di_p[5]}]
+set_property PACKAGE_PIN E8 [get_ports {pin_in_cl_di_n[5]}]
+set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[5]}]
+set_property PACKAGE_PIN J8 [get_ports {pin_in_cl_di_p[6]}]
+set_property PACKAGE_PIN H8 [get_ports {pin_in_cl_di_n[6]}]
+set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[6]}]
+set_property PACKAGE_PIN J9 [get_ports {pin_in_cl_di_p[7]}]
+set_property PACKAGE_PIN H9 [get_ports {pin_in_cl_di_n[7]}]
+set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[7]}]
 
 #FMC HPC (Board FMC CAMERALINK : CL(Z))
-set_property PACKAGE_PIN C24        [get_ports {pin_in_cl_clk_n[2]}]
-set_property PACKAGE_PIN D24        [get_ports {pin_in_cl_clk_p[2]}]
-set_property DIFF_TERM         TRUE [get_ports {pin_in_cl_clk_p[2]}]
-set_property PACKAGE_PIN K8         [get_ports {pin_in_cl_di_n[8]}]
-set_property PACKAGE_PIN L8         [get_ports {pin_in_cl_di_p[8]}]
-set_property DIFF_TERM         TRUE [get_ports {pin_in_cl_di_p[8]}]
-set_property PACKAGE_PIN J11        [get_ports {pin_in_cl_di_n[9]}]
-set_property PACKAGE_PIN K11        [get_ports {pin_in_cl_di_p[9]}]
-set_property DIFF_TERM         TRUE [get_ports {pin_in_cl_di_p[9]}]
-set_property PACKAGE_PIN D10        [get_ports {pin_in_cl_di_n[10]}]
-set_property PACKAGE_PIN E10        [get_ports {pin_in_cl_di_p[10]}]
-set_property DIFF_TERM         TRUE [get_ports {pin_in_cl_di_p[10]}]
-set_property PACKAGE_PIN C9         [get_ports {pin_in_cl_di_n[11]}]
-set_property PACKAGE_PIN D9         [get_ports {pin_in_cl_di_p[11]}]
-set_property DIFF_TERM         TRUE [get_ports {pin_in_cl_di_p[11]}]
+set_property PACKAGE_PIN D24 [get_ports {pin_in_cl_clk_p[2]}]
+set_property PACKAGE_PIN C24 [get_ports {pin_in_cl_clk_n[2]}]
+set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_clk_p[2]}]
+set_property PACKAGE_PIN L8 [get_ports {pin_in_cl_di_p[8]}]
+set_property PACKAGE_PIN K8 [get_ports {pin_in_cl_di_n[8]}]
+set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[8]}]
+set_property PACKAGE_PIN K11 [get_ports {pin_in_cl_di_p[9]}]
+set_property PACKAGE_PIN J11 [get_ports {pin_in_cl_di_n[9]}]
+set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[9]}]
+set_property PACKAGE_PIN E10 [get_ports {pin_in_cl_di_p[10]}]
+set_property PACKAGE_PIN D10 [get_ports {pin_in_cl_di_n[10]}]
+set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[10]}]
+set_property PACKAGE_PIN D9 [get_ports {pin_in_cl_di_p[11]}]
+set_property PACKAGE_PIN C9 [get_ports {pin_in_cl_di_n[11]}]
+set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[11]}]
 
-set_property IOSTANDARD LVDS        [get_ports {pin_in_cl_clk_n[*]}]
-set_property IOSTANDARD LVDS        [get_ports {pin_in_cl_clk_p[*]}]
-set_property IOSTANDARD LVDS        [get_ports {pin_in_cl_di_n[*]}]
-set_property IOSTANDARD LVDS        [get_ports {pin_in_cl_di_p[*]}]
+set_property IOSTANDARD LVDS [get_ports {pin_in_cl_clk_n[*]}]
+set_property IOSTANDARD LVDS [get_ports {pin_in_cl_clk_p[*]}]
+set_property IOSTANDARD LVDS [get_ports {pin_in_cl_di_n[*]}]
+set_property IOSTANDARD LVDS [get_ports {pin_in_cl_di_p[*]}]
 
 #FMC HPC (Board FMC CAMERALINK : CL(CTRL))
 set_property IOSTANDARD LVDS [get_ports pin_in_cl_tfg_n]
-set_property PACKAGE_PIN A10 [get_ports pin_in_cl_tfg_n]
 set_property PACKAGE_PIN B10 [get_ports pin_in_cl_tfg_p]
+set_property PACKAGE_PIN A10 [get_ports pin_in_cl_tfg_n]
 set_property IOSTANDARD LVDS [get_ports pin_in_cl_tfg_p]
-set_property DIFF_TERM         TRUE [get_ports {pin_in_cl_tfg_p}]
+set_property DIFF_TERM_ADV TERM_100 [get_ports pin_in_cl_tfg_p]
 set_property IOSTANDARD LVDS [get_ports pin_out_cl_tc_n]
-set_property PACKAGE_PIN C8 [get_ports pin_out_cl_tc_n]
 set_property PACKAGE_PIN D8 [get_ports pin_out_cl_tc_p]
+set_property PACKAGE_PIN C8 [get_ports pin_out_cl_tc_n]
 set_property IOSTANDARD LVDS [get_ports pin_out_cl_tc_p]
 
 #set_property PACKAGE_PIN E23 [get_ports {pin_in_cl_cc_n[1]}];#"FMC_HPC_LA18_CC_N"]
@@ -329,11 +328,31 @@ set_property CONFIG_VOLTAGE 1.8 [current_design]
 set_property CFGBVS GND [current_design]
 
 
-#set_clock_groups -name memclk_pcieclk -asynchronous -group [get_clocks -of_objects [get_pins {m_mem_ctrl/gen_bank[0].m_mem_core/inst/u_ddr4_infrastructure/gen_mmcme3.u_mmcme_adv_inst/CLKOUT0}]] -group [get_clocks -of_objects [get_pins {m_host/m_core/U0/gt_top_i/gt_wizard.gtwizard_top_i/pcie3_core_gt_i/inst/gen_gtwizard_gthe3_top.pcie3_core_gt_gtwizard_gthe3_inst/gen_gtwizard_gthe3.gen_channel_container[1].gen_enabled_channel.gthe3_channel_wrapper_inst/channel_inst/gthe3_channel_gen.gen_gthe3_channel_inst[3].GTHE3_CHANNEL_PRIM_INST/TXOUTCLK}]]
-#set_clock_groups -name pcieclk_memclk -asynchronous -group [get_clocks -of_objects [get_pins {m_host/m_core/U0/gt_top_i/gt_wizard.gtwizard_top_i/pcie3_core_gt_i/inst/gen_gtwizard_gthe3_top.pcie3_core_gt_gtwizard_gthe3_inst/gen_gtwizard_gthe3.gen_channel_container[1].gen_enabled_channel.gthe3_channel_wrapper_inst/channel_inst/gthe3_channel_gen.gen_gthe3_channel_inst[3].GTHE3_CHANNEL_PRIM_INST/TXOUTCLK}]] -group [get_clocks -of_objects [get_pins {m_mem_ctrl/gen_bank[0].m_mem_core/inst/u_ddr4_infrastructure/gen_mmcme3.u_mmcme_adv_inst/CLKOUT6}]]
-#
-#set_clock_groups -name ethclk_memclk -asynchronous -group [get_clocks -of_objects [get_pins m_eth/m_eth_app/fifo_block_i/ethernet_core_i/U0/ten_gig_eth_pcs_pma/U0/ten_gig_eth_pcs_pma_shared_clock_reset_block/txusrclk2_bufg_gt_i/O]] -group [get_clocks -of_objects [get_pins {m_host/m_core/U0/gt_top_i/gt_wizard.gtwizard_top_i/pcie3_core_gt_i/inst/gen_gtwizard_gthe3_top.pcie3_core_gt_gtwizard_gthe3_inst/gen_gtwizard_gthe3.gen_channel_container[1].gen_enabled_channel.gthe3_channel_wrapper_inst/channel_inst/gthe3_channel_gen.gen_gthe3_channel_inst[3].GTHE3_CHANNEL_PRIM_INST/TXOUTCLK}]]
-#set_clock_groups -name tmrclk_ethclk -asynchronous -group [get_clocks {pin_in_refclk[M125_p]}] -group [get_clocks -of_objects [get_pins m_eth/m_eth_app/fifo_block_i/ethernet_core_i/U0/ten_gig_eth_pcs_pma/U0/ten_gig_eth_pcs_pma_shared_clock_reset_block/txusrclk2_bufg_gt_i/O]]
+####################################################################################
+# Constraints from file : 'bd_1_ten_gig_eth_pcs_pma_0_clocks.xdc'
+####################################################################################
+
+set_false_path -from [get_ports {pin_in_cl_clk_p[*]}] -to [get_pins {m_ust/m_cam0/m_cam_core/gen_ch[*].m_core/gen_deser[0].m_iserdes/D}]
+set_false_path -from [get_pins {m_ust/m_cam0/m_cam_core/gen_ch[*].m_core/i_link_reg/C}] -to [get_pins {m_ust/m_cam0/m_frprm_detector/i_cnt_reg[*]/CLR}]
+set_false_path -from [get_pins {m_ust/m_cam0/m_cam_core/gen_ch[*].m_core/i_link_reg/C}] -to [get_pins {m_ust/m_cam0/m_frprm_detector/i_linecount_reg[*]/CLR}]
+
+set_property OFFCHIP_TERM NONE [get_ports pin_out_led[0]]
+set_property OFFCHIP_TERM NONE [get_ports pin_out_led[1]]
+set_property OFFCHIP_TERM NONE [get_ports pin_out_led[2]]
+set_property OFFCHIP_TERM NONE [get_ports pin_out_led[3]]
+set_property OFFCHIP_TERM NONE [get_ports pin_out_led[4]]
+set_property OFFCHIP_TERM NONE [get_ports pin_out_led[5]]
+set_property OFFCHIP_TERM NONE [get_ports pin_out_led[6]]
+set_property OFFCHIP_TERM NONE [get_ports pin_out_led[7]]
+set_property OFFCHIP_TERM NONE [get_ports pin_out_led_hpc[0]]
+set_property OFFCHIP_TERM NONE [get_ports pin_out_led_hpc[1]]
+set_property OFFCHIP_TERM NONE [get_ports pin_out_led_hpc[2]]
+set_property OFFCHIP_TERM NONE [get_ports pin_out_led_hpc[3]]
+set_property OFFCHIP_TERM NONE [get_ports pin_out_led_lpc[0]]
+set_property OFFCHIP_TERM NONE [get_ports pin_out_led_lpc[1]]
+set_property OFFCHIP_TERM NONE [get_ports pin_out_led_lpc[2]]
+set_property OFFCHIP_TERM NONE [get_ports pin_out_led_lpc[3]]
+
 set_property C_CLK_INPUT_FREQ_HZ 300000000 [get_debug_cores dbg_hub]
 set_property C_ENABLE_CLK_DIVIDER false [get_debug_cores dbg_hub]
 set_property C_USER_SCAN_CHAIN 1 [get_debug_cores dbg_hub]

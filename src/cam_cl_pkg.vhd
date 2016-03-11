@@ -18,8 +18,9 @@ constant C_CAM_STATUS_CLX_LINK_BIT     : natural := 3;
 constant C_CAM_STATUS_CLY_LINK_BIT     : natural := 4;
 constant C_CAM_STATUS_CLZ_LINK_BIT     : natural := 5;
 constant C_CAM_STATUS_CL_LINKTOTAL_BIT : natural := 6;
+constant C_CAM_STATUS_FRPRM_DETECT_BIT : natural := 7;
 
-constant C_CAM_STATUS_LASTBIT : natural := C_CAM_STATUS_CL_LINKTOTAL_BIT;
+constant C_CAM_STATUS_LASTBIT : natural := C_CAM_STATUS_FRPRM_DETECT_BIT;
 
 
 
@@ -56,6 +57,9 @@ fval_edge0 : std_logic;
 fval_edge1 : std_logic;
 --lval_edge0 : std_logic;
 --lval_edge1 : std_logic;
+frprm_detect : std_logic;
+vpkt_fsm     : std_logic_vector(2 downto 0);
+vpkt_padding : std_logic;
 end record;
 
 type TCAM_dbg is record

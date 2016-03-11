@@ -374,7 +374,7 @@ i_des_d(i)(3) <= i_serdes_do(i)(6);
 --end process;
 
 --4bit -> 7bit
-m_gearbox : gearbox_4_to_7
+m_gbox : gearbox_4_to_7
 generic map(D => 1)
 port map(
 datain       => i_des_d(i),
@@ -487,6 +487,11 @@ if rising_edge(g_cl_clkin_7xdiv4) then
 end if;
 end process;
 
+
+--         edge0         middle         edge1
+--   ________ ___________________________ ________
+--   ________X___________________________X________
+--
 
 process(i_desr_ctrl_rst, g_cl_clkin_7xdiv4)
 begin

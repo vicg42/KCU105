@@ -320,6 +320,7 @@ end generate gen;
 end generate gen_status1;
 
 p_out_status(C_CAM_STATUS_CL_LINKTOTAL_BIT) <= i_link_total;
+p_out_status(C_CAM_STATUS_FRPRM_DETECT_BIT) <= i_frprm_detect;
 
 
 m_cam_core : cl_main
@@ -576,6 +577,9 @@ i_dbg.cam.fval_edge0 <= tst_fval_t_edge0;
 i_dbg.cam.fval_edge1 <= tst_fval_t_edge1;
 i_dbg.cam.fval <= i_fval(0);
 i_dbg.cam.lval <= i_lval(0);
+i_dbg.cam.frprm_detect <= i_vpkt_tst_out(1);
+i_dbg.cam.vpkt_padding <= i_vpkt_tst_out(2);
+i_dbg.cam.vpkt_fsm     <= i_vpkt_tst_out(5 downto 3);
 
 
 --process(i_link_total, i_rxclk(0))
