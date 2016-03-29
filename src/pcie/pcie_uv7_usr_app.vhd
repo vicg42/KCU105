@@ -602,13 +602,13 @@ if rising_edge(p_in_clk) then
             txd(C_HREG_PCIE_NEG_LINK_M_RBIT downto C_HREG_PCIE_NEG_LINK_L_RBIT)
                 := p_in_pcie_prm.link_width(5 downto 0);
 
-            txd(C_HREG_PCIE_NEG_MAX_PAYLOAD_M_BIT downto C_HREG_PCIE_NEG_MAX_PAYLOAD_L_BIT)
+            txd(C_HREG_PCIE_NEG_MAX_PAYLOAD_M_RBIT downto C_HREG_PCIE_NEG_MAX_PAYLOAD_L_RBIT)
                 := p_in_pcie_prm.max_payload(2 downto 0);
 
-            txd(C_HREG_PCIE_NEG_MAX_RD_REQ_M_BIT downto C_HREG_PCIE_NEG_MAX_RD_REQ_L_BIT)
+            txd(C_HREG_PCIE_NEG_MAX_RD_REQ_M_RBIT downto C_HREG_PCIE_NEG_MAX_RD_REQ_L_RBIT)
                 := p_in_pcie_prm.max_rd_req(2 downto 0);
 
-            txd(C_HREG_PCIE_MASTER_EN_BIT) := p_in_pcie_prm.master_en(0);
+            txd(C_HREG_PCIE_MASTER_EN_RBIT) := p_in_pcie_prm.master_en(0);
 
             txd(C_HREG_PCIE_SPEED_TESTING_BIT) := i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
             txd(C_HREG_PCIE_EN_TESTD_GEN_BIT) := i_reg.pcie(C_HREG_PCIE_EN_TESTD_GEN_BIT);

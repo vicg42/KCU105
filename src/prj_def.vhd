@@ -5,7 +5,9 @@
 -- Module Name : prj_def
 --
 -- Description : project constants define
---
+-- xx_RBIT - bit read only
+-- xx_WBIT - bit write only
+-- xx_BIT - bit write/read
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -144,11 +146,11 @@ constant C_HREG_MEM_CTRL_LAST_BIT             : integer := C_HREG_MEM_CTRL_TRNRD
 --Register C_HREG_PCIE / Bit Map:
 constant C_HREG_PCIE_NEG_LINK_L_RBIT          : integer := 0;
 constant C_HREG_PCIE_NEG_LINK_M_RBIT          : integer := 5;
-constant C_HREG_PCIE_NEG_MAX_PAYLOAD_L_BIT    : integer := 6;
-constant C_HREG_PCIE_NEG_MAX_PAYLOAD_M_BIT    : integer := 8;
-constant C_HREG_PCIE_NEG_MAX_RD_REQ_L_BIT     : integer := 9;
-constant C_HREG_PCIE_NEG_MAX_RD_REQ_M_BIT     : integer := 11;
-constant C_HREG_PCIE_MASTER_EN_BIT            : integer := 12;
+constant C_HREG_PCIE_NEG_MAX_PAYLOAD_L_RBIT   : integer := 6;
+constant C_HREG_PCIE_NEG_MAX_PAYLOAD_M_RBIT   : integer := 8;
+constant C_HREG_PCIE_NEG_MAX_RD_REQ_L_RBIT    : integer := 9;
+constant C_HREG_PCIE_NEG_MAX_RD_REQ_M_RBIT    : integer := 11;
+constant C_HREG_PCIE_MASTER_EN_RBIT           : integer := 12;
 constant C_HREG_PCIE_SPEED_TESTING_BIT        : integer := 13;
 constant C_HREG_PCIE_EN_TESTD_GEN_BIT         : integer := 14;
 constant C_HREG_PCIE_LAST_BIT                 : integer := C_HREG_PCIE_EN_TESTD_GEN_BIT;
