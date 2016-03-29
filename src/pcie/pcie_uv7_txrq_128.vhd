@@ -18,6 +18,7 @@ use work.pcie_pkg.all;
 
 entity pcie_tx_rq is
 generic (
+G_TXRQ_ENABLE_CLIENT_TAG : natural := 0;
 G_DATA_WIDTH : integer := 64
 );
 port(
@@ -107,7 +108,7 @@ signal i_mem_tpl_byte       : unsigned(10 downto 0);
 signal i_mem_tpl_dw         : unsigned(10 downto 0);
 signal i_mem_tpl_len        : unsigned(10 downto 0);
 signal i_mem_tpl_cnt        : unsigned(10 downto 0);
-signal i_mem_tpl_tag        : unsigned( 7 downto 0);--marker of send tpl
+signal i_mem_tpl_tag        : unsigned( 4 downto 0);--marker of send tpl
 signal i_mem_tpl_last       : std_logic;
 signal i_mem_tpl_dw_rem     : unsigned(10 downto 0);
 
@@ -353,7 +354,13 @@ if rising_edge(p_in_clk) then
                 i_axi_rq_tdata((32 * 2) + 15) <= '0'; --Poisoned Request
                 i_axi_rq_tdata((32 * 2) + 31 downto (32 * 2) + 16) <= (others => '0'); --Req ID
 
-                i_axi_rq_tdata((32 * 3) +  7 downto (32 * 3) +  0) <= std_logic_vector(i_mem_tpl_tag(7 downto 0)); --Tag
+                if (G_TXRQ_ENABLE_CLIENT_TAG = 1) then
+                i_axi_rq_tdata((32 * 3) +  7 downto (32 * 3) +  0) <= std_logic_vector(RESIZE(i_mem_tpl_tag, 8)); --Tag
+                i_mem_tpl_tag <= i_mem_tpl_tag + 1;
+                else
+                i_axi_rq_tdata((32 * 3) +  7 downto (32 * 3) +  0) <= (others => '0'); --Tag
+                end if;
+
                 i_axi_rq_tdata((32 * 3) + 23 downto (32 * 3) +  8) <= p_in_completer_id; --Completer ID
                 i_axi_rq_tdata((32 * 3) + 24) <= '0'; --Requester ID Enable
                 i_axi_rq_tdata((32 * 3) + 27 downto (32 * 3) + 25) <= (others => '0');--Transaction Class (TC)
@@ -363,8 +370,6 @@ if rising_edge(p_in_clk) then
                 i_axi_rq_tdata((32 * 3) + 31) <= '0'; --Force ECRC
 
                 i_mem_adr_byte <= i_mem_adr_byte + RESIZE(i_mem_tpl_byte, i_mem_adr_byte'length);
-
-                i_mem_tpl_tag <= i_mem_tpl_tag + 1;
 
                 i_mwr_work <= '1';
 
@@ -489,7 +494,13 @@ if rising_edge(p_in_clk) then
                 i_axi_rq_tdata((32 * 2) + 15) <= '0'; --Poisoned Request
                 i_axi_rq_tdata((32 * 2) + 31 downto (32 * 2) + 16) <= (others => '0'); --Req ID
 
-                i_axi_rq_tdata((32 * 3) +  7 downto (32 * 3) +  0) <= std_logic_vector(i_mem_tpl_tag(7 downto 0)); --Tag
+                if (G_TXRQ_ENABLE_CLIENT_TAG = 1) then
+                i_axi_rq_tdata((32 * 3) +  7 downto (32 * 3) +  0) <= std_logic_vector(RESIZE(i_mem_tpl_tag, 8)); --Tag
+                i_mem_tpl_tag <= i_mem_tpl_tag + 1;
+                else
+                i_axi_rq_tdata((32 * 3) +  7 downto (32 * 3) +  0) <= (others => '0'); --Tag
+                end if;
+
                 i_axi_rq_tdata((32 * 3) + 23 downto (32 * 3) +  8) <= p_in_completer_id; --Completer ID
                 i_axi_rq_tdata((32 * 3) + 24) <= '0'; --Requester ID Enable
                 i_axi_rq_tdata((32 * 3) + 27 downto (32 * 3) + 25) <= (others => '0');--Transaction Class (TC)
@@ -501,8 +512,6 @@ if rising_edge(p_in_clk) then
                 i_axi_rq_tlast <= '1';
 
                 i_mem_adr_byte <= i_mem_adr_byte + RESIZE(i_mem_tpl_byte, i_mem_adr_byte'length);
-
-                i_mem_tpl_tag <= i_mem_tpl_tag + 1;
 
                 i_mrd_work <= '1';
 

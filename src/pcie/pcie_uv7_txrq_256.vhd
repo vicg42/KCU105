@@ -18,6 +18,7 @@ use work.pcie_pkg.all;
 
 entity pcie_tx_rq is
 generic (
+G_TXRQ_ENABLE_CLIENT_TAG : natural := 0;
 G_DATA_WIDTH : integer := 64
 );
 port(
@@ -41,6 +42,10 @@ p_in_pcie_rq_seq_num_vld  : in  std_logic;
 p_in_pcie_prm     : in  TPCIE_cfgprm;
 
 p_in_completer_id : in  std_logic_vector(15 downto 0);
+
+--Completion
+p_out_dma_tlp_work  : out  std_logic;
+p_in_txcc_req_compl : in   std_logic;
 
 --usr app
 p_in_urxbuf_empty : in  std_logic;
@@ -104,7 +109,7 @@ signal i_mem_tpl_byte       : unsigned(10 downto 0);
 signal i_mem_tpl_dw         : unsigned(10 downto 0);
 signal i_mem_tpl_len        : unsigned(10 downto 0);
 signal i_mem_tpl_cnt        : unsigned(10 downto 0);
-signal i_mem_tpl_tag        : unsigned( 7 downto 0);--marker of send tpl
+signal i_mem_tpl_tag        : unsigned( 4 downto 0);--marker of send tpl
 signal i_mem_tpl_last       : std_logic;
 signal i_mem_tpl_dw_rem     : unsigned(10 downto 0);
 
@@ -112,6 +117,7 @@ signal i_mem_tpl_max_byte   : unsigned(10 downto 0);
 signal i_mwr_work           : std_logic;
 signal i_mwr_done           : std_logic;
 signal i_mrd_done           : std_logic;
+signal i_mrd_work           : std_logic;
 
 signal tst_fsm              : unsigned(3 downto 0);
 
@@ -121,6 +127,8 @@ begin --architecture behavioral of pcie_tx_rq
 
 p_out_dma_mrd_done <= i_mrd_done;
 p_out_dma_mwr_done <= i_mwr_done;
+
+p_out_dma_tlp_work <= i_mwr_work or i_mrd_work;
 
 i_urxbuf_rd <= (p_in_axi_rq_tready and not p_in_urxbuf_empty);
 p_out_urxbuf_rd <= i_urxbuf_rd and i_mwr_work;
@@ -157,6 +165,7 @@ if rising_edge(p_in_clk) then
 end if;
 end process;--init
 
+i_mem_tpl_max_byte(log2(128) - 1 downto 0) <= (others => '0');
 
 i_mem_tpl_dw <= RESIZE(i_mem_tpl_byte(i_mem_tpl_byte'high downto 2), i_mem_tpl_dw'length)
                   + (TO_UNSIGNED(0, i_mem_tpl_dw'length - 2)
@@ -190,8 +199,8 @@ if rising_edge(p_in_clk) then
     i_mem_tpl_tag <= (others => '0');
     i_mem_tpl_last <= '0';
 
-    i_mem_tpl_max_byte <= (others => '0');
-    i_mwr_work <= '0';
+    i_mem_tpl_max_byte(10 downto log2(128)) <= (others => '0');
+    i_mwr_work <= '0'; i_mrd_work <= '0';
     i_mwr_done <= '0';
     i_mrd_done <= '0';
 
@@ -208,8 +217,10 @@ if rising_edge(p_in_clk) then
             i_axi_rq_tlast  <= '0';
             i_axi_rq_tvalid <= '0';
 
-            i_mwr_work <= '0';
+            i_mwr_work <= '0'; i_mrd_work <= '0';
             i_mem_tpl_last <= '0';
+
+          if (p_in_txcc_req_compl = '0') then
 
             if (p_in_dma_mwr_en = '1' and i_mwr_done = '0' and p_in_pcie_prm.master_en(0) = '1') then
 
@@ -217,12 +228,10 @@ if rising_edge(p_in_clk) then
 
                   --max 1024 because pcie_core support max value 1024 (max_payload)
                   case p_in_pcie_prm.max_payload is
---                  when C_PCIE_MAX_PAYLOAD_4096_BYTE => i_mem_tpl_max_byte <= TO_UNSIGNED(4096, i_mem_tpl_max_byte'length);
---                  when C_PCIE_MAX_PAYLOAD_2048_BYTE => i_mem_tpl_max_byte <= TO_UNSIGNED(2048, i_mem_tpl_max_byte'length);
-                  when C_PCIE_MAX_PAYLOAD_1024_BYTE => i_mem_tpl_max_byte <= TO_UNSIGNED(1024, i_mem_tpl_max_byte'length);
-                  when C_PCIE_MAX_PAYLOAD_512_BYTE  => i_mem_tpl_max_byte <= TO_UNSIGNED(512 , i_mem_tpl_max_byte'length);
-                  when C_PCIE_MAX_PAYLOAD_256_BYTE  => i_mem_tpl_max_byte <= TO_UNSIGNED(256 , i_mem_tpl_max_byte'length);
-                  when C_PCIE_MAX_PAYLOAD_128_BYTE  => i_mem_tpl_max_byte <= TO_UNSIGNED(128 , i_mem_tpl_max_byte'length);
+                  when C_PCIE_MAX_PAYLOAD_1024_BYTE => i_mem_tpl_max_byte(10 downto log2(128)) <= TO_UNSIGNED((1024 / 128), (10 - log2(128) + 1));
+                  when C_PCIE_MAX_PAYLOAD_512_BYTE  => i_mem_tpl_max_byte(10 downto log2(128)) <= TO_UNSIGNED((512  / 128), (10 - log2(128) + 1));
+                  when C_PCIE_MAX_PAYLOAD_256_BYTE  => i_mem_tpl_max_byte(10 downto log2(128)) <= TO_UNSIGNED((256  / 128), (10 - log2(128) + 1));
+                  when C_PCIE_MAX_PAYLOAD_128_BYTE  => i_mem_tpl_max_byte(10 downto log2(128)) <= TO_UNSIGNED((128  / 128), (10 - log2(128) + 1));
                   when others => null;
                   end case;
 
@@ -236,15 +245,14 @@ if rising_edge(p_in_clk) then
                 i_fsm_txrq <= S_TXRQ_MWR_C0;
 
             elsif (p_in_dma_mrd_en = '1' and i_mrd_done = '0' and p_in_pcie_prm.master_en(0) = '1') then
+
                 if (i_dma_init = '1') then
 
                   case p_in_pcie_prm.max_rd_req is
---                  when C_PCIE_MAX_RD_REQ_4096_BYTE => i_mem_tpl_max_byte <= TO_UNSIGNED(4096, i_mem_tpl_max_byte'length);
---                  when C_PCIE_MAX_RD_REQ_2048_BYTE => i_mem_tpl_max_byte <= TO_UNSIGNED(2048, i_mem_tpl_max_byte'length);
-                  when C_PCIE_MAX_RD_REQ_1024_BYTE => i_mem_tpl_max_byte <= TO_UNSIGNED(1024, i_mem_tpl_max_byte'length);
-                  when C_PCIE_MAX_RD_REQ_512_BYTE  => i_mem_tpl_max_byte <= TO_UNSIGNED(512, i_mem_tpl_max_byte'length);
-                  when C_PCIE_MAX_RD_REQ_256_BYTE  => i_mem_tpl_max_byte <= TO_UNSIGNED(256, i_mem_tpl_max_byte'length);
-                  when C_PCIE_MAX_RD_REQ_128_BYTE  => i_mem_tpl_max_byte <= TO_UNSIGNED(128, i_mem_tpl_max_byte'length);
+                  when C_PCIE_MAX_RD_REQ_1024_BYTE => i_mem_tpl_max_byte(10 downto log2(128)) <= TO_UNSIGNED((1024 / 128), (10 - log2(128) + 1));
+                  when C_PCIE_MAX_RD_REQ_512_BYTE  => i_mem_tpl_max_byte(10 downto log2(128)) <= TO_UNSIGNED((512  / 128), (10 - log2(128) + 1));
+                  when C_PCIE_MAX_RD_REQ_256_BYTE  => i_mem_tpl_max_byte(10 downto log2(128)) <= TO_UNSIGNED((256  / 128), (10 - log2(128) + 1));
+                  when C_PCIE_MAX_RD_REQ_128_BYTE  => i_mem_tpl_max_byte(10 downto log2(128)) <= TO_UNSIGNED((128  / 128), (10 - log2(128) + 1));
                   when others => null;
                   end case;
 
@@ -265,6 +273,8 @@ if rising_edge(p_in_clk) then
                 end if;
 
             end if;
+
+          end if;--if (p_in_txcc_req_compl = '0') then
 
           end if;
 
@@ -306,6 +316,8 @@ if rising_edge(p_in_clk) then
 
             if (i_urxbuf_rd = '1') then
 
+                i_axi_rq_tkeep(3 downto 0) <= "1111";
+
                 i_axi_rq_tvalid <= '1';
 
                 --First DW BE, Last DW BE - only for address divided 32 byte
@@ -345,7 +357,13 @@ if rising_edge(p_in_clk) then
                 i_axi_rq_tdata((32 * 2) + 15) <= '0'; --Poisoned Request
                 i_axi_rq_tdata((32 * 2) + 31 downto (32 * 2) + 16) <= (others => '0'); --Req ID
 
-                i_axi_rq_tdata((32 * 3) +  7 downto (32 * 3) +  0) <= std_logic_vector(i_mem_tpl_tag(7 downto 0)); --Tag
+                if (G_TXRQ_ENABLE_CLIENT_TAG = 1) then
+                i_axi_rq_tdata((32 * 3) +  7 downto (32 * 3) +  0) <= std_logic_vector(RESIZE(i_mem_tpl_tag, 8)); --Tag
+                i_mem_tpl_tag <= i_mem_tpl_tag + 1;
+                else
+                i_axi_rq_tdata((32 * 3) +  7 downto (32 * 3) +  0) <= (others => '0'); --Tag
+                end if;
+
                 i_axi_rq_tdata((32 * 3) + 23 downto (32 * 3) +  8) <= p_in_completer_id; --Completer ID
                 i_axi_rq_tdata((32 * 3) + 24) <= '0'; --Requester ID Enable
                 i_axi_rq_tdata((32 * 3) + 27 downto (32 * 3) + 25) <= (others => '0');--Transaction Class (TC)
@@ -365,11 +383,9 @@ if rising_edge(p_in_clk) then
 
                     i_mwr_work <= '0';
 
-                    i_mem_tpl_tag <= i_mem_tpl_tag + 1;
-
                     if (i_mem_tpl_dw_rem(3 downto 0) < TO_UNSIGNED(4, 4)) then
 
-                      i_axi_rq_tkeep <= "11111111";
+                      i_axi_rq_tkeep(7 downto 4) <= "1111";
 
                       i_fsm_txrq <= S_TXRQ_MWR_DE;
 
@@ -384,8 +400,6 @@ if rising_edge(p_in_clk) then
                       when "00" => i_axi_rq_tkeep(7 downto 4) <= "1111"; --i_mem_tpl_dw_rem = 4
                       when others => null;
                       end case;
-
-                      i_axi_rq_tkeep(3 downto 0) <= "1111";
 
                       i_axi_rq_tlast <= '1';
 
@@ -406,7 +420,7 @@ if rising_edge(p_in_clk) then
 
                     i_mem_tpl_cnt <= i_mem_tpl_cnt + 1;
 
-                    i_axi_rq_tkeep <= "11111111";
+                    i_axi_rq_tkeep(7 downto 4) <= "1111";
 
                     i_fsm_txrq <= S_TXRQ_MWR_DN;
 
@@ -431,8 +445,6 @@ if rising_edge(p_in_clk) then
                 if (i_mem_tpl_cnt = (i_mem_tpl_len - 1)) then
 
                     i_mwr_work <= '0';
-
-                    i_mem_tpl_tag <= i_mem_tpl_tag + 1;
 
                     if (i_mem_tpl_dw_rem(3 downto 0) < TO_UNSIGNED(4, 4)) then
 
@@ -582,7 +594,13 @@ if rising_edge(p_in_clk) then
                 i_axi_rq_tdata((32 * 2) + 15) <= '0'; --Poisoned Request
                 i_axi_rq_tdata((32 * 2) + 31 downto (32 * 2) + 16) <= (others => '0'); --Req ID
 
-                i_axi_rq_tdata((32 * 3) +  7 downto (32 * 3) +  0) <= std_logic_vector(i_mem_tpl_tag(7 downto 0)); --Tag
+                if (G_TXRQ_ENABLE_CLIENT_TAG = 1) then
+                i_axi_rq_tdata((32 * 3) +  7 downto (32 * 3) +  0) <= std_logic_vector(RESIZE(i_mem_tpl_tag, 8)); --Tag
+                i_mem_tpl_tag <= i_mem_tpl_tag + 1;
+                else
+                i_axi_rq_tdata((32 * 3) +  7 downto (32 * 3) +  0) <= (others => '0'); --Tag
+                end if;
+
                 i_axi_rq_tdata((32 * 3) + 23 downto (32 * 3) +  8) <= p_in_completer_id; --Completer ID
                 i_axi_rq_tdata((32 * 3) + 24) <= '0'; --Requester ID Enable
                 i_axi_rq_tdata((32 * 3) + 27 downto (32 * 3) + 25) <= (others => '0');--Transaction Class (TC)
@@ -597,7 +615,7 @@ if rising_edge(p_in_clk) then
 
                 i_mem_adr_byte <= i_mem_adr_byte + RESIZE(i_mem_tpl_byte, i_mem_adr_byte'length);
 
-                i_mem_tpl_tag <= i_mem_tpl_tag + 1;
+                i_mrd_work <= '1';
 
                 if (i_mem_tpl_last = '1') then
                   i_mem_tx_byte <= (others => '0');
@@ -618,7 +636,8 @@ if rising_edge(p_in_clk) then
               i_axi_rq_tlast  <= '0';
               i_axi_rq_tvalid <= '0';
 
-              i_mwr_work <= '0';
+              i_mrd_work <= '0';
+
               i_mem_tpl_last <= '0';
 
               if (i_mem_tx_dw = UNSIGNED(p_in_dma_mrd_rxdwcount)) then

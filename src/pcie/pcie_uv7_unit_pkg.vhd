@@ -96,6 +96,7 @@ end component pcie_rx;
 
 component pcie_tx
 generic (
+G_TXRQ_ENABLE_CLIENT_TAG : natural := 0;
 G_DATA_WIDTH : integer := 64
 );
 port (

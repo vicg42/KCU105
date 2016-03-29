@@ -18,6 +18,7 @@ use work.pcie_pkg.all;
 
 entity pcie_tx is
 generic (
+G_TXRQ_ENABLE_CLIENT_TAG : natural := 0;
 G_DATA_WIDTH : integer := 64
 );
 port(
@@ -154,6 +155,7 @@ end component pcie_tx_cc;
 
 component pcie_tx_rq is
 generic (
+G_TXRQ_ENABLE_CLIENT_TAG : natural := 0;
 G_DATA_WIDTH : integer := 64
 );
 port(
@@ -268,6 +270,7 @@ p_in_rst_n => p_in_rst_n
 
 m_tx_rq : pcie_tx_rq
 generic map(
+G_TXRQ_ENABLE_CLIENT_TAG => G_TXRQ_ENABLE_CLIENT_TAG,
 G_DATA_WIDTH => G_DATA_WIDTH
 )
 port map(

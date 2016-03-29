@@ -530,6 +530,7 @@ tst_axi_cc_tready  <= p_in_axi_cc_tready;
 
 m_tx : pcie_tx
 generic map (
+G_TXRQ_ENABLE_CLIENT_TAG => 0,
 G_DATA_WIDTH => G_DATA_WIDTH
 )
 port map(
