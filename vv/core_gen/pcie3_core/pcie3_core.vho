@@ -1,4 +1,4 @@
--- (c) Copyright 1995-2015 Xilinx, Inc. All rights reserved.
+-- (c) Copyright 1995-2016 Xilinx, Inc. All rights reserved.
 -- 
 -- This file contains confidential and proprietary information
 -- of Xilinx, Inc. and is protected under U.S. and
@@ -54,33 +54,33 @@
 ------------- Begin Cut here for COMPONENT Declaration ------ COMP_TAG
 COMPONENT pcie3_core
   PORT (
-    pci_exp_txn : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-    pci_exp_txp : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-    pci_exp_rxn : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    pci_exp_rxp : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+    pci_exp_txn : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+    pci_exp_txp : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+    pci_exp_rxn : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+    pci_exp_rxp : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
     user_clk : OUT STD_LOGIC;
     user_reset : OUT STD_LOGIC;
     user_lnk_up : OUT STD_LOGIC;
-    s_axis_rq_tdata : IN STD_LOGIC_VECTOR(127 DOWNTO 0);
-    s_axis_rq_tkeep : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+    s_axis_rq_tdata : IN STD_LOGIC_VECTOR(255 DOWNTO 0);
+    s_axis_rq_tkeep : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
     s_axis_rq_tlast : IN STD_LOGIC;
     s_axis_rq_tready : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
     s_axis_rq_tuser : IN STD_LOGIC_VECTOR(59 DOWNTO 0);
     s_axis_rq_tvalid : IN STD_LOGIC;
-    m_axis_rc_tdata : OUT STD_LOGIC_VECTOR(127 DOWNTO 0);
-    m_axis_rc_tkeep : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
+    m_axis_rc_tdata : OUT STD_LOGIC_VECTOR(255 DOWNTO 0);
+    m_axis_rc_tkeep : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
     m_axis_rc_tlast : OUT STD_LOGIC;
     m_axis_rc_tready : IN STD_LOGIC;
     m_axis_rc_tuser : OUT STD_LOGIC_VECTOR(74 DOWNTO 0);
     m_axis_rc_tvalid : OUT STD_LOGIC;
-    m_axis_cq_tdata : OUT STD_LOGIC_VECTOR(127 DOWNTO 0);
-    m_axis_cq_tkeep : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
+    m_axis_cq_tdata : OUT STD_LOGIC_VECTOR(255 DOWNTO 0);
+    m_axis_cq_tkeep : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
     m_axis_cq_tlast : OUT STD_LOGIC;
     m_axis_cq_tready : IN STD_LOGIC;
     m_axis_cq_tuser : OUT STD_LOGIC_VECTOR(84 DOWNTO 0);
     m_axis_cq_tvalid : OUT STD_LOGIC;
-    s_axis_cc_tdata : IN STD_LOGIC_VECTOR(127 DOWNTO 0);
-    s_axis_cc_tkeep : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+    s_axis_cc_tdata : IN STD_LOGIC_VECTOR(255 DOWNTO 0);
+    s_axis_cc_tkeep : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
     s_axis_cc_tlast : IN STD_LOGIC;
     s_axis_cc_tready : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
     s_axis_cc_tuser : IN STD_LOGIC_VECTOR(32 DOWNTO 0);
@@ -199,9 +199,9 @@ COMPONENT pcie3_core
     pcie_perstn1_in : IN STD_LOGIC;
     pcie_perstn0_out : OUT STD_LOGIC;
     pcie_perstn1_out : OUT STD_LOGIC;
-    int_qpll1lock_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    int_qpll1outrefclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    int_qpll1outclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0)
+    int_qpll1lock_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+    int_qpll1outrefclk_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+    int_qpll1outclk_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0)
   );
 END COMPONENT;
 -- COMP_TAG_END ------ End COMPONENT Declaration ------------
