@@ -12,6 +12,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
+use work.vicg_common_pkg.all;
 use work.reduce_pack.all;
 use work.cl_pkg.all;
 use work.cam_cl_pkg.all;
@@ -20,6 +21,7 @@ use work.ust_cfg.all;
 
 entity ust_main is
 generic(
+G_DBGCS : string := "OFF";
 G_SIM : string := "OFF"
 );
 port(
@@ -295,7 +297,7 @@ p_out_tst(2) <= i_cam0_tst_out(2);--cam_ctrl_tx (UART)
 p_out_tst(3) <= i_cam_dbg.cam.frprm_detect;
 
 
-
+gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
 dbg_cam : ila_dbg_cam
 port map(
 clk                 => i_cam0_bufpkt_rdclk,
@@ -311,5 +313,6 @@ probe0(71)          => i_cam_dbg.cam.frprm_detect,
 probe0(72)          => i_cam_dbg.cam.vpkt_padding,
 probe0(75 downto 73)=> i_cam_dbg.cam.vpkt_fsm
 );
+end generate gen_dbgcs_on;
 
 end architecture struct;

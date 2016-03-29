@@ -394,6 +394,7 @@ end component eth_main;
 
 component ust_main is
 generic(
+G_DBGCS : string := "OFF";
 G_SIM : string := "OFF"
 );
 port(
