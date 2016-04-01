@@ -660,8 +660,25 @@ if rising_edge(p_in_clk) then
                  , C_HREG_FUNCPRM_FG_VCH_COUNT_M_BIT - C_HREG_FUNCPRM_FG_VCH_COUNT_L_BIT + 1));
 
           txd(C_HREG_FUNCPRM_FG_REV_BIT) := '0';
-          txd(C_HREG_FUNCPRM_FG_128_BIT) := '1';
 
+          if ((C_HDEV_DWIDTH / 32) = 8) then --BUS 256bit
+            txd(C_HREG_FUNCPRM_FG_ALIGN_M_BIT
+                downto C_HREG_FUNCPRM_FG_ALIGN_L_BIT) := std_logic_vector(TO_UNSIGNED(3, C_HREG_FUNCPRM_FG_ALIGN_M_BIT
+                                                                                            - C_HREG_FUNCPRM_FG_ALIGN_L_BIT + 1));
+
+          elsif ((C_HDEV_DWIDTH / 32) = 4) then --BUS 128bit
+            txd(C_HREG_FUNCPRM_FG_ALIGN_M_BIT
+                downto C_HREG_FUNCPRM_FG_ALIGN_L_BIT) := std_logic_vector(TO_UNSIGNED(2, C_HREG_FUNCPRM_FG_ALIGN_M_BIT
+                                                                                            - C_HREG_FUNCPRM_FG_ALIGN_L_BIT + 1));
+
+          elsif ((C_HDEV_DWIDTH / 32) = 2) then --BUS 64bit
+            txd(C_HREG_FUNCPRM_FG_ALIGN_M_BIT
+                downto C_HREG_FUNCPRM_FG_ALIGN_L_BIT) := std_logic_vector(TO_UNSIGNED(1, C_HREG_FUNCPRM_FG_ALIGN_M_BIT
+                                                                                            - C_HREG_FUNCPRM_FG_ALIGN_L_BIT + 1));
+
+          else  --BUS 32bit
+            txd(C_HREG_FUNCPRM_FG_ALIGN_M_BIT downto C_HREG_FUNCPRM_FG_ALIGN_L_BIT) := (others => '0');
+          end if;
 
 
         elsif (i_reg_adr = TO_UNSIGNED(C_HREG_CFG_CTRL, i_reg_adr'length)) then

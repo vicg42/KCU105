@@ -170,8 +170,9 @@ constant C_HREG_FUNCPRM_MEMBANK_SIZE_M_BIT    : integer := 2;
 constant C_HREG_FUNCPRM_FG_VCH_COUNT_L_BIT    : integer := 3;
 constant C_HREG_FUNCPRM_FG_VCH_COUNT_M_BIT    : integer := 5;
 constant C_HREG_FUNCPRM_FG_REV_BIT            : integer := 7;
-constant C_HREG_FUNCPRM_FG_128_BIT            : integer := 9;
-constant C_HREG_FUNCPRM_LAST_BIT              : integer := C_HREG_FUNCPRM_FG_128_BIT;
+constant C_HREG_FUNCPRM_FG_ALIGN_L_BIT        : integer := 9;
+constant C_HREG_FUNCPRM_FG_ALIGN_M_BIT        : integer := 10;
+constant C_HREG_FUNCPRM_LAST_BIT              : integer := C_HREG_FUNCPRM_FG_ALIGN_M_BIT;
 
 
 --Port of module pcie_main.vhd /p_in_dev_option/ Bit Map:
