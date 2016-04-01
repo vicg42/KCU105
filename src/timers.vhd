@@ -27,14 +27,14 @@ p_in_reg : TTmrCtrl;
 -------------------------------
 --
 -------------------------------
-p_in_tmr_clk     : in   std_logic;
-p_out_tmr_irq    : out  std_logic_vector(G_TMR_COUNT - 1 downto 0);
-p_out_tmr_en     : out  std_logic_vector(G_TMR_COUNT - 1 downto 0);
+p_in_tmr_clk  : in   std_logic;
+p_out_tmr_irq : out  std_logic_vector(G_TMR_COUNT - 1 downto 0);
+p_out_tmr_en  : out  std_logic_vector(G_TMR_COUNT - 1 downto 0);
 
 -------------------------------
 --System
 -------------------------------
-p_in_rst         : in   std_logic
+p_in_rst : in std_logic
 );
 end entity timers;
 
