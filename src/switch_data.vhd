@@ -213,11 +213,6 @@ signal b_rst_fg_bufs          : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
 Type TEthCH_d is array (0 to G_ETH_CH_COUNT - 1) of std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
 
-signal syn_eth_rxd            : TEthCH_d;
-signal syn_eth_rxd_wr         : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-signal syn_eth_rxd_sof        : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-signal syn_eth_rxd_eof        : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
-
 signal i_eth_tmr_en           : std_logic;
 signal i_eth_tmr_irq          : std_logic;
 signal sr_eth_tx_start        : std_logic_vector(0 to 1);
@@ -228,9 +223,8 @@ signal i_eth_rxbuf_empty      : std_logic;
 signal i_eth_fltr_do          : std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
 signal i_eth_fltr_den         : std_logic;
 signal i_eth_fltr_eof         : std_logic;
-signal sr_eth_fltr_eof        : std_logic_vector(0 to 3);
-signal i_eth_rx_irq           : std_logic;
-signal i_eth_rx_irq_out       : std_logic;
+signal sr_eth_fltr_eof        : std_logic_vector(0 to 3) := (others => '0');
+signal i_eth_rx_irq           : std_logic := '0';
 signal i_eth_htxd_rdy         : std_logic;
 signal sr_eth_htxd_rdy        : std_logic;
 signal i_eth_txbuf_empty_en   : std_logic;
@@ -248,45 +242,16 @@ signal i_fgbuf_fltr_den       : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 signal i_eth_htxbuf_di_swp    : std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 signal i_h2eth_buf_rst        : std_logic;
 
+type TFg_fltr_tst is array (0 to 1) of std_logic_vector(31 downto 0);
+
+signal tst_fg_fltr            : TFg_fltr_tst;
+
 
 begin --architecture behavioral of switch_data
 
 
 
-process(p_in_ethio_clk(0))
-begin
-if rising_edge(p_in_ethio_clk(0)) then
 b_rst_eth_bufs <= p_in_ethio_rst(0);-- or h_reg_ctrl(C_SWT_REG_CTRL_RST_ETH_BUFS_BIT);
-end if;
-end process;
-
-
---
-gen_frr_syn : for eth_ch in 0 to (G_ETH_CH_COUNT - 1) generate
-begin
-
-process(p_in_ethio_clk(eth_ch))
-begin
-if rising_edge(p_in_ethio_clk(eth_ch)) then
-  if (p_in_ethio_rst(eth_ch) = '1') then
-
-    syn_eth_rxd(eth_ch) <= (others => '0');
-    syn_eth_rxd_wr(eth_ch) <= '0';
-    syn_eth_rxd_sof(eth_ch) <= '0';
-    syn_eth_rxd_eof(eth_ch) <= '0';
-
-  else
-
-    syn_eth_rxd(eth_ch) <= p_in_ethio_rx_axi_tdata((G_ETH_DWIDTH * (eth_ch + 1)) - 1 downto (G_ETH_DWIDTH * eth_ch));
-    syn_eth_rxd_wr(eth_ch) <= p_in_ethio_rx_axi_tvalid(eth_ch);
-    syn_eth_rxd_sof(eth_ch) <= p_in_ethio_rx_axi_tuser((2 * eth_ch) + 0);
-    syn_eth_rxd_eof(eth_ch) <= p_in_ethio_rx_axi_tuser((2 * eth_ch) + 1);
-
-  end if;
-end if;
-end process;
-
-end generate gen_frr_syn;
 
 
 
@@ -386,10 +351,10 @@ p_in_frr        => p_in_reg.frr.eth2h,
 --------------------------------------
 --Upstream Port
 --------------------------------------
-p_in_upp_data   => syn_eth_rxd    (0),
-p_in_upp_wr     => syn_eth_rxd_wr (0),
-p_in_upp_eof    => syn_eth_rxd_eof(0),
-p_in_upp_sof    => syn_eth_rxd_sof(0),
+p_in_upp_data   => p_in_ethio_rx_axi_tdata((G_ETH_DWIDTH * (0 + 1)) - 1 downto (G_ETH_DWIDTH * 0)),--syn_eth_rxd    (0),
+p_in_upp_wr     => p_in_ethio_rx_axi_tvalid(0)         ,--syn_eth_rxd_wr (0),
+p_in_upp_eof    => p_in_ethio_rx_axi_tuser((2 * 0) + 1),--syn_eth_rxd_eof(0),
+p_in_upp_sof    => p_in_ethio_rx_axi_tuser((2 * 0) + 0),--syn_eth_rxd_sof(0),
 
 --------------------------------------
 --Downstream Port
@@ -485,11 +450,6 @@ p_out_eth_hrxbuf_full <= i_eth_rxbuf_full;
 process(p_in_ethio_clk(0))
 begin
 if rising_edge(p_in_ethio_clk(0)) then
-  if b_rst_eth_bufs = '1' then
-    i_eth_rx_irq <= '0';
-    sr_eth_fltr_eof <= (others => '0');
-
-  else
 
     sr_eth_fltr_eof <= i_eth_fltr_eof & sr_eth_fltr_eof(0 to sr_eth_fltr_eof'high - 1);
 
@@ -499,21 +459,15 @@ if rising_edge(p_in_ethio_clk(0)) then
       i_eth_rx_irq <= '0';
     end if;
 
-  end if;
 end if;
 end process;
 
---oversample IRQ strobe
-process(p_in_hclk)
-begin
-if rising_edge(p_in_hclk) then
-  i_eth_rx_irq_out <= i_eth_rx_irq;
-end if;
-end process;
-
-p_out_eth_hirq <= i_eth_rx_irq_out;
+p_out_eth_hirq <= i_eth_rx_irq;
 
 
+tst_fg_fltr(0) <= (others => '0');
+tst_fg_fltr(1)(0) <= '1';
+tst_fg_fltr(1)(tst_fg_fltr(1)'high downto 1) <= (others => '0');
 
 --XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 --EthG -> FG
@@ -523,12 +477,8 @@ begin
 
 p_out_ethio_rx_axi_tready(eth_ch) <= '1';
 
---process(p_in_ethio_clk(eth_ch))
---begin
---if rising_edge(p_in_ethio_clk(eth_ch)) then
-b_rst_fg_bufs(eth_ch) <= p_in_rst or p_in_reg.ctrl(C_SWT_REG_CTRL_RST_FG_BUFS_BIT) or p_in_ethio_rst(eth_ch);
---end if;
---end process;
+--b_rst_fg_bufs(eth_ch) <= p_in_rst or p_in_reg.ctrl(C_SWT_REG_CTRL_RST_FG_BUFS_BIT) or p_in_ethio_rst(eth_ch);
+b_rst_fg_bufs(eth_ch) <= p_in_reg.ctrl(C_SWT_REG_CTRL_RST_FG_BUFS_BIT);
 
 m_eth2fg_fltr: pkt_filter
 generic map(
@@ -544,10 +494,10 @@ p_in_frr        => p_in_reg.frr.eth2fg,
 --------------------------------------
 --Upstream Port
 --------------------------------------
-p_in_upp_data   => syn_eth_rxd    (eth_ch),
-p_in_upp_wr     => syn_eth_rxd_wr (eth_ch),
-p_in_upp_eof    => syn_eth_rxd_eof(eth_ch),
-p_in_upp_sof    => syn_eth_rxd_sof(eth_ch),
+p_in_upp_data   => p_in_ethio_rx_axi_tdata((G_ETH_DWIDTH * (0 + 1)) - 1 downto (G_ETH_DWIDTH * 0)),--p_in_ethio_rx_axi_tdata((G_ETH_DWIDTH * (eth_ch + 1)) - 1 downto (G_ETH_DWIDTH * eth_ch)),--syn_eth_rxd    (eth_ch),
+p_in_upp_wr     => p_in_ethio_rx_axi_tvalid(0)                                                    ,--p_in_ethio_rx_axi_tvalid(eth_ch)                                                         ,--syn_eth_rxd_wr (eth_ch),
+p_in_upp_eof    => p_in_ethio_rx_axi_tuser((2 * 0) + 1)                                           ,--p_in_ethio_rx_axi_tuser((2 * eth_ch) + 1)                                                ,--syn_eth_rxd_eof(eth_ch),
+p_in_upp_sof    => p_in_ethio_rx_axi_tuser((2 * 0) + 0)                                           ,--p_in_ethio_rx_axi_tuser((2 * eth_ch) + 0)                                                ,--syn_eth_rxd_sof(eth_ch),
 
 --------------------------------------
 --Downstream Port
@@ -560,14 +510,14 @@ p_out_dwnp_eof  => open,
 -------------------------------
 --DBG
 -------------------------------
-p_in_tst        => (others => '0'),
+p_in_tst        => tst_fg_fltr(eth_ch),
 p_out_tst       => open,
 
 --------------------------------------
 --SYSTEM
 --------------------------------------
 p_in_clk        => p_in_ethio_clk(eth_ch),
-p_in_rst        => b_rst_fg_bufs(eth_ch)
+p_in_rst        => p_in_rst
 );
 
 
@@ -606,15 +556,11 @@ p_out_tst(2) <= i_eth_htxd_rdy;
 p_out_tst(3) <= '0';
 p_out_tst(4) <= '0';
 p_out_tst(5) <= p_in_reg.dbg(C_SWT_REG_DBG_HOST2FG_BIT);
-p_out_tst(6) <= syn_eth_rxd_wr(0);
-p_out_tst(7) <= syn_eth_rxd_sof(0);
-p_out_tst(8) <= syn_eth_rxd_eof(0);
+p_out_tst(6) <= p_in_ethio_rx_axi_tvalid(0);         --syn_eth_rxd_wr(0);
+p_out_tst(7) <= p_in_ethio_rx_axi_tuser((2 * 0) + 0);--syn_eth_rxd_sof(0);
+p_out_tst(8) <= p_in_ethio_rx_axi_tuser((2 * 0) + 1);--syn_eth_rxd_eof(0);
 p_out_tst(9) <= i_fgbuf_fltr_den(0);
 p_out_tst(31 downto 10) <= (others => '0');
-
-
-
-
 
 
 end architecture behavioral;

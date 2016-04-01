@@ -98,14 +98,28 @@ if rising_edge(p_in_clk) then
     sr_upp_eof <= p_in_upp_eof & sr_upp_eof(0 to 0);
     sr_upp_sof <= p_in_upp_sof & sr_upp_sof(0 to 0);
     sr_upp_wr  <= p_in_upp_wr & sr_upp_wr(0 to 0);
-    sr_upp_data <= p_in_upp_data & sr_upp_data(0 to 0);
+--    sr_upp_data <= p_in_upp_data & sr_upp_data(0 to 0);
 
     --Update local FRR(frame routing rule) olny on SOF(start of frame)
     if (p_in_upp_sof = '1') then
       for i in 0 to G_FRR_COUNT - 1 loop
         i_frr(i) <= p_in_frr(i);
       end loop;
+
+      if (p_in_tst(0) = '1') then
+        sr_upp_data(0)(15 downto  0) <= p_in_upp_data(15 downto  0);
+        sr_upp_data(0)(19 downto 16) <= p_in_upp_data(19 downto 16); --Pkt type
+        sr_upp_data(0)(23 downto 20) <= std_logic_vector(TO_UNSIGNED(1, 4)); --VCH
+        sr_upp_data(0)(sr_upp_data(0)'high downto 24) <= p_in_upp_data(p_in_upp_data'high downto 24);
+      else
+        sr_upp_data(0) <= p_in_upp_data;
+      end if;
+    else
+      sr_upp_data(0) <= p_in_upp_data;
     end if;
+
+    sr_upp_data(1) <= sr_upp_data(0);
+
   end if;
 end if;
 end process;
