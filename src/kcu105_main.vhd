@@ -235,8 +235,9 @@ component dbgcs_ila_hostclk is
 port (
 clk : in std_logic;
 --probe0 : in std_logic_vector(21 downto 0)
+probe0 : in std_logic_vector(38 downto 0)
 --probe0 : in std_logic_vector(136 downto 0)
-probe0 : in std_logic_vector(199 downto 0)
+--probe0 : in std_logic_vector(199 downto 0)
 );
 end component dbgcs_ila_hostclk;
 
@@ -426,6 +427,7 @@ swt : TSWT_dbg;
 fg : TFG_dbg;
 eth : TEthDBG;
 vpkt_padding : std_logic;
+eth_link : std_logic_vector(C_PCFG_ETH_CH_COUNT - 1 downto 0);
 end record;
 
 signal i_dbg    : TMAIN_dbg;
@@ -484,14 +486,14 @@ p_in_reg => i_host_dev_ctrl.reg.tmr,
 -------------------------------
 --
 -------------------------------
-p_in_tmr_clk     => i_tmr_clk,
-p_out_tmr_irq    => i_tmr_irq,
-p_out_tmr_en     => i_tmr_en ,
+p_in_tmr_clk  => i_tmr_clk,
+p_out_tmr_irq => i_tmr_irq,
+p_out_tmr_en  => i_tmr_en ,
 
 -------------------------------
 --System
 -------------------------------
-p_in_rst         => i_usrclk_rst
+p_in_rst => i_usrclk_rst
 );
 
 
@@ -564,6 +566,11 @@ p_out_dbg => i_eth_dbg,
 p_in_dclk => g_usrclk(0), --DRP clk
 p_in_rst => i_eth_rst --i_usrclk_rst
 );
+
+gen_sfp_los : for i in 0 to (C_PCFG_ETH_CH_COUNT - 1) generate
+begin
+i_sfp_signal_detect(i) <= not pin_in_sfp_los(i);
+end generate gen_sfp_los;
 
 
 --ETH_TX(0) <- SWT
@@ -1033,15 +1040,12 @@ p_in_rst   => i_usrclk_rst
 pin_out_led(0) <= i_test_led(0) and (not i_host_tst_out(121)); --axi_rc_err_detect;
 pin_out_led(1) <= i_host_tst2_out(0) and (not i_fg_tst_out(32)) ;--i_user_lnk_up ; i_fg_tst_out(32) - tst_err_vbuf_overflow
 pin_out_led(2) <= i_mem_ctrl_status.rdy;
-pin_out_led(3) <= i_eth_status_qplllock;
+pin_out_led(3) <= i_eth_status_qplllock and i_test_led(1);
 
-gen_eth_status : for i in 0 to C_PCFG_ETH_CH_COUNT - 1 generate
+gen_eth_status : for i in 0 to (C_PCFG_ETH_CH_COUNT - 1) generate
 begin
 pin_out_led(4 + i) <= i_sfp_signal_detect(i);
 pin_out_led(6 + i) <= i_eth_status_rdy(i);
-
-i_sfp_signal_detect(i) <= not pin_in_sfp_los(i);
-
 end generate gen_eth_status;
 
 gen_eth_count1 : if (C_PCFG_ETH_CH_COUNT = 1) generate
@@ -1249,6 +1253,7 @@ i_dbg.fg.vbufi_pfull       <= i_fg_bufi_pfull;
 --
 i_dbg.eth <= i_eth_dbg;
 i_dbg.vpkt_padding <= i_ust_tst_out(3);
+i_dbg.eth_link <= i_eth_status_rdy;
 --i_dbg.eth.tx <= i_eth_dbg.tx(0);
 --i_dbg.eth.rx <= i_eth_dbg.rx(0);
 --
@@ -1730,7 +1735,7 @@ probe0(149 downto 142) => i_dbg.eth.tx(0).mac_tkeep ,
 
 probe0(152 downto 150) => i_dbg.eth.rx(0).fsm,
 probe0(155 downto 153) => i_dbg.eth.tx(0).fsm,
-probe0(156)            => i_dbg.vpkt_padding
+probe0(156)            => i_dbg.eth_link(0) --i_dbg.vpkt_padding
 );
 
 m_dbg_eth1 : dbgcs_ila_usr_highclk
@@ -1751,56 +1756,62 @@ probe0(149 downto 142) => i_dbg.eth.tx(1).mac_tkeep ,
 
 probe0(152 downto 150) => i_dbg.eth.rx(1).fsm,
 probe0(155 downto 153) => i_dbg.eth.tx(1).fsm,
-probe0(156)            => i_dbg.vpkt_padding
+probe0(156)            => i_dbg.eth_link(1) --i_dbg.vpkt_padding
 );
 
 m_dbg_fg : dbgcs_ila_hostclk
 port map (
 clk => g_usr_highclk,
 
---probe0(2 downto 0)   => i_dbg.fg.fgrd_vch         ,
---probe0(3)            => i_dbg.fg.fgrd_rddone      ,
---probe0(5 downto 4)   => i_dbg.fg.fgwr_frrdy       ,
---probe0(7 downto 6)   => i_dbg.fg.irq              ,
---probe0(9 downto 8)   => i_dbg.fg.vbuf_hold        ,
---probe0(11 downto 10) => i_dbg.fg.err_vbuf_overflow,
---probe0(14 downto 12) => i_dbg.fg.frskip0_count    ,
---probe0(17 downto 15) => i_dbg.fg.frskip1_count    ,
+probe0(2 downto 0)   => i_dbg.fg.fgrd_vch         ,
+probe0(3)            => i_dbg.fg.fgrd_rddone      ,
+probe0(5 downto 4)   => i_dbg.fg.fgwr_frrdy       ,
+probe0(7 downto 6)   => i_dbg.fg.irq              ,
+probe0(9 downto 8)   => i_dbg.fg.vbuf_hold        ,
+probe0(11 downto 10) => i_dbg.fg.err_vbuf_overflow,
+probe0(14 downto 12) => i_dbg.fg.frskip0_count    ,
+probe0(17 downto 15) => i_dbg.fg.frskip1_count    ,
+
+probe0(19 downto 18) => i_dbg.fg.vbufi_full       ,
+probe0(21 downto 20) => i_dbg.fg.vbufi_pfull      ,
+
+probe0(24 downto 22) => i_dbg.fg.fgwr.fsm,
+probe0(35 downto 25) => i_dbg.fg.fgwr.fr_rownum,
+probe0(36) => i_dbg.fg.fgwr.vbufi_sel,
+probe0(38 downto 37) => i_dbg.fg.fgwr.vbufi_empty
+
+
+--probe0(31 downto 0) => i_dbg.fg.fgwr.vbufi_do(0),
+--probe0(63 downto 32) => i_dbg.fg.fgwr.vbufi_do(1),
+--probe0(66 downto 64) => i_dbg.fg.fgwr.fsm,
+--probe0(77 downto 67) => i_dbg.fg.fgwr.fr_rownum,
+--probe0(78) => i_dbg.fg.fgwr.mem_start,
+--probe0(79) => i_dbg.fg.fgwr.mem_done,
+--probe0(80) => i_dbg.fg.fgwr.err,
+--probe0(81) => i_dbg.fg.fgwr.vbufi_sel,
+--probe0(82) => i_dbg.fg.fgwr.vbufi_empty_all,
+--probe0(83) => i_dbg.fg.fgwr.fr_rdy0,
+--probe0(84) => i_dbg.fg.fgwr.vbufi_full_det,
+--probe0(85) => i_dbg.fg.fgwr.vbufi_rd(0),
+--probe0(86) => i_dbg.fg.fgwr.vbufi_empty(0),
+--probe0(87) => i_dbg.fg.fgwr.vbufi_full(0),
 --
---probe0(19 downto 18) => i_dbg.fg.vbufi_full       ,
---probe0(21 downto 20) => i_dbg.fg.vbufi_pfull
-
-probe0(31 downto 0) => i_dbg.fg.fgwr.vbufi_do(0),
-probe0(63 downto 32) => i_dbg.fg.fgwr.vbufi_do(1),
-probe0(66 downto 64) => i_dbg.fg.fgwr.fsm,
-probe0(77 downto 67) => i_dbg.fg.fgwr.fr_rownum,
-probe0(78) => i_dbg.fg.fgwr.mem_start,
-probe0(79) => i_dbg.fg.fgwr.mem_done,
-probe0(80) => i_dbg.fg.fgwr.err,
-probe0(81) => i_dbg.fg.fgwr.vbufi_sel,
-probe0(82) => i_dbg.fg.fgwr.vbufi_empty_all,
-probe0(83) => i_dbg.fg.fgwr.fr_rdy0,
-probe0(84) => i_dbg.fg.fgwr.vbufi_full_det,
-probe0(85) => i_dbg.fg.fgwr.vbufi_rd(0),
-probe0(86) => i_dbg.fg.fgwr.vbufi_empty(0),
-probe0(87) => i_dbg.fg.fgwr.vbufi_full(0),
-
-probe0(91 downto 88)   => i_dbg.fg.fgrd.fsm            ,
-probe0(94 downto 92)   => i_dbg.fg.fgrd.vch_num        ,
-probe0(95)             => i_dbg.fg.fgrd.hrd_start      ,
-probe0(111 downto 96)  => i_dbg.fg.fgrd.fr_act_pixcount,
-probe0(127 downto 112) => i_dbg.fg.fgrd.fr_act_rowcount,
-probe0(143 downto 128) => i_dbg.fg.fgrd.steprd,
-probe0(159 downto 144) => i_dbg.fg.fgrd.fr_skp_pixcount,
-probe0(175 downto 160) => i_dbg.fg.fgrd.fr_skp_rowcount,
-probe0(176)            => i_dbg.fg.fgrd.mirror_pix     ,
-probe0(177)            => i_dbg.fg.fgrd.mirror_row     ,
-
-probe0(193 downto 178) => i_dbg.fg.fgrd.rowcnt,
-probe0(194) => i_dbg.fg.fgrd.hrd_done,
-probe0(195) => i_dbg.fg.fgrd.bufo_empty,
-probe0(198 downto 196) => i_dbg.fg.fgrd.vbuf_hold,
-probe0(199) => i_dbg.fg.fgrd.axir_dvalid
+--probe0(91 downto 88)   => i_dbg.fg.fgrd.fsm            ,
+--probe0(94 downto 92)   => i_dbg.fg.fgrd.vch_num        ,
+--probe0(95)             => i_dbg.fg.fgrd.hrd_start      ,
+--probe0(111 downto 96)  => i_dbg.fg.fgrd.fr_act_pixcount,
+--probe0(127 downto 112) => i_dbg.fg.fgrd.fr_act_rowcount,
+--probe0(143 downto 128) => i_dbg.fg.fgrd.steprd,
+--probe0(159 downto 144) => i_dbg.fg.fgrd.fr_skp_pixcount,
+--probe0(175 downto 160) => i_dbg.fg.fgrd.fr_skp_rowcount,
+--probe0(176)            => i_dbg.fg.fgrd.mirror_pix     ,
+--probe0(177)            => i_dbg.fg.fgrd.mirror_row     ,
+--
+--probe0(193 downto 178) => i_dbg.fg.fgrd.rowcnt,
+--probe0(194) => i_dbg.fg.fgrd.hrd_done,
+--probe0(195) => i_dbg.fg.fgrd.bufo_empty,
+--probe0(198 downto 196) => i_dbg.fg.fgrd.vbuf_hold,
+--probe0(199) => i_dbg.fg.fgrd.axir_dvalid
 );
 
 --m_dbg_fg : dbgcs_ila_hostclk
