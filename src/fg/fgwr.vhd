@@ -98,7 +98,6 @@ constant CI_ADD      : integer := 2;--Field Length: byte count
 type TFsm_state is (
 S_IDLE,
 S_PKTH_RD,
-S_PKTH_RD1,
 S_MEM_START,
 S_MEM_WR,
 S_PKTSKIP
@@ -317,6 +316,13 @@ if rising_edge(p_in_clk) then
           i_fr_pixcount <= UNSIGNED(i_vbufi_do((32 * 1) + 15 downto (32 * 1) +  0));
           i_fr_rowcount <= UNSIGNED(i_vbufi_do((32 * 1) + 31 downto (32 * 1) + 16));
 
+          --current number of row and pixel
+          i_fr_pixnum <= UNSIGNED(i_vbufi_do((32 * 2) + 15 downto (32 * 2) +  0));
+          i_fr_rownum <= UNSIGNED(i_vbufi_do((32 * 2) + 31 downto (32 * 2) + 16));
+
+          --timestump:
+          i_fr_rowmrk <= i_vbufi_do((32 * 3) + 31 downto (32 * 3) + 0);
+
           i_err <= '0';
 
         else
@@ -325,25 +331,10 @@ if rising_edge(p_in_clk) then
 
         end if;
 
-        i_fsm_fgwr <= S_PKTH_RD1;
+        i_vbufi_rden <= '0';
 
+        i_fsm_fgwr <= S_MEM_START;
 
-      when S_PKTH_RD1 =>
-
-        if (i_vbufi_empty = '0') then
-
-          i_vbufi_rden <= '0';
-
-          --current number of row and pixel
-          i_fr_pixnum <= UNSIGNED(i_vbufi_do((32 * 0) + 15 downto (32 * 0) +  0));
-          i_fr_rownum <= UNSIGNED(i_vbufi_do((32 * 0) + 31 downto (32 * 0) + 16));
-
-          --timestump:
-          i_fr_rowmrk <= i_vbufi_do((32 * 1) + 31 downto (32 * 1) + 0);
-
-          i_fsm_fgwr <= S_MEM_START;
-
-        end if;
 
       --------------------------------------
       --MEM_WR
@@ -519,7 +510,6 @@ begin
 end process;
 
 tst_fgwr_fsm <= TO_UNSIGNED(16#01#, tst_fgwr_fsm'length) when i_fsm_fgwr = S_PKTH_RD   else
-                TO_UNSIGNED(16#02#, tst_fgwr_fsm'length) when i_fsm_fgwr = S_PKTH_RD1  else
                 TO_UNSIGNED(16#03#, tst_fgwr_fsm'length) when i_fsm_fgwr = S_MEM_START else
                 TO_UNSIGNED(16#04#, tst_fgwr_fsm'length) when i_fsm_fgwr = S_MEM_WR    else
                 TO_UNSIGNED(16#05#, tst_fgwr_fsm'length) when i_fsm_fgwr = S_PKTSKIP   else

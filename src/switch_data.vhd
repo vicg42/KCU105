@@ -145,7 +145,7 @@ end component fifo_eth2host;
 
 component fifo_eth2fg
 port (
-din       : in  std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
+din       : in  std_logic_vector(G_FGBUFI_DWIDTH - 1 downto 0);
 wr_en     : in  std_logic;
 wr_clk    : in  std_logic;
 
@@ -238,6 +238,22 @@ signal i_eth2h_di             : std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 
 signal i_fgbuf_fltr_do        : TEthCH_d;
 signal i_fgbuf_fltr_den       : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+signal i_fgbuf_fltr_eof       : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+
+--128/64 = 2
+type TFgbuf_chunk is array (0 to (G_FGBUFI_DWIDTH / G_ETH_DWIDTH) - 1)
+                                               of std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
+type TFgbuf_chunk_ethcount is array  (0 to G_ETH_CH_COUNT - 1) of TFgbuf_chunk;
+signal i_fgbuf_chunk          : TFgbuf_chunk_ethcount;
+
+type TFgbuf_chunk_cnt is array (0 to G_ETH_CH_COUNT - 1)
+                                               of unsigned(selval(1, log2(i_fgbuf_chunk(0)'length), (i_fgbuf_chunk(0)'length = 1)) - 1 downto 0);
+signal i_fgbuf_chunk_cnt      : TFgbuf_chunk_cnt;
+
+type TFgbuf_di is array (0 to G_ETH_CH_COUNT - 1)
+                                               of std_logic_vector(G_FGBUFI_DWIDTH - 1 downto 0);
+signal i_fgbuf_di             : TFgbuf_di;
+signal i_fgbuf_wr             : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 
 signal i_eth_htxbuf_di_swp    : std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 signal i_h2eth_buf_rst        : std_logic;
@@ -504,7 +520,7 @@ p_in_upp_sof    => p_in_ethio_rx_axi_tuser((2 * 0) + 0)                         
 --------------------------------------
 p_out_dwnp_data => i_fgbuf_fltr_do (eth_ch),
 p_out_dwnp_wr   => i_fgbuf_fltr_den(eth_ch),
-p_out_dwnp_eof  => open,
+p_out_dwnp_eof  => i_fgbuf_fltr_eof(eth_ch),
 --p_out_dwnp_sof  => open,
 
 -------------------------------
@@ -520,11 +536,50 @@ p_in_clk        => p_in_ethio_clk(eth_ch),
 p_in_rst        => p_in_rst
 );
 
+process(p_in_ethio_clk(eth_ch))
+begin
+if rising_edge(p_in_ethio_clk(eth_ch)) then
+  if (b_rst_fg_bufs(eth_ch) = '1') then
+
+    for i in 0 to i_fgbuf_chunk(eth_ch)'length - 1 loop
+    i_fgbuf_chunk(eth_ch)(i) <= (others => '0');
+    end loop;
+    i_fgbuf_wr(eth_ch) <= '0';
+
+    i_fgbuf_chunk_cnt(eth_ch) <= (others => '0');
+
+  else
+    if (i_fgbuf_fltr_den(eth_ch) = '1') then
+
+      if (i_fgbuf_fltr_eof(eth_ch) = '1') then
+        i_fgbuf_chunk_cnt(eth_ch) <= (others => '0');
+      else
+        i_fgbuf_chunk_cnt(eth_ch) <= i_fgbuf_chunk_cnt(eth_ch) + 1;
+      end if;
+
+      for i in 0 to i_fgbuf_chunk(eth_ch)'length - 1 loop
+        if (i_fgbuf_chunk_cnt(eth_ch) = i) then
+          i_fgbuf_chunk(eth_ch)(i) <= i_fgbuf_fltr_do(eth_ch);
+        end if;
+      end loop;
+
+    end if;
+
+    i_fgbuf_wr(eth_ch) <= AND_reduce(i_fgbuf_chunk_cnt(eth_ch)) or i_fgbuf_fltr_eof(eth_ch);
+
+  end if;
+end if;
+end process;
+
+gen_fgbuf_di : for i in 0 to i_fgbuf_chunk(eth_ch)'length - 1 generate begin
+i_fgbuf_di(eth_ch)((i_fgbuf_chunk(eth_ch)(i)'length * (i + 1)) - 1
+                                    downto (i_fgbuf_chunk(eth_ch)(i)'length * i)) <= i_fgbuf_chunk(eth_ch)(i);
+end generate gen_fgbuf_di;
 
 m_eth2fg_buf : fifo_eth2fg
 port map(
-din       => i_fgbuf_fltr_do (eth_ch),
-wr_en     => i_fgbuf_fltr_den(eth_ch),
+din       => i_fgbuf_di(eth_ch), --i_fgbuf_fltr_do (eth_ch),
+wr_en     => i_fgbuf_wr(eth_ch), --i_fgbuf_fltr_den(eth_ch),
 wr_clk    => p_in_ethio_clk(eth_ch),
 
 dout      => p_out_fgbufi_do((G_FGBUFI_DWIDTH * (eth_ch + 1)) - 1 downto (G_FGBUFI_DWIDTH * eth_ch)),

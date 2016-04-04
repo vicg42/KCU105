@@ -33,13 +33,13 @@ type TPCIE_pinin is record
 clk_p    : std_logic;
 clk_n    : std_logic;
 rst_n    : std_logic;
-rxp      : std_logic_vector(C_PCGF_PCIE_LINK_WIDTH - 1 downto 0);
-rxn      : std_logic_vector(C_PCGF_PCIE_LINK_WIDTH - 1 downto 0);
+rxp      : std_logic_vector(C_PCFG_PCIE_LINK_WIDTH - 1 downto 0);
+rxn      : std_logic_vector(C_PCFG_PCIE_LINK_WIDTH - 1 downto 0);
 end record;
 
 type TPCIE_pinout is record
-txp      : std_logic_vector(C_PCGF_PCIE_LINK_WIDTH - 1 downto 0);
-txn      : std_logic_vector(C_PCGF_PCIE_LINK_WIDTH - 1 downto 0);
+txp      : std_logic_vector(C_PCFG_PCIE_LINK_WIDTH - 1 downto 0);
+txn      : std_logic_vector(C_PCFG_PCIE_LINK_WIDTH - 1 downto 0);
 end record;
 
 type TPCIE_cfgprm is record

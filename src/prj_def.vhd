@@ -32,7 +32,7 @@ package prj_def is
 constant C_FPGA_FIRMWARE_VERSION : integer := C_PCFG_FIRMWARE_VERSION;
 
 --HOST
-constant C_HDEV_DWIDTH           : integer := C_PCGF_PCIE_DWIDTH;
+constant C_HDEV_DWIDTH           : integer := C_PCFG_PCIE_DWIDTH;
 
 ----------------------------------------------------------------
 --module pcie_main.vhd: (max count HREG - 0x1F)

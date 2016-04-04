@@ -171,7 +171,8 @@ signal i_fg_rd_start       : std_logic;
 signal i_fg_tst_in         : std_logic_vector(31 downto 0);
 signal i_fg_tst_out        : std_logic_vector(255 downto 0);
 
-signal i_fg_bufi_do        : std_logic_vector((C_PCFG_ETH_DWIDTH * C_PCFG_ETH_CH_COUNT_MAX) - 1 downto 0);
+constant C_PCFG_FG_BUFI_DWIDTH : natural := 128; --C_PCFG_ETH_DWIDTH;
+signal i_fg_bufi_do        : std_logic_vector((C_PCFG_FG_BUFI_DWIDTH * C_PCFG_ETH_CH_COUNT_MAX) - 1 downto 0);
 signal i_fg_bufi_rd        : std_logic_vector(C_PCFG_ETH_CH_COUNT_MAX - 1 downto 0);
 signal i_fg_bufi_empty     : std_logic_vector(C_PCFG_ETH_CH_COUNT_MAX - 1 downto 0);
 signal i_fg_bufi_full      : std_logic_vector(C_PCFG_ETH_CH_COUNT_MAX - 1 downto 0);
@@ -645,7 +646,7 @@ m_swt : switch_data
 generic map(
 G_ETH_CH_COUNT => C_PCFG_ETH_CH_COUNT,
 G_ETH_DWIDTH   => C_PCFG_ETH_DWIDTH,
-G_FGBUFI_DWIDTH => C_PCFG_ETH_DWIDTH,
+G_FGBUFI_DWIDTH => C_PCFG_FG_BUFI_DWIDTH,
 G_HOST_DWIDTH  => C_HDEV_DWIDTH
 )
 port map(
@@ -700,7 +701,7 @@ p_in_ethio_rst            => i_ethio_rst,
 --FG_BUFI
 -------------------------------
 p_in_fgbufi_rdclk  => g_usr_highclk  ,
-p_out_fgbufi_do    => i_fg_bufi_do   ((C_PCFG_ETH_DWIDTH * C_PCFG_ETH_CH_COUNT) - 1 downto 0),
+p_out_fgbufi_do    => i_fg_bufi_do   ((C_PCFG_FG_BUFI_DWIDTH * C_PCFG_ETH_CH_COUNT) - 1 downto 0),
 p_in_fgbufi_rd     => i_fg_bufi_rd   (C_PCFG_ETH_CH_COUNT - 1 downto 0),
 p_out_fgbufi_empty => i_fg_bufi_empty(C_PCFG_ETH_CH_COUNT - 1 downto 0),
 p_out_fgbufi_full  => i_fg_bufi_full (C_PCFG_ETH_CH_COUNT - 1 downto 0),
@@ -741,7 +742,7 @@ G_MEM_VLINE_M_BIT => C_FG_MEM_VLINE_M_BIT,
 G_MEM_VLINE_L_BIT => C_FG_MEM_VLINE_L_BIT,
 
 G_MEM_AWIDTH => C_AXI_AWIDTH,
-G_MEMWR_DWIDTH => C_PCFG_ETH_DWIDTH,
+G_MEMWR_DWIDTH => C_PCFG_FG_BUFI_DWIDTH,
 G_MEMRD_DWIDTH => C_HDEV_DWIDTH
 )
 port map(

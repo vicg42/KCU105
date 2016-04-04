@@ -23,21 +23,21 @@ constant C_AXIS_IDWIDTH    : integer := 4;
 constant C_AXIM_IDWIDTH    : integer := 8;
 
 constant C_AXI_AWIDTH      : integer := 31;
-constant C_AXIM_DWIDTH     : integer := C_PCGF_PCIE_DWIDTH;
+constant C_AXIM_DWIDTH     : integer := C_PCFG_PCIE_DWIDTH;
 
 type TAXIS_DWIDTH is array (0 to C_MEMCH_COUNT_MAX - 1) of integer;
 ------------------------------------------------------------------------------------------------------------
 --                              slave num   | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12| 13| 14| 15|
 ------------------------------------------------------------------------------------------------------------
 constant C_AXIS_DWIDTH     : TAXIS_DWIDTH := (
-C_PCGF_PCIE_DWIDTH,--CH video read
-C_PCFG_ETH_DWIDTH, --CH video write
-C_PCGF_PCIE_DWIDTH,
-C_PCGF_PCIE_DWIDTH,
-C_PCGF_PCIE_DWIDTH,
-C_PCGF_PCIE_DWIDTH,
-C_PCGF_PCIE_DWIDTH,
-C_PCGF_PCIE_DWIDTH);
+C_PCFG_PCIE_DWIDTH,--CH video read
+C_PCFG_FG_BUFI_DWIDTH, --CH video write
+C_PCFG_PCIE_DWIDTH,
+C_PCFG_PCIE_DWIDTH,
+C_PCFG_PCIE_DWIDTH,
+C_PCFG_PCIE_DWIDTH,
+C_PCFG_PCIE_DWIDTH,
+C_PCFG_PCIE_DWIDTH);
 
 constant C_MEM_ARB_CH_COUNT  : integer := C_PCFG_MEMARB_CH_COUNT;
 

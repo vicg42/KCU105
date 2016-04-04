@@ -62,7 +62,7 @@ end entity pcie_main;
 
 architecture behavioral of pcie_main is
 
-constant CI_DATA_WIDTH                     : integer := C_PCGF_PCIE_DWIDTH;
+constant CI_DATA_WIDTH                     : integer := C_PCFG_PCIE_DWIDTH;
 
 --constant CI_AXISTEN_IF_WIDTH               : std_logic_vector(1 downto 0) := "00";
 --constant CI_AXISTEN_IF_RQ_ALIGNMENT_MODE   : string := "FALSE";
@@ -79,10 +79,10 @@ constant CI_DATA_WIDTH                     : integer := C_PCGF_PCIE_DWIDTH;
 
 component pcie3_core
 PORT (
-pci_exp_txn : OUT STD_LOGIC_VECTOR(C_PCGF_PCIE_LINK_WIDTH - 1 DOWNTO 0);
-pci_exp_txp : OUT STD_LOGIC_VECTOR(C_PCGF_PCIE_LINK_WIDTH - 1 DOWNTO 0);
-pci_exp_rxn : IN STD_LOGIC_VECTOR(C_PCGF_PCIE_LINK_WIDTH - 1 DOWNTO 0);
-pci_exp_rxp : IN STD_LOGIC_VECTOR(C_PCGF_PCIE_LINK_WIDTH - 1 DOWNTO 0);
+pci_exp_txn : OUT STD_LOGIC_VECTOR(C_PCFG_PCIE_LINK_WIDTH - 1 DOWNTO 0);
+pci_exp_txp : OUT STD_LOGIC_VECTOR(C_PCFG_PCIE_LINK_WIDTH - 1 DOWNTO 0);
+pci_exp_rxn : IN STD_LOGIC_VECTOR(C_PCFG_PCIE_LINK_WIDTH - 1 DOWNTO 0);
+pci_exp_rxp : IN STD_LOGIC_VECTOR(C_PCFG_PCIE_LINK_WIDTH - 1 DOWNTO 0);
 user_clk : OUT STD_LOGIC;
 user_reset : OUT STD_LOGIC;
 user_lnk_up : OUT STD_LOGIC;
