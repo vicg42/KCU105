@@ -173,7 +173,7 @@ parameter                              FIFO_SIZE = 1024
    wire  [G_GTCH_COUNT - 1 : 0]   tx_axis_fifo_aresetn_i;
 
    assign coreclk_out = txusrclk2;
-   assign qplllock_out = qpll0lock;
+   assign qplllock_out = txuserrdy;
 
 
    //----------------------------------------------------------------------------
@@ -244,15 +244,10 @@ generate
 for (i = 0; i < G_GTCH_COUNT; i = i + 1)
 begin : ch
 
-//   assign rx_axis_mac_aresetn_i[i]  = ~reset;// | rx_axis_mac_aresetn[i];
-//   assign rx_axis_fifo_aresetn_i[i] = ~reset;// | rx_axis_fifo_aresetn[i];
-//   assign tx_axis_mac_aresetn_i[i]  = ~reset;// | tx_axis_mac_aresetn[i];
-//   assign tx_axis_fifo_aresetn_i[i] = ~reset;// | tx_axis_fifo_aresetn[i];
-
-    assign rx_axis_mac_aresetn_i[i]  = ~reset;
-    assign rx_axis_fifo_aresetn_i[i] = ~reset;
-    assign tx_axis_mac_aresetn_i[i]  = ~reset;
-    assign tx_axis_fifo_aresetn_i[i] = ~reset;
+   assign rx_axis_mac_aresetn_i [i] = ~reset;// | rx_axis_mac_aresetn [i];
+   assign rx_axis_fifo_aresetn_i[i] = ~reset;// | rx_axis_fifo_aresetn[i];
+   assign tx_axis_mac_aresetn_i [i] = ~reset;// | tx_axis_mac_aresetn [i];
+   assign tx_axis_fifo_aresetn_i[i] = ~reset;// | tx_axis_fifo_aresetn[i];
 
    //----------------------------------------------------------------------------
    // Instantiate the example design FIFO

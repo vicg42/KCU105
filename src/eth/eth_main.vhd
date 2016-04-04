@@ -267,6 +267,7 @@ signal i_coreclk_out     : std_logic;
 signal i_block_lock      : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 signal i_buf_rst         : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
 signal i_status_rdy      : std_logic_vector(G_ETH_CH_COUNT - 1 downto 0);
+signal i_status_qplllock : std_logic;
 
 signal dbg_rx_axis_mac_tdata   : std_logic_vector((G_ETH_DWIDTH * G_ETH_CH_COUNT) - 1 downto 0)      ;
 signal dbg_rx_axis_mac_tkeep   : std_logic_vector(((G_ETH_DWIDTH / 8) * G_ETH_CH_COUNT) - 1 downto 0);
@@ -396,7 +397,7 @@ p_in_rst => i_buf_rst(i) --p_in_rst
 );
 
 p_out_buf_clk(i) <= i_coreclk_out;
-i_buf_rst(i) <= p_in_rst; --(not i_status_rdy(i));
+i_buf_rst(i) <= (not i_status_qplllock);
 p_out_buf_rst(i) <= i_buf_rst(i);
 
 p_out_status_rdy(i) <= i_status_rdy(i);
@@ -426,6 +427,7 @@ p_out_dbg.tx(i).fifo_tready <= dbg_tx_axis_fifo_tready(i)                       
 
 end generate gen_mac_ch;
 
+p_out_status_qplllock <= i_status_qplllock;
 
 m_eth_app : eth_app
 generic map(
@@ -452,7 +454,7 @@ frame_error  => open,
 
 block_lock => i_block_lock,
 core_ready  => i_status_rdy,
-qplllock_out => p_out_status_qplllock,
+qplllock_out => i_status_qplllock,
 
 signal_detect => p_in_sfp_signal_detect,
 tx_fault      => p_in_sfp_tx_fault,
