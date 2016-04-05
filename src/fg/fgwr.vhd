@@ -54,18 +54,18 @@ port(
 p_in_memtrn : in  std_logic_vector((C_HREG_MEM_CTRL_TRNWR_M_BIT - C_HREG_MEM_CTRL_TRNWR_L_BIT) downto 0);
 --p_in_work_en : in  std_logic;
 
-p_in_frbuf  : in  TFG_FrBufs;
-p_out_frrdy : out std_logic_vector(G_VCH_COUNT - 1 downto 0);
+p_in_frbuf  : in  unsigned(G_MEM_VFR_M_BIT - G_MEM_VFR_L_BIT downto 0);
+p_out_frrdy : out std_logic;
 p_out_frmrk : out std_logic_vector(31 downto 0);
 
 -------------------------------
 --DataIN
 -------------------------------
-p_in_vbufi_do    : in  std_logic_vector((G_MEM_DWIDTH * G_VBUFI_COUNT_MAX) - 1 downto 0);
-p_out_vbufi_rd   : out std_logic_vector(G_VBUFI_COUNT_MAX - 1 downto 0);
-p_in_vbufi_empty : in  std_logic_vector(G_VBUFI_COUNT_MAX - 1 downto 0);
-p_in_vbufi_full  : in  std_logic_vector(G_VBUFI_COUNT_MAX - 1 downto 0);
-p_in_vbufi_pfull : in  std_logic_vector(G_VBUFI_COUNT_MAX - 1 downto 0);
+p_in_vbufi_do    : in  std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+p_out_vbufi_rd   : out std_logic;
+p_in_vbufi_empty : in  std_logic;
+p_in_vbufi_full  : in  std_logic;
+p_in_vbufi_pfull : in  std_logic;
 
 -------------------------------
 --MEM_CTRL Port
@@ -112,15 +112,13 @@ signal i_vbufi_rd         : std_logic;
 signal i_vbufi_do         : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 signal i_vbufi_empty      : std_logic;
 
-signal i_fr_rdy           : std_logic_vector(G_VCH_COUNT - 1 downto 0);
+signal i_fr_rdy           : std_logic;
 signal i_fr_bufnum        : unsigned(G_MEM_VFR_M_BIT - G_MEM_VFR_L_BIT downto 0);
 signal i_fr_pixnum        : unsigned(15 downto 0);
 signal i_fr_rownum        : unsigned(15 downto 0);
 signal i_fr_pixcount      : unsigned(15 downto 0);
 signal i_fr_rowcount      : unsigned(15 downto 0);
 signal i_fr_rowmrk        : std_logic_vector(31 downto 0);
-Type TVfrNum is array (0 to G_VCH_COUNT - 1) of std_logic_vector(3 downto 0);
-signal i_fr_num           : TVfrNum;
 signal i_vch_num          : unsigned(3 downto 0);
 
 signal i_mem_adr          : unsigned(G_MEM_AWIDTH - 1 downto 0);
@@ -141,9 +139,9 @@ signal i_skp_en           : std_logic;
 signal tst_fgwr_fsm       : unsigned(2 downto 0);
 signal tst_timestump_cnt  : unsigned(31 downto 0);
 signal tst_vbufi_full_detect     : std_logic;
-signal tst_vbufi_rd       : std_logic_vector(1 downto 0);
-signal tst_vbufi_full     : std_logic_vector(1 downto 0);
-signal tst_vbufi_empty    : std_logic_vector(1 downto 0);
+signal tst_vbufi_rd       : std_logic;
+signal tst_vbufi_full     : std_logic;
+signal tst_vbufi_empty    : std_logic;
 
 
 begin --architecture behavioral
@@ -157,48 +155,18 @@ p_out_frmrk <= i_fr_rowmrk when p_in_tst(C_FG_REG_DBG_TIMESTUMP_BIT) = '0'
                     else std_logic_vector(tst_timestump_cnt);
 
 
-------------------------------------------------
---Select Count VBUFI
-------------------------------------------------
-gen_vbuf_count_1 : if (G_VBUFI_COUNT = 1) generate
-begin
-p_out_vbufi_rd(0) <= i_vbufi_rd;
+p_out_vbufi_rd <= i_vbufi_rd;
 
-p_out_vbufi_rd(p_out_vbufi_rd'high downto 1) <= (others => '0');
+i_vbufi_do <= p_in_vbufi_do(G_MEM_DWIDTH - 1 downto 0);
 
-i_vbufi_do <= p_in_vbufi_do((G_MEM_DWIDTH * (0 + 1)) - 1 downto (G_MEM_DWIDTH * 0));
+i_vbufi_empty <= p_in_vbufi_empty;
 
-i_vbufi_empty <= p_in_vbufi_empty(0);
-
-tst_vbufi_rd(0) <= i_vbufi_rd;
-tst_vbufi_rd(1) <= '0';
-
-tst_vbufi_full(0) <= p_in_vbufi_pfull(0);
-tst_vbufi_full(1) <= '0';
-
-tst_vbufi_empty(0) <= p_in_vbufi_empty(0);
-tst_vbufi_empty(1) <= '1';
-
-end generate gen_vbuf_count_1;
-
-
-gen_vbuf_count_2 : if (G_VBUFI_COUNT = 2) generate
-begin
-p_out_vbufi_rd(0) <= i_vbufi_rd when i_vbufi_sel = '0' else '0';
-p_out_vbufi_rd(1) <= i_vbufi_rd when i_vbufi_sel = '1' else '0';
-
-i_vbufi_do <= p_in_vbufi_do((G_MEM_DWIDTH * (0 + 1)) - 1 downto (G_MEM_DWIDTH * 0)) when i_vbufi_sel = '0' else
-              p_in_vbufi_do((G_MEM_DWIDTH * (1 + 1)) - 1 downto (G_MEM_DWIDTH * 1));
-
-i_vbufi_empty <= p_in_vbufi_empty(0) when i_vbufi_sel = '0' else p_in_vbufi_empty(1);
-
-tst_vbufi_rd(0) <= i_vbufi_rd when i_vbufi_sel = '0' else '0';
-tst_vbufi_rd(1) <= i_vbufi_rd when i_vbufi_sel = '1' else '0';
+tst_vbufi_rd <= i_vbufi_rd;
 
 tst_vbufi_full <= p_in_vbufi_pfull;
+
 tst_vbufi_empty <= p_in_vbufi_empty;
 
-end generate gen_vbuf_count_2;
 
 
 ------------------------------------------------
@@ -212,11 +180,6 @@ i_vbufi_rd <= ((i_vbufi_rden or i_skp_en) and (not i_vbufi_empty))
 --FSM
 ------------------------------------------------
 process(p_in_clk)
-Type TTimestump_test is array (0 to G_VCH_COUNT - 1) of unsigned(31 downto 0);
-variable timestump_cnt : TTimestump_test;
-variable fr_rownum : unsigned(i_fr_rownum'range);
-variable fr_pixnum : unsigned(i_fr_pixnum'range);
-variable vch_num : unsigned(3 downto 0);
 begin
 if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
@@ -233,13 +196,6 @@ if rising_edge(p_in_clk) then
     i_skp_dcnt <= (others => '0');
 
     i_vch_num <= (others => '0');
-    for i in 0 to G_VCH_COUNT - 1 loop
-      i_fr_num(i) <= (others => '0');
-      timestump_cnt(i) := (others => '0');
-    end loop;
-
-    fr_rownum   := (others => '0');
-    fr_pixnum   := (others => '0');
 
     i_fr_bufnum <= (others => '0');
     i_fr_pixnum <= (others => '0');
@@ -247,7 +203,7 @@ if rising_edge(p_in_clk) then
     i_fr_pixcount <= (others => '0');
     i_fr_rowcount <= (others => '0');
     i_fr_rowmrk <= (others => '0');
-    i_fr_rdy <= (others => '0');
+    i_fr_rdy <= '0';
 
     i_mem_adr <= (others => '0');
     i_mem_rqlen <= (others => '0');
@@ -266,7 +222,7 @@ if rising_edge(p_in_clk) then
       --------------------------------------
       when S_IDLE =>
 
-        i_fr_rdy <= (others => '0');
+        i_fr_rdy <= '0';
         i_skp_dcnt <= (others => '0');
 
         --wait data
@@ -281,10 +237,6 @@ if rising_edge(p_in_clk) then
             i_fsm_fgwr <= S_PKTH_RD;
 
           end if;
-
-        else
-
-          i_vbufi_sel <= not i_vbufi_sel;
 
         end if;
 
@@ -301,16 +253,9 @@ if rising_edge(p_in_clk) then
             and UNSIGNED(i_vbufi_do((32 * 0) + 23 downto (32 * 0) + 20)) < TO_UNSIGNED(G_VCH_COUNT, 4) then
 
           --video channel number:
-          vch_num := UNSIGNED(i_vbufi_do((32 * 0) + 23 downto (32 * 0) + 20));
-          i_vch_num <= vch_num;
+          i_vch_num <= UNSIGNED(i_vbufi_do((32 * 0) + 23 downto (32 * 0) + 20));
 
-          for i in 0 to G_VCH_COUNT - 1 loop
-            if (vch_num = i) then
-              --frame number :
-              i_fr_num(i) <= i_vbufi_do((32 * 0) + 27 downto (32 * 0) + 24);
-              i_fr_bufnum <= p_in_frbuf(i);
-             end if;
-          end loop;
+          i_fr_bufnum <= p_in_frbuf;
 
           --frame resolution:
           i_fr_pixcount <= UNSIGNED(i_vbufi_do((32 * 1) + 15 downto (32 * 1) +  0));
@@ -383,17 +328,10 @@ if rising_edge(p_in_clk) then
           if (i_fr_rownum = (i_fr_rowcount - 1)) then
           --Frame complete
             if (i_fr_pixcount = (i_pixcount_byte + i_fr_pixnum)) then
-              for i in 0 to G_VCH_COUNT - 1 loop
-                if (i_vch_num = i) then
-                  i_fr_rdy(i) <= '1';
-                  timestump_cnt(i) := timestump_cnt(i) + 1;
-                  tst_timestump_cnt <= timestump_cnt(i);
-                end if;
-              end loop;
+              i_fr_rdy <= '1';
+              tst_timestump_cnt <= tst_timestump_cnt + 1;
             end if;
           end if;
-
-          i_vbufi_sel <= not i_vbufi_sel;
 
           i_fsm_fgwr <= S_IDLE;
         end if;
@@ -409,7 +347,6 @@ if rising_edge(p_in_clk) then
 
           if (i_skp_dcnt = (i_mem_rqlen - 1)) then
             i_skp_en <= '0';
-            i_vbufi_sel <= not i_vbufi_sel;
             i_fsm_fgwr <= S_IDLE;
           end if;
 
@@ -484,23 +421,23 @@ p_out_tst(15 downto 3) <= std_logic_vector(i_fr_rownum(12 downto 0));
 p_out_tst(16) <= i_mem_start;
 p_out_tst(17) <= i_mem_done;
 p_out_tst(18) <= i_err;
-p_out_tst(19) <= i_vbufi_sel;
+p_out_tst(19) <= '0';--i_vbufi_sel;
 p_out_tst(20) <= i_vbufi_empty;
-p_out_tst(21) <= i_fr_rdy(0);
+p_out_tst(21) <= i_fr_rdy;
 p_out_tst(22) <= tst_vbufi_full_detect;
-p_out_tst(23) <= tst_vbufi_rd(0);
-p_out_tst(24) <= tst_vbufi_empty(0);
-p_out_tst(25) <= tst_vbufi_full(0);
-p_out_tst(26) <= tst_vbufi_rd(1);
-p_out_tst(27) <= tst_vbufi_empty(1);
-p_out_tst(28) <= tst_vbufi_full(1);
+p_out_tst(23) <= tst_vbufi_rd   ;--tst_vbufi_rd(0)   ;
+p_out_tst(24) <= tst_vbufi_empty;--tst_vbufi_empty(0);
+p_out_tst(25) <= tst_vbufi_full_detect ;--tst_vbufi_full(0) ;
+p_out_tst(26) <= tst_vbufi_rd   ;--tst_vbufi_rd(1)   ;
+p_out_tst(27) <= tst_vbufi_empty;--tst_vbufi_empty(1);
+p_out_tst(28) <= tst_vbufi_full_detect ;--tst_vbufi_full(1) ;
 p_out_tst(31 downto 29) <= (others => '0');
 
 process(p_in_clk)
 begin
   if rising_edge(p_in_clk) then
 
-    if p_in_vbufi_full(0) = '1' then
+    if p_in_vbufi_full = '1' then
       tst_vbufi_full_detect <= '1';
     elsif i_fsm_fgwr = S_IDLE then
       tst_vbufi_full_detect <= '0';

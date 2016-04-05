@@ -152,8 +152,8 @@ signal i_host_mem_tst_out  : std_logic_vector(63 downto 0);
 signal i_host_mem_tst_in   : std_logic_vector(31 downto 0);
 
 signal i_mem_ctrl_rst      : std_logic;
-signal i_memin_fgwrch      : TMemINChVD;
-signal i_memout_fgwrch     : TMemOUTChVD;
+signal i_memin_fgwrch      : TMemIN_vch;
+signal i_memout_fgwrch     : TMemOUT_vch;
 signal i_memin_ch          : TMemINCh;
 signal i_memout_ch         : TMemOUTCh;
 
@@ -236,7 +236,8 @@ component dbgcs_ila_hostclk is
 port (
 clk : in std_logic;
 --probe0 : in std_logic_vector(21 downto 0)
-probe0 : in std_logic_vector(38 downto 0)
+--probe0 : in std_logic_vector(38 downto 0)
+probe0 : in std_logic_vector(55 downto 0)
 --probe0 : in std_logic_vector(136 downto 0)
 --probe0 : in std_logic_vector(199 downto 0)
 );
@@ -389,10 +390,12 @@ err            : std_logic;--<= i_fg_tst_out(16);-- <= i_err;
 vbufi_sel      : std_logic;--<= i_fg_tst_out(17);-- <= i_vbufi_sel;
 vbufi_empty_all: std_logic;--<= i_fg_tst_out(18);-- <= i_vbufi_empty;
 fr_rdy0        : std_logic;--<= i_fg_tst_out(19);-- <= i_fr_rdy(0);
-vbufi_full_det : std_logic;--<= i_fg_tst_out(20);-- <= tst_vbufi_full_detect;
-vbufi_rd    : std_logic_vector(0 downto 0);--<= i_fg_tst_out(21);-- <= tst_vbufi_rd(0);
-vbufi_empty : std_logic_vector(0 downto 0);--<= i_fg_tst_out(22);-- <= tst_vbufi_empty(0);
-vbufi_full  : std_logic_vector(0 downto 0);--<= i_fg_tst_out(23);-- <= tst_vbufi_full(0);
+vbufi_full_det : std_logic_vector(1 downto 0);--<= i_fg_tst_out(20);-- <= tst_vbufi_full_detect;
+vbufi_rd    : std_logic_vector(1 downto 0);--<= i_fg_tst_out(21);-- <= tst_vbufi_rd(0);
+vbufi_empty : std_logic_vector(1 downto 0);--<= i_fg_tst_out(22);-- <= tst_vbufi_empty(0);
+--vbufi_full  : std_logic_vector(1 downto 0);--<= i_fg_tst_out(23);-- <= tst_vbufi_full(0);
+fsm1            : std_logic_vector(2 downto 0);--<= i_fg_tst_out(2 downto 0);-- <= std_logic_vector(tst_fgwr_fsm);
+fr_rownum1      : std_logic_vector(12 downto 0);--<= i_fg_tst_out(13 downto 3);-- <= std_logic_vector(i_fr_rownum(10 downto 0));
 end record;
 --
 type TFG_dbg is record
@@ -782,8 +785,8 @@ p_in_vbufi_pfull  => i_fg_bufi_pfull,
 --MEM
 ---------------------------------
 --CH WRITE
-p_out_memwr       => i_memin_ch (1),--(2),--DEV -> MEM
-p_in_memwr        => i_memout_ch(1),--(2),--DEV <- MEM
+p_out_memwr       => i_memin_fgwrch , --(2),--DEV -> MEM
+p_in_memwr        => i_memout_fgwrch, --(2),--DEV <- MEM
 --CH READ                           --
 p_out_memrd       => i_memin_ch (0),--(1),--DEV -> MEM
 p_in_memrd        => i_memout_ch(0),--(1),--DEV <- MEM
@@ -800,6 +803,12 @@ p_out_tst         => i_fg_tst_out,
 p_in_clk          => g_usr_highclk,
 p_in_rst          => i_fg_rst
 );
+
+gen_fgwr_memch : for i in 0 to (C_FG_VCH_COUNT - 1) generate
+begin
+i_memin_ch(1 + i)  <= i_memin_fgwrch(i) ;
+i_memout_fgwrch(i) <= i_memout_ch(1 + i);
+end generate gen_fgwr_memch;
 
 
 --***********************************************************
@@ -1039,8 +1048,8 @@ p_in_rst   => i_usrclk_rst
 );
 
 pin_out_led(0) <= i_test_led(0) and (not i_host_tst_out(121)); --axi_rc_err_detect;
-pin_out_led(1) <= i_host_tst2_out(0) and (not i_fg_tst_out(32)) ;--i_user_lnk_up ; i_fg_tst_out(32) - tst_err_vbuf_overflow
-pin_out_led(2) <= i_mem_ctrl_status.rdy;
+pin_out_led(1) <= i_host_tst2_out(0) and (not OR_reduce(i_fg_tst_out(43 downto 42))) ;--i_user_lnk_up ; i_fg_tst_out(32) - tst_err_vbuf_overflow
+pin_out_led(2) <= i_mem_ctrl_status.rdy and (not (i_fg_tst_out(25) or i_fg_tst_out(50 + 25)) );
 pin_out_led(3) <= i_eth_status_qplllock and i_test_led(1);
 
 gen_eth_status : for i in 0 to (C_PCFG_ETH_CH_COUNT - 1) generate
@@ -1127,21 +1136,25 @@ i_eth_tst_in(0) <= i_host_tst_out(0);
 
 i_dbg.fg.fgwr.vbufi_do(0) <= i_fg_bufi_do((32 * 1) - 1 downto (32 * 0));
 i_dbg.fg.fgwr.vbufi_do(1) <= i_fg_bufi_do((32 * 2) - 1 downto (32 * 1));
-i_dbg.fg.fgwr.fsm <= i_fg_tst_out(2 downto 0);-- <= std_logic_vector(tst_fgwr_fsm);
+i_dbg.fg.fgwr.fsm       <= i_fg_tst_out( 2 downto 0);-- <= std_logic_vector(tst_fgwr_fsm);
 i_dbg.fg.fgwr.fr_rownum <= i_fg_tst_out(15 downto 3);-- <= std_logic_vector(i_fr_rownum(10 downto 0));
 i_dbg.fg.fgwr.mem_start <= i_fg_tst_out(16);-- <= i_mem_start;
-i_dbg.fg.fgwr.mem_done <= i_fg_tst_out(17);-- <= i_mem_done;
-i_dbg.fg.fgwr.err <= i_fg_tst_out(18);-- <= i_err;
-i_dbg.fg.fgwr.vbufi_sel <= i_fg_tst_out(19);-- <= i_vbufi_sel;
-i_dbg.fg.fgwr.vbufi_empty_all <= i_fg_tst_out(20);-- <= i_vbufi_empty;
-i_dbg.fg.fgwr.fr_rdy0 <= i_fg_tst_out(21);-- <= i_fr_rdy(0);
-i_dbg.fg.fgwr.vbufi_full_det <= i_fg_tst_out(22);-- <= tst_vbufi_full_detect;
-i_dbg.fg.fgwr.vbufi_rd(0) <= i_fg_tst_out(23);-- <= tst_vbufi_rd(0);
-i_dbg.fg.fgwr.vbufi_empty(0) <= i_fg_tst_out(24);-- <= tst_vbufi_empty(0);
-i_dbg.fg.fgwr.vbufi_full(0) <= i_fg_tst_out(25);-- <= tst_vbufi_full(0);
---i_dbg.fg.fgwr.vbufi_rd(1) <= i_fg_tst_out(26);-- <= tst_vbufi_rd(1);
---i_dbg.fg.fgwr.vbufi_empty(1) <= i_fg_tst_out(27);-- <= tst_vbufi_empty(1);
---i_dbg.fg.fgwr.vbufi_full(1) <= i_fg_tst_out(28);-- <= tst_vbufi_full(1);
+i_dbg.fg.fgwr.mem_done  <= i_fg_tst_out(17);-- <= i_mem_done;
+--i_dbg.fg.fgwr.err <= i_fg_tst_out(18);-- <= i_err;
+--i_dbg.fg.fgwr.vbufi_sel <= i_fg_tst_out(19);-- <= i_vbufi_sel;
+--i_dbg.fg.fgwr.vbufi_empty_all <= i_fg_tst_out(20);-- <= i_vbufi_empty;
+--i_dbg.fg.fgwr.fr_rdy0 <= i_fg_tst_out(21);-- <= i_fr_rdy(0);
+--i_dbg.fg.fgwr.vbufi_full_det <= i_fg_tst_out(22);-- <= tst_vbufi_full_detect;
+i_dbg.fg.fgwr.vbufi_rd      (0) <= i_fg_tst_out( 0 + 23);-- <= tst_vbufi_rd(0);
+i_dbg.fg.fgwr.vbufi_empty   (0) <= i_fg_tst_out( 0 + 24);-- <= tst_vbufi_empty(0);
+i_dbg.fg.fgwr.vbufi_full_det(0) <= i_fg_tst_out( 0 + 25);-- <= tst_vbufi_full(0);
+i_dbg.fg.fgwr.vbufi_rd      (1) <= i_fg_tst_out(50 + 23);-- <= tst_vbufi_rd(1);
+i_dbg.fg.fgwr.vbufi_empty   (1) <= i_fg_tst_out(50 + 24);-- <= tst_vbufi_empty(1);
+i_dbg.fg.fgwr.vbufi_full_det(1) <= i_fg_tst_out(50 + 25);-- <= tst_vbufi_full(1);
+
+i_dbg.fg.fgwr.fsm1       <= i_fg_tst_out((50 +  2) downto (50 + 0));-- <= std_logic_vector(tst_fgwr_fsm);
+i_dbg.fg.fgwr.fr_rownum1 <= i_fg_tst_out((50 + 15) downto (50 + 3));-- <= std_logic_vector(i_fr_rownum(10 downto 0));
+
 --
 i_dbg.fg.fgrd.fsm             <= i_fg_tst_out((128 + 3) downto (128 + 0))  ;--<= std_logic_vector(tst_fsm_fgrd);
 i_dbg.fg.fgrd.vch_num         <= i_fg_tst_out((128 + 6) downto (128 + 4))  ;--<= i_vch_num;
@@ -1227,8 +1240,8 @@ i_dbg.fg.err_vbuf_overflow <= i_fg_tst_out(43 downto 42);--<= tst_err_vbuf_overf
 i_dbg.fg.frskip0_count     <= i_fg_tst_out(46 downto 44);--<= i_frskip(0);
 i_dbg.fg.frskip1_count     <= i_fg_tst_out(49 downto 47);--<= i_frskip(1);
 
-i_dbg.fg.vbufi_full        <= i_fg_bufi_full;
-i_dbg.fg.vbufi_pfull       <= i_fg_bufi_pfull;
+--i_dbg.fg.vbufi_full        <= i_fg_bufi_full;
+--i_dbg.fg.vbufi_pfull       <= i_fg_bufi_pfull;
 
 ----i_dbg.swt.ethio_rx_axi_tvalid <= i_swt_tst_out(6);
 ----i_dbg.swt.ethio_rx_axi_tuser  <= i_swt_tst_out(7) & i_swt_tst_out(8);
@@ -1760,6 +1773,61 @@ probe0(155 downto 153) => i_dbg.eth.tx(1).fsm,
 probe0(156)            => i_dbg.eth_link(1) --i_dbg.vpkt_padding
 );
 
+--m_dbg_fg : dbgcs_ila_hostclk
+--port map (
+--clk => g_usr_highclk,
+--
+--probe0(2 downto 0)   => i_dbg.fg.fgrd_vch         ,
+--probe0(3)            => i_dbg.fg.fgrd_rddone      ,
+--probe0(5 downto 4)   => i_dbg.fg.fgwr_frrdy       ,
+--probe0(7 downto 6)   => i_dbg.fg.irq              ,
+--probe0(9 downto 8)   => i_dbg.fg.vbuf_hold        ,
+--probe0(11 downto 10) => i_dbg.fg.err_vbuf_overflow,
+--probe0(14 downto 12) => i_dbg.fg.frskip0_count    ,
+--probe0(17 downto 15) => i_dbg.fg.frskip1_count    ,
+--
+--probe0(19 downto 18) => i_dbg.fg.vbufi_full       ,
+--probe0(21 downto 20) => i_dbg.fg.vbufi_pfull      ,
+--
+--probe0(24 downto 22) => i_dbg.fg.fgwr.fsm,
+--probe0(35 downto 25) => i_dbg.fg.fgwr.fr_rownum,
+--probe0(36) => i_dbg.fg.fgwr.vbufi_sel,
+--probe0(38 downto 37) => i_dbg.fg.fgwr.vbufi_empty
+--
+--
+----probe0(31 downto 0) => i_dbg.fg.fgwr.vbufi_do(0),
+----probe0(63 downto 32) => i_dbg.fg.fgwr.vbufi_do(1),
+----probe0(66 downto 64) => i_dbg.fg.fgwr.fsm,
+----probe0(77 downto 67) => i_dbg.fg.fgwr.fr_rownum,
+----probe0(78) => i_dbg.fg.fgwr.mem_start,
+----probe0(79) => i_dbg.fg.fgwr.mem_done,
+----probe0(80) => i_dbg.fg.fgwr.err,
+----probe0(81) => i_dbg.fg.fgwr.vbufi_sel,
+----probe0(82) => i_dbg.fg.fgwr.vbufi_empty_all,
+----probe0(83) => i_dbg.fg.fgwr.fr_rdy0,
+----probe0(84) => i_dbg.fg.fgwr.vbufi_full_det,
+----probe0(85) => i_dbg.fg.fgwr.vbufi_rd(0),
+----probe0(86) => i_dbg.fg.fgwr.vbufi_empty(0),
+----probe0(87) => i_dbg.fg.fgwr.vbufi_full(0),
+----
+----probe0(91 downto 88)   => i_dbg.fg.fgrd.fsm            ,
+----probe0(94 downto 92)   => i_dbg.fg.fgrd.vch_num        ,
+----probe0(95)             => i_dbg.fg.fgrd.hrd_start      ,
+----probe0(111 downto 96)  => i_dbg.fg.fgrd.fr_act_pixcount,
+----probe0(127 downto 112) => i_dbg.fg.fgrd.fr_act_rowcount,
+----probe0(143 downto 128) => i_dbg.fg.fgrd.steprd,
+----probe0(159 downto 144) => i_dbg.fg.fgrd.fr_skp_pixcount,
+----probe0(175 downto 160) => i_dbg.fg.fgrd.fr_skp_rowcount,
+----probe0(176)            => i_dbg.fg.fgrd.mirror_pix     ,
+----probe0(177)            => i_dbg.fg.fgrd.mirror_row     ,
+----
+----probe0(193 downto 178) => i_dbg.fg.fgrd.rowcnt,
+----probe0(194) => i_dbg.fg.fgrd.hrd_done,
+----probe0(195) => i_dbg.fg.fgrd.bufo_empty,
+----probe0(198 downto 196) => i_dbg.fg.fgrd.vbuf_hold,
+----probe0(199) => i_dbg.fg.fgrd.axir_dvalid
+--);
+
 m_dbg_fg : dbgcs_ila_hostclk
 port map (
 clk => g_usr_highclk,
@@ -1774,12 +1842,13 @@ probe0(14 downto 12) => i_dbg.fg.frskip0_count    ,
 probe0(17 downto 15) => i_dbg.fg.frskip1_count    ,
 
 probe0(19 downto 18) => i_dbg.fg.vbufi_full       ,
-probe0(21 downto 20) => i_dbg.fg.vbufi_pfull      ,
+probe0(21 downto 20) => i_dbg.fg.fgwr.vbufi_full_det,
 
 probe0(24 downto 22) => i_dbg.fg.fgwr.fsm,
-probe0(35 downto 25) => i_dbg.fg.fgwr.fr_rownum,
-probe0(36) => i_dbg.fg.fgwr.vbufi_sel,
-probe0(38 downto 37) => i_dbg.fg.fgwr.vbufi_empty
+probe0(37 downto 25) => i_dbg.fg.fgwr.fr_rownum,
+probe0(39 downto 38) => i_dbg.fg.fgwr.vbufi_empty,
+probe0(42 downto 40) => i_dbg.fg.fgwr.fsm1,
+probe0(55 downto 43) => i_dbg.fg.fgwr.fr_rownum1
 
 
 --probe0(31 downto 0) => i_dbg.fg.fgwr.vbufi_do(0),

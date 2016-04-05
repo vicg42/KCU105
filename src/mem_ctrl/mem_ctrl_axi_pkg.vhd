@@ -31,8 +31,8 @@ type TAXIS_DWIDTH is array (0 to C_MEMCH_COUNT_MAX - 1) of integer;
 ------------------------------------------------------------------------------------------------------------
 constant C_AXIS_DWIDTH     : TAXIS_DWIDTH := (
 C_PCFG_PCIE_DWIDTH,--CH video read
-C_PCFG_FG_BUFI_DWIDTH, --CH video write
-C_PCFG_PCIE_DWIDTH,
+C_PCFG_FG_BUFI_DWIDTH, --video write CH0
+C_PCFG_FG_BUFI_DWIDTH, --video write CH1
 C_PCFG_PCIE_DWIDTH,
 C_PCFG_PCIE_DWIDTH,
 C_PCFG_PCIE_DWIDTH,
@@ -88,8 +88,8 @@ end record;
 Type TMemINCh is array (0 to C_MEM_ARB_CH_COUNT - 1) of TMemIN;
 Type TMemOUTCh is array (0 to C_MEM_ARB_CH_COUNT - 1) of TMemOUT;
 
-Type TMemINChVD is array (0 to C_PCFG_FG_VCH_COUNT - 1) of TMemIN;
-Type TMemOUTChVD is array (0 to C_PCFG_FG_VCH_COUNT - 1) of TMemOUT;
+Type TMemIN_vch is array (0 to C_PCFG_FG_VCH_COUNT - 1) of TMemIN;
+Type TMemOUT_vch is array (0 to C_PCFG_FG_VCH_COUNT - 1) of TMemOUT;
 
 component mem_ctrl
 generic(
