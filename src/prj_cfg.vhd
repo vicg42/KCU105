@@ -15,7 +15,7 @@ use work.vicg_common_pkg.all;
 
 package prj_cfg is
 
-constant C_PCFG_FIRMWARE_VERSION       : integer := 16#0073#;
+constant C_PCFG_FIRMWARE_VERSION       : integer := 16#0075#;
 
 constant C_PCFG_BOARD                  : string := "KCU105";
 constant C_PCFG_MAIN_DBGCS             : string := "ON";
@@ -26,8 +26,8 @@ constant C_PCFG_PCIE_DWIDTH            : integer := 256;
 
 --Memory Controller
 constant C_PCFG_MEMCTRL_BANK_SIZE      : integer := 7; --max 7: 0-8MB, 1-16MB, 2-32MB, 3-64MB, 4-128MB, ..., 7-1GB
-constant C_PCFG_MEMARB_CH_COUNT        : integer := 2; --CH0(FG_RD) +
-                                                       --CH1(FG_WR)
+constant C_PCFG_MEMARB_CH_COUNT        : integer := 3; --CH0(FG_RD) +
+                                                       --CH1(FG_WR(0)) + CH2(FG_WR(1))
 
 --ETH
 constant C_PCFG_ETH_DBG                : string := "LOOPBACK";

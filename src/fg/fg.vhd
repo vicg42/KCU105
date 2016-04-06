@@ -73,8 +73,8 @@ p_in_vbufi_pfull  : in    std_logic_vector(G_VBUFI_COUNT_MAX - 1 downto 0);
 --MEM
 ---------------------------------
 --CH WRITE
-p_out_memwr       : out   TMemIN;
-p_in_memwr        : in    TMemOUT;
+p_out_memwr       : out   TMemIN_vch;
+p_in_memwr        : in    TMemOUT_vch;
 --CH READ
 p_out_memrd       : out   TMemIN;
 p_in_memrd        : in    TMemOUT;
@@ -144,18 +144,18 @@ port(
 p_in_memtrn    : in    std_logic_vector((C_HREG_MEM_CTRL_TRNWR_M_BIT - C_HREG_MEM_CTRL_TRNWR_L_BIT) downto 0);
 --p_in_work_en   : in    std_logic;
 
-p_in_frbuf     : in    TFG_FrBufs;
-p_out_frrdy    : out   std_logic_vector(G_VCH_COUNT - 1 downto 0);
+p_in_frbuf     : in    unsigned(G_MEM_VFR_M_BIT - G_MEM_VFR_L_BIT downto 0);
+p_out_frrdy    : out   std_logic;
 p_out_frmrk    : out   std_logic_vector(31 downto 0);
 
 ----------------------------
 --
 ----------------------------
-p_in_vbufi_do     : in    std_logic_vector((G_MEMWR_DWIDTH * G_VBUFI_COUNT_MAX) - 1 downto 0);
-p_out_vbufi_rd    : out   std_logic_vector(G_VBUFI_COUNT_MAX - 1 downto 0);
-p_in_vbufi_empty  : in    std_logic_vector(G_VBUFI_COUNT_MAX - 1 downto 0);
-p_in_vbufi_full   : in    std_logic_vector(G_VBUFI_COUNT_MAX - 1 downto 0);
-p_in_vbufi_pfull  : in    std_logic_vector(G_VBUFI_COUNT_MAX - 1 downto 0);
+p_in_vbufi_do     : in    std_logic_vector(G_MEMWR_DWIDTH - 1 downto 0);
+p_out_vbufi_rd    : out   std_logic;
+p_in_vbufi_empty  : in    std_logic;
+p_in_vbufi_full   : in    std_logic;
+p_in_vbufi_pfull  : in    std_logic;
 
 ---------------------------------
 --Port MEM_CTRL
@@ -302,7 +302,8 @@ signal i_vbuf_wr               : TFG_FrBufs;
 signal i_vbuf_rd               : TFG_FrBufs;
 
 signal i_fgwr_frrdy            : std_logic_vector(G_VCH_COUNT - 1 downto 0);
-signal i_fgwr_mrk              : std_logic_vector(31 downto 0);
+Type TFGWR_FrMrk is array (0 to C_FG_VBUF_COUNT - 1) of std_logic_vector(31 downto 0);
+signal i_fgwr_mrk              : TFGWR_FrMrk;
 
 signal i_frmrk_save            : TFG_FrMrks_Bufs_VCH;
 signal i_frmrk_out             : std_logic_vector(31 downto 0);
@@ -340,7 +341,7 @@ signal i_fgrd_eof              : std_logic;
 type TFG_TstOut is array (0 to G_VCH_COUNT - 1)
   of std_logic_vector(31 downto 0);
 signal i_fgrd_tst_out          : std_logic_vector(127 downto 0);
-signal i_fgwr_tst_out          : std_logic_vector(31 downto 0);--: TFG_TstOut;
+signal i_fgwr_tst_out          : std_logic_vector(63 downto 0);--: TFG_TstOut;
 signal i_fgwr_tst_outtmp       : std_logic_vector(G_VCH_COUNT - 1 downto 0);
 signal tst_pkt_err             : std_logic := '0';
 --signal tst_dbg_pictire         : std_logic;
@@ -470,7 +471,7 @@ if rising_edge(p_in_clk) then
         if i_fgwr_frrdy(ch) = '1' then
           for buf in 0 to C_FG_VBUF_COUNT - 1 loop
             if i_vbuf_wr(ch) = buf then
-              i_frmrk_save(ch)(buf) <= i_fgwr_mrk;
+              i_frmrk_save(ch)(buf) <= i_fgwr_mrk(ch);
             end if;
           end loop;
         end if;
@@ -551,9 +552,6 @@ if rising_edge(p_in_clk) then
 end if;
 end process;
 
-end generate gen_vch;
-
-
 -------------------------------
 --Video -> MEM(VBUF)
 -------------------------------
@@ -581,30 +579,31 @@ port map(
 -------------------------------
 p_in_memtrn    => p_in_reg.prm.memwr_trnlen,
 
-p_in_frbuf     => i_vbuf_wr,
-p_out_frrdy    => i_fgwr_frrdy,
-p_out_frmrk    => i_fgwr_mrk,
+p_in_frbuf     => i_vbuf_wr(ch),
+p_out_frrdy    => i_fgwr_frrdy(ch),
+p_out_frmrk    => i_fgwr_mrk(ch),
 
 ----------------------------
 --DataIN
 ----------------------------
-p_in_vbufi_do    => p_in_vbufi_do   ,
-p_out_vbufi_rd   => p_out_vbufi_rd  ,
-p_in_vbufi_empty => p_in_vbufi_empty,
-p_in_vbufi_full  => p_in_vbufi_full ,
-p_in_vbufi_pfull => p_in_vbufi_pfull,
+p_in_vbufi_do    => p_in_vbufi_do((G_MEMWR_DWIDTH * (ch + 1)) - 1 downto (G_MEMWR_DWIDTH * ch)),
+p_out_vbufi_rd   => p_out_vbufi_rd  (ch),
+p_in_vbufi_empty => p_in_vbufi_empty(ch),
+p_in_vbufi_full  => p_in_vbufi_full (ch),
+p_in_vbufi_pfull => p_in_vbufi_pfull(ch),
+
 
 ---------------------------------
 --Port MEM_CTRL
 ---------------------------------
-p_out_mem      => p_out_memwr,
-p_in_mem       => p_in_memwr,
+p_out_mem      => p_out_memwr(ch),
+p_in_mem       => p_in_memwr(ch),
 
 -------------------------------
 --DBG
 -------------------------------
 p_in_tst       => tst_ctrl(31 downto 0),
-p_out_tst      => i_fgwr_tst_out,
+p_out_tst      => i_fgwr_tst_out((32 * (ch + 1)) - 1 downto (32 * ch)),
 
 -------------------------------
 --System
@@ -612,6 +611,8 @@ p_out_tst      => i_fgwr_tst_out,
 p_in_clk       => p_in_clk,
 p_in_rst       => p_in_rst
 );
+
+end generate gen_vch;
 
 
 -------------------------------
@@ -808,7 +809,7 @@ gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
 ----p_out_tst(10)         <= i_fgrd_tst_out(4);
 ----p_out_tst(25 downto 11) <= (others => '0');
 ----p_out_tst(31 downto 26) <= tst_fgwr_out(31 downto 26);
-p_out_tst(26 downto 0) <= i_fgwr_tst_out(26 downto 0);
+p_out_tst(26 downto 0) <= i_fgwr_tst_out((0 + 26) downto (0 + 0));
 
 p_out_tst(34 downto 32) <= i_fgrd_vch;
 p_out_tst(35)           <= i_fgrd_rddone;
@@ -818,6 +819,8 @@ p_out_tst(41 downto 40) <= i_vbuf_hold(1 downto 0);
 p_out_tst(43 downto 42) <= tst_err_vbuf_overflow(1 downto 0);
 p_out_tst(46 downto 44) <= std_logic_vector(i_frskip(0));
 p_out_tst(49 downto 47) <= std_logic_vector(i_frskip(1));
+
+p_out_tst(76 downto 50) <= i_fgwr_tst_out((32 + 26) downto (32 + 0));
 
 p_out_tst(p_out_tst'high downto 128) <= i_fgrd_tst_out;
 end generate gen_dbgcs_on;

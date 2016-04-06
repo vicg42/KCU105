@@ -199,8 +199,8 @@ p_in_vbufi_pfull  : in    std_logic_vector(G_VBUFI_COUNT_MAX - 1 downto 0);
 --MEM
 ---------------------------------
 --CH WRITE
-p_out_memwr       : out   TMemIN;
-p_in_memwr        : in    TMemOUT;
+p_out_memwr       : out   TMemIN_vch;
+p_in_memwr        : in    TMemOUT_vch;
 --CH READ
 p_out_memrd       : out   TMemIN;
 p_in_memrd        : in    TMemOUT;
