@@ -729,8 +729,8 @@
         <Option Id="PROBE_PORT_BIT_COUNT" value="2"/>
       </probeOptions>
       <nets>
-        <net name="i_dbg[fg][vbufi_pfull][1]"/>
-        <net name="i_dbg[fg][vbufi_pfull][0]"/>
+        <net name="i_dbg[fg][fgwr][vbufi_full_det][1]"/>
+        <net name="i_dbg[fg][fgwr][vbufi_full_det][0]"/>
       </nets>
     </probe>
     <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
@@ -771,16 +771,55 @@
         <net name="i_dbg[fg][fgwr][fr_rownum][0]"/>
       </nets>
     </probe>
-    <probe type="ila" busType="net" source="netlist" spec="ILA_V2_RT">
+    <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
       <probeOptions Id="DebugProbeParams">
         <Option Id="CORE_LOCATION" value="1:2"/>
         <Option Id="HW_ILA" value="m_dbg_fg"/>
         <Option Id="PROBE_PORT" value="0"/>
         <Option Id="PROBE_PORT_BITS" value="38"/>
-        <Option Id="PROBE_PORT_BIT_COUNT" value="1"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="2"/>
       </probeOptions>
       <nets>
-        <net name="i_dbg[fg][fgwr][vbufi_sel]"/>
+        <net name="i_dbg[fg][fgwr][vbufi_empty][1]"/>
+        <net name="i_dbg[fg][fgwr][vbufi_empty][0]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:2"/>
+        <Option Id="HW_ILA" value="m_dbg_fg"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="40"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="3"/>
+      </probeOptions>
+      <nets>
+        <net name="i_dbg[fg][fgwr][fsm1][2]"/>
+        <net name="i_dbg[fg][fgwr][fsm1][1]"/>
+        <net name="i_dbg[fg][fgwr][fsm1][0]"/>
+      </nets>
+    </probe>
+    <probe type="ila" busType="bus" source="netlist" spec="ILA_V2_RT">
+      <probeOptions Id="DebugProbeParams">
+        <Option Id="CORE_LOCATION" value="1:2"/>
+        <Option Id="HW_ILA" value="m_dbg_fg"/>
+        <Option Id="PROBE_PORT" value="0"/>
+        <Option Id="PROBE_PORT_BITS" value="43"/>
+        <Option Id="PROBE_PORT_BIT_COUNT" value="13"/>
+      </probeOptions>
+      <nets>
+        <net name="i_dbg[fg][fgwr][fr_rownum1][12]"/>
+        <net name="i_dbg[fg][fgwr][fr_rownum1][11]"/>
+        <net name="i_dbg[fg][fgwr][fr_rownum1][10]"/>
+        <net name="i_dbg[fg][fgwr][fr_rownum1][9]"/>
+        <net name="i_dbg[fg][fgwr][fr_rownum1][8]"/>
+        <net name="i_dbg[fg][fgwr][fr_rownum1][7]"/>
+        <net name="i_dbg[fg][fgwr][fr_rownum1][6]"/>
+        <net name="i_dbg[fg][fgwr][fr_rownum1][5]"/>
+        <net name="i_dbg[fg][fgwr][fr_rownum1][4]"/>
+        <net name="i_dbg[fg][fgwr][fr_rownum1][3]"/>
+        <net name="i_dbg[fg][fgwr][fr_rownum1][2]"/>
+        <net name="i_dbg[fg][fgwr][fr_rownum1][1]"/>
+        <net name="i_dbg[fg][fgwr][fr_rownum1][0]"/>
       </nets>
     </probe>
   </probeset>

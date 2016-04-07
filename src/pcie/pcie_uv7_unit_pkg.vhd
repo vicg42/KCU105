@@ -184,29 +184,25 @@ port(
 -----------------------------
 --Usr Ctrl
 -----------------------------
-p_in_irq_clr         : in   std_logic;
-p_in_irq_set         : in   std_logic;
-p_out_irq_ack        : out  std_logic;
+p_in_irq_clr  : in   std_logic;
+p_in_irq_set  : in   std_logic;
+p_out_irq_ack : out  std_logic;
 
 -----------------------------
 --PCIE Port
 -----------------------------
-p_in_cfg_msi         : in   std_logic;
-p_in_cfg_irq_rdy     : in   std_logic;
-p_out_cfg_irq        : out  std_logic;
-p_out_cfg_irq_assert : out  std_logic;
-
--------------------------------
-----DBG
--------------------------------
---p_in_tst             : in   std_logic_vector(31 downto 0);
---p_out_tst            : out  std_logic_vector(31 downto 0);
+p_in_cfg_msi_fail : in   std_logic;
+p_in_cfg_msi      : in   std_logic;
+p_in_cfg_irq_rdy  : in   std_logic;
+p_out_cfg_irq_pad : out  std_logic;
+p_out_cfg_irq_int : out  std_logic;
+p_out_cfg_irq_err : out  std_logic;
 
 -----------------------------
 --SYSTEM
 -----------------------------
-p_in_clk             : in   std_logic;
-p_in_rst_n           : in   std_logic
+p_in_clk   : in   std_logic;
+p_in_rst_n : in   std_logic
 );
 end component pcie_irq;
 

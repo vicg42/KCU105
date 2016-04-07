@@ -20,29 +20,25 @@ port(
 -----------------------------
 --Usr Ctrl
 -----------------------------
-p_in_irq_clr         : in   std_logic;
-p_in_irq_set         : in   std_logic;
-p_out_irq_ack        : out  std_logic;
+p_in_irq_clr  : in   std_logic;
+p_in_irq_set  : in   std_logic;
+p_out_irq_ack : out  std_logic;
 
 -----------------------------
 --PCIE Port
 -----------------------------
-p_in_cfg_msi         : in   std_logic;
-p_in_cfg_irq_rdy     : in   std_logic;
-p_out_cfg_irq        : out  std_logic;
-p_out_cfg_irq_assert : out  std_logic;
-
--------------------------------
-----DBG
--------------------------------
---p_in_tst             : in   std_logic_vector(31 downto 0);
---p_out_tst            : out  std_logic_vector(31 downto 0);
+p_in_cfg_msi_fail : in   std_logic;
+p_in_cfg_msi      : in   std_logic;
+p_in_cfg_irq_rdy  : in   std_logic;
+p_out_cfg_irq_pad : out  std_logic;
+p_out_cfg_irq_int : out  std_logic;
+p_out_cfg_irq_err : out  std_logic;
 
 -----------------------------
 --SYSTEM
 -----------------------------
-p_in_clk             : in   std_logic;
-p_in_rst_n           : in   std_logic
+p_in_clk   : in   std_logic;
+p_in_rst_n : in   std_logic
 );
 end entity pcie_irq;
 
@@ -52,20 +48,23 @@ type fsm_state is (
 S_IRQ_IDLE,
 S_IRQ_ASSERT_DONE,
 S_IRQ_WAIT_CLR,
-S_IRQ_DEASSERT_DONE
+S_IRQ_DEASSERT_DONE,
+S_IRQ_ERR
 );
 signal fsm_cs: fsm_state;
 
 signal i_irq_int     : std_logic;
 signal i_irq_pad     : std_logic;
 signal i_irq_ack     : std_logic;
+signal i_irq_err     : std_logic;
 
 begin --architecture behavioral
 
 p_out_irq_ack <= i_irq_ack;
 
-p_out_cfg_irq_assert <= i_irq_int;
-p_out_cfg_irq        <= i_irq_pad;
+p_out_cfg_irq_int <= i_irq_int;
+p_out_cfg_irq_pad <= i_irq_pad;
+p_out_cfg_irq_err <= i_irq_err;
 
 
 process(p_in_clk)
@@ -99,7 +98,14 @@ if rising_edge(p_in_clk) then
       when S_IRQ_ASSERT_DONE =>
 
         --Wait acknowledge from CORE
-        if (p_in_cfg_irq_rdy = '1') then
+        if (p_in_cfg_msi = '1' and p_in_cfg_msi_fail = '1') then
+
+          i_irq_err <= '1';
+          i_irq_int <= '0';
+          i_irq_pad <= '0';
+          fsm_cs <= S_IRQ_ERR;
+
+        elsif (p_in_cfg_irq_rdy = '1') then
 
           i_irq_ack <= '1';
 
@@ -120,10 +126,10 @@ if rising_edge(p_in_clk) then
         if (p_in_irq_clr = '1') then
           --Interrupt mode Legacy
           if (p_in_cfg_msi = '0') then
-            i_irq_pad <= '1';
             i_irq_int <= '0';--DEASSERT IRQ
             fsm_cs <= S_IRQ_DEASSERT_DONE;
           else
+            i_irq_pad <= '0';
             fsm_cs <= S_IRQ_IDLE;
           end if;
         end if;
@@ -139,6 +145,13 @@ if rising_edge(p_in_clk) then
           i_irq_pad <= '0';
           fsm_cs <= S_IRQ_IDLE;
         end if;
+
+      ----------------------------------
+      --
+      ----------------------------------
+      when S_IRQ_ERR =>
+
+        i_irq_err <= '1';
 
     end case;
   end if;

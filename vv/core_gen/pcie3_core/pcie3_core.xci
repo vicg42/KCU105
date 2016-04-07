@@ -701,6 +701,7 @@
           <xilinx:configElementInfos>
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.AXISTEN_IF_RC_STRADDLE" xilinx:valueSource="user"/>
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.PF0_DEVICE_ID" xilinx:valueSource="user"/>
+            <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.PF0_INTERRUPT_PIN" xilinx:valueSource="user"/>
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.PF0_LINK_STATUS_SLOT_CLOCK_CONFIG" xilinx:valueSource="user"/>
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.PF0_MSIX_CAP_PBA_BIR" xilinx:valueSource="user"/>
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.PF0_MSIX_CAP_TABLE_BIR" xilinx:valueSource="user"/>

@@ -1214,7 +1214,7 @@ p_out_tst(123)            <= p_in_txbuf_wr;
 p_out_tst(124)            <= p_in_rxbuf_rd;
 p_out_tst(125)            <= p_in_txbuf_wr or p_in_rxbuf_rd;
 p_out_tst(126)            <= i_dma_work;
-p_out_tst(127)            <= i_dmatrn_work;
+p_out_tst(127)            <= '0';--rezerv
 
 
 

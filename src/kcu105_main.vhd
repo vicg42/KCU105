@@ -1047,7 +1047,7 @@ p_in_clk   => g_usrclk(0),
 p_in_rst   => i_usrclk_rst
 );
 
-pin_out_led(0) <= i_test_led(0) and (not i_host_tst_out(121)); --axi_rc_err_detect;
+pin_out_led(0) <= i_test_led(0) and (not i_host_tst_out(127)); --i_pcie_irq_err;
 pin_out_led(1) <= i_host_tst2_out(0) and (not OR_reduce(i_fg_tst_out(43 downto 42))) ;--i_user_lnk_up ; i_fg_tst_out(32) - tst_err_vbuf_overflow
 pin_out_led(2) <= i_mem_ctrl_status.rdy and (not (i_fg_tst_out(25) or i_fg_tst_out(50 + 25)) );
 pin_out_led(3) <= i_eth_status_qplllock and i_test_led(1);

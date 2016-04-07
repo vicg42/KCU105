@@ -241,10 +241,10 @@ signal i_axi_rc_tready         : std_logic;
 
 signal i_interrupt_done        : std_logic;
 
-signal i_pcie_irq              : std_logic;
-signal i_pcie_irq_assert       : std_logic;
-signal i_pcie_irq_msi_int      : std_logic_vector(31 downto 0);
-signal i_pcie_irq_msi_pending_status: std_logic;
+signal i_pcie_irq_sent         : std_logic;
+signal i_pcie_irq_pad          : std_logic;
+signal i_pcie_irq_int          : std_logic;
+signal i_pcie_irq_err          : std_logic;
 
 signal i_uapp_irq_clr          : std_logic;
 signal i_uapp_irq_set          : std_logic;
@@ -430,7 +430,8 @@ p_in_clk   => i_trn_clk,
 p_in_rst_n => i_rst_n
 );
 
-p_out_tst <= tst_uapp_out;
+p_out_tst(126 downto 0) <= tst_uapp_out(126 downto 0);
+p_out_tst(127) <= i_pcie_irq_err;
 tst_uapp_in(0) <= tst_rx_out(32 + 10);--axi_rc_err_detect;
 
 
@@ -620,23 +621,19 @@ port map (
 -----------------------------
 --Usr Ctrl
 -----------------------------
-p_in_irq_clr         => i_uapp_irq_clr,
-p_in_irq_set         => i_uapp_irq_set,
-p_out_irq_ack        => i_uapp_irq_ack,
+p_in_irq_clr  => i_uapp_irq_clr,
+p_in_irq_set  => i_uapp_irq_set,
+p_out_irq_ack => i_uapp_irq_ack,
 
 -----------------------------
 --PCIE Port
 -----------------------------
-p_in_cfg_msi         => p_in_cfg_interrupt_msi_enable(0),
-p_in_cfg_irq_rdy     => p_in_cfg_interrupt_sent,
-p_out_cfg_irq        => i_pcie_irq,
-p_out_cfg_irq_assert => i_pcie_irq_assert,
-
--------------------------------
-----DBG
--------------------------------
---p_in_tst             : in   std_logic_vector(31 downto 0);
---p_out_tst            : out  std_logic_vector(31 downto 0);
+p_in_cfg_msi_fail => p_in_cfg_interrupt_msi_fail,
+p_in_cfg_msi      => p_in_cfg_interrupt_msi_enable(0),
+p_in_cfg_irq_rdy  => i_pcie_irq_sent,
+p_out_cfg_irq_pad => i_pcie_irq_pad,
+p_out_cfg_irq_int => i_pcie_irq_int,
+p_out_cfg_irq_err => i_pcie_irq_err,
 
 -----------------------------
 --SYSTEM
@@ -645,32 +642,30 @@ p_in_clk => i_trn_clk,
 p_in_rst_n => i_rst_n
 );
 
+i_pcie_irq_sent <= p_in_cfg_interrupt_sent when p_in_cfg_interrupt_msi_enable(0) = '0' else
+                   p_in_cfg_interrupt_msi_sent;
+
 --Legacy Intterrupt
 --bit(0) - PCI_EXPRESS_LEGACY_INTA
 --bit(1) - PCI_EXPRESS_LEGACY_INTB
 --bit(2) - PCI_EXPRESS_LEGACY_INTC
 --bit(3) - PCI_EXPRESS_LEGACY_INTD
-p_out_cfg_interrupt_int(0) <= i_pcie_irq_assert and not p_in_cfg_interrupt_msi_enable(0);
+p_out_cfg_interrupt_int(0) <= i_pcie_irq_int and not p_in_cfg_interrupt_msi_enable(0);
 p_out_cfg_interrupt_int(p_out_cfg_interrupt_int'high downto 1) <= (others => '0');
 
 --bit(0) - Function 0
 --bit(1) - Function 1
-p_out_cfg_interrupt_pending(0) <= i_pcie_irq and not p_in_cfg_interrupt_msi_enable(0);
+p_out_cfg_interrupt_pending(0) <= i_pcie_irq_pad and not p_in_cfg_interrupt_msi_enable(0);
 p_out_cfg_interrupt_pending(p_out_cfg_interrupt_pending'high downto 1) <= (others => '0');
 
 
 --MSI Intterrupt
 p_out_cfg_interrupt_msi_select <= (others => '0'); --Value 0000b-0001b correspond to PF0-1
 
---gen_msi_int : for i in 0 to p_out_cfg_interrupt_msi_int'length generate begin
-i_pcie_irq_msi_int(0) <= i_pcie_irq_assert and p_in_cfg_interrupt_msi_enable(0);
-i_pcie_irq_msi_int(31 downto 1) <= (others => '0');--not i_pcie_irq_assert and p_in_cfg_interrupt_msi_enable(0);
---end generate gen_msi_int;
-p_out_cfg_interrupt_msi_int <= i_pcie_irq_msi_int;
+p_out_cfg_interrupt_msi_int(0) <= i_pcie_irq_int and p_in_cfg_interrupt_msi_enable(0);
+p_out_cfg_interrupt_msi_int(31 downto 1) <= (others => '0');
 
-i_pcie_irq_msi_pending_status <= i_pcie_irq_assert and p_in_cfg_interrupt_msi_enable(0);
-
-p_out_cfg_interrupt_msi_pending_status(0) <= i_pcie_irq_msi_pending_status;--std_logic_vector(RESIZE(UNSIGNED(i_uapp_irq_req), p_out_cfg_interrupt_msi_pending_status'length));
+p_out_cfg_interrupt_msi_pending_status(0) <= i_pcie_irq_pad and p_in_cfg_interrupt_msi_enable(0);
 p_out_cfg_interrupt_msi_pending_status(31 downto 1) <= (others => '0');
 
 p_out_cfg_interrupt_msi_attr            <= (others => '0');
@@ -680,16 +675,6 @@ p_out_cfg_interrupt_msi_tph_st_tag      <= (others => '0');
 p_out_cfg_interrupt_msi_function_number <= (others => '0');
 p_out_cfg_interrupt_msi_pending_status_data_enable  <= '0';
 p_out_cfg_interrupt_msi_pending_status_function_num <= (others => '0');
-
-
---p_in_cfg_interrupt_msi_vf_enable        : in   std_logic_vector(5 downto 0) ;
---p_in_cfg_interrupt_msi_mmenable         : in   std_logic_vector(5 downto 0) ;
---p_in_cfg_interrupt_msi_mask_update      : in   std_logic                    ;
---p_in_cfg_interrupt_msi_data             : in   std_logic_vector(31 downto 0);
---
---p_in_cfg_interrupt_msi_sent             : in   std_logic                    ;
---p_in_cfg_interrupt_msi_fail             : in   std_logic                    ;
-
 
 p_out_cfg_interrupt_msix_int            <= '0';
 p_out_cfg_interrupt_msix_address        <= (others => '0');
@@ -771,9 +756,9 @@ p_out_dbg.d2h_buf_empty <= i_d2h_buf_empty;
 p_out_dbg.h2d_buf_wr <= i_h2d_buf_wr;
 p_out_dbg.h2d_buf_full <= i_h2d_buf_full;
 
-p_out_dbg.irq_int <= i_pcie_irq_assert and not p_in_cfg_interrupt_msi_enable(0);
-p_out_dbg.irq_pending <= i_pcie_irq and not p_in_cfg_interrupt_msi_enable(0);
-p_out_dbg.irq_sent <= p_in_cfg_interrupt_sent;
+p_out_dbg.irq_int <= i_pcie_irq_int;
+p_out_dbg.irq_pending <= i_pcie_irq_pad;
+p_out_dbg.irq_sent <= i_pcie_irq_sent;
 
 p_out_dbg.test_speed <= tst_uapp_out(122);--   <= i_reg.pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 
