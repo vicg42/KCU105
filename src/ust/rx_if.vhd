@@ -60,10 +60,10 @@ end entity rx_if;
 architecture behavioral of rx_if is
 
 type TFsmPktRx is (
-S_RX_IDLE,
-S_RX_D,
-S_RX_DONE,
-S_RX_ERR
+S_RX_TPKT,
+S_RX_DPKT,
+S_RX_PKT_DONE,
+S_RX_PKT_ERR
 );
 signal i_fsm_pkt_rx    : TFsmPktRx;
 
@@ -71,27 +71,32 @@ type TFsmRqWr is (
 --S_RQWR_IDLE,
 S_RQWR_LEN,
 S_RQWR_ADR,
-S_RQWR_D
+S_RQWR_D,
+S_RQWR_DONE
 );
 signal i_fsm_rqwr      : TFsmRqWr;
 
 signal i_ibuf_rd       : std_logic;
 signal i_ibuf_rden     : std_logic;
 
-signal i_pkt_bin_en    : std_logic;
-signal i_pkt_bin       : unsigned(7 downto 0); --byte input
+signal i_pkt_den       : std_logic;
+signal i_pkt_d         : unsigned(7 downto 0); --byte input
 signal i_pkt_type      : unsigned(7 downto 0);
-signal i_pkt_bcnt      : unsigned(15 downto 0);--packet byte cnt
-signal i_pkt_bcount    : unsigned(15 downto 0);--packet byte cnt
-signal i_ibuf_bcnt     : unsigned(log2(G_IBUF_DWIDTH / 8) - 1 downto 0);--bus byte cnt
+signal i_pkt_dcnt      : unsigned(15 downto 0);--packet byte cnt
+signal i_bcnt_a        : unsigned(log2(G_IBUF_DWIDTH / 8) - 1 downto 0);--bus byte cnt
+signal i_bcnt_b        : unsigned(15 downto 0);
 
-signal i_dev_bcnt      : unsigned(15 downto 0);
-signal i_dev_cnt       : unsigned(15 downto 0);
+signal i_dev_dcnt      : unsigned(15 downto 0);
 signal i_rqwr_adr      : unsigned(15 downto 0);
 signal i_rqwr_di       : unsigned(7 downto 0);
 signal i_rqwr_wr       : std_logic;
 
 signal i_err           : std_logic;
+
+--total dcount = dev_len + 2
+--payload dcount = total dcount - headersize - 1
+constant CI_PKT_DECR : natural := C_UST_HEADER_PKT_SIZE - 1;
+constant CI_DEV_DECR : natural := C_UST_HEADER_DEV_SIZE - 1;
 
 
 begin --architecture behavioral
@@ -99,7 +104,7 @@ begin --architecture behavioral
 
 p_out_err <= i_err;
 p_out_ibuf_axi_tready <= p_in_ibuf_axi_tvalid and i_ibuf_rden and
-                          (AND_reduce(i_ibuf_bcnt) or (not OR_reduce(i_pkt_bcnt)));
+                          (AND_reduce(i_bcnt_a) or (not OR_reduce(i_pkt_dcnt)));
 
 ---------------------------------------------
 --Convernt IBUF BUS(Nbit) -> bus 8bit
@@ -109,13 +114,13 @@ begin
 if rising_edge(p_in_clk) then
   if (p_in_rst = '1') then
 
-    i_fsm_pkt_rx <= S_RX_IDLE;
+    i_fsm_pkt_rx <= S_RX_TPKT;
 
-    i_pkt_bin_en <= '0';
-    i_pkt_bin <= (others => '0');
+    i_pkt_den <= '0';
+    i_pkt_d <= (others => '0');
     i_pkt_type <= (others => '0');
-    i_pkt_bcnt <= (others => '0');
-    i_ibuf_bcnt <= (others => '0');
+    i_pkt_dcnt <= (others => '0');
+    i_bcnt_a <= (others => '0');
     i_ibuf_rden <= '0';
 
     i_err <= '0';
@@ -127,29 +132,30 @@ if rising_edge(p_in_clk) then
         --------------------------------------
         --
         --------------------------------------
-        when S_RX_IDLE =>
+        when S_RX_TPKT =>
 
-          if (p_in_ibuf_axi_tvalid = '1') then
+          if (p_in_ibuf_axi_tvalid = '1' and p_in_ibuf_axi_tlast = '0') then
 
-              i_pkt_bcnt <= UNSIGNED(p_in_ibuf_axi_tdata(15 downto 0)) - 3;
-              i_ibuf_bcnt <= TO_UNSIGNED(4, i_ibuf_bcnt'length);
+              i_pkt_dcnt <= UNSIGNED(p_in_ibuf_axi_tdata(15 downto 0)) - CI_PKT_DECR;
+              i_bcnt_a <= TO_UNSIGNED(4, i_bcnt_a'length);
 
               if (UNSIGNED(p_in_ibuf_axi_tdata(C_UST_LPKT_MSB_BIT downto C_UST_LPKT_LSB_BIT)) = TO_UNSIGNED(0, (C_UST_LPKT_MSB_BIT - C_UST_LPKT_LSB_BIT + 1) )) then
                   i_pkt_type <= (others => '0');
-                  i_fsm_pkt_rx <= S_RX_ERR;
+                  i_fsm_pkt_rx <= S_RX_PKT_ERR;
 
               elsif (UNSIGNED(p_in_ibuf_axi_tdata(C_UST_TPKT_MSB_BIT downto C_UST_TPKT_LSB_BIT)) = TO_UNSIGNED(C_UST_TPKT_D2H, (C_UST_LPKT_MSB_BIT - C_UST_LPKT_LSB_BIT + 1) )) then
                   i_pkt_type <= TO_UNSIGNED(C_UST_TPKT_D2H, i_pkt_type'length);
                   i_ibuf_rden <= '1';
-                  i_fsm_pkt_rx <= S_RX_D;
+                  i_fsm_pkt_rx <= S_RX_DPKT;
 
               elsif (UNSIGNED(p_in_ibuf_axi_tdata(C_UST_TPKT_MSB_BIT downto C_UST_TPKT_LSB_BIT)) = TO_UNSIGNED(C_UST_TPKT_H2D, (C_UST_LPKT_MSB_BIT - C_UST_LPKT_LSB_BIT + 1) )) then
                   i_pkt_type <= TO_UNSIGNED(C_UST_TPKT_H2D, i_pkt_type'length);
-                  i_fsm_pkt_rx <= S_RX_D;
+                  i_ibuf_rden <= '1';
+                  i_fsm_pkt_rx <= S_RX_DPKT;
 
               else
                   i_pkt_type <= (others => '0');
-                  i_fsm_pkt_rx <= S_RX_ERR;
+                  i_fsm_pkt_rx <= S_RX_PKT_ERR;
               end if;
 
           end if;
@@ -158,37 +164,44 @@ if rising_edge(p_in_clk) then
         --------------------------------------
         --
         --------------------------------------
-        when S_RX_D =>
+        when S_RX_DPKT =>
 
             for idx in 0 to (p_in_ibuf_axi_tdata'length / 8) - 1 loop
-              if (i_ibuf_bcnt = idx) then
-                i_pkt_bin <= UNSIGNED(p_in_ibuf_axi_tdata(8 * (idx + 1) - 1 downto 8 * idx));
+              if (i_bcnt_a = idx) then
+                i_pkt_d <= UNSIGNED(p_in_ibuf_axi_tdata(8 * (idx + 1) - 1 downto 8 * idx));
               end if;
             end loop;
 
             if (p_in_ibuf_axi_tvalid = '1') then
-                i_pkt_bin_en <= '1';
-                i_ibuf_bcnt <= i_ibuf_bcnt + 1;
+                i_pkt_den <= '1';
+                i_bcnt_a <= i_bcnt_a + 1;
 
-                if (i_pkt_bcnt = (i_pkt_bcnt'range => '0')) then
-                  i_pkt_bcnt <= (others => '0');
+                if (i_pkt_dcnt = (i_pkt_dcnt'range => '0')) then
+                  i_pkt_dcnt <= (others => '0');
                   i_ibuf_rden <= '0';
-                  i_fsm_pkt_rx <= S_RX_DONE;
+                  i_fsm_pkt_rx <= S_RX_PKT_DONE;
                 else
-                  i_pkt_bcnt <= i_pkt_bcnt - 1;
+                  i_pkt_dcnt <= i_pkt_dcnt - 1;
                 end if;
+            else
+              i_pkt_den <= '0';
             end if;
 
-        when S_RX_DONE =>
+        when S_RX_PKT_DONE =>
 
-          i_pkt_bin_en <= '0';
-          i_fsm_pkt_rx <= S_RX_IDLE;
+          i_pkt_den <= '0';
+          i_fsm_pkt_rx <= S_RX_TPKT;
 
         --------------------------------------
         --
         --------------------------------------
-        when S_RX_ERR =>
+        when S_RX_PKT_ERR =>
+
           i_err <= '1';
+
+          if (p_in_ibuf_axi_tlast = '1') then
+            i_fsm_pkt_rx <= S_RX_TPKT;
+          end if;
 
       end case;
 
@@ -200,13 +213,13 @@ end process;
 ---------------------------------------------
 --
 ---------------------------------------------
-p_out_rqrd_di <= std_logic_vector(i_pkt_bin);
-p_out_rqrd_wr <= i_pkt_bin_en when i_pkt_type = TO_UNSIGNED(C_UST_TPKT_D2H, i_pkt_type'length) else '0';
+p_out_rqrd_di <= std_logic_vector(i_pkt_d);
+p_out_rqrd_wr <= i_pkt_den when i_pkt_type = TO_UNSIGNED(C_UST_TPKT_D2H, i_pkt_type'length) else '0';
 
 ---------------------------------------------
 --
 ---------------------------------------------
-p_out_rqwr_di <= std_logic_vector(i_rqwr_di);
+p_out_rqwr_di <= std_logic_vector(i_rqwr_di); --dev_num(7..4) & dev_type(3..0)
 p_out_rqwr_adr <= std_logic_vector(i_rqwr_adr(7 downto 0));
 p_out_rqwr_wr <= i_rqwr_wr;
 
@@ -217,13 +230,13 @@ if rising_edge(p_in_clk) then
 
     i_fsm_rqwr <= S_RQWR_LEN;
 
-    i_dev_bcnt <= (others => '0');
+    i_dev_dcnt <= (others => '0');
 
     i_rqwr_adr <= (others => '0');
     i_rqwr_di <= (others => '0');
     i_rqwr_wr <= '0';
 
-    i_dev_cnt <= (others => '0');
+    i_bcnt_b <= (others => '0');
 
   elsif (i_pkt_type = C_UST_TPKT_H2D) then
 
@@ -232,70 +245,72 @@ if rising_edge(p_in_clk) then
         --------------------------------------
         --
         --------------------------------------
---        when S_RQWR_IDLE =>
---
---          i_rqwr_wr <= '0';
---
---          if (i_pkt_bin_en = '1') then
---              i_dev_bcount(7 downto 0) <= i_pkt_bin;
---
---              i_fsm_rqwr <= S_RQWR_LEN;
---          end if;
-
         when S_RQWR_LEN =>
 
-          if (i_pkt_bin_en = '1') then
---              i_dev_bcount(15 downto 8) <= i_pkt_bin;
+          if (i_pkt_den = '1') then
 
-              for idx in 0 to (i_dev_bcnt'length / 8) - 1 loop
-                if (i_dev_cnt = idx) then
-                  i_dev_bcnt(8 * (idx + 1) - 1 downto 8 * idx) <= i_pkt_bin;
+              i_rqwr_wr <= '0';
+
+              for idx in 0 to (i_dev_dcnt'length / 8) - 1 loop
+                if (i_bcnt_b = idx) then
+                  i_dev_dcnt(8 * (idx + 1) - 1 downto 8 * idx) <= i_pkt_d;
                 end if;
               end loop;
 
-              if (i_dev_cnt = TO_UNSIGNED((i_dev_bcnt'length / 8) - 1, i_dev_cnt'length)) then
-                i_dev_cnt <= (others => '0');
+              if (i_bcnt_b = TO_UNSIGNED((i_dev_dcnt'length / 8) - 1, i_bcnt_b'length)) then
+                i_bcnt_b <= (others => '0');
                 i_fsm_rqwr <= S_RQWR_ADR;
               else
-                i_dev_cnt <= i_dev_cnt + 1;
+                i_bcnt_b <= i_bcnt_b + 1;
               end if;
 
           end if;
 
         when S_RQWR_ADR =>
 
-          if (i_pkt_bin_en = '1') then
---              i_dev_bcnt <= i_dev_bcnt + 2;
---              i_rqwr_adr <= i_pkt_bin;--dev_num(7..4) & dev_type(3..0)
+          if (i_pkt_den = '1') then
 
               for idx in 0 to (i_rqwr_adr'length / 8) - 1 loop
-                if (i_dev_cnt = idx) then
-                  i_rqwr_adr(8 * (idx + 1) - 1 downto 8 * idx) <= i_pkt_bin;
+                if (i_bcnt_b = idx) then
+                  i_rqwr_adr(8 * (idx + 1) - 1 downto 8 * idx) <= i_pkt_d;
                 end if;
               end loop;
 
-              if (i_dev_cnt = TO_UNSIGNED((i_rqwr_adr'length / 8) - 1, i_dev_cnt'length)) then
-                i_dev_cnt <= (others => '0');
-                i_dev_bcnt <= i_dev_bcnt + 1;
+              if (i_bcnt_b = TO_UNSIGNED((i_rqwr_adr'length / 8) - 1, i_bcnt_b'length)) then
+                i_bcnt_b <= (others => '0');
+                i_dev_dcnt <= i_dev_dcnt - CI_DEV_DECR;
                 i_fsm_rqwr <= S_RQWR_D;
               else
-                i_dev_cnt <= i_dev_cnt + 1;
+                i_bcnt_b <= i_bcnt_b + 1;
               end if;
 
           end if;
 
         when S_RQWR_D =>
 
-          if (i_pkt_bin_en = '1') then
-              i_rqwr_di <= i_pkt_bin;
+          if (i_pkt_den = '1') then
+
+              i_rqwr_di <= i_pkt_d;
               i_rqwr_wr <= '1';
 
-              if (i_dev_bcnt = (i_dev_bcnt'range => '0')) then
-                i_fsm_rqwr <= S_RQWR_LEN;
+              if (i_dev_dcnt = (i_dev_dcnt'range => '0')) then
+
+                if (i_fsm_pkt_rx = S_RX_PKT_DONE) then
+                  i_fsm_rqwr <= S_RQWR_DONE;
+                else
+                  i_fsm_rqwr <= S_RQWR_LEN;
+                end if;
+
               else
-                i_dev_bcnt <= i_dev_bcnt - 1;
+                i_dev_dcnt <= i_dev_dcnt - 1;
               end if;
+
           end if;
+
+        when S_RQWR_DONE =>
+
+          i_rqwr_wr <= '0';
+          i_fsm_rqwr <= S_RQWR_LEN;
 
       end case;
 
