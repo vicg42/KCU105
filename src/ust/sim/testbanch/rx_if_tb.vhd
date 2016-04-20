@@ -235,9 +235,9 @@ wait for 3 us;
 
 wait until rising_edge(i_clk);
 i_bufi_di(15 downto 0)  <= TO_UNSIGNED(2 + (2 + (2 + 8)) + (2 + (2 + 11))   , 16); --
-i_bufi_di(31 downto 16) <= TO_UNSIGNED(C_UST_TPKT_H2D, 16); --2
+i_bufi_di(31 downto 16) <= TO_UNSIGNED(C_PKT_TYPE_H2D, 16); --2
 i_bufi_di(47 downto 32) <= TO_UNSIGNED((2 + 8)       , 16); --2
-i_bufi_di(63 downto 48) <= TO_UNSIGNED(C_UST_TDEV_REG, 16); --2
+i_bufi_di(63 downto 48) <= TO_UNSIGNED(C_UDEV_REG, 16); --2
 --i_bufi_di(63 downto 57) <= TO_UNSIGNED(, 8);
 i_bufi_wr <= '1';
 i_bufi_wr_last <= '0';
@@ -256,7 +256,7 @@ i_bufi_wr_last <= '0';
 
 wait until rising_edge(i_clk);
 i_bufi_di(15 downto  0) <= TO_UNSIGNED((2 + 11), 16);
-i_bufi_di(31 downto 16) <= TO_UNSIGNED(C_UST_TDEV_GPS, 16);
+i_bufi_di(31 downto 16) <= TO_UNSIGNED(C_UDEV_GPS, 16);
 i_bufi_di(39 downto 32) <= TO_UNSIGNED(32, 8); --12Byte
 i_bufi_di(47 downto 40) <= TO_UNSIGNED(33, 8);
 i_bufi_di(55 downto 48) <= TO_UNSIGNED(34, 8);
@@ -283,26 +283,26 @@ i_bufi_wr_last <= '0';
 
 wait until rising_edge(i_clk);
 i_bufi_di(15 downto 0)  <= TO_UNSIGNED(2 + (4 + 4 + 4 + 4 + 4)   , 16); --
-i_bufi_di(31 downto 16) <= TO_UNSIGNED(C_UST_TPKT_D2H, 16); --2
+i_bufi_di(31 downto 16) <= TO_UNSIGNED(C_PKT_TYPE_D2H, 16); --2
 i_bufi_di(47 downto 32) <= TO_UNSIGNED((2 + 8)       , 16); --2
-i_bufi_di(63 downto 48) <= TO_UNSIGNED(C_UST_TDEV_REG, 16); --2
+i_bufi_di(63 downto 48) <= TO_UNSIGNED(C_UDEV_REG, 16); --2
 --i_bufi_di(63 downto 57) <= TO_UNSIGNED(, 8);
 i_bufi_wr <= '1';
 i_bufi_wr_last <= '0';
 
 wait until rising_edge(i_clk);
 i_bufi_di(15 downto 0)  <= TO_UNSIGNED((2 + 11)   , 16); --
-i_bufi_di(31 downto 16) <= TO_UNSIGNED(C_UST_TDEV_REG, 16); --2
+i_bufi_di(31 downto 16) <= TO_UNSIGNED(C_UDEV_REG, 16); --2
 i_bufi_di(47 downto 32) <= TO_UNSIGNED((2 + 8)       , 16); --2
-i_bufi_di(63 downto 48) <= TO_UNSIGNED(C_UST_TDEV_REG, 16); --2
+i_bufi_di(63 downto 48) <= TO_UNSIGNED(C_UDEV_REG, 16); --2
 i_bufi_wr <= '1';
 i_bufi_wr_last <= '0';
 
 wait until rising_edge(i_clk);
 i_bufi_di(15 downto 0)  <= TO_UNSIGNED((2 + 12)   , 16); --
-i_bufi_di(31 downto 16) <= TO_UNSIGNED(C_UST_TDEV_REG, 16); --2
+i_bufi_di(31 downto 16) <= TO_UNSIGNED(C_UDEV_REG, 16); --2
 i_bufi_di(47 downto 32) <= TO_UNSIGNED((2 + 8)       , 16); --2
-i_bufi_di(63 downto 48) <= TO_UNSIGNED(C_UST_TDEV_REG, 16); --2
+i_bufi_di(63 downto 48) <= TO_UNSIGNED(C_UDEV_REG, 16); --2
 i_bufi_wr <= '1';
 i_bufi_wr_last <= '1';
 

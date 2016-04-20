@@ -5,44 +5,56 @@
 -- Module Name : ust_def
 --
 -- Description :
---
+-- _HDR_ - header
+-- _BCOUNT - byte count
+-- _Fxxx_ - field xxx
+-- _D2H_ - dir Dev -> Host
+-- _H2D_ - dir Dev <- Host
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
 
 package ust_def is
 
-constant C_PKT_TYPE_VIDEO : natural := 1;
+constant C_FLEN_BCOUNT : natural := 2; --field length
+constant C_FPKT_TYPE_BCOUNT : natural := 2; --field length
 
-constant C_VIDEO_PKT_HEADER_BYTECOUNT : natural := 16;
+--Type of packet
+constant C_PKT_TYPE_D2H   : natural := 0;--dev -> host (read)
+constant C_PKT_TYPE_VIDEO : natural := 1;--video data
+constant C_PKT_TYPE_H2D   : natural := 2;--host -> dev (write)
 
-constant C_UST_HPKT_CHUNK_SIZE  : natural := 2; --2 byte
-constant C_UST_HPKT_CHUNK_COUNT : natural := 2;
-constant C_UST_HEADER_PKT_SIZE  : natural := C_UST_HPKT_CHUNK_COUNT * C_UST_HPKT_CHUNK_SIZE;
+--Packet Header size (byte)
+--constant C_VIDEO_PKT_HDR_BCOUNT : natural := 16;
+constant C_PKT_D2H_HDR_BCOUNT : natural := 4;
+constant C_PKT_H2D_HDR_BCOUNT : natural := 4;
+constant C_PKT_VIDEO_HDR_BCOUNT : natural := 16;
 
-constant C_UST_LPKT_LSB_BIT : natural := 0;
-constant C_UST_LPKT_MSB_BIT : natural := 15;
-constant C_UST_TPKT_LSB_BIT : natural := 0 + 16;
-constant C_UST_TPKT_MSB_BIT : natural := 7 + 16;
+--Device Header size (byte)
+constant C_UDEV_HDR_BCOUNT : natural := 4;
 
-constant C_UST_TPKT_D2H : natural := 0;--dev -> host (read)
-constant C_UST_TPKT_VD  : natural := 1;--video data
-constant C_UST_TPKT_H2D : natural := 2;--host -> dev (write)
+--Type Device
+constant C_UDEV_NULL   : natural := 0;
+constant C_UDEV_REG    : natural := 1;
+constant C_UDEV_GPS    : natural := 2;
+constant C_UDEV_LASER  : natural := 3;
+constant C_UDEV_CAMERA : natural := 4;
+constant C_UDEV_SAU    : natural := 5;
+constant C_UDEV_RAM    : natural := 6;
+constant C_UDEV_PROM   : natural := 7;
+constant C_UDEV_TEMP   : natural := 8;
 
-constant C_UST_HDEV_CHUNK_SIZE  : natural := 2; --2 byte
-constant C_UST_HDEV_CHUNK_COUNT : natural := 2;
-constant C_UST_HEADER_DEV_SIZE  : natural := C_UST_HDEV_CHUNK_COUNT * C_UST_HDEV_CHUNK_SIZE;
-
-constant C_UST_TDEV_NULL     : natural := 0;
-constant C_UST_TDEV_REG      : natural := 1;
-constant C_UST_TDEV_GPS      : natural := 2;
-constant C_UST_TDEV_DISTANCE : natural := 3;
-constant C_UST_TDEV_CAMERA   : natural := 4;
-constant C_UST_TDEV_SAU      : natural := 5;
-constant C_UST_TDEV_RAM      : natural := 6;
-constant C_UST_TDEV_PROM     : natural := 7;
-constant C_UST_TDEV_COORD    : natural := 8;
-constant C_UST_TDEV_TEMP     : natural := 9;
+--type TUDevParam is record
+--ctrl : std_logic_vector(C_SWT_REG_CTRL_LAST_BIT downto 0);
+--dbg  : std_logic_vector(C_SWT_REG_DBG_LAST_BIT downto 0);
+--frr  : TSwtFrr;
+--end record;
+--
+--type TUDevParam is record
+--tdev : std_logic_vector(C_SWT_REG_CTRL_LAST_BIT downto 0);
+--dbg  : std_logic_vector(C_SWT_REG_DBG_LAST_BIT downto 0);
+--frr  : TSwtFrr;
+--end record;
 
 end package ust_def;
 

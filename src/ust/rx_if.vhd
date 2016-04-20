@@ -68,7 +68,6 @@ S_RX_PKT_ERR
 signal i_fsm_pkt_rx    : TFsmPktRx;
 
 type TFsmRqWr is (
---S_RQWR_IDLE,
 S_RQWR_LEN,
 S_RQWR_ADR,
 S_RQWR_D,
@@ -81,22 +80,20 @@ signal i_ibuf_rden     : std_logic;
 
 signal i_pkt_den       : std_logic;
 signal i_pkt_d         : unsigned(7 downto 0); --byte input
-signal i_pkt_type      : unsigned(7 downto 0);
-signal i_pkt_dcnt      : unsigned(15 downto 0);--packet byte cnt
+signal i_pkt_type      : unsigned(1 downto 0);
+signal i_pkt_dcnt      : unsigned((C_FLEN_BCOUNT * 8) - 1 downto 0);--packet byte cnt
 signal i_bcnt_a        : unsigned(log2(G_IBUF_DWIDTH / 8) - 1 downto 0);--bus byte cnt
-signal i_bcnt_b        : unsigned(15 downto 0);
+signal i_bcnt_b        : unsigned(7 downto 0);
 
-signal i_dev_dcnt      : unsigned(15 downto 0);
+signal i_dev_dcnt      : unsigned((C_FLEN_BCOUNT * 8) - 1 downto 0);
 signal i_rqwr_adr      : unsigned(15 downto 0);
 signal i_rqwr_di       : unsigned(7 downto 0);
 signal i_rqwr_wr       : std_logic;
 
 signal i_err           : std_logic;
 
---total dcount = dev_len + 2
---payload dcount = total dcount - headersize - 1
-constant CI_PKT_DECR : natural := C_UST_HEADER_PKT_SIZE - 1;
-constant CI_DEV_DECR : natural := C_UST_HEADER_DEV_SIZE - 1;
+constant CI_PKT_DECR : natural := C_PKT_H2D_HDR_BCOUNT - 1;
+constant CI_DEV_DECR : natural := C_UDEV_HDR_BCOUNT - 1;
 
 
 begin --architecture behavioral
@@ -139,17 +136,19 @@ if rising_edge(p_in_clk) then
               i_pkt_dcnt <= UNSIGNED(p_in_ibuf_axi_tdata(15 downto 0)) - CI_PKT_DECR;
               i_bcnt_a <= TO_UNSIGNED(4, i_bcnt_a'length);
 
-              if (UNSIGNED(p_in_ibuf_axi_tdata(C_UST_LPKT_MSB_BIT downto C_UST_LPKT_LSB_BIT)) = TO_UNSIGNED(0, (C_UST_LPKT_MSB_BIT - C_UST_LPKT_LSB_BIT + 1) )) then
+              if (UNSIGNED(p_in_ibuf_axi_tdata((C_FLEN_BCOUNT * 8) - 1 downto 0)) = TO_UNSIGNED(0, (C_FLEN_BCOUNT * 8)) ) then
                   i_pkt_type <= (others => '0');
                   i_fsm_pkt_rx <= S_RX_PKT_ERR;
 
-              elsif (UNSIGNED(p_in_ibuf_axi_tdata(C_UST_TPKT_MSB_BIT downto C_UST_TPKT_LSB_BIT)) = TO_UNSIGNED(C_UST_TPKT_D2H, (C_UST_LPKT_MSB_BIT - C_UST_LPKT_LSB_BIT + 1) )) then
-                  i_pkt_type <= TO_UNSIGNED(C_UST_TPKT_D2H, i_pkt_type'length);
+              --FPGA -> HOST
+              elsif (UNSIGNED(p_in_ibuf_axi_tdata((C_FLEN_BCOUNT * 8) + 8 - 1 downto (C_FLEN_BCOUNT * 8))) = TO_UNSIGNED(C_PKT_TYPE_D2H, 8) ) then
+                  i_pkt_type <= TO_UNSIGNED(C_PKT_TYPE_D2H, i_pkt_type'length);
                   i_ibuf_rden <= '1';
                   i_fsm_pkt_rx <= S_RX_DPKT;
 
-              elsif (UNSIGNED(p_in_ibuf_axi_tdata(C_UST_TPKT_MSB_BIT downto C_UST_TPKT_LSB_BIT)) = TO_UNSIGNED(C_UST_TPKT_H2D, (C_UST_LPKT_MSB_BIT - C_UST_LPKT_LSB_BIT + 1) )) then
-                  i_pkt_type <= TO_UNSIGNED(C_UST_TPKT_H2D, i_pkt_type'length);
+              --FPGA <- HOST
+              elsif (UNSIGNED(p_in_ibuf_axi_tdata((C_FLEN_BCOUNT * 8) + 8 - 1 downto (C_FLEN_BCOUNT * 8))) = TO_UNSIGNED(C_PKT_TYPE_H2D, 8) ) then
+                  i_pkt_type <= TO_UNSIGNED(C_PKT_TYPE_H2D, i_pkt_type'length);
                   i_ibuf_rden <= '1';
                   i_fsm_pkt_rx <= S_RX_DPKT;
 
@@ -214,7 +213,7 @@ end process;
 --
 ---------------------------------------------
 p_out_rqrd_di <= std_logic_vector(i_pkt_d);
-p_out_rqrd_wr <= i_pkt_den when i_pkt_type = TO_UNSIGNED(C_UST_TPKT_D2H, i_pkt_type'length) else '0';
+p_out_rqrd_wr <= i_pkt_den when i_pkt_type = TO_UNSIGNED(C_PKT_TYPE_D2H, i_pkt_type'length) else '0';
 
 ---------------------------------------------
 --
@@ -238,7 +237,7 @@ if rising_edge(p_in_clk) then
 
     i_bcnt_b <= (others => '0');
 
-  elsif (i_pkt_type = C_UST_TPKT_H2D) then
+  elsif (i_pkt_type = C_PKT_TYPE_H2D) then
 
       case i_fsm_rqwr is
 
