@@ -166,12 +166,12 @@ signal i_cam0_bufpkt_empty : std_logic;
 
 signal i_cam_dbg           : TCAM_dbg;
 
-component ila_dbg_cam is
+component dbgcs_ila_cam is
 port (
 clk : in std_logic;
 probe0 : in std_logic_vector(75 downto 0)
 );
-end component ila_dbg_cam;
+end component dbgcs_ila_cam;
 
 attribute mark_debug : string;
 attribute mark_debug of i_cam_dbg  : signal is "true";
@@ -298,7 +298,7 @@ p_out_tst(3) <= i_cam_dbg.cam.frprm_detect;
 
 
 gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
-dbg_cam : ila_dbg_cam
+dbg_cam : dbgcs_ila_cam
 port map(
 clk                 => i_cam0_bufpkt_rdclk,
 probe0(0)           => i_cam_dbg.cam.bufpkt_empty,
