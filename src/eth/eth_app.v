@@ -138,7 +138,7 @@ parameter   G_GTCH_COUNT = 1
 
    wire   [(80 * G_GTCH_COUNT) - 1 : 0]   mac_tx_configuration_vector;
    wire   [(80 * G_GTCH_COUNT) - 1 : 0]   mac_rx_configuration_vector;
-   wire   [(2 * G_GTCH_COUNT) - 1 : 0]    mac_status_vector;
+   wire   [(3 * G_GTCH_COUNT) - 1 : 0]    mac_status_vector;
    wire   [(536 * G_GTCH_COUNT) - 1 : 0]  pcs_pma_configuration_vector;
    wire   [(448 * G_GTCH_COUNT) - 1 : 0]  pcs_pma_status_vector;
    wire   [(8 * G_GTCH_COUNT) - 1 : 0]    pcspma_status;
@@ -185,8 +185,8 @@ begin : ch
 
   //Status
   assign block_lock[i] = pcspma_status[(8 * i) + 0];
-  assign no_remote_and_local_faults[i] = !mac_status_vector[(2 * i) + 0]
-                                      && !mac_status_vector[(2 * i) + 1] ;
+  assign no_remote_and_local_faults[i] = !mac_status_vector[(3 * i) + 0]
+                                      && !mac_status_vector[(3 * i) + 1] ;
 
   assign core_ready[i] = block_lock[i] && no_remote_and_local_faults[i];
 
