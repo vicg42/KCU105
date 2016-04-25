@@ -76,7 +76,7 @@ parameter                              FIFO_SIZE = 1024
 
    input       [(80 * G_GTCH_COUNT) - 1 : 0]    mac_tx_configuration_vector,
    input       [(80 * G_GTCH_COUNT) - 1 : 0]    mac_rx_configuration_vector,
-   output      [(2 * G_GTCH_COUNT) - 1 : 0]     mac_status_vector,
+   output      [(3 * G_GTCH_COUNT) - 1 : 0]     mac_status_vector,
    input       [(536 * G_GTCH_COUNT) - 1 : 0]   pcs_pma_configuration_vector,
    output      [(448 * G_GTCH_COUNT) - 1 : 0]   pcs_pma_status_vector,
 
@@ -222,7 +222,7 @@ parameter                              FIFO_SIZE = 1024
       .m_axis_rx_tlast                 (rx_axis_mac_tlast[0]),
       .mac_tx_configuration_vector     (mac_tx_configuration_vector[(80 * (0 + 1)) - 1 : (80 * 0)]),
       .mac_rx_configuration_vector     (mac_rx_configuration_vector[(80 * (0 + 1)) - 1 : (80 * 0)]),
-      .mac_status_vector               (mac_status_vector[(2 * (0 + 1)) - 1 : (2 * 0)]),
+      .mac_status_vector               (mac_status_vector[(3 * (0 + 1)) - 1 : (3 * 0)]),
       .pcs_pma_configuration_vector    (pcs_pma_configuration_vector[(536 * (0 + 1)) - 1 : (536 * 0)]),
       .pcs_pma_status_vector           (pcs_pma_status_vector[(448 * (0 + 1)) - 1 : (448 * 0)]),
 
@@ -362,7 +362,7 @@ endgenerate
       .m_axis_rx_tlast                 (rx_axis_mac_tlast[1]),
       .mac_tx_configuration_vector     (mac_tx_configuration_vector[(80 * (1 + 1)) - 1 : (80 * 1)]),
       .mac_rx_configuration_vector     (mac_rx_configuration_vector[(80 * (1 + 1)) - 1 : (80 * 1)]),
-      .mac_status_vector               (mac_status_vector[(2 * (1 + 1)) - 1 : (2 * 1)]),
+      .mac_status_vector               (mac_status_vector[(3 * (1 + 1)) - 1 : (3 * 1)]),
       .pcs_pma_configuration_vector    (pcs_pma_configuration_vector[(536 * (1 + 1)) - 1 : (536 * 1)]),
       .pcs_pma_status_vector           (pcs_pma_status_vector[(448 * (1 + 1)) - 1 : (448 * 1)]),
 
