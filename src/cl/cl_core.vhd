@@ -130,7 +130,7 @@ signal sr_rst           : std_logic_vector(0 to 31);
 signal g_idlyctrl_clk     : std_logic;
 signal i_cl_clkin         : std_logic;
 signal g_cl_clkin         : std_logic;
-signal g_cl_clkin_7x      : std_logic;
+signal g_cl_clkin_7x, i_clk_7x : std_logic;
 signal g_cl_clkin_7xdiv4  : std_logic;
 signal g_cl_clkin_7xdiv7  : std_logic;
 signal i_cl_clkin_7x_lock : std_logic;
@@ -208,11 +208,13 @@ G_DCM_TYPE => G_DCM_TYPE
 )
 port map(
 p_in_clk     => g_cl_clkin,
-p_out_gclkx7 => g_cl_clkin_7x,
+p_out_gclkx7 => i_clk_7x,
 p_out_gdlyctrl=> g_idlyctrl_clk,
 p_in_rst     => p_in_rst,
 p_out_locked => i_cl_clkin_7x_lock
 );
+
+m_gclkx7 : BUFG port map(I => i_clk_7x, O => g_cl_clkin_7x);
 
 m_clkx7div4 : BUFGCE_DIV
 generic map (
@@ -220,7 +222,7 @@ IS_CLR_INVERTED => '1',
 BUFGCE_DIVIDE => 4
 )
 port map (
-I => g_cl_clkin_7x,
+I => i_clk_7x,
 O => g_cl_clkin_7xdiv4,
 CE => '1',
 CLR => i_div_rst
@@ -232,7 +234,7 @@ IS_CLR_INVERTED => '1',
 BUFGCE_DIVIDE => 7
 )
 port map (
-I => g_cl_clkin_7x,
+I => i_clk_7x,
 O => g_cl_clkin_7xdiv7,
 CE => '1',
 CLR => i_div_rst
@@ -240,20 +242,18 @@ CLR => i_div_rst
 
 
 --reset ctrl
-process(i_cl_clkin_7x_lock, g_cl_clkin_7xdiv4)
+process(g_cl_clkin_7xdiv4)
 begin
-if (i_cl_clkin_7x_lock = '0') then
-  sr_rst <= (others => '0');
-elsif rising_edge(g_cl_clkin_7xdiv4) then
+if rising_edge(g_cl_clkin_7xdiv4) then
   sr_rst <= '1' & sr_rst(0 to (sr_rst'high - 1));
 end if;
 end process;
 
 i_div_rst       <= i_cl_clkin_7x_lock;
-i_idelay_rst    <= sr_rst(7)     ;
-i_serdes_rst    <= sr_rst(15)    ;
-i_idlyctrl_rst  <= not sr_rst(23);
-i_desr_ctrl_rst <= sr_rst(31)    ;
+i_idelay_rst    <= sr_rst(7)       and i_cl_clkin_7x_lock ;
+i_serdes_rst    <= sr_rst(15)      and i_cl_clkin_7x_lock ;
+i_idlyctrl_rst  <= not (sr_rst(23) and i_cl_clkin_7x_lock);
+i_desr_ctrl_rst <= sr_rst(31)      and i_cl_clkin_7x_lock ;
 
 
 --Set signal for deserialization

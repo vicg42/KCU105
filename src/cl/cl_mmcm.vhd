@@ -45,7 +45,7 @@ signal i_clk_idlayctrl: std_logic;
 begin --architecture behavioral
 
 
-m_bufg_out : BUFG port map(I => i_clkx7, O => p_out_gclkx7);
+p_out_gclkx7 <= i_clkx7;
 
 
 gen_pll : if (G_DCM_TYPE = C_CL_PLL) generate begin

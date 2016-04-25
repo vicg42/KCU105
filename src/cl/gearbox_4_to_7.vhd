@@ -105,15 +105,15 @@ end process ;
 
 process (input_clock) begin
 if input_clock'event and input_clock = '1' then     -- Gearbox input - 4 bit data at input clock frequency
-  if local_reset = '1' then
-    write_addr <= "0000" ;
-    read_enable <= '0' ;
-  elsif write_addr = "1101" then
+  if local_reset = '1' or write_addr = "1101" then
     write_addr <= "0000" ;
   else
     write_addr <= write_addr + 1 ;
-  end if ;
-  if write_addr = "0001" then
+  end if;
+
+  if local_reset = '1' then
+    read_enable <= '0' ;
+  elsif write_addr = "0001" then
     read_enable <= '1' ;
   end if ;
 end if ;
