@@ -46,7 +46,7 @@
 -- 
 -- DO NOT MODIFY THIS FILE.
 
--- IP VLNV: xilinx.com:ip:fifo_generator:13.0
+-- IP VLNV: xilinx.com:ip:fifo_generator:13.1
 -- IP Revision: 0
 
 -- The following code must appear in the VHDL architecture header.
@@ -62,7 +62,6 @@ COMPONENT fifo_host2eth
     rd_en : IN STD_LOGIC;
     dout : OUT STD_LOGIC_VECTOR(63 DOWNTO 0);
     full : OUT STD_LOGIC;
-    almost_full : OUT STD_LOGIC;
     empty : OUT STD_LOGIC;
     prog_full : OUT STD_LOGIC
   );
@@ -83,7 +82,6 @@ your_instance_name : fifo_host2eth
     rd_en => rd_en,
     dout => dout,
     full => full,
-    almost_full => almost_full,
     empty => empty,
     prog_full => prog_full
   );

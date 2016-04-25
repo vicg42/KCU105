@@ -46,7 +46,7 @@
 -- 
 -- DO NOT MODIFY THIS FILE.
 
--- IP VLNV: xilinx.com:ip:pcie3_ultrascale:4.1
+-- IP VLNV: xilinx.com:ip:pcie3_ultrascale:4.2
 -- IP Revision: 0
 
 -- The following code must appear in the VHDL architecture header.

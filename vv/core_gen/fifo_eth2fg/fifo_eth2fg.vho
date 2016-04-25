@@ -46,7 +46,7 @@
 -- 
 -- DO NOT MODIFY THIS FILE.
 
--- IP VLNV: xilinx.com:ip:fifo_generator:13.0
+-- IP VLNV: xilinx.com:ip:fifo_generator:13.1
 -- IP Revision: 0
 
 -- The following code must appear in the VHDL architecture header.

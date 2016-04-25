@@ -1,4 +1,4 @@
--- (c) Copyright 1995-2015 Xilinx, Inc. All rights reserved.
+-- (c) Copyright 1995-2016 Xilinx, Inc. All rights reserved.
 -- 
 -- This file contains confidential and proprietary information
 -- of Xilinx, Inc. and is protected under U.S. and
@@ -46,8 +46,8 @@
 -- 
 -- DO NOT MODIFY THIS FILE.
 
--- IP VLNV: xilinx.com:ip:axi_10g_ethernet:3.0
--- IP Revision: 2
+-- IP VLNV: xilinx.com:ip:axi_10g_ethernet:3.1
+-- IP Revision: 0
 
 -- The following code must appear in the VHDL architecture header.
 
@@ -70,7 +70,7 @@ COMPONENT eth_core
     rxrecclk_out : OUT STD_LOGIC;
     mac_tx_configuration_vector : IN STD_LOGIC_VECTOR(79 DOWNTO 0);
     mac_rx_configuration_vector : IN STD_LOGIC_VECTOR(79 DOWNTO 0);
-    mac_status_vector : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+    mac_status_vector : OUT STD_LOGIC_VECTOR(2 DOWNTO 0);
     pcs_pma_configuration_vector : IN STD_LOGIC_VECTOR(535 DOWNTO 0);
     pcs_pma_status_vector : OUT STD_LOGIC_VECTOR(447 DOWNTO 0);
     areset_datapathclk_out : OUT STD_LOGIC;

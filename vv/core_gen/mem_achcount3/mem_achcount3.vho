@@ -47,7 +47,7 @@
 -- DO NOT MODIFY THIS FILE.
 
 -- IP VLNV: xilinx.com:ip:axi_interconnect:1.7
--- IP Revision: 7
+-- IP Revision: 9
 
 -- The following code must appear in the VHDL architecture header.
 

@@ -46,7 +46,7 @@
 -- 
 -- DO NOT MODIFY THIS FILE.
 
--- IP VLNV: xilinx.com:ip:ddr4:1.0
+-- IP VLNV: xilinx.com:ip:ddr4:2.0
 -- IP Revision: 0
 
 -- The following code must appear in the VHDL architecture header.
@@ -55,8 +55,10 @@
 COMPONENT mem_ctrl_core_axi
   PORT (
     c0_init_calib_complete : OUT STD_LOGIC;
+    dbg_clk : OUT STD_LOGIC;
     c0_sys_clk_p : IN STD_LOGIC;
     c0_sys_clk_n : IN STD_LOGIC;
+    dbg_bus : OUT STD_LOGIC_VECTOR(511 DOWNTO 0);
     c0_ddr4_adr : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
     c0_ddr4_ba : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
     c0_ddr4_cke : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
@@ -123,8 +125,10 @@ END COMPONENT;
 your_instance_name : mem_ctrl_core_axi
   PORT MAP (
     c0_init_calib_complete => c0_init_calib_complete,
+    dbg_clk => dbg_clk,
     c0_sys_clk_p => c0_sys_clk_p,
     c0_sys_clk_n => c0_sys_clk_n,
+    dbg_bus => dbg_bus,
     c0_ddr4_adr => c0_ddr4_adr,
     c0_ddr4_ba => c0_ddr4_ba,
     c0_ddr4_cke => c0_ddr4_cke,
