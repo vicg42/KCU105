@@ -101,7 +101,8 @@ type TFsmRqRd is (
 S_RQ_IDLE,
 S_RQ_LEN,
 S_RQ_ID,
-S_RQ_RDY
+S_RQ_RDY,
+S_RQ_WAIT
 );
 
 type TFsmPkt is (
@@ -270,15 +271,18 @@ if rising_edge(p_in_clk) then
 
         when S_RQ_RDY =>
 
---          if (i_dev.busy = '0') then
-
             i_rq.id <= i_rq_id;
             i_rq.plsize <= i_rq_len;
             i_rq.pktsize <= i_rq_len + 2;
             i_rq.rdy <= '1';
-            i_fsm_rq <= S_RQ_IDLE;
+            i_fsm_rq <= S_RQ_WAIT;
 
---          end if;
+        when S_RQ_WAIT =>
+
+          if (i_dev.busy = '1') then
+          i_rq.rdy <= '0';
+            i_fsm_rq <= S_RQ_IDLE;
+          end if;
 
       end case;
 
