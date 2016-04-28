@@ -126,7 +126,7 @@ S_PKT_RD
 
 type TRqRd is record
 id : unsigned(15 downto 0);
-dsize : unsigned(15 downto 0);
+plsize : unsigned(15 downto 0);
 pktsize : unsigned(15 downto 0);
 rdy : std_logic;
 end record;
@@ -134,6 +134,7 @@ end record;
 type TDev is record
 typ : unsigned(3 downto 0);
 num : unsigned(3 downto 0);
+dsize : unsigned(15 downto 0);
 busy : std_logic;
 end record;
 
@@ -155,7 +156,9 @@ signal i_dev          : TDev;
 signal i_dev_rd       : std_logic;
 signal i_dev_hdr      : unsigned(7 downto 0);
 signal i_dev_hdr_wr   : std_logic;
+signal i_dev_dcnt     : unsigned(15 downto 0);
 
+signal i_pkt_id       : unsigned(15 downto 0);
 signal i_pkt_dcnt     : unsigned(15 downto 0);
 signal i_pkt_hdr      : unsigned(7 downto 0);
 signal i_pkt_hdr_wr   : std_logic;
@@ -206,7 +209,7 @@ if rising_edge(p_in_clk) then
     i_bcnt <= (others => '0');
 
     i_rq.id <= (others => '0');
-    i_rq.dsize <= (others => '0');
+    i_rq.plsize <= (others => '0');
     i_rq.pktsize <= (others => '0');
     i_rq.rdy <= '0';
 
@@ -218,7 +221,7 @@ if rising_edge(p_in_clk) then
 
           i_rq.rdy <= '0';
 
-          if (i_rqbuf_empty = '0') then
+          if (i_rqbuf_empty = '0' and i_dev.busy = '0') then
             i_rqbuf_rden <= '1';
             i_fsm_rq <= S_RQ_LEN;
           end if;
@@ -267,15 +270,15 @@ if rising_edge(p_in_clk) then
 
         when S_RQ_RDY =>
 
-          if (i_dev.busy = '0') then
+--          if (i_dev.busy = '0') then
 
             i_rq.id <= i_rq_id;
-            i_rq.dsize <= i_rq_len;
+            i_rq.plsize <= i_rq_len;
             i_rq.pktsize <= i_rq_len + 2;
             i_rq.rdy <= '1';
             i_fsm_rq <= S_RQ_IDLE;
 
-          end if;
+--          end if;
 
       end case;
 
@@ -285,6 +288,8 @@ end process;
 
 i_dev.typ <= i_rq.id(3 downto 0); --type device
 i_dev.num <= i_rq.id(7 downto 4); --number device
+
+i_pkt_id <= TO_UNSIGNED(C_PKT_TYPE_D2H, i_pkt_id'length);
 
 
 m_bufo : bufo_devrd
@@ -315,7 +320,9 @@ if rising_edge(p_in_clk) then
     i_fsm_pkt <= S_PKT_IDLE;
 
     i_dev.busy <= '0';
+    i_dev.dsize <= (others => '0');
     i_dev_rd <= '0';
+    i_dev_dcnt <= (others => '0');
 
     i_bufo_adr <= (others => '0');
     i_pkt_dcnt <= (others => '0');
@@ -340,6 +347,7 @@ if rising_edge(p_in_clk) then
             i_dev.busy <= '1';
             i_bufo_adr <= TO_UNSIGNED(3, i_bufo_adr'length);
             i_pkt_dcnt <= TO_UNSIGNED(4, i_pkt_dcnt'length);--sizeof(pkt.len) + sizeof(pkt.header)
+            i_dev.dsize <= i_rq.plsize - 2;
             i_fsm_pkt <= S_PKT_CHK;
           end if;
 
@@ -350,6 +358,7 @@ if rising_edge(p_in_clk) then
 
           if (i_rq.rdy = '1') then
             i_dev.busy <= '1';
+            i_dev.dsize <= i_rq.plsize - 2;
             i_fsm_pkt <= S_PKT_CHK;
           end if;
 
@@ -375,7 +384,7 @@ if rising_edge(p_in_clk) then
 
           i_bufo_adr <= i_bufo_adr + 1;
           i_pkt_dcnt <= i_pkt_dcnt + 1;
-          i_dev_hdr <= i_rq.dsize(7 downto 0);
+          i_dev_hdr <= i_rq.plsize(7 downto 0);
           i_dev_hdr_wr <= '1';
           i_fsm_pkt <= S_PKT_DEV_HDR1;
 
@@ -383,7 +392,7 @@ if rising_edge(p_in_clk) then
 
           i_bufo_adr <= i_bufo_adr + 1;
           i_pkt_dcnt <= i_pkt_dcnt + 1;
-          i_dev_hdr <= i_rq.dsize(15 downto 8);
+          i_dev_hdr <= i_rq.plsize(15 downto 8);
           i_fsm_pkt <= S_PKT_DEV_HDR2;
 
         when S_PKT_DEV_HDR2 =>
@@ -397,8 +406,8 @@ if rising_edge(p_in_clk) then
 
           i_bufo_adr <= i_bufo_adr + 1;
           i_pkt_dcnt <= i_pkt_dcnt + 1;
-          i_dev_hdr(14 downto 8) <= i_rq.id(14 downto 8);
-          i_dev_hdr(15) <= '0';--#####################################!!!!!! ###############
+          i_dev_hdr(6 downto 0) <= i_rq.id(14 downto 8);
+          i_dev_hdr(7) <= '0';--#####################################!!!!!! ###############
           i_dev_rd <= '1';
           i_fsm_pkt <= S_PKT_DEV_RD;
 
@@ -416,11 +425,12 @@ if rising_edge(p_in_clk) then
                   if (p_in_dev_rdrdy((t * G_NDEV_COUNT_MAX) + n) = '1') then
                     i_bufo_adr <= i_bufo_adr + 1;
                     i_pkt_dcnt <= i_pkt_dcnt + 1;
-                    if (i_dev_dcnt = (i_dev_dcnt'range => '0')) then
+                    if (i_dev_dcnt = (i_dev.dsize - 1)) then
                       i_dev_rd <= '0';
+                      i_dev_dcnt <= (others => '0');
                       i_fsm_pkt <= S_PKT_DEV_DONE;
                     else
-                      i_dev_dcnt <= i_dev_dcnt - 1;
+                      i_dev_dcnt <= i_dev_dcnt + 1;
                     end if;
                   end if;
 
@@ -481,13 +491,14 @@ if rising_edge(p_in_clk) then
         when S_PKT_RD =>
 
           if (p_in_obuf_axi_tready = '1') then
-          i_bufo_adr <= i_bufo_adr + 1;
+            i_bufo_adr <= i_bufo_adr + 1;
 
-          if (i_pkt_dcnt = (i_pkt_dcnt'range => '0')) then
-            i_pkt_rdy <= '0';
-            i_fsm_pkt <= S_PKT_IDLE;
-          else
-            i_pkt_dcnt <= i_pkt_dcnt - 1;
+            if (i_pkt_dcnt = (i_pkt_dcnt'range => '0')) then
+              i_pkt_rdy <= '0';
+              i_fsm_pkt <= S_PKT_IDLE;
+            else
+              i_pkt_dcnt <= i_pkt_dcnt - 1;
+            end if;
           end if;
 
       end case;
