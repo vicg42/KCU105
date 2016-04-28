@@ -41,10 +41,10 @@ p_out_dev_rd   : out  std_logic_vector((G_TDEV_COUNT_MAX * G_NDEV_COUNT_MAX) - 1
 --------------------------------------------------
 --EthTx
 --------------------------------------------------
-p_in_obuf_axi_tready  : out std_logic; --read
-p_out_obuf_axi_tdata  : in  std_logic_vector(G_OBUF_DWIDTH - 1 downto 0);
-p_out_obuf_axi_tvalid : in  std_logic; --empty
-p_out_obuf_axi_tlast  : in  std_logic; --EOF
+p_in_obuf_axi_tready  : in  std_logic; --read
+p_out_obuf_axi_tdata  : out std_logic_vector(G_OBUF_DWIDTH - 1 downto 0);
+p_out_obuf_axi_tvalid : out std_logic; --empty
+p_out_obuf_axi_tlast  : out std_logic; --EOF
 
 --------------------------------------------------
 --DBG
@@ -83,18 +83,19 @@ end component fifo_rqrd;
 constant CI_BUFO_ADR_MAX : natural := 2048; --byte
 component bufo_devrd
 port (
-addra : in  std_logic_vector(log2(2048) - 1 downto 0);
+addra : in  std_logic_vector(log2(CI_BUFO_ADR_MAX) - 1 downto 0);
 dina  : in  std_logic_vector(7 downto 0);
 ena   : in  std_logic;
 wea   : in  std_logic_vector(0 downto 0);
 clka  : in  std_logic;
 
-addrb : in  std_logic_vector(log2(2048 / (G_OBUF_DWIDTH / 8)) - 1 downto 0);
-doutb : out std_logic_vector(G_OBUF_DWIDTH - 1 downto 0)
+addrb : in  std_logic_vector(log2(CI_BUFO_ADR_MAX / (G_OBUF_DWIDTH / 8)) - 1 downto 0);
+doutb : out std_logic_vector(G_OBUF_DWIDTH - 1 downto 0);
 enb   : in  std_logic;
 clkb  : in  std_logic
 );
 end component bufo_devrd;
+
 
 type TFsmRqRd is (
 S_RQ_IDLE,
@@ -124,13 +125,14 @@ S_PKT_RD
 );
 
 type TRqRd is record
-hdr : unsigned(15 downto 0);
+id : unsigned(15 downto 0);
 dsize : unsigned(15 downto 0);
 pktsize : unsigned(15 downto 0);
+rdy : std_logic;
 end record;
 
 type TDev is record
-type : unsigned(3 downto 0);
+typ : unsigned(3 downto 0);
 num : unsigned(3 downto 0);
 busy : std_logic;
 end record;
@@ -139,7 +141,10 @@ signal i_fsm_rq       : TFsmRqRd;
 signal i_fsm_pkt      : TFsmPkt;
 
 signal i_rqbuf_rden   : std_logic;
-signal i_rqbuf_d      : unsigned(7 downto 0);
+signal i_rqbuf_rd     : std_logic;
+signal i_rqbuf_d      : std_logic_vector(7 downto 0);
+signal i_rqbuf_full   : std_logic;
+signal i_rqbuf_empty  : std_logic;
 
 signal i_rq           : TRqRd;
 signal i_rq_len       : unsigned(15 downto 0);
@@ -175,7 +180,7 @@ wr_en => p_in_rqrd_wr,
 dout  => i_rqbuf_d,
 rd_en => i_rqbuf_rd,
 
-full  => i_rqbuf_full,
+full  => open, --i_rqbuf_full,
 empty => i_rqbuf_empty,
 
 wr_rst_busy => open,
@@ -227,7 +232,7 @@ if rising_edge(p_in_clk) then
 
             for idx in 0 to (i_rq_len'length / 8) - 1 loop
               if (i_bcnt = idx) then
-                i_rq_len(8 * (idx + 1) - 1 downto 8 * idx) <= i_rqbuf_d;
+                i_rq_len(8 * (idx + 1) - 1 downto 8 * idx) <= UNSIGNED(i_rqbuf_d);
               end if;
             end loop;
 
@@ -246,7 +251,7 @@ if rising_edge(p_in_clk) then
 
             for idx in 0 to (i_rq_id'length / 8) - 1 loop
               if (i_bcnt = idx) then
-                i_rq_id(8 * (idx + 1) - 1 downto 8 * idx) <= i_rqbuf_d;
+                i_rq_id(8 * (idx + 1) - 1 downto 8 * idx) <= UNSIGNED(i_rqbuf_d);
               end if;
             end loop;
 
@@ -278,19 +283,19 @@ if rising_edge(p_in_clk) then
 end if;
 end process;
 
-i_dev.type <= i_rq.id(3 downto 0); --type device
+i_dev.typ <= i_rq.id(3 downto 0); --type device
 i_dev.num <= i_rq.id(7 downto 4); --number device
 
 
 m_bufo : bufo_devrd
 port map(
-addra => i_bufo_adr,
-dina  => i_bufo_di,
+addra => std_logic_vector(i_bufo_adr(log2(CI_BUFO_ADR_MAX) - 1 downto 0)),
+dina  => std_logic_vector(i_bufo_di),
 ena   => i_bufo_wr,
-wea   => (others => '0'),
+wea   => "1",
 clka  => p_in_clk,
 
-addrb => i_bufo_adr,
+addrb => std_logic_vector(i_bufo_adr(log2(CI_BUFO_ADR_MAX / (G_OBUF_DWIDTH / 8)) - 1 downto 0)),
 doutb => p_out_obuf_axi_tdata,
 enb   => p_in_obuf_axi_tready,
 clkb  => p_in_clk
@@ -298,7 +303,7 @@ clkb  => p_in_clk
 
 i_bufo_di <= i_dev_hdr when (i_dev_hdr_wr = '1') and (i_pkt_hdr_wr = '0') else
              i_pkt_hdr when (i_dev_hdr_wr = '0') and (i_pkt_hdr_wr = '1') else
-             p_in_dev_d;
+             UNSIGNED(p_in_dev_d);
 
 i_bufo_wr <= (i_dev_hdr_wr or i_pkt_hdr_wr) or (i_dev_rd);
 
@@ -333,8 +338,8 @@ if rising_edge(p_in_clk) then
 
           if (i_rq.rdy = '1') then
             i_dev.busy <= '1';
-            i_bufo_adr <= TO_UNSIGNED(3, i_bufo_adr);
-            i_pkt_dcnt <= TO_UNSIGNED(4, i_pkt_dcnt);--sizeof(pkt.len) + sizeof(pkt.header)
+            i_bufo_adr <= TO_UNSIGNED(3, i_bufo_adr'length);
+            i_pkt_dcnt <= TO_UNSIGNED(4, i_pkt_dcnt'length);--sizeof(pkt.len) + sizeof(pkt.header)
             i_fsm_pkt <= S_PKT_CHK;
           end if;
 
@@ -353,7 +358,7 @@ if rising_edge(p_in_clk) then
         --------------------------------------
         when S_PKT_CHK =>
 
-          if (i_pkt_dcnt + i_rq.pktsize) <= TO_UNSIGNED(CI_PKT_LEN_LIMIT, 16)) then
+          if ((i_pkt_dcnt + i_rq.pktsize) <= TO_UNSIGNED(CI_PKT_LEN_LIMIT, 16)) then
             --read device
             i_fsm_pkt <= S_PKT_SET_HDR0;
           else
@@ -403,7 +408,7 @@ if rising_edge(p_in_clk) then
           i_dev_hdr_wr <= '0';
 
           for t in 0 to G_TDEV_COUNT_MAX - 1 loop
-            if (i_dev.type = t) then --Detect Type Device
+            if (i_dev.typ = t) then --Detect Type Device
 
               for n in 0 to G_NDEV_COUNT_MAX - 1 loop
                 if (i_dev.num = n) then --Detect Number Device
@@ -411,7 +416,7 @@ if rising_edge(p_in_clk) then
                   if (p_in_dev_rdrdy((t * G_NDEV_COUNT_MAX) + n) = '1') then
                     i_bufo_adr <= i_bufo_adr + 1;
                     i_pkt_dcnt <= i_pkt_dcnt + 1;
-                    if (i_dev_dcnt = (i_dev_dcnt'range => '0') then
+                    if (i_dev_dcnt = (i_dev_dcnt'range => '0')) then
                       i_dev_rd <= '0';
                       i_fsm_pkt <= S_PKT_DEV_DONE;
                     else
