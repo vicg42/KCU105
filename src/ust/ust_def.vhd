@@ -59,7 +59,7 @@ constant C_NDEV_COUNT_MAX : natural := 2;
 --frr  : TSwtFrr;
 --end record;
 
-type TUDevRDY is array (0 to (C_TDEV_COUNT_MAX - 1)) of std_logic_vector((C_NDEV_COUNT_MAX - 1) downto 0);
+type TUDevDRDY is array (0 to (C_TDEV_COUNT_MAX - 1)) of std_logic_vector((C_NDEV_COUNT_MAX - 1) downto 0);
 type TUDevRD is array (0 to (C_TDEV_COUNT_MAX - 1)) of std_logic_vector((C_NDEV_COUNT_MAX - 1) downto 0);
 
 type TUDevD is array (0 to (C_NDEV_COUNT_MAX - 1)) of std_logic_vector(7 downto 0);

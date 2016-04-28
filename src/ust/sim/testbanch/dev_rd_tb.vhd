@@ -52,7 +52,7 @@ p_out_rqrd_rdy_n : out  std_logic;
 --------------------------------------------------
 --DEV
 --------------------------------------------------
-p_in_dev_drdy : in  TUDevRDY;--std_logic_vector((G_TDEV_COUNT_MAX * G_NDEV_COUNT_MAX) - 1 downto 0);
+p_in_dev_drdy : in  TUDevDRDY;--std_logic_vector((G_TDEV_COUNT_MAX * G_NDEV_COUNT_MAX) - 1 downto 0);
 p_in_dev_d    : in  TUDevDATA; --std_logic_vector(7 downto 0);
 p_out_dev_rd  : out TUDevRD;
 
@@ -80,7 +80,7 @@ signal i_rst     : std_logic;
 signal i_rst_n   : std_logic;
 signal i_clk     : std_logic;
 
-signal i_dev_drdy : TUDevRDY;--std_logic_vector((G_TDEV_COUNT_MAX * G_NDEV_COUNT_MAX) - 1 downto 0);
+signal i_dev_drdy : TUDevDRDY;--std_logic_vector((G_TDEV_COUNT_MAX * G_NDEV_COUNT_MAX) - 1 downto 0);
 signal i_dev_d     : TUDevDATA; --std_logic_vector(7 downto 0);
 signal i_dev_rd    : TUDevRD;
 

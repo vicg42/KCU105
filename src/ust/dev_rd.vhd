@@ -34,7 +34,7 @@ p_out_rqrd_rdy_n : out  std_logic;
 --------------------------------------------------
 --DEV
 --------------------------------------------------
-p_in_dev_drdy : in  TUDevRDY;
+p_in_dev_drdy : in  TUDevDRDY;
 p_in_dev_d    : in  TUDevDATA;
 p_out_dev_rd  : out TUDevRD;
 
