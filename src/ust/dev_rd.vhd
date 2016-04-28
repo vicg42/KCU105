@@ -20,7 +20,7 @@ entity dev_rd is
 generic(
 G_TDEV_COUNT_MAX : natural := 16;
 G_NDEV_COUNT_MAX : natural := 2;
-
+G_OBUF_DWIDTH : natural := 64;
 G_SIM : string := "OFF"
 );
 port(
@@ -80,16 +80,17 @@ srst : in std_logic
 );
 end component fifo_rqrd;
 
+constant CI_BUFO_ADR_MAX : natural := 2048; --byte
 component bufo_devrd
 port (
-addra : in  std_logic_vector(10 downto 0);
+addra : in  std_logic_vector(log2(2048) - 1 downto 0);
 dina  : in  std_logic_vector(7 downto 0);
 ena   : in  std_logic;
 wea   : in  std_logic_vector(0 downto 0);
 clka  : in  std_logic;
 
-addrb : in  std_logic_vector(7 downto 0);
-doutb : out std_logic_vector(63 downto 0)
+addrb : in  std_logic_vector(log2(2048 / (G_OBUF_DWIDTH / 8)) - 1 downto 0);
+doutb : out std_logic_vector(G_OBUF_DWIDTH - 1 downto 0)
 enb   : in  std_logic;
 clkb  : in  std_logic
 );
@@ -308,7 +309,7 @@ if rising_edge(p_in_clk) then
 
     i_fsm_pkt <= S_PKT_IDLE;
 
-    i_dev.busy <= '1';
+    i_dev.busy <= '0';
     i_dev_rd <= '0';
 
     i_bufo_adr <= (others => '0');
@@ -391,7 +392,8 @@ if rising_edge(p_in_clk) then
 
           i_bufo_adr <= i_bufo_adr + 1;
           i_pkt_dcnt <= i_pkt_dcnt + 1;
-          i_dev_hdr <= i_rq.id(15 downto 8);
+          i_dev_hdr(14 downto 8) <= i_rq.id(14 downto 8);
+          i_dev_hdr(15) <= '0';--#####################################!!!!!! ###############
           i_dev_rd <= '1';
           i_fsm_pkt <= S_PKT_DEV_RD;
 
@@ -427,8 +429,14 @@ if rising_edge(p_in_clk) then
 
           i_dev_rd <= '0';
           i_dev.busy <= '0';
-          i_fsm_pkt <= S_PKT_IDLE2;
 
+          if (i_rq.id(15) = '0') then
+            i_fsm_pkt <= S_PKT_IDLE2;
+          else
+            --Send RD Packet
+            i_bufo_adr <= (others => '0');
+            i_fsm_pkt <= S_PKT_SET_HDR0;
+          end if;
 
         --------------------------------------
         --Set RD Packet header (len + ID) and Send It
