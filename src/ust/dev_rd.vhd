@@ -34,9 +34,9 @@ p_out_rqrd_rdy_n : out  std_logic;
 --------------------------------------------------
 --DEV
 --------------------------------------------------
-p_in_dev_rdrdy : in   std_logic_vector((G_TDEV_COUNT_MAX * G_NDEV_COUNT_MAX) - 1 downto 0);
-p_in_dev_d     : in   std_logic_vector(7 downto 0);
-p_out_dev_rd   : out  std_logic_vector((G_TDEV_COUNT_MAX * G_NDEV_COUNT_MAX) - 1 downto 0);
+p_in_dev_drdy : in  TUDevRDY;
+p_in_dev_d    : in  TUDevDATA;
+p_out_dev_rd  : out TUDevRD;
 
 --------------------------------------------------
 --EthTx
@@ -154,10 +154,11 @@ signal i_rq_id        : unsigned(15 downto 0);
 signal i_bcnt         : unsigned(log2(i_rq_len'length / 8) - 1 downto 0);--bus byte cnt
 
 signal i_dev          : TDev;
-signal i_dev_rd       : std_logic;
 signal i_dev_hdr      : unsigned(7 downto 0);
 signal i_dev_hdr_wr   : std_logic;
 signal i_dev_dcnt     : unsigned(15 downto 0);
+signal i_dev_cs       : TUDevRD;
+signal i_dev_data     : unsigned(7 downto 0);
 
 signal i_pkt_id       : unsigned(15 downto 0);
 signal i_pkt_dcnt     : unsigned(15 downto 0);
@@ -168,7 +169,7 @@ signal i_pkt_rdy      : std_logic;
 signal i_bufo_adr     : unsigned(15 downto 0);
 signal i_bufo_di      : unsigned(7 downto 0);
 signal i_bufo_wr      : std_logic;
-
+signal i_bufo_dwr     : std_logic_vector((C_TDEV_COUNT_MAX * C_NDEV_COUNT_MAX) - 1 downto 0);
 
 begin --architecture behavioral
 
@@ -312,9 +313,9 @@ clkb  => p_in_clk
 
 i_bufo_di <= i_dev_hdr when (i_dev_hdr_wr = '1') and (i_pkt_hdr_wr = '0') else
              i_pkt_hdr when (i_dev_hdr_wr = '0') and (i_pkt_hdr_wr = '1') else
-             UNSIGNED(p_in_dev_d);
+             i_dev_data;
 
-i_bufo_wr <= (i_dev_hdr_wr or i_pkt_hdr_wr) or (i_dev_rd);
+i_bufo_wr <= (i_dev_hdr_wr or i_pkt_hdr_wr) or (OR_reduce(i_bufo_dwr));
 
 process(p_in_clk)
 begin
@@ -325,8 +326,12 @@ if rising_edge(p_in_clk) then
 
     i_dev.busy <= '0';
     i_dev.dsize <= (others => '0');
-    i_dev_rd <= '0';
+    i_dev_data <= (others => '0');
     i_dev_dcnt <= (others => '0');
+
+    for t in 0 to C_TDEV_COUNT_MAX - 1 loop
+    i_dev_cs(t) <= (others => '0');
+    end loop;
 
     i_bufo_adr <= (others => '0');
     i_pkt_dcnt <= (others => '0');
@@ -373,7 +378,10 @@ if rising_edge(p_in_clk) then
 
           if ((i_pkt_dcnt + i_rq.pktsize) <= TO_UNSIGNED(CI_PKT_LEN_LIMIT, 16)) then
             --read device
-            i_fsm_pkt <= S_PKT_SET_HDR0;
+            i_dev_hdr <= i_rq.plsize(7 downto 0);
+            i_dev_hdr_wr <= '1';
+
+            i_fsm_pkt <= S_PKT_DEV_HDR0;
           else
             --Send RD Packet
             i_bufo_adr <= (others => '0');
@@ -388,49 +396,57 @@ if rising_edge(p_in_clk) then
 
           i_bufo_adr <= i_bufo_adr + 1;
           i_pkt_dcnt <= i_pkt_dcnt + 1;
-          i_dev_hdr <= i_rq.plsize(7 downto 0);
-          i_dev_hdr_wr <= '1';
+          i_dev_hdr <= i_rq.plsize(15 downto 8);
           i_fsm_pkt <= S_PKT_DEV_HDR1;
 
         when S_PKT_DEV_HDR1 =>
 
           i_bufo_adr <= i_bufo_adr + 1;
           i_pkt_dcnt <= i_pkt_dcnt + 1;
-          i_dev_hdr <= i_rq.plsize(15 downto 8);
+          i_dev_hdr <= i_rq.id(7 downto 0);
           i_fsm_pkt <= S_PKT_DEV_HDR2;
 
         when S_PKT_DEV_HDR2 =>
 
           i_bufo_adr <= i_bufo_adr + 1;
           i_pkt_dcnt <= i_pkt_dcnt + 1;
-          i_dev_hdr <= i_rq.id(7 downto 0);
+          i_dev_hdr(6 downto 0) <= i_rq.id(14 downto 8);
+          i_dev_hdr(7) <= '0';--#####################################!!!!!! ###############
           i_fsm_pkt <= S_PKT_DEV_HDR3;
 
         when S_PKT_DEV_HDR3 =>
 
           i_bufo_adr <= i_bufo_adr + 1;
           i_pkt_dcnt <= i_pkt_dcnt + 1;
-          i_dev_hdr(6 downto 0) <= i_rq.id(14 downto 8);
-          i_dev_hdr(7) <= '0';--#####################################!!!!!! ###############
-          i_dev_rd <= '1';
-          i_fsm_pkt <= S_PKT_DEV_RD;
+          i_dev_hdr_wr <= '0';
 
+          for t in 0 to C_TDEV_COUNT_MAX - 1 loop
+            if (i_dev.typ = t) then --Detect Type Device
+              for n in 0 to C_NDEV_COUNT_MAX - 1 loop
+                if (i_dev.num = n) then --Detect Number Device
+                  i_dev_cs(t)(n) <= '1';
+                end if;
+              end loop;
+            end if;
+          end loop;
+
+          i_fsm_pkt <= S_PKT_DEV_RD;
 
         when S_PKT_DEV_RD =>
 
-          i_dev_hdr_wr <= '0';
-
-          for t in 0 to G_TDEV_COUNT_MAX - 1 loop
+          for t in 0 to C_TDEV_COUNT_MAX - 1 loop
             if (i_dev.typ = t) then --Detect Type Device
 
-              for n in 0 to G_NDEV_COUNT_MAX - 1 loop
+              for n in 0 to C_NDEV_COUNT_MAX - 1 loop
                 if (i_dev.num = n) then --Detect Number Device
 
-                  if (p_in_dev_rdrdy((t * G_NDEV_COUNT_MAX) + n) = '1') then
+                  if (p_in_dev_drdy(t)(n) = '1') then
                     i_bufo_adr <= i_bufo_adr + 1;
                     i_pkt_dcnt <= i_pkt_dcnt + 1;
+                    i_dev_data <= UNSIGNED(p_in_dev_d(t)(n));
+
                     if (i_dev_dcnt = (i_dev.dsize - 1)) then
-                      i_dev_rd <= '0';
+                      i_dev_cs(t)(n) <= '0';
                       i_dev_dcnt <= (others => '0');
                       i_fsm_pkt <= S_PKT_DEV_DONE;
                     else
@@ -446,7 +462,6 @@ if rising_edge(p_in_clk) then
 
         when S_PKT_DEV_DONE =>
 
-          i_dev_rd <= '0';
           i_dev.busy <= '0';
 
           if (i_rq.id(15) = '0') then
@@ -513,6 +528,22 @@ end process;
 
 
 
-p_out_dev_rd(0) <= i_dev_rd;
+gen_type : for t in 0 to C_TDEV_COUNT_MAX - 1 generate begin
+  gen_num : for n in 0 to C_NDEV_COUNT_MAX - 1 generate begin
+    p_out_dev_rd(t)(n) <= p_in_dev_drdy(t)(n) and i_dev_cs(t)(n);
+
+    process(p_in_clk)
+    begin
+    if rising_edge(p_in_clk) then
+      if (p_in_rst = '1') then
+        i_bufo_dwr((t * G_NDEV_COUNT_MAX) + n) <= '0';
+      else
+        i_bufo_dwr((t * G_NDEV_COUNT_MAX) + n) <= p_in_dev_drdy(t)(n) and i_dev_cs(t)(n);
+      end if;
+    end if;
+    end process;
+
+  end generate gen_num;
+end generate gen_type;
 
 end architecture behavioral;

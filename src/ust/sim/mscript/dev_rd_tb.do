@@ -44,7 +44,7 @@ vcom -64 -93 "../testbanch/dev_rd_tb.vhd";
 
 vsim -t 1ps -L fifo_generator_v13_0_0 -L blk_mem_gen_v8_3_0 -lib work dev_rd_tb
 
-do dev_rd_tb_wave.do.do
+do dev_rd_tb_wave.do
 view wave
 view structure
 view signals

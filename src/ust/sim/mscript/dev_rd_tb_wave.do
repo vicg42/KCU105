@@ -11,6 +11,13 @@ add wave -noupdate /dev_rd_tb/m_dev_rd/i_rqbuf_d
 add wave -noupdate /dev_rd_tb/m_dev_rd/i_rqbuf_empty
 add wave -noupdate -expand /dev_rd_tb/m_dev_rd/i_rq
 add wave -noupdate -expand /dev_rd_tb/m_dev_rd/i_dev
+add wave -noupdate /dev_rd_tb/m_dev_rd/i_fsm_pkt
+add wave -noupdate /dev_rd_tb/m_dev_rd/i_pkt_dcnt
+add wave -noupdate /dev_rd_tb/m_dev_rd/i_dev_dcnt
+add wave -noupdate /dev_rd_tb/m_dev_rd/i_bufo_adr
+add wave -noupdate /dev_rd_tb/m_dev_rd/i_bufo_wr
+add wave -noupdate /dev_rd_tb/m_dev_rd/i_dev_hdr
+add wave -noupdate /dev_rd_tb/m_dev_rd/i_dev_hdr_wr
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {0 ps} 0}
 quietly wave cursor active 0
@@ -28,4 +35,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {2959575 ps} {3134263 ps}
+WaveRestoreZoom {3070589 ps} {3134254 ps}

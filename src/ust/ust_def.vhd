@@ -44,6 +44,9 @@ constant C_UDEV_RAM    : natural := 6;
 constant C_UDEV_PROM   : natural := 7;
 constant C_UDEV_TEMP   : natural := 8;
 
+constant C_TDEV_COUNT_MAX : natural := 9;
+constant C_NDEV_COUNT_MAX : natural := 2;
+
 --type TUDevParam is record
 --ctrl : std_logic_vector(C_SWT_REG_CTRL_LAST_BIT downto 0);
 --dbg  : std_logic_vector(C_SWT_REG_DBG_LAST_BIT downto 0);
@@ -55,6 +58,14 @@ constant C_UDEV_TEMP   : natural := 8;
 --dbg  : std_logic_vector(C_SWT_REG_DBG_LAST_BIT downto 0);
 --frr  : TSwtFrr;
 --end record;
+
+type TUDevRDY is array (0 to (C_TDEV_COUNT_MAX - 1)) of std_logic_vector((C_NDEV_COUNT_MAX - 1) downto 0);
+type TUDevRD is array (0 to (C_TDEV_COUNT_MAX - 1)) of std_logic_vector((C_NDEV_COUNT_MAX - 1) downto 0);
+
+type TUDevD is array (0 to (C_NDEV_COUNT_MAX - 1)) of std_logic_vector(7 downto 0);
+type TUDevDATA is array (0 to (C_TDEV_COUNT_MAX - 1)) of TUDevD;
+
+
 
 end package ust_def;
 

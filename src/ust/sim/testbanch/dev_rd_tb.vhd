@@ -52,9 +52,9 @@ p_out_rqrd_rdy_n : out  std_logic;
 --------------------------------------------------
 --DEV
 --------------------------------------------------
-p_in_dev_rdrdy : in   std_logic_vector((G_TDEV_COUNT_MAX * G_NDEV_COUNT_MAX) - 1 downto 0);
-p_in_dev_d     : in   std_logic_vector(7 downto 0);
-p_out_dev_rd   : out  std_logic_vector((G_TDEV_COUNT_MAX * G_NDEV_COUNT_MAX) - 1 downto 0);
+p_in_dev_drdy : in  TUDevRDY;--std_logic_vector((G_TDEV_COUNT_MAX * G_NDEV_COUNT_MAX) - 1 downto 0);
+p_in_dev_d    : in  TUDevDATA; --std_logic_vector(7 downto 0);
+p_out_dev_rd  : out TUDevRD;
 
 --------------------------------------------------
 --EthTx
@@ -80,9 +80,9 @@ signal i_rst     : std_logic;
 signal i_rst_n   : std_logic;
 signal i_clk     : std_logic;
 
-signal i_dev_rdrdy : std_logic_vector((G_TDEV_COUNT_MAX * G_NDEV_COUNT_MAX) - 1 downto 0);
-signal i_dev_d     : std_logic_vector(7 downto 0);
-signal i_dev_rd    : std_logic_vector((G_TDEV_COUNT_MAX * G_NDEV_COUNT_MAX) - 1 downto 0);
+signal i_dev_drdy : TUDevRDY;--std_logic_vector((G_TDEV_COUNT_MAX * G_NDEV_COUNT_MAX) - 1 downto 0);
+signal i_dev_d     : TUDevDATA; --std_logic_vector(7 downto 0);
+signal i_dev_rd    : TUDevRD;
 
 signal i_rqrd_di    : unsigned(7 downto 0);
 signal i_rqrd_wr    : std_logic;
@@ -115,9 +115,9 @@ p_out_rqrd_rdy_n => i_rqrd_rdy_n,
 --------------------------------------------------
 --DEV
 --------------------------------------------------
-p_in_dev_rdrdy => i_dev_rdrdy,
-p_in_dev_d     => i_dev_d    ,
-p_out_dev_rd   => i_dev_rd   ,
+p_in_dev_drdy => i_dev_drdy,
+p_in_dev_d    => i_dev_d    ,
+p_out_dev_rd  => i_dev_rd   ,
 
 --------------------------------------------------
 --EthTx
@@ -138,8 +138,12 @@ p_in_rst => i_rst
 );
 
 
-i_dev_rdrdy <= (others => '1');
-i_dev_d <= (others => '0');
+gen_type : for t in 0 to C_TDEV_COUNT_MAX - 1 generate begin
+  gen_num : for n in 0 to C_NDEV_COUNT_MAX - 1 generate begin
+    i_dev_drdy(t)(n) <= '1';
+    i_dev_d(t)(n) <= "10101010";
+  end generate gen_num;
+end generate gen_type;
 
 gen_clk0 : process
 begin
