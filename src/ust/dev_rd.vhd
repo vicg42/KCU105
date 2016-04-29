@@ -116,6 +116,7 @@ S_PKT_DEV_HDR2,
 S_PKT_DEV_HDR3,
 S_PKT_DEV_RD,
 S_PKT_DEV_DONE,
+S_PKT_DEV_DONE2,
 
 S_PKT_SET_HDR0,
 S_PKT_SET_HDR1,
@@ -152,24 +153,26 @@ signal i_rq           : TRqRd;
 signal i_rq_len       : unsigned(15 downto 0);
 signal i_rq_id        : unsigned(15 downto 0);
 signal i_bcnt         : unsigned(log2(i_rq_len'length / 8) - 1 downto 0);--bus byte cnt
+signal i_dcnt         : unsigned(15 downto 0);
 
 signal i_dev          : TDev;
 signal i_dev_hdr      : unsigned(7 downto 0);
 signal i_dev_hdr_wr   : std_logic;
-signal i_dev_dcnt     : unsigned(15 downto 0);
 signal i_dev_cs       : TUDevRD;
-signal i_dev_data     : unsigned(7 downto 0);
+signal i_dev_d        : unsigned(7 downto 0);
+signal i_dev_dwr      : std_logic_vector((C_TDEV_COUNT_MAX * C_NDEV_COUNT_MAX) - 1 downto 0);
 
 signal i_pkt_id       : unsigned(15 downto 0);
 signal i_pkt_dcnt     : unsigned(15 downto 0);
 signal i_pkt_hdr      : unsigned(7 downto 0);
 signal i_pkt_hdr_wr   : std_logic;
 signal i_pkt_rdy      : std_logic;
+signal i_pkt_len      : unsigned(15 downto 0);
 
 signal i_bufo_adr     : unsigned(15 downto 0);
 signal i_bufo_di      : unsigned(7 downto 0);
 signal i_bufo_wr      : std_logic;
-signal i_bufo_dwr     : std_logic_vector((C_TDEV_COUNT_MAX * C_NDEV_COUNT_MAX) - 1 downto 0);
+
 
 begin --architecture behavioral
 
@@ -313,9 +316,9 @@ clkb  => p_in_clk
 
 i_bufo_di <= i_dev_hdr when (i_dev_hdr_wr = '1') and (i_pkt_hdr_wr = '0') else
              i_pkt_hdr when (i_dev_hdr_wr = '0') and (i_pkt_hdr_wr = '1') else
-             i_dev_data;
+             i_dev_d;
 
-i_bufo_wr <= (i_dev_hdr_wr or i_pkt_hdr_wr) or (OR_reduce(i_bufo_dwr));
+i_bufo_wr <= (i_dev_hdr_wr or i_pkt_hdr_wr) or (OR_reduce(i_dev_dwr));
 
 process(p_in_clk)
 begin
@@ -324,10 +327,11 @@ if rising_edge(p_in_clk) then
 
     i_fsm_pkt <= S_PKT_IDLE;
 
+    i_dcnt <= (others => '0');
+
     i_dev.busy <= '0';
     i_dev.dsize <= (others => '0');
-    i_dev_data <= (others => '0');
-    i_dev_dcnt <= (others => '0');
+    i_dev_d <= (others => '0');
 
     for t in 0 to C_TDEV_COUNT_MAX - 1 loop
     i_dev_cs(t) <= (others => '0');
@@ -335,6 +339,7 @@ if rising_edge(p_in_clk) then
 
     i_bufo_adr <= (others => '0');
     i_pkt_dcnt <= (others => '0');
+    i_pkt_len <= (others => '0');
 
     i_dev_hdr <= (others => '0');
     i_dev_hdr_wr <= '0';
@@ -440,19 +445,19 @@ if rising_edge(p_in_clk) then
               for n in 0 to C_NDEV_COUNT_MAX - 1 loop
                 if (i_dev.num = n) then --Detect Number Device
 
-                  if (p_in_dev_drdy(t)(n) = '1') then
-                    i_bufo_adr <= i_bufo_adr + 1;
-                    i_pkt_dcnt <= i_pkt_dcnt + 1;
-                    i_dev_data <= UNSIGNED(p_in_dev_d(t)(n));
+                    if (p_in_dev_drdy(t)(n) = '1') then
 
-                    if (i_dev_dcnt = (i_dev.dsize - 1)) then
-                      i_dev_cs(t)(n) <= '0';
-                      i_dev_dcnt <= (others => '0');
-                      i_fsm_pkt <= S_PKT_DEV_DONE;
-                    else
-                      i_dev_dcnt <= i_dev_dcnt + 1;
+                        i_dev_d <= UNSIGNED(p_in_dev_d(t)(n));
+
+                        if (i_dcnt = (i_dev.dsize - 1)) then
+                          i_dev_cs(t)(n) <= '0';
+                          i_dcnt <= (others => '0');
+                          i_fsm_pkt <= S_PKT_DEV_DONE;
+                        else
+                          i_dcnt <= i_dcnt + 1;
+                        end if;
+
                     end if;
-                  end if;
 
                 end if;
               end loop;
@@ -460,32 +465,46 @@ if rising_edge(p_in_clk) then
             end if;
           end loop;
 
+          if (OR_reduce(i_dev_dwr) = '1') then
+            i_bufo_adr <= i_bufo_adr + 1;
+            i_pkt_dcnt <= i_pkt_dcnt + 1;
+          end if;
+
         when S_PKT_DEV_DONE =>
 
           i_dev.busy <= '0';
 
-          if (i_rq.id(15) = '0') then
-            i_fsm_pkt <= S_PKT_IDLE2;
-          else
-            --Send RD Packet
-            i_bufo_adr <= (others => '0');
-            i_fsm_pkt <= S_PKT_SET_HDR0;
+          if (OR_reduce(i_dev_dwr) = '1') then
+            i_bufo_adr <= i_bufo_adr + 1;
+            i_pkt_dcnt <= i_pkt_dcnt + 1;
           end if;
+
+          if (i_rq.id(15) = '1') then --Last RD request
+            --Send RD Packet
+            i_fsm_pkt <= S_PKT_DEV_DONE2;
+          else
+            i_fsm_pkt <= S_PKT_IDLE2;
+          end if;
+
+        when S_PKT_DEV_DONE2 =>
+
+          i_pkt_len <= i_pkt_dcnt - 2;
+          i_fsm_pkt <= S_PKT_SET_HDR0;
 
         --------------------------------------
         --Set RD Packet header (len + ID) and Send It
         --------------------------------------
         when S_PKT_SET_HDR0 =>
 
-          i_bufo_adr <= i_bufo_adr + 1;
-          i_pkt_hdr <= i_pkt_dcnt(7 downto 0);
+          i_bufo_adr <= (others => '0');
+          i_pkt_hdr <= i_pkt_len(7 downto 0);
           i_pkt_hdr_wr <= '1';
           i_fsm_pkt <= S_PKT_SET_HDR1;
 
         when S_PKT_SET_HDR1 =>
 
           i_bufo_adr <= i_bufo_adr + 1;
-          i_pkt_hdr <= i_pkt_dcnt(15 downto 8);
+          i_pkt_hdr <= i_pkt_len(15 downto 8);
           i_fsm_pkt <= S_PKT_SET_HDR2;
 
         when S_PKT_SET_HDR2 =>
@@ -498,25 +517,25 @@ if rising_edge(p_in_clk) then
 
           i_bufo_adr <= i_bufo_adr + 1;
           i_pkt_hdr <= i_pkt_id(15 downto 8);
-          i_pkt_hdr_wr <= '1';
           i_fsm_pkt <= S_PKT_RDY;
 
         when S_PKT_RDY =>
 
+          i_bufo_adr <= (others => '0');
           i_pkt_hdr_wr <= '0';
           i_pkt_rdy <= '1';
-          i_bufo_adr <= (others => '0');
+          i_fsm_pkt <= S_PKT_RD;
 
         when S_PKT_RD =>
 
           if (p_in_obuf_axi_tready = '1') then
             i_bufo_adr <= i_bufo_adr + 1;
 
-            if (i_pkt_dcnt = (i_pkt_dcnt'range => '0')) then
+            if (i_dcnt = (i_pkt_dcnt - 1)) then
               i_pkt_rdy <= '0';
               i_fsm_pkt <= S_PKT_IDLE;
             else
-              i_pkt_dcnt <= i_pkt_dcnt - 1;
+              i_dcnt <= i_dcnt + 1;
             end if;
           end if;
 
@@ -536,9 +555,9 @@ gen_type : for t in 0 to C_TDEV_COUNT_MAX - 1 generate begin
     begin
     if rising_edge(p_in_clk) then
       if (p_in_rst = '1') then
-        i_bufo_dwr((t * G_NDEV_COUNT_MAX) + n) <= '0';
+        i_dev_dwr((t * G_NDEV_COUNT_MAX) + n) <= '0';
       else
-        i_bufo_dwr((t * G_NDEV_COUNT_MAX) + n) <= p_in_dev_drdy(t)(n) and i_dev_cs(t)(n);
+        i_dev_dwr((t * G_NDEV_COUNT_MAX) + n) <= p_in_dev_drdy(t)(n) and i_dev_cs(t)(n);
       end if;
     end if;
     end process;
