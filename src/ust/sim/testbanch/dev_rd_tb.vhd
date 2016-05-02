@@ -170,7 +170,7 @@ id  := (others => '0');
 wait for 3 us;
 
 wait until rising_edge(i_clk);
-len := TO_UNSIGNED(16, len'length);
+len := TO_UNSIGNED(6, len'length);
 id(3 downto 0) := TO_UNSIGNED(C_UDEV_REG, 4); --type
 id(7 downto 4) := TO_UNSIGNED(0         , 4); --num
 id(14 downto 0) := (others => '0');
@@ -191,7 +191,7 @@ i_rqrd_wr <= '1';
 
 
 wait until rising_edge(i_clk);
-len := TO_UNSIGNED(8, len'length);
+len := TO_UNSIGNED(7, len'length);
 id(3 downto 0) := TO_UNSIGNED(C_UDEV_GPS, 4); --type
 id(7 downto 4) := TO_UNSIGNED(1         , 4); --num
 id(14 downto 0) := (others => '0');

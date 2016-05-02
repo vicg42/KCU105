@@ -123,6 +123,7 @@ S_PKT_SET_HDR1,
 S_PKT_SET_HDR2,
 S_PKT_SET_HDR3,
 S_PKT_RDY,
+S_PKT_RDY2,
 S_PKT_RD
 );
 
@@ -168,10 +169,12 @@ signal i_pkt_hdr      : unsigned(7 downto 0);
 signal i_pkt_hdr_wr   : std_logic;
 signal i_pkt_rdy      : std_logic;
 signal i_pkt_len      : unsigned(15 downto 0);
+signal i_pkt_rdcnt    : unsigned(15 downto 0);
 
 signal i_bufo_adr     : unsigned(15 downto 0);
 signal i_bufo_di      : unsigned(7 downto 0);
 signal i_bufo_wr      : std_logic;
+signal i_bufo_rd      : std_logic;
 
 
 begin --architecture behavioral
@@ -297,7 +300,8 @@ end process;
 i_dev.typ <= i_rq.id(3 downto 0); --type device
 i_dev.num <= i_rq.id(7 downto 4); --number device
 
-i_pkt_id <= TO_UNSIGNED(C_PKT_TYPE_D2H, i_pkt_id'length);
+i_pkt_id(7 downto 0) <= TO_UNSIGNED(16#BB#, 8); --
+i_pkt_id(15 downto 8) <= TO_UNSIGNED(16#CC#, 8);
 
 
 m_bufo : bufo_devrd
@@ -310,7 +314,7 @@ clka  => p_in_clk,
 
 addrb => std_logic_vector(i_bufo_adr(log2(CI_BUFO_ADR_MAX / (G_OBUF_DWIDTH / 8)) - 1 downto 0)),
 doutb => p_out_obuf_axi_tdata,
-enb   => p_in_obuf_axi_tready,
+enb   => i_bufo_rd,
 clkb  => p_in_clk
 );
 
@@ -319,6 +323,8 @@ i_bufo_di <= i_dev_hdr when (i_dev_hdr_wr = '1') and (i_pkt_hdr_wr = '0') else
              i_dev_d;
 
 i_bufo_wr <= (i_dev_hdr_wr or i_pkt_hdr_wr) or (OR_reduce(i_dev_dwr));
+
+i_bufo_rd <= p_in_obuf_axi_tready;
 
 process(p_in_clk)
 begin
@@ -339,6 +345,7 @@ if rising_edge(p_in_clk) then
 
     i_bufo_adr <= (others => '0');
     i_pkt_dcnt <= (others => '0');
+    i_pkt_rdcnt <= (others => '0');
     i_pkt_len <= (others => '0');
 
     i_dev_hdr <= (others => '0');
@@ -489,6 +496,11 @@ if rising_edge(p_in_clk) then
         when S_PKT_DEV_DONE2 =>
 
           i_pkt_len <= i_pkt_dcnt - 2;
+          i_pkt_rdcnt <= RESIZE(i_pkt_dcnt(i_pkt_dcnt'high downto log2(G_OBUF_DWIDTH / 8))
+                                                                                , i_pkt_rdcnt'length)
+                           + (TO_UNSIGNED(0, i_pkt_rdcnt'length - 2)
+                              & OR_reduce(i_pkt_dcnt(log2(G_OBUF_DWIDTH / 8) - 1 downto 0)));
+
           i_fsm_pkt <= S_PKT_SET_HDR0;
 
         --------------------------------------
@@ -524,6 +536,13 @@ if rising_edge(p_in_clk) then
           i_bufo_adr <= (others => '0');
           i_pkt_hdr_wr <= '0';
           i_pkt_rdy <= '1';
+          i_fsm_pkt <= S_PKT_RDY2; --S_PKT_RD;
+
+        when S_PKT_RDY2 =>
+
+          i_bufo_adr <= (others => '0');
+          i_pkt_hdr_wr <= '0';
+          i_pkt_rdy <= '1';
           i_fsm_pkt <= S_PKT_RD;
 
         when S_PKT_RD =>
@@ -531,7 +550,7 @@ if rising_edge(p_in_clk) then
           if (p_in_obuf_axi_tready = '1') then
             i_bufo_adr <= i_bufo_adr + 1;
 
-            if (i_dcnt = (i_pkt_dcnt - 1)) then
+            if (i_dcnt = (i_pkt_rdcnt - 1)) then
               i_pkt_rdy <= '0';
               i_fsm_pkt <= S_PKT_IDLE;
             else
@@ -564,5 +583,8 @@ gen_type : for t in 0 to C_TDEV_COUNT_MAX - 1 generate begin
 
   end generate gen_num;
 end generate gen_type;
+
+
+p_out_obuf_axi_tvalid <= i_pkt_rdy;
 
 end architecture behavioral;
