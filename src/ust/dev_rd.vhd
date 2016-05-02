@@ -201,7 +201,7 @@ begin --architecture behavioral
 
 
 ---------------------------------------------
---
+--Read request
 ---------------------------------------------
 m_buf_rqrd : fifo_rqrd
 port map(
@@ -324,6 +324,9 @@ i_pkt_id(7 downto 0) <= TO_UNSIGNED(16#BB#, 8); --
 i_pkt_id(15 downto 8) <= TO_UNSIGNED(16#CC#, 8);
 
 
+--------------------------------------------------
+--Set Read Packet
+--------------------------------------------------
 m_bufo : bufo_devrd
 port map(
 addra => std_logic_vector(i_bufo_adr(log2(CI_BUFO_ADR_MAX) - 1 downto 0)),
@@ -559,23 +562,20 @@ if rising_edge(p_in_clk) then
 
         when S_PKT_RD =>
 
---          if (p_in_obuf_axi_tready = '1') then
-            i_bufo_adr <= i_bufo_adr + 1;
+          i_bufo_adr <= i_bufo_adr + 1;
 
-            if (i_dcnt = (i_pkt_rdcnt - 1)) then
-              i_bufo_rd <= '0';
-              i_fsm_pkt <= S_PKT_IDLE;
-            else
-              i_dcnt <= i_dcnt + 1;
-            end if;
---          end if;
+          if (i_dcnt = (i_pkt_rdcnt - 1)) then
+            i_bufo_rd <= '0';
+            i_fsm_pkt <= S_PKT_IDLE;
+          else
+            i_dcnt <= i_dcnt + 1;
+          end if;
 
       end case;
 
   end if;
 end if;
 end process;
-
 
 
 gen_type : for t in 0 to C_TDEV_COUNT_MAX - 1 generate begin
@@ -614,7 +614,7 @@ port map(
 s_aclk        => p_in_clk,
 s_aresetn     => i_rstn,
 
-s_axis_tvalid => i_fifo_out_wr,  --: in  std_logic;
+s_axis_tvalid => i_fifo_out_wr   ,
 s_axis_tready => i_fifo_out_empty,
 s_axis_tdata  => i_bufo_do,
 s_axis_tlast  => '0',
