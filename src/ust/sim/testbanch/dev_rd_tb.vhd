@@ -75,6 +75,36 @@ p_in_rst : in std_logic
 );
 end component dev_rd;
 
+component eth_core_axi_fifo is
+generic (
+FIFO_SIZE : integer := 512;
+IS_TX : integer := 0
+);
+port (
+--// FIFO write domain
+wr_axis_aresetn : in  std_logic;
+wr_axis_aclk    : in  std_logic;
+wr_axis_tdata   : in  std_logic_vector(63 downto 0);
+wr_axis_tkeep   : in  std_logic_vector(7  downto 0);
+wr_axis_tvalid  : in  std_logic;
+wr_axis_tlast   : in  std_logic;
+wr_axis_tready  : out std_logic;
+wr_axis_tuser   : in  std_logic;
+
+--// FIFO read domain
+rd_axis_aresetn : in  std_logic;
+rd_axis_aclk    : in  std_logic;
+rd_axis_tdata   : out std_logic_vector(63 downto 0);
+rd_axis_tkeep   : out std_logic_vector(7  downto 0);
+rd_axis_tvalid  : out std_logic;
+rd_axis_tlast   : out std_logic;
+rd_axis_tready  : in  std_logic;
+
+--// FIFO Status Signals
+fifo_status     : out std_logic_vector(3 downto 0);
+fifo_full       : out std_logic
+);
+end component;
 
 signal i_rst     : std_logic;
 signal i_rst_n   : std_logic;
@@ -93,8 +123,45 @@ signal i_axi_tdata  : std_logic_vector(G_OBUF_DWIDTH - 1 downto 0);
 signal i_axi_tvalid : std_logic; --empty
 signal i_axi_tlast  : std_logic; --EOF
 
+signal i_obuf_axi_tdata  : std_logic_vector(63 downto 0);
+signal i_obuf_axi_tvalid : std_logic;
+signal i_obuf_axi_tlast  : std_logic;
+signal i_obuf_axi_tready : std_logic;
+
+
 
 begin --architecture behavioral
+
+
+--m_fifo : eth_core_axi_fifo
+--generic map(
+--FIFO_SIZE => 512,
+--IS_TX => 0
+--)
+--port map(
+----// FIFO write domain
+--wr_axis_aresetn => '1',--: in  std_logic;
+--wr_axis_aclk    => i_clk,
+--wr_axis_tdata   => i_obuf_axi_tdata ,--: in  std_logic_vector(63 downto 0);
+--wr_axis_tkeep   => "11111111"       ,--: in  std_logic_vector(7  downto 0);
+--wr_axis_tvalid  => i_obuf_axi_tvalid,--: in  std_logic;
+--wr_axis_tlast   => i_obuf_axi_tlast ,--: in  std_logic;
+--wr_axis_tready  => i_obuf_axi_tready,--: out std_logic;
+--wr_axis_tuser   => '0'              ,--: in  std_logic;
+--
+----// FIFO read domain
+--rd_axis_aresetn => '1',--: in  std_logic;
+--rd_axis_aclk    => i_clk,
+--rd_axis_tdata   => open,--: out std_logic_vector(63 downto 0);
+--rd_axis_tkeep   => open,--: out std_logic_vector(7  downto 0);
+--rd_axis_tvalid  => open,--: out std_logic;
+--rd_axis_tlast   => open,--: out std_logic;
+--rd_axis_tready  => '1' ,--: in  std_logic;
+--
+----// FIFO Status Signals
+--fifo_status     => open,
+--fifo_full       => open
+--);
 
 
 m_dev_rd : dev_rd
@@ -123,9 +190,9 @@ p_out_dev_rd  => i_dev_rd   ,
 --EthTx
 --------------------------------------------------
 p_in_obuf_axi_tready  => '1',
-p_out_obuf_axi_tdata  => p_out_obuf_axi_tdata ,
-p_out_obuf_axi_tvalid => p_out_obuf_axi_tvalid,
-p_out_obuf_axi_tlast  => p_out_obuf_axi_tlast ,
+p_out_obuf_axi_tdata  => p_out_obuf_axi_tdata , --i_obuf_axi_tdata ,--
+p_out_obuf_axi_tvalid => p_out_obuf_axi_tvalid, --i_obuf_axi_tvalid,--
+p_out_obuf_axi_tlast  => p_out_obuf_axi_tlast , --i_obuf_axi_tlast ,--
 
 --------------------------------------------------
 --DBG

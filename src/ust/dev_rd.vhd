@@ -96,6 +96,22 @@ clkb  : in  std_logic
 );
 end component bufo_devrd;
 
+component fifo_rdpkt_out
+port (
+s_aclk        : in  std_logic;
+s_aresetn     : in  std_logic;
+s_axis_tvalid : in  std_logic;
+s_axis_tready : out std_logic;
+s_axis_tdata  : in  std_logic_vector(63 downto 0);
+s_axis_tlast  : in  std_logic;
+
+m_axis_tvalid : out std_logic;
+m_axis_tready : in  std_logic;
+m_axis_tdata  : out std_logic_vector(63 downto 0);
+m_axis_tlast  : out std_logic
+);
+end component fifo_rdpkt_out;
+
 
 type TFsmRqRd is (
 S_RQ_IDLE,
@@ -123,7 +139,6 @@ S_PKT_SET_HDR1,
 S_PKT_SET_HDR2,
 S_PKT_SET_HDR3,
 S_PKT_RDY,
-S_PKT_RDY2,
 S_PKT_RD
 );
 
@@ -175,6 +190,11 @@ signal i_bufo_adr     : unsigned(15 downto 0);
 signal i_bufo_di      : unsigned(7 downto 0);
 signal i_bufo_wr      : std_logic;
 signal i_bufo_rd      : std_logic;
+signal i_bufo_do      : std_logic_vector(63 downto 0);
+
+signal i_fifo_out_wr    : std_logic := '0';
+signal i_fifo_out_empty : std_logic;
+signal i_rstn           : std_logic;
 
 
 begin --architecture behavioral
@@ -313,7 +333,7 @@ wea   => "1",
 clka  => p_in_clk,
 
 addrb => std_logic_vector(i_bufo_adr(log2(CI_BUFO_ADR_MAX / (G_OBUF_DWIDTH / 8)) - 1 downto 0)),
-doutb => p_out_obuf_axi_tdata,
+doutb => i_bufo_do,
 enb   => i_bufo_rd,
 clkb  => p_in_clk
 );
@@ -323,8 +343,6 @@ i_bufo_di <= i_dev_hdr when (i_dev_hdr_wr = '1') and (i_pkt_hdr_wr = '0') else
              i_dev_d;
 
 i_bufo_wr <= (i_dev_hdr_wr or i_pkt_hdr_wr) or (OR_reduce(i_dev_dwr));
-
-i_bufo_rd <= p_in_obuf_axi_tready;
 
 process(p_in_clk)
 begin
@@ -343,6 +361,7 @@ if rising_edge(p_in_clk) then
     i_dev_cs(t) <= (others => '0');
     end loop;
 
+    i_bufo_rd <= '0';
     i_bufo_adr <= (others => '0');
     i_pkt_dcnt <= (others => '0');
     i_pkt_rdcnt <= (others => '0');
@@ -535,28 +554,21 @@ if rising_edge(p_in_clk) then
 
           i_bufo_adr <= (others => '0');
           i_pkt_hdr_wr <= '0';
-          i_pkt_rdy <= '1';
-          i_fsm_pkt <= S_PKT_RDY2; --S_PKT_RD;
-
-        when S_PKT_RDY2 =>
-
-          i_bufo_adr <= (others => '0');
-          i_pkt_hdr_wr <= '0';
-          i_pkt_rdy <= '1';
+          i_bufo_rd <= '1';
           i_fsm_pkt <= S_PKT_RD;
 
         when S_PKT_RD =>
 
-          if (p_in_obuf_axi_tready = '1') then
+--          if (p_in_obuf_axi_tready = '1') then
             i_bufo_adr <= i_bufo_adr + 1;
 
             if (i_dcnt = (i_pkt_rdcnt - 1)) then
-              i_pkt_rdy <= '0';
+              i_bufo_rd <= '0';
               i_fsm_pkt <= S_PKT_IDLE;
             else
               i_dcnt <= i_dcnt + 1;
             end if;
-          end if;
+--          end if;
 
       end case;
 
@@ -585,6 +597,33 @@ gen_type : for t in 0 to C_TDEV_COUNT_MAX - 1 generate begin
 end generate gen_type;
 
 
-p_out_obuf_axi_tvalid <= i_pkt_rdy;
+---------------------------------------------
+--FIFO output
+---------------------------------------------
+process(p_in_clk)
+begin
+if rising_edge(p_in_clk) then
+  i_fifo_out_wr <= i_bufo_rd;
+end if;
+end process;
+
+i_rstn <= not p_in_rst;
+
+m_fifo_out : fifo_rdpkt_out
+port map(
+s_aclk        => p_in_clk,
+s_aresetn     => i_rstn,
+
+s_axis_tvalid => i_fifo_out_wr,  --: in  std_logic;
+s_axis_tready => i_fifo_out_empty,
+s_axis_tdata  => i_bufo_do,
+s_axis_tlast  => '0',
+
+m_axis_tvalid => p_out_obuf_axi_tvalid, --: out std_logic;
+m_axis_tready => p_in_obuf_axi_tready , --: in  std_logic;
+m_axis_tdata  => p_out_obuf_axi_tdata , --: out std_logic_vector(63 downto 0);
+m_axis_tlast  => p_out_obuf_axi_tlast   --: out std_logic
+);
+
 
 end architecture behavioral;

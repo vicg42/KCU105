@@ -24,9 +24,11 @@ vlib msim
 
 vlib msim/fifo_generator_v13_0_0
 vlib msim/blk_mem_gen_v8_3_0
+vlib msim/fifo_generator_v13_0_0_1
 
 vmap fifo_generator_v13_0_0 msim/fifo_generator_v13_0_0
 vmap blk_mem_gen_v8_3_0 msim/blk_mem_gen_v8_3_0
+vmap fifo_generator_v13_0_0_1 msim/fifo_generator_v13_0_0_1
 
 vcom -64 -93 -work fifo_generator_v13_0_0 "../../../../sim/testbanch/fifo_rqrd_example/fifo_rqrd_example.ip_user_files/ipstatic/fifo_generator_v13_0_0/simulation/fifo_generator_vhdl_beh.vhd"
 vcom -64 -93 -work fifo_generator_v13_0_0 "../../../../sim/testbanch/fifo_rqrd_example/fifo_rqrd_example.ip_user_files/ipstatic/fifo_generator_v13_0_0/hdl/fifo_generator_v13_0_rfs.vhd"
@@ -35,14 +37,23 @@ vcom -64 -93 -work fifo_generator_v13_0_0 "../../../../sim/testbanch/fifo_rqrd_e
 vcom -64 -93 -work blk_mem_gen_v8_3_0 "../../../../sim/testbanch/bufo_devrd_example/bufo_devrd_example.ip_user_files/ipstatic/blk_mem_gen_v8_3_0/simulation/blk_mem_gen_v8_3.vhd"
 vcom -64 -93 -work blk_mem_gen_v8_3_0 "../../../../sim/testbanch/bufo_devrd_example/bufo_devrd_example.srcs/sources_1/ip/bufo_devrd/sim/bufo_devrd.vhd"
 
+vcom -64 -93 -work fifo_generator_v13_0_0_1 "../../../../sim/testbanch/fifo_rdpkt_out_example/fifo_rdpkt_out_example.ip_user_files/ipstatic/fifo_generator_v13_0_0/simulation/fifo_generator_vhdl_beh.vhd"
+vcom -64 -93 -work fifo_generator_v13_0_0_1 "../../../../sim/testbanch/fifo_rdpkt_out_example/fifo_rdpkt_out_example.ip_user_files/ipstatic/fifo_generator_v13_0_0/hdl/fifo_generator_v13_0_rfs.vhd"
+vcom -64 -93 -work fifo_generator_v13_0_0_1 "../../../../sim/testbanch/fifo_rdpkt_out_example/fifo_rdpkt_out_example.srcs/sources_1/ip/fifo_rdpkt_out/sim/fifo_rdpkt_out.vhd"
+
 vcom -64 -93 "../../../lib/reduce_pack.vhd";
 vcom -64 -93 "../../../lib/vicg_common_pkg.vhd" ;
 vcom -64 -93 "../../ust_def.vhd";
 vcom -64 -93 "../../dev_rd.vhd"
 
+#vlog -64 "../../../eth/fifo/eth_core_axi_fifo.v"
+#vlog -64 "../../../eth/fifo/eth_core_fifo_ram.v"
+#vlog -64 "../../../eth/eth_core_sync_block.v"
+#vlog -64 "../../../eth/eth_core_sync_reset.v"
+
 vcom -64 -93 "../testbanch/dev_rd_tb.vhd";
 
-vsim -t 1ps -L fifo_generator_v13_0_0 -L blk_mem_gen_v8_3_0 -lib work dev_rd_tb
+vsim -t 1ps -L fifo_generator_v13_0_0 -L blk_mem_gen_v8_3_0 -L fifo_generator_v13_0_0_1 -lib work dev_rd_tb
 
 do dev_rd_tb_wave.do
 view wave
