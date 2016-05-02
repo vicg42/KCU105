@@ -2,6 +2,16 @@ onerror {resume}
 quietly WaveActivateNextPane {} 0
 add wave -noupdate /dev_rd_tb/i_rst
 add wave -noupdate /dev_rd_tb/i_clk
+add wave -noupdate /dev_rd_tb/i_dev_di(1)(0)
+add wave -noupdate /dev_rd_tb/i_dev_wr(1)(0)
+add wave -noupdate /dev_rd_tb/i_dev_do(1)(0)
+add wave -noupdate /dev_rd_tb/i_dev_rd(1)(0)
+add wave -noupdate /dev_rd_tb/i_dev_empty(1)(0)
+add wave -noupdate /dev_rd_tb/i_dev_rd
+add wave -noupdate /dev_rd_tb/i_dev_di
+add wave -noupdate /dev_rd_tb/i_dev_do
+add wave -noupdate /dev_rd_tb/i_dev_wr
+add wave -noupdate /dev_rd_tb/i_dev_empty
 add wave -noupdate /dev_rd_tb/i_rqrd_di
 add wave -noupdate /dev_rd_tb/i_rqrd_wr
 add wave -noupdate -color {Slate Blue} -itemcolor Gold /dev_rd_tb/m_dev_rd/i_fsm_rq
@@ -16,6 +26,8 @@ add wave -noupdate /dev_rd_tb/m_dev_rd/i_dcnt
 add wave -noupdate -radix unsigned /dev_rd_tb/m_dev_rd/i_pkt_dcnt
 add wave -noupdate /dev_rd_tb/m_dev_rd/i_bufo_adr
 add wave -noupdate /dev_rd_tb/m_dev_rd/i_bufo_di
+add wave -noupdate /dev_rd_tb/m_dev_rd/i_bufo_do
+add wave -noupdate /dev_rd_tb/m_dev_rd/i_bufo_rd
 add wave -noupdate /dev_rd_tb/m_dev_rd/i_bufo_wr
 add wave -noupdate /dev_rd_tb/m_dev_rd/i_dev_hdr
 add wave -noupdate /dev_rd_tb/m_dev_rd/i_dev_hdr_wr
@@ -44,4 +56,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {3313858 ps} {3340812 ps}
+WaveRestoreZoom {3501608 ps} {3570528 ps}
