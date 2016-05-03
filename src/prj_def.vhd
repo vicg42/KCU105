@@ -77,13 +77,13 @@ constant C_HREG_DMA_CTRL_DRDY_BIT             : integer := 0;
 constant C_HREG_DMA_CTRL_DMA_START_BIT        : integer := 1; --(Rising_edge)
 constant C_HREG_DMA_CTRL_DMA_DIR_BIT          : integer := 2; --1/0 – (PC<-FPGA)/(PC->FPGA)
 constant C_HREG_DMA_CTRL_DMABUF_L_BIT         : integer := 3; --Number of start buffer (for DMATRN)
-constant C_HREG_DMA_CTRL_DMABUF_M_BIT         : integer := 10;
-constant C_HREG_DMA_CTRL_DMABUF_COUNT_L_BIT   : integer := 11;--Count buffer (for DMATRN)
-constant C_HREG_DMA_CTRL_DMABUF_COUNT_M_BIT   : integer := 18;
-constant C_HREG_DMA_CTRL_ADR_L_BIT            : integer := 19;--device adress (fpga module connected to host(pcie)) - C_HDEV_xxx
-constant C_HREG_DMA_CTRL_ADR_M_BIT            : integer := 22;
-constant C_HREG_DMA_CTRL_FG_CH_L_BIT          : integer := 23;--number of Frame Grabber channel
-constant C_HREG_DMA_CTRL_FG_CH_M_BIT          : integer := 25;
+constant C_HREG_DMA_CTRL_DMABUF_M_BIT         : integer := 12;
+constant C_HREG_DMA_CTRL_DMABUF_COUNT_L_BIT   : integer := 13;--Count buffer (for DMATRN)
+constant C_HREG_DMA_CTRL_DMABUF_COUNT_M_BIT   : integer := 22;
+constant C_HREG_DMA_CTRL_ADR_L_BIT            : integer := 23;--device adress (fpga module connected to host(pcie)) - C_HDEV_xxx
+constant C_HREG_DMA_CTRL_ADR_M_BIT            : integer := 26;
+constant C_HREG_DMA_CTRL_FG_CH_L_BIT          : integer := 27;--number of Frame Grabber channel
+constant C_HREG_DMA_CTRL_FG_CH_M_BIT          : integer := 29;
 constant C_HREG_DMA_CTRL_LAST_BIT             : integer := C_HREG_DMA_CTRL_FG_CH_M_BIT;--Max 31
 
 --field C_HREG_DMA_CTRL_ADR - user device adress:

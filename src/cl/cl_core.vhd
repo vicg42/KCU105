@@ -245,7 +245,7 @@ CLR => i_div_rst
 process(g_cl_clkin_7xdiv4)
 begin
 if rising_edge(g_cl_clkin_7xdiv4) then
-  sr_rst <= '1' & sr_rst(0 to (sr_rst'high - 1));
+  sr_rst <= i_cl_clkin_7x_lock & sr_rst(0 to (sr_rst'high - 1));
 end if;
 end process;
 
