@@ -101,14 +101,14 @@ architecture behavioral of pcie_usr_app is
 
 component bram_dma_params
 port(
-addra : in   std_logic_vector(9 downto 0);
+addra : in   std_logic_vector(11 downto 0);
 dina  : in   std_logic_vector(31 downto 0);
 douta : out  std_logic_vector(31 downto 0);
 ena   : in   std_logic;
 wea   : in   std_logic_vector(0 downto 0);
 clka  : in   std_logic;
 
-addrb : in   std_logic_vector(9 downto 0);
+addrb : in   std_logic_vector(11 downto 0);
 dinb  : in   std_logic_vector(31 downto 0);
 doutb : out  std_logic_vector(31 downto 0);
 enb   : in   std_logic;
@@ -175,13 +175,13 @@ signal i_dma_work                  : std_logic;
 signal sr_dma_work                 : std_logic;
 signal i_dma_irq                   : std_logic;
 
-signal i_host_dmaprm_adr           : std_logic_vector(9 downto 0);
+signal i_host_dmaprm_adr           : std_logic_vector(11 downto 0);
 signal i_host_dmaprm_di            : std_logic_vector(31 downto 0);
 signal i_host_dmaprm_do            : std_logic_vector(31 downto 0);
 signal i_host_dmaprm_wr            : std_logic_vector(0 downto 0);
 
 signal i_hw_dmaprm_cnt             : unsigned(1 downto 0);
-signal i_hw_dmaprm_adr             : std_logic_vector(9 downto 0);
+signal i_hw_dmaprm_adr             : std_logic_vector(11 downto 0);
 signal i_hw_dmaprm_do              : std_logic_vector(31 downto 0);
 signal i_hw_dmaprm_rd              : std_logic_vector(0 downto 0);
 signal sr_hw_dmaprm_cnt            : std_logic_vector(1 downto 0);
@@ -1193,13 +1193,13 @@ p_out_dev_opt(C_HDEV_OPTOUT_MEM_TRNRD_LEN_M_BIT downto C_HDEV_OPTOUT_MEM_TRNRD_L
 ---------------------------------------------------------------------
 p_out_tst(31 downto 0)    <= i_reg.tst0;
 p_out_tst(47 downto 32)   <= std_logic_vector(RESIZE(UNSIGNED(i_reg.tst1(7 downto 0)), 16));
-p_out_tst(55 downto 48)   <= i_dmabuf_count;
+p_out_tst(55 downto 48)   <= i_dmabuf_count(7 downto 0);
 p_out_tst(57 downto 56)   <= i_dmatrn_mem_done;
 p_out_tst(61 downto 58)   <= i_hdev_adr;
 p_out_tst(62)             <= i_reg.dev_ctrl(C_HREG_DMA_CTRL_DMA_DIR_BIT);
 p_out_tst(63)             <= i_reg_bar and (p_in_reg_wr or i_reg_rd);
 p_out_tst(64)             <= i_memtrn_done;
-p_out_tst(72 downto 65)   <= std_logic_vector(i_dmabuf_num_cnt);
+p_out_tst(72 downto 65)   <= std_logic_vector(i_dmabuf_num_cnt(7 downto 0));
 p_out_tst(73)             <= i_dmatrn_done;
 p_out_tst(74)             <= i_dmatrn_init;
 p_out_tst(95 downto 75)   <= (others => '0');
