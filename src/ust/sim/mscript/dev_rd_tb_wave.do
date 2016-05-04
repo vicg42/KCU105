@@ -8,10 +8,8 @@ add wave -noupdate /dev_rd_tb/i_dev_do(1)(0)
 add wave -noupdate /dev_rd_tb/i_dev_rd(1)(0)
 add wave -noupdate /dev_rd_tb/i_dev_empty(1)(0)
 add wave -noupdate /dev_rd_tb/i_dev_rd
-add wave -noupdate /dev_rd_tb/i_dev_di
-add wave -noupdate /dev_rd_tb/i_dev_do
+add wave -noupdate /dev_rd_tb/i_dev_d
 add wave -noupdate /dev_rd_tb/i_dev_wr
-add wave -noupdate /dev_rd_tb/i_dev_empty
 add wave -noupdate /dev_rd_tb/i_rqrd_di
 add wave -noupdate /dev_rd_tb/i_rqrd_wr
 add wave -noupdate -color {Slate Blue} -itemcolor Gold /dev_rd_tb/m_dev_rd/i_fsm_rq
@@ -56,4 +54,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {3501608 ps} {3570528 ps}
+WaveRestoreZoom {0 ps} {4200 ns}

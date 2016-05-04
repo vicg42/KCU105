@@ -137,6 +137,7 @@ if rising_edge(p_in_clk) then
               i_bcnt_a <= TO_UNSIGNED(4, i_bcnt_a'length);
 
               if (UNSIGNED(p_in_ibuf_axi_tdata((C_FLEN_BCOUNT * 8) - 1 downto 0)) = TO_UNSIGNED(0, (C_FLEN_BCOUNT * 8)) ) then
+              --ERROR
                   i_pkt_type <= (others => '0');
                   i_fsm_pkt_rx <= S_RX_PKT_ERR;
 

@@ -178,7 +178,6 @@ p_in_rst => i_rst
 --                  or ((t = C_UDEV_GPS) and (n = 0)) generate begin
 --
 --    i_dev_drdy(t)(n) <= not i_dev_empty(t)(n);
-----    i_dev_d_tmp(t)(n) <= i_dev_do(t)(n);--"10101010";
 --    i_dev_d(t)(n) <= i_dev_do(t)(n);--"10101010";
 --
 --    end generate gen_sel_on;
@@ -192,32 +191,32 @@ p_in_rst => i_rst
 --  end generate gen_num;
 --end generate gen_type;
 
-i_dev_d(C_UDEV_NULL  )(0) <= (others => '0'); i_dev_drdy(C_UDEV_NULL)(0) <= '0';
-i_dev_d(C_UDEV_NULL  )(1) <= (others => '0'); i_dev_drdy(C_UDEV_NULL)(1) <= '0';
+i_dev_d(C_UDEV_NULL )(0) <= (others => '0');         i_dev_drdy(C_UDEV_NULL )(0) <= '0';
+i_dev_d(C_UDEV_NULL )(1) <= (others => '0');         i_dev_drdy(C_UDEV_NULL )(1) <= '0';
 
-i_dev_d(C_UDEV_REG   )(0) <= i_dev_do(C_UDEV_REG)(0); i_dev_drdy(C_UDEV_REG)(0) <= not i_dev_empty(C_UDEV_REG)(0);
-i_dev_d(C_UDEV_REG   )(1) <= (others => '0');            i_dev_drdy(C_UDEV_REG)(1) <= '0';
+i_dev_d(C_UDEV_REG  )(0) <= i_dev_do(C_UDEV_REG)(0); i_dev_drdy(C_UDEV_REG  )(0) <= not i_dev_empty(C_UDEV_REG)(0);
+i_dev_d(C_UDEV_REG  )(1) <= (others => '0');         i_dev_drdy(C_UDEV_REG  )(1) <= '0';
 
-i_dev_d(C_UDEV_GPS   )(0) <= i_dev_do(C_UDEV_GPS)(0); i_dev_drdy(C_UDEV_GPS)(0) <= not i_dev_empty(C_UDEV_GPS)(0);
-i_dev_d(C_UDEV_GPS   )(1) <= (others => '0');            i_dev_drdy(C_UDEV_GPS)(1) <= '0';
+i_dev_d(C_UDEV_GPS  )(0) <= i_dev_do(C_UDEV_GPS)(0); i_dev_drdy(C_UDEV_GPS  )(0) <= not i_dev_empty(C_UDEV_GPS)(0);
+i_dev_d(C_UDEV_GPS  )(1) <= (others => '0');         i_dev_drdy(C_UDEV_GPS  )(1) <= '0';
 
-i_dev_d(C_UDEV_LASER )(0) <= (others => '0'); i_dev_drdy(C_UDEV_LASER )(0) <= '0';
-i_dev_d(C_UDEV_LASER )(1) <= (others => '0'); i_dev_drdy(C_UDEV_LASER )(1) <= '0';
+i_dev_d(C_UDEV_LASER)(0) <= (others => '0');         i_dev_drdy(C_UDEV_LASER)(0) <= '0';
+i_dev_d(C_UDEV_LASER)(1) <= (others => '0');         i_dev_drdy(C_UDEV_LASER)(1) <= '0';
 
-i_dev_d(C_UDEV_CAMERA)(0) <= (others => '0'); i_dev_drdy(C_UDEV_CAMERA)(0) <= '0';
-i_dev_d(C_UDEV_CAMERA)(1) <= (others => '0'); i_dev_drdy(C_UDEV_CAMERA)(1) <= '0';
+i_dev_d(C_UDEV_CAM  )(0) <= (others => '0');         i_dev_drdy(C_UDEV_CAM  )(0) <= '0';
+i_dev_d(C_UDEV_CAM  )(1) <= (others => '0');         i_dev_drdy(C_UDEV_CAM  )(1) <= '0';
 
-i_dev_d(C_UDEV_SAU   )(0) <= (others => '0'); i_dev_drdy(C_UDEV_SAU   )(0) <= '0';
-i_dev_d(C_UDEV_SAU   )(1) <= (others => '0'); i_dev_drdy(C_UDEV_SAU   )(1) <= '0';
+i_dev_d(C_UDEV_SAU  )(0) <= (others => '0');         i_dev_drdy(C_UDEV_SAU  )(0) <= '0';
+i_dev_d(C_UDEV_SAU  )(1) <= (others => '0');         i_dev_drdy(C_UDEV_SAU  )(1) <= '0';
 
-i_dev_d(C_UDEV_RAM   )(0) <= (others => '0'); i_dev_drdy(C_UDEV_RAM   )(0) <= '0';
-i_dev_d(C_UDEV_RAM   )(1) <= (others => '0'); i_dev_drdy(C_UDEV_RAM   )(1) <= '0';
+i_dev_d(C_UDEV_RAM  )(0) <= (others => '0');         i_dev_drdy(C_UDEV_RAM  )(0) <= '0';
+i_dev_d(C_UDEV_RAM  )(1) <= (others => '0');         i_dev_drdy(C_UDEV_RAM  )(1) <= '0';
 
-i_dev_d(C_UDEV_PROM  )(0) <= (others => '0'); i_dev_drdy(C_UDEV_PROM  )(0) <= '0';
-i_dev_d(C_UDEV_PROM  )(1) <= (others => '0'); i_dev_drdy(C_UDEV_PROM  )(1) <= '0';
+i_dev_d(C_UDEV_PROM )(0) <= (others => '0');         i_dev_drdy(C_UDEV_PROM )(0) <= '0';
+i_dev_d(C_UDEV_PROM )(1) <= (others => '0');         i_dev_drdy(C_UDEV_PROM )(1) <= '0';
 
-i_dev_d(C_UDEV_TEMP  )(0) <= (others => '0'); i_dev_drdy(C_UDEV_TEMP  )(0) <= '0';
-i_dev_d(C_UDEV_TEMP  )(1) <= (others => '0'); i_dev_drdy(C_UDEV_TEMP  )(1) <= '0';
+i_dev_d(C_UDEV_TEMP )(0) <= (others => '0');         i_dev_drdy(C_UDEV_TEMP )(0) <= '0';
+i_dev_d(C_UDEV_TEMP )(1) <= (others => '0');         i_dev_drdy(C_UDEV_TEMP )(1) <= '0';
 
 
 m_fifo_reg_0 : fifo_rqrd
