@@ -41,12 +41,6 @@ set_property PACKAGE_PIN R23 [get_ports {pin_out_led[6]}]
 set_property PACKAGE_PIN P23 [get_ports {pin_out_led[7]}]
 set_property IOSTANDARD LVCMOS18 [get_ports {pin_out_led[*]}]
 
-#FMC HPC (Board FMC CAMERALINK)
-set_property PACKAGE_PIN D20 [get_ports {pin_out_led_hpc[0]}]
-set_property PACKAGE_PIN G20 [get_ports {pin_out_led_hpc[1]}]
-set_property PACKAGE_PIN H21 [get_ports {pin_out_led_hpc[2]}]
-set_property PACKAGE_PIN B21 [get_ports {pin_out_led_hpc[3]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {pin_out_led_hpc[*]}]
 
 #FMC LPC (Board FMC 105)
 set_property PACKAGE_PIN W30 [get_ports {pin_out_led_lpc[0]}]
@@ -231,6 +225,15 @@ set_property IOSTANDARD LVCMOS18 [get_ports pin_out_rs232_tx]
 ###############################################################################
 #CameraLink
 ###############################################################################
+#-------------------------------
+#FMC HPC (Board FMC CAMERALINK)
+#-------------------------------
+set_property PACKAGE_PIN D20 [get_ports {pin_out_led_hpc[0]}]
+set_property PACKAGE_PIN G20 [get_ports {pin_out_led_hpc[1]}]
+set_property PACKAGE_PIN H21 [get_ports {pin_out_led_hpc[2]}]
+set_property PACKAGE_PIN B21 [get_ports {pin_out_led_hpc[3]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {pin_out_led_hpc[*]}]
+
 #FMC HPC (Board FMC CAMERALINK : CL(X))
 set_property PACKAGE_PIN H11 [get_ports {pin_in_cl_clk_p[0]}]
 set_property PACKAGE_PIN G11 [get_ports {pin_in_cl_clk_n[0]}]
@@ -315,6 +318,98 @@ set_property IOSTANDARD LVDS [get_ports pin_out_cl_tc_p]
 #set_property PACKAGE_PIN F23 [get_ports {pin_in_cl_cc_p[4]}];#"FMC_HPC_LA21_P"]
 #set_property IOSTANDARD LVDS [get_ports {pin_in_cl_cc_p[4]}];#"FMC_HPC_LA21_P"]
 
+##-------------------------------
+##FMC LPC (Board FMC CAMERALINK)
+##-------------------------------
+#set_property PACKAGE_PIN AE33 [get_ports {pin_out_led_hpc[0]}]
+#set_property PACKAGE_PIN AF33 [get_ports {pin_out_led_hpc[1]}]
+#set_property PACKAGE_PIN AG31 [get_ports {pin_out_led_hpc[2]}]
+#set_property PACKAGE_PIN V31 [get_ports {pin_out_led_hpc[3]}]
+#set_property IOSTANDARD LVCMOS18 [get_ports {pin_out_led_hpc[*]}]
+#
+##FMC LPC (Board FMC CAMERALINK : CL(X))
+#set_property PACKAGE_PIN W23 [get_ports {pin_in_cl_clk_p[0]}]
+#set_property PACKAGE_PIN W24 [get_ports {pin_in_cl_clk_n[0]}]
+#set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_clk_p[0]}]
+#set_property PACKAGE_PIN AA22 [get_ports {pin_in_cl_di_p[0]}]
+#set_property PACKAGE_PIN AB22 [get_ports {pin_in_cl_di_n[0]}]
+#set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[0]}]
+#set_property PACKAGE_PIN W28 [get_ports {pin_in_cl_di_p[1]}]
+#set_property PACKAGE_PIN Y28 [get_ports {pin_in_cl_di_n[1]}]
+#set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[1]}]
+#set_property PACKAGE_PIN U26 [get_ports {pin_in_cl_di_p[2]}]
+#set_property PACKAGE_PIN U27 [get_ports {pin_in_cl_di_n[2]}]
+#set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[2]}]
+#set_property PACKAGE_PIN V27 [get_ports {pin_in_cl_di_p[3]}]
+#set_property PACKAGE_PIN V28 [get_ports {pin_in_cl_di_n[3]}]
+#set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[3]}]
+#
+##FMC LPC (Board FMC CAMERALINK : CL(Y))
+#set_property PACKAGE_PIN W25 [get_ports {pin_in_cl_clk_p[1]}]
+#set_property PACKAGE_PIN Y25 [get_ports {pin_in_cl_clk_n[1]}]
+#set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_clk_p[1]}]
+#set_property PACKAGE_PIN V29 [get_ports {pin_in_cl_di_p[4]}]
+#set_property PACKAGE_PIN W29 [get_ports {pin_in_cl_di_n[4]}]
+#set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[4]}]
+#set_property PACKAGE_PIN V22 [get_ports {pin_in_cl_di_p[5]}]
+#set_property PACKAGE_PIN V23 [get_ports {pin_in_cl_di_n[5]}]
+#set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[5]}]
+#set_property PACKAGE_PIN U24 [get_ports {pin_in_cl_di_p[6]}]
+#set_property PACKAGE_PIN U25 [get_ports {pin_in_cl_di_n[6]}]
+#set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[6]}]
+#set_property PACKAGE_PIN V26 [get_ports {pin_in_cl_di_p[7]}]
+#set_property PACKAGE_PIN W26 [get_ports {pin_in_cl_di_n[7]}]
+#set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[7]}]
+#
+##FMC LPC (Board FMC CAMERALINK : CL(Z))
+#set_property PACKAGE_PIN AA32 [get_ports {pin_in_cl_clk_p[2]}]
+#set_property PACKAGE_PIN AB32 [get_ports {pin_in_cl_clk_n[2]}]
+#set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_clk_p[2]}]
+#set_property PACKAGE_PIN T22 [get_ports {pin_in_cl_di_p[8]}]
+#set_property PACKAGE_PIN T23 [get_ports {pin_in_cl_di_n[8]}]
+#set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[8]}]
+#set_property PACKAGE_PIN V21 [get_ports {pin_in_cl_di_p[9]}]
+#set_property PACKAGE_PIN W21 [get_ports {pin_in_cl_di_n[9]}]
+#set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[9]}]
+#set_property PACKAGE_PIN AC22 [get_ports {pin_in_cl_di_p[10]}]
+#set_property PACKAGE_PIN AC23 [get_ports {pin_in_cl_di_n[10]}]
+#set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[10]}]
+#set_property PACKAGE_PIN AA20 [get_ports {pin_in_cl_di_p[11]}]
+#set_property PACKAGE_PIN AB20 [get_ports {pin_in_cl_di_n[11]}]
+#set_property DIFF_TERM_ADV TERM_100 [get_ports {pin_in_cl_di_p[11]}]
+#
+#set_property IOSTANDARD LVDS [get_ports {pin_in_cl_clk_n[*]}]
+#set_property IOSTANDARD LVDS [get_ports {pin_in_cl_clk_p[*]}]
+#set_property IOSTANDARD LVDS [get_ports {pin_in_cl_di_n[*]}]
+#set_property IOSTANDARD LVDS [get_ports {pin_in_cl_di_p[*]}]
+#
+##FMC LPC (Board FMC CAMERALINK : CL(CTRL))
+#set_property IOSTANDARD LVDS [get_ports pin_in_cl_tfg_n]
+#set_property PACKAGE_PIN U21 [get_ports pin_in_cl_tfg_p]
+#set_property PACKAGE_PIN U22 [get_ports pin_in_cl_tfg_n]
+#set_property IOSTANDARD LVDS [get_ports pin_in_cl_tfg_p]
+#set_property DIFF_TERM_ADV TERM_100 [get_ports pin_in_cl_tfg_p]
+#set_property IOSTANDARD LVDS [get_ports pin_out_cl_tc_n]
+#set_property PACKAGE_PIN AB25 [get_ports pin_out_cl_tc_p]
+#set_property PACKAGE_PIN AB26 [get_ports pin_out_cl_tc_n]
+#set_property IOSTANDARD LVDS [get_ports pin_out_cl_tc_p]
+#
+##set_property PACKAGE_PIN  [get_ports {pin_in_cl_cc_n[1]}];#"FMC_HPC_LA18_CC_N"]
+##set_property IOSTANDARD LVDS [get_ports {pin_in_cl_cc_n[1]}];#"FMC_HPC_LA18_CC_N"]
+##set_property PACKAGE_PIN  [get_ports {pin_in_cl_cc_p[1]}];#"FMC_HPC_LA18_CC_P"]
+##set_property IOSTANDARD LVDS [get_ports {pin_in_cl_cc_p[1]}];#"FMC_HPC_LA18_CC_P"]
+##set_property PACKAGE_PIN  [get_ports {pin_in_cl_cc_n[2]}];#"FMC_HPC_LA19_N"]
+##set_property IOSTANDARD LVDS [get_ports {pin_in_cl_cc_n[2]}];#"FMC_HPC_LA19_N"]
+##set_property PACKAGE_PIN  [get_ports {pin_in_cl_cc_p[2]}];#"FMC_HPC_LA19_P"]
+##set_property IOSTANDARD LVDS [get_ports {pin_in_cl_cc_p[2]}];#"FMC_HPC_LA19_P"]
+##set_property PACKAGE_PIN  [get_ports {pin_in_cl_cc_n[3]}];#"FMC_HPC_LA20_N"]
+##set_property IOSTANDARD LVDS [get_ports {pin_in_cl_cc_n[3]}];#"FMC_HPC_LA20_N"]
+##set_property PACKAGE_PIN  [get_ports {pin_in_cl_cc_p[3]}];#"FMC_HPC_LA20_P"]
+##set_property IOSTANDARD LVDS [get_ports {pin_in_cl_cc_p[3]}];#"FMC_HPC_LA20_P"]
+##set_property PACKAGE_PIN  [get_ports {pin_in_cl_cc_n[4]}];#"FMC_HPC_LA21_N"]
+##set_property IOSTANDARD LVDS [get_ports {pin_in_cl_cc_n[4]}];#"FMC_HPC_LA21_N"]
+##set_property PACKAGE_PIN  [get_ports {pin_in_cl_cc_p[4]}];#"FMC_HPC_LA21_P"]
+##set_property IOSTANDARD LVDS [get_ports {pin_in_cl_cc_p[4]}];#"FMC_HPC_LA21_P"]
 
 ###############################################################################
 #Configutarion params
