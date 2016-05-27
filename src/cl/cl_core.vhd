@@ -135,7 +135,7 @@ signal g_cl_clkin_7xdiv4  : std_logic;
 signal g_cl_clkin_7xdiv7  : std_logic;
 signal i_cl_clkin_7x_lock : std_logic;
 
-type TCL_SerDesVALOUT is array (0 to 4) of std_logic_vector((9 * 2) - 1 downto 0);
+type TCL_SerDesVALOUT is array (0 to 4) of std_logic_vector((9 * 1) - 1 downto 0);
 type TCL_SerDesDOUT   is array (0 to 4) of std_logic_vector(7 downto 0);
 type TCL_GearBoxDOUT  is array (0 to 4) of std_logic_vector(6 downto 0);
 type TCL_DesData      is array (0 to 4) of std_logic_vector(3 downto 0);
