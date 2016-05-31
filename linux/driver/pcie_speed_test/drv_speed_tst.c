@@ -9,25 +9,25 @@
 
 // local functions -------------------------------------------------------------
 
-static int __init hello_init(void)
-static void __exit hello_exit(void)
+static int __init test_init(void)
+static void __exit test_exit(void)
 
 // kernel routine (bind functions) ---------------------------------------------
 
-module_init(module_start);
-module_exit(module_stop);
+module_init(test_init);
+module_exit(test_exit);
 
 // local variables -------------------------------------------------------------
 
 
 // implementation --------------------------------------------------------------
 
-static int __init hello_init(void)
+static int __init test_init(void)
 {
  printk(KERN_ALERT "Hello, world\n");
  return 0;
 }
-static void __exit hello_exit(void)
+static void __exit test_exit(void)
 {
  printk(KERN_ALERT "Goodbye, cruel world\n");
 }
