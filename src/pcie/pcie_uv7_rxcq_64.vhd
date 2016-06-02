@@ -351,7 +351,7 @@ p_out_tst(0) <= tst_fsm_rx;
 p_out_tst(3 downto 1) <= (others => '0');
 p_out_tst(5 downto 4) <= tst_err;
 p_out_tst(7 downto 6) <= (others => '0');
-p_out_tst(31 downto 3) <= (others => '0');
+p_out_tst(31 downto 8) <= (others => '0');
 
 
 end architecture behavioral;

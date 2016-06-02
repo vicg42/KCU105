@@ -166,6 +166,7 @@ signal i_cam0_bufpkt_empty : std_logic;
 
 signal i_cam_dbg           : TCAM_dbg;
 
+
 component dbgcs_ila_cam is
 port (
 clk : in std_logic;
@@ -220,7 +221,7 @@ m_cam0 : cam_cl_main
 generic map(
 G_VCH_NUM => C_USTCFG_CAM0_VCH_NUM,
 G_PKT_TYPE => C_PKT_TYPE_VIDEO,
-G_PKT_HEADER_BYTECOUNT => C_VIDEO_PKT_HEADER_BYTECOUNT,
+G_PKT_HEADER_BYTECOUNT => C_PKT_VIDEO_HDR_BCOUNT,
 G_PKT_PIXCHUNK_BYTECOUNT => C_USTCFG_CAM0_PIXCHUNK_BYTECOUNT, --1280(max)
 G_CL_PIXBIT  => C_USTCFG_CAM0_CL_PIXBIT, --Number of bit per 1 pix
 G_CL_TAP     => C_USTCFG_CAM0_CL_TAP, --Number of pixel per 1 clk
