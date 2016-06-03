@@ -18,8 +18,6 @@ use work.ust_def.all;
 
 entity dev_rd_tb is
 generic(
-G_TDEV_COUNT_MAX : natural := 16;
-G_NDEV_COUNT_MAX : natural := 2;
 G_OBUF_DWIDTH : natural := 64;
 G_SIM : string := "OFF"
 );
@@ -35,8 +33,13 @@ architecture behavioral of dev_rd_tb is
 
 constant CI_CLK_PERIOD : TIME := 6.6 ns; --150MHz
 
+--after change, need correct value into array C_DEV_VALID!!!!
+constant CI_NDEV_CAM : natural := 0;
+constant CI_NDEV_GPS : natural := 1;
+
 component dev_rd is
 generic(
+G_SDEV_COUNT_MAX : natural := 4;
 G_TDEV_COUNT_MAX : natural := 16;
 G_NDEV_COUNT_MAX : natural := 2;
 G_OBUF_DWIDTH : natural := 64;
@@ -129,8 +132,9 @@ begin --architecture behavioral
 
 m_dev_rd : dev_rd
 generic map(
-G_TDEV_COUNT_MAX => G_TDEV_COUNT_MAX,
-G_NDEV_COUNT_MAX => G_NDEV_COUNT_MAX,
+G_SDEV_COUNT_MAX => C_SDEV_COUNT_MAX,
+G_TDEV_COUNT_MAX => C_TDEV_COUNT_MAX,
+G_NDEV_COUNT_MAX => C_NDEV_COUNT_MAX,
 G_OBUF_DWIDTH => G_OBUF_DWIDTH,
 G_SIM => "OFF"
 )
@@ -182,14 +186,14 @@ end generate gen_sdev;
 
 m_fifo_reg_0 : fifo_rqrd
 port map(
-din   => i_dev_di(C_SDEV_D2H)(C_TDEV_CAM)(0),
-wr_en => i_dev_wr(C_SDEV_D2H)(C_TDEV_CAM)(0),
+din   => i_dev_di(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM),
+wr_en => i_dev_wr(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM),
 
-dout  => i_dev_do(C_SDEV_D2H)(C_TDEV_CAM)(0),
-rd_en => i_dev_rd(C_SDEV_D2H)(C_TDEV_CAM)(0),
+dout  => i_dev_do(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM),
+rd_en => i_dev_rd(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM),
 
 full  => open, --i_rqbuf_full,
-empty => i_dev_empty(C_SDEV_D2H)(C_TDEV_CAM)(0),
+empty => i_dev_empty(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM),
 
 wr_rst_busy => open,
 rd_rst_busy => open,
@@ -200,14 +204,14 @@ srst => i_rst
 
 m_fifo_gps_0 : fifo_rqrd
 port map(
-din   => i_dev_di(C_SDEV_D2H)(C_TDEV_GPS)(0),
-wr_en => i_dev_wr(C_SDEV_D2H)(C_TDEV_GPS)(0),
+din   => i_dev_di(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS),
+wr_en => i_dev_wr(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS),
 
-dout  => i_dev_do(C_SDEV_D2H)(C_TDEV_GPS)(0),
-rd_en => i_dev_rd(C_SDEV_D2H)(C_TDEV_GPS)(0),
+dout  => i_dev_do(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS),
+rd_en => i_dev_rd(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS),
 
 full  => open, --i_rqbuf_full,
-empty => i_dev_empty(C_SDEV_D2H)(C_TDEV_GPS)(0),
+empty => i_dev_empty(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS),
 
 wr_rst_busy => open,
 rd_rst_busy => open,
@@ -245,7 +249,7 @@ wait until rising_edge(i_clk);
 len := TO_UNSIGNED(6, len'length);
 id(3  downto 0) := TO_UNSIGNED(C_SDEV_D2H, 4); --subtype
 id(7  downto 4) := TO_UNSIGNED(C_TDEV_CAM, 4); --type
-id(11 downto 8) := TO_UNSIGNED(0         , 4); --num
+id(11 downto 8) := TO_UNSIGNED(CI_NDEV_CAM, 4); --num
 id(14 downto 12) := (others => '0');
 id(15) := '0';
 
@@ -267,7 +271,7 @@ wait until rising_edge(i_clk);
 len := TO_UNSIGNED(7, len'length);
 id(3  downto 0) := TO_UNSIGNED(C_SDEV_D2H, 4); --subtype
 id(7  downto 4) := TO_UNSIGNED(C_TDEV_GPS, 4); --type
-id(11 downto 8) := TO_UNSIGNED(1         , 4); --num
+id(11 downto 8) := TO_UNSIGNED(CI_NDEV_GPS, 4); --num
 id(14 downto 12) := (others => '0');
 id(15) := '0';
 
@@ -294,50 +298,50 @@ end process;
 process
 begin
 
-i_dev_di(C_SDEV_D2H)(C_TDEV_CAM)(0) <= (others => '0');
-i_dev_wr(C_SDEV_D2H)(C_TDEV_CAM)(0) <= '0';
+i_dev_di(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM) <= (others => '0');
+i_dev_wr(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM) <= '0';
 
 wait for 3.1 us;
 wait until rising_edge(i_clk);
 
-i_dev_di(C_SDEV_D2H)(C_TDEV_CAM)(0) <= std_logic_vector(TO_UNSIGNED(16#1C#, 8));
-i_dev_wr(C_SDEV_D2H)(C_TDEV_CAM)(0) <= '1';
+i_dev_di(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM) <= std_logic_vector(TO_UNSIGNED(16#1C#, 8));
+i_dev_wr(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM) <= '1';
 wait until rising_edge(i_clk);
 
-i_dev_di(C_SDEV_D2H)(C_TDEV_CAM)(0) <= std_logic_vector(TO_UNSIGNED(16#2C#, 8));
-i_dev_wr(C_SDEV_D2H)(C_TDEV_CAM)(0) <= '1';
+i_dev_di(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM) <= std_logic_vector(TO_UNSIGNED(16#2C#, 8));
+i_dev_wr(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM) <= '1';
 wait until rising_edge(i_clk);
 
-i_dev_di(C_SDEV_D2H)(C_TDEV_CAM)(0) <= std_logic_vector(TO_UNSIGNED(16#3C#, 8));
-i_dev_wr(C_SDEV_D2H)(C_TDEV_CAM)(0) <= '1';
+i_dev_di(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM) <= std_logic_vector(TO_UNSIGNED(16#3C#, 8));
+i_dev_wr(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM) <= '1';
 wait until rising_edge(i_clk);
 
---i_dev_wr(C_TDEV_CAM)(0) <= '0';
+--i_dev_wr(C_TDEV_CAM)(CI_NDEV_CAM) <= '0';
 --wait until rising_edge(i_clk);
 --
 --wait for 0.5 us;
 
-i_dev_di(C_SDEV_D2H)(C_TDEV_CAM)(0) <= std_logic_vector(TO_UNSIGNED(16#4C#, 8));
-i_dev_wr(C_SDEV_D2H)(C_TDEV_CAM)(0) <= '1';
+i_dev_di(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM) <= std_logic_vector(TO_UNSIGNED(16#4C#, 8));
+i_dev_wr(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM) <= '1';
 wait until rising_edge(i_clk);
 
-i_dev_wr(C_SDEV_D2H)(C_TDEV_CAM)(0) <= '0';
+i_dev_wr(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM) <= '0';
 wait until rising_edge(i_clk);
 
---i_dev_di(C_SDEV_D2H)(C_TDEV_CAM)(0) <= std_logic_vector(TO_UNSIGNED(16#5C#, 8));
---i_dev_wr(C_SDEV_D2H)(C_TDEV_CAM)(0) <= '1';
+--i_dev_di(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM) <= std_logic_vector(TO_UNSIGNED(16#5C#, 8));
+--i_dev_wr(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM) <= '1';
 --wait until rising_edge(i_clk);
 --
---i_dev_di(C_SDEV_D2H)(C_TDEV_CAM)(0) <= std_logic_vector(TO_UNSIGNED(16#6C#, 8));
---i_dev_wr(C_SDEV_D2H)(C_TDEV_CAM)(0) <= '1';
+--i_dev_di(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM) <= std_logic_vector(TO_UNSIGNED(16#6C#, 8));
+--i_dev_wr(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM) <= '1';
 --wait until rising_edge(i_clk);
 --
---i_dev_di(C_SDEV_D2H)(C_TDEV_CAM)(0) <= std_logic_vector(TO_UNSIGNED(16#7C#, 8));
---i_dev_wr(C_SDEV_D2H)(C_TDEV_CAM)(0) <= '1';
+--i_dev_di(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM) <= std_logic_vector(TO_UNSIGNED(16#7C#, 8));
+--i_dev_wr(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM) <= '1';
 --wait until rising_edge(i_clk);
 --
---i_dev_di(C_SDEV_D2H)(C_TDEV_CAM)(0) <= std_logic_vector(TO_UNSIGNED(16#8C#, 8));
---i_dev_wr(C_SDEV_D2H)(C_TDEV_CAM)(0) <= '0';
+--i_dev_di(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM) <= std_logic_vector(TO_UNSIGNED(16#8C#, 8));
+--i_dev_wr(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM) <= '0';
 --wait until rising_edge(i_clk);
 
 wait;
@@ -347,42 +351,42 @@ end process;
 process
 begin
 
-i_dev_di(C_SDEV_D2H)(C_TDEV_GPS)(0) <= (others => '0');
-i_dev_wr(C_SDEV_D2H)(C_TDEV_GPS)(0) <= '0';
+i_dev_di(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS) <= (others => '0');
+i_dev_wr(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS) <= '0';
 
 wait for 3.7 us;
 wait until rising_edge(i_clk);
 
-i_dev_di(C_SDEV_D2H)(C_TDEV_GPS)(0) <= std_logic_vector(TO_UNSIGNED(16#1D#, 8));
-i_dev_wr(C_SDEV_D2H)(C_TDEV_GPS)(0) <= '1';
+i_dev_di(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS) <= std_logic_vector(TO_UNSIGNED(16#1D#, 8));
+i_dev_wr(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS) <= '1';
 wait until rising_edge(i_clk);
 
-i_dev_di(C_SDEV_D2H)(C_TDEV_GPS)(0) <= std_logic_vector(TO_UNSIGNED(16#2D#, 8));
-i_dev_wr(C_SDEV_D2H)(C_TDEV_GPS)(0) <= '1';
+i_dev_di(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS) <= std_logic_vector(TO_UNSIGNED(16#2D#, 8));
+i_dev_wr(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS) <= '1';
 wait until rising_edge(i_clk);
 
-i_dev_di(C_SDEV_D2H)(C_TDEV_GPS)(0) <= std_logic_vector(TO_UNSIGNED(16#3D#, 8));
-i_dev_wr(C_SDEV_D2H)(C_TDEV_GPS)(0) <= '1';
+i_dev_di(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS) <= std_logic_vector(TO_UNSIGNED(16#3D#, 8));
+i_dev_wr(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS) <= '1';
 wait until rising_edge(i_clk);
 
-i_dev_di(C_SDEV_D2H)(C_TDEV_GPS)(0) <= std_logic_vector(TO_UNSIGNED(16#4D#, 8));
-i_dev_wr(C_SDEV_D2H)(C_TDEV_GPS)(0) <= '1';
+i_dev_di(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS) <= std_logic_vector(TO_UNSIGNED(16#4D#, 8));
+i_dev_wr(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS) <= '1';
 wait until rising_edge(i_clk);
 
-i_dev_di(C_SDEV_D2H)(C_TDEV_GPS)(0) <= std_logic_vector(TO_UNSIGNED(16#5D#, 8));
-i_dev_wr(C_SDEV_D2H)(C_TDEV_GPS)(0) <= '0';
+i_dev_di(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS) <= std_logic_vector(TO_UNSIGNED(16#5D#, 8));
+i_dev_wr(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS) <= '0';
 wait until rising_edge(i_clk);
 
---i_dev_di(C_SDEV_D2H)(C_TDEV_GPS)(0) <= std_logic_vector(TO_UNSIGNED(16#6D#, 8));
---i_dev_wr(C_SDEV_D2H)(C_TDEV_GPS)(0) <= '1';
+--i_dev_di(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS) <= std_logic_vector(TO_UNSIGNED(16#6D#, 8));
+--i_dev_wr(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS) <= '1';
 --wait until rising_edge(i_clk);
 --
---i_dev_di(C_SDEV_D2H)(C_TDEV_GPS)(0) <= std_logic_vector(TO_UNSIGNED(16#7D#, 8));
---i_dev_wr(C_SDEV_D2H)(C_TDEV_GPS)(0) <= '1';
+--i_dev_di(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS) <= std_logic_vector(TO_UNSIGNED(16#7D#, 8));
+--i_dev_wr(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS) <= '1';
 --wait until rising_edge(i_clk);
 --
---i_dev_di(C_SDEV_D2H)(C_TDEV_GPS)(0) <= std_logic_vector(TO_UNSIGNED(16#8D#, 8));
---i_dev_wr(C_SDEV_D2H)(C_TDEV_GPS)(0) <= '0';
+--i_dev_di(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS) <= std_logic_vector(TO_UNSIGNED(16#8D#, 8));
+--i_dev_wr(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS) <= '0';
 --wait until rising_edge(i_clk);
 
 wait;

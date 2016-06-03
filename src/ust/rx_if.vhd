@@ -82,6 +82,7 @@ signal i_pkt_den       : std_logic;
 signal i_pkt_d         : unsigned(7 downto 0); --byte input
 signal i_pkt_type      : unsigned(1 downto 0);
 signal i_pkt_dcnt      : unsigned((C_FLEN_BCOUNT * 8) - 1 downto 0);--packet byte cnt
+signal i_pkt_dcount    : unsigned((C_FLEN_BCOUNT * 8) - 1 downto 0);--packet byte cnt
 signal i_bcnt_a        : unsigned(log2(G_IBUF_DWIDTH / 8) - 1 downto 0);--bus byte cnt
 signal i_bcnt_b        : unsigned(7 downto 0);
 
@@ -92,7 +93,7 @@ signal i_rqwr_wr       : std_logic;
 
 signal i_err           : std_logic;
 
-constant CI_PKT_DECR : natural := C_PKT_H2D_HDR_BCOUNT - 1;
+constant CI_PKT_DECR : natural := C_TPKT_H2D_HDR_BCOUNT - 1;
 constant CI_DEV_DECR : natural := C_DEV_HDR_BCOUNT - 1;
 
 
@@ -134,6 +135,8 @@ if rising_edge(p_in_clk) then
           if (p_in_ibuf_axi_tvalid = '1' and p_in_ibuf_axi_tlast = '0') then
 
               i_pkt_dcnt <= UNSIGNED(p_in_ibuf_axi_tdata(15 downto 0)) - CI_PKT_DECR;
+--              i_pkt_dcount <= UNSIGNED(p_in_ibuf_axi_tdata(15 downto 0));
+
               i_bcnt_a <= TO_UNSIGNED(4, i_bcnt_a'length);
 
               if (UNSIGNED(p_in_ibuf_axi_tdata((C_FLEN_BCOUNT * 8) - 1 downto 0)) = TO_UNSIGNED(0, (C_FLEN_BCOUNT * 8)) ) then

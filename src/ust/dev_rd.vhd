@@ -18,6 +18,7 @@ use work.ust_def.all;
 
 entity dev_rd is
 generic(
+G_SDEV_COUNT_MAX : natural := 16;
 G_TDEV_COUNT_MAX : natural := 16;
 G_NDEV_COUNT_MAX : natural := 2;
 G_OBUF_DWIDTH : natural := 64;
@@ -177,7 +178,7 @@ signal i_dev_hdr      : unsigned(7 downto 0);
 signal i_dev_hdr_wr   : std_logic;
 signal i_dev_cs       : TDevB;
 signal i_dev_d        : std_logic_vector(7 downto 0);
-signal i_dev_dwr      : std_logic_vector((C_SDEV_COUNT_MAX * C_TDEV_COUNT_MAX * C_NDEV_COUNT_MAX) - 1 downto 0);
+signal i_dev_dwr      : std_logic_vector((G_SDEV_COUNT_MAX * G_TDEV_COUNT_MAX * G_NDEV_COUNT_MAX) - 1 downto 0);
 
 signal i_pkt_id       : unsigned(15 downto 0);
 signal i_pkt_dcnt     : unsigned(15 downto 0);
@@ -362,9 +363,9 @@ if rising_edge(p_in_clk) then
     i_dev.dsize <= (others => '0');
     i_dev_d <= (others => '0');
 
-    for s in 0 to C_SDEV_COUNT_MAX - 1 loop
-        for t in 0 to C_TDEV_COUNT_MAX - 1 loop
-            for n in 0 to C_NDEV_COUNT_MAX - 1 loop
+    for s in 0 to G_SDEV_COUNT_MAX - 1 loop
+        for t in 0 to G_TDEV_COUNT_MAX - 1 loop
+            for n in 0 to G_NDEV_COUNT_MAX - 1 loop
               i_dev_cs(s)(t)(n) <= '0';
             end loop;
         end loop;
@@ -396,7 +397,7 @@ if rising_edge(p_in_clk) then
             i_dev.busy <= '1';
             i_bufo_adr <= TO_UNSIGNED(3, i_bufo_adr'length);
             i_pkt_dcnt <= TO_UNSIGNED(4, i_pkt_dcnt'length);--sizeof(pkt.len) + sizeof(pkt.header)
-            i_dev.dsize <= i_rq.plsize - 2;
+            i_dev.dsize <= i_rq.plsize - 2; --Only sizeof(DATA). Without sizeof(DevHeader)
             i_fsm_pkt <= S_PKT_CHK;
           end if;
 
@@ -407,7 +408,7 @@ if rising_edge(p_in_clk) then
 
           if (i_rq.rdy = '1') then
             i_dev.busy <= '1';
-            i_dev.dsize <= i_rq.plsize - 2;
+            i_dev.dsize <= i_rq.plsize - 2; --Only sizeof(DATA). Without sizeof(DevHeader)
             i_fsm_pkt <= S_PKT_CHK;
           end if;
 
@@ -460,11 +461,11 @@ if rising_edge(p_in_clk) then
           i_pkt_dcnt <= i_pkt_dcnt + 1;
           i_dev_hdr_wr <= '0';
 
-          for s in 0 to C_SDEV_COUNT_MAX - 1 loop --SubType Device
+          for s in 0 to G_SDEV_COUNT_MAX - 1 loop --SubType Device
             if (i_dev.s = s) then
-              for t in 0 to C_TDEV_COUNT_MAX - 1 loop --Type Device
+              for t in 0 to G_TDEV_COUNT_MAX - 1 loop --Type Device
                 if (i_dev.t = t) then
-                  for n in 0 to C_NDEV_COUNT_MAX - 1 loop --Number Device
+                  for n in 0 to G_NDEV_COUNT_MAX - 1 loop --Number Device
                     if (i_dev.n = n) then
                       i_dev_cs(s)(t)(n) <= '1';
                     end if;
@@ -478,11 +479,11 @@ if rising_edge(p_in_clk) then
 
         when S_PKT_DEV_RD =>
 
-          for s in 0 to C_SDEV_COUNT_MAX - 1 loop --SubType Device
+          for s in 0 to G_SDEV_COUNT_MAX - 1 loop --SubType Device
             if (i_dev.s = s) then
-              for t in 0 to C_TDEV_COUNT_MAX - 1 loop --Type Device
+              for t in 0 to G_TDEV_COUNT_MAX - 1 loop --Type Device
                 if (i_dev.t = t) then
-                  for n in 0 to C_NDEV_COUNT_MAX - 1 loop --Number Device
+                  for n in 0 to G_NDEV_COUNT_MAX - 1 loop --Number Device
                     if (i_dev.n = n) then
 
                         if (p_in_dev_drdy(s)(t)(n) = '1') then
@@ -588,9 +589,9 @@ end if;
 end process;
 
 
-gen_sdev : for s in 0 to C_SDEV_COUNT_MAX - 1 generate begin
-  gen_tdev : for t in 0 to C_TDEV_COUNT_MAX - 1 generate begin
-    gen_ndev : for n in 0 to C_NDEV_COUNT_MAX - 1 generate begin
+gen_sdev : for s in 0 to G_SDEV_COUNT_MAX - 1 generate begin
+  gen_tdev : for t in 0 to G_TDEV_COUNT_MAX - 1 generate begin
+    gen_ndev : for n in 0 to G_NDEV_COUNT_MAX - 1 generate begin
 
       p_out_dev_rd(s)(t)(n) <= p_in_dev_drdy(s)(t)(n) and i_dev_cs(s)(t)(n);
 
@@ -598,9 +599,9 @@ gen_sdev : for s in 0 to C_SDEV_COUNT_MAX - 1 generate begin
       begin
       if rising_edge(p_in_clk) then
         if (p_in_rst = '1') then
-          i_dev_dwr((s * C_TDEV_COUNT_MAX * G_NDEV_COUNT_MAX) + (t * G_NDEV_COUNT_MAX) + n) <= '0';
+          i_dev_dwr((s * G_TDEV_COUNT_MAX * G_NDEV_COUNT_MAX) + (t * G_NDEV_COUNT_MAX) + n) <= '0';
         else
-          i_dev_dwr((s * C_TDEV_COUNT_MAX * G_NDEV_COUNT_MAX) + (t * G_NDEV_COUNT_MAX) + n) <= p_in_dev_drdy(s)(t)(n) and i_dev_cs(s)(t)(n);
+          i_dev_dwr((s * G_TDEV_COUNT_MAX * G_NDEV_COUNT_MAX) + (t * G_NDEV_COUNT_MAX) + n) <= p_in_dev_drdy(s)(t)(n) and i_dev_cs(s)(t)(n);
         end if;
       end if;
       end process;

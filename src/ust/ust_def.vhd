@@ -20,9 +20,9 @@ constant C_FLEN_BCOUNT : natural := 2; --field length
 constant C_FPKT_TYPE_BCOUNT : natural := 2; --field length
 
 --Type of packet
-constant C_TPKT_F2H   : natural := 0;--fpga -> host (read)
+constant C_TPKT_D2H   : natural := 0;--fpga -> host (read)
 constant C_TPKT_VIDEO : natural := 1;--video data
-constant C_TPKT_H2F   : natural := 2;--host -> fpga (write)
+constant C_TPKT_H2D   : natural := 2;--host -> fpga (write)
 
 --Packet Header size (byte)
 constant C_TPKT_D2H_HDR_BCOUNT : natural := 4; --Count byte into header of packet type (Host <- FPGA)
@@ -59,8 +59,8 @@ type TDevDATA_t is array (0 to (C_NDEV_COUNT_MAX - 1)) of std_logic_vector(7 dow
 type TDevDATA is array (0 to (C_TDEV_COUNT_MAX - 1)) of TDevDATA_t;
 type TDevD is array (0 to (C_SDEV_COUNT_MAX - 1)) of TDevDATA;
 
---                  TypeDevice   : NULL   ,  REG   ,  CAM   ,  GPS   ,  LASER ,  SAU   ,  RAM   ,  ROM   ,  TEMP
---                  NumberDevice : ..1,0  , ..1,0  , ..1,0  , ..1,0  , ..1,0  , ..1,0  , ..1,0  , ..1,0  , ..1,0
+--              TypeDevice(value): NULL   ,  REG   ,  CAM   ,  GPS   ,  LASER ,  SAU   ,  RAM   ,  ROM   ,  TEMP
+--              NumberDevice(bit): ..1,0  , ..1,0  , ..1,0  , ..1,0  , ..1,0  , ..1,0  , ..1,0  , ..1,0  , ..1,0
 constant C_DEV_VALID : TDevB :=( ( "00"   ,  "00"  ,  "00"  , "00"   , "00"   , "00"   , "00"   , "00"   , "00"  ),  --SubTypeDevice: STATUS
                                  ( "00"   ,  "00"  ,  "00"  , "00"   , "00"   , "00"   , "00"   , "00"   , "00"  ),  --SubTypeDevice: CTRL
                                  ( "00"   ,  "00"  ,  "00"  , "00"   , "00"   , "00"   , "00"   , "00"   , "00"  ),  --SubTypeDevice: H2D
