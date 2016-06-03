@@ -93,7 +93,7 @@ signal i_rqwr_wr       : std_logic;
 signal i_err           : std_logic;
 
 constant CI_PKT_DECR : natural := C_PKT_H2D_HDR_BCOUNT - 1;
-constant CI_DEV_DECR : natural := C_UDEV_HDR_BCOUNT - 1;
+constant CI_DEV_DECR : natural := C_DEV_HDR_BCOUNT - 1;
 
 
 begin --architecture behavioral
@@ -142,14 +142,14 @@ if rising_edge(p_in_clk) then
                   i_fsm_pkt_rx <= S_RX_PKT_ERR;
 
               --FPGA -> HOST
-              elsif (UNSIGNED(p_in_ibuf_axi_tdata((C_FLEN_BCOUNT * 8) + 8 - 1 downto (C_FLEN_BCOUNT * 8))) = TO_UNSIGNED(C_PKT_TYPE_D2H, 8) ) then
-                  i_pkt_type <= TO_UNSIGNED(C_PKT_TYPE_D2H, i_pkt_type'length);
+              elsif (UNSIGNED(p_in_ibuf_axi_tdata((C_FLEN_BCOUNT * 8) + 8 - 1 downto (C_FLEN_BCOUNT * 8))) = TO_UNSIGNED(C_TPKT_D2H, 8) ) then
+                  i_pkt_type <= TO_UNSIGNED(C_TPKT_D2H, i_pkt_type'length);
                   i_ibuf_rden <= '1';
                   i_fsm_pkt_rx <= S_RX_DPKT;
 
               --FPGA <- HOST
-              elsif (UNSIGNED(p_in_ibuf_axi_tdata((C_FLEN_BCOUNT * 8) + 8 - 1 downto (C_FLEN_BCOUNT * 8))) = TO_UNSIGNED(C_PKT_TYPE_H2D, 8) ) then
-                  i_pkt_type <= TO_UNSIGNED(C_PKT_TYPE_H2D, i_pkt_type'length);
+              elsif (UNSIGNED(p_in_ibuf_axi_tdata((C_FLEN_BCOUNT * 8) + 8 - 1 downto (C_FLEN_BCOUNT * 8))) = TO_UNSIGNED(C_TPKT_H2D, 8) ) then
+                  i_pkt_type <= TO_UNSIGNED(C_TPKT_H2D, i_pkt_type'length);
                   i_ibuf_rden <= '1';
                   i_fsm_pkt_rx <= S_RX_DPKT;
 
@@ -214,7 +214,7 @@ end process;
 --
 ---------------------------------------------
 p_out_rqrd_di <= std_logic_vector(i_pkt_d);
-p_out_rqrd_wr <= i_pkt_den when i_pkt_type = TO_UNSIGNED(C_PKT_TYPE_D2H, i_pkt_type'length) else '0';
+p_out_rqrd_wr <= i_pkt_den when i_pkt_type = TO_UNSIGNED(C_TPKT_D2H, i_pkt_type'length) else '0';
 
 ---------------------------------------------
 --
@@ -238,7 +238,7 @@ if rising_edge(p_in_clk) then
 
     i_bcnt_b <= (others => '0');
 
-  elsif (i_pkt_type = C_PKT_TYPE_H2D) then
+  elsif (i_pkt_type = C_TPKT_H2D) then
 
       case i_fsm_rqwr is
 
