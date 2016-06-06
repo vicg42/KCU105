@@ -23,9 +23,9 @@ G_OBUF_DWIDTH : natural := 64;
 G_SIM : string := "OFF"
 );
 port(
-p_out_rqwr_di   : out  std_logic_vector(7 downto 0);
-p_out_rqwr_adr  : out  std_logic_vector(7 downto 0);
-p_out_rqwr_wr   : out  std_logic;
+p_in_dev_rdy : in  TDevB; --ready
+p_out_dev_d  : out TDevD; --data
+p_out_dev_wr : out TDevB; --write
 
 --i_dev_empty : out TUDevRD;
 p_out_obuf_axi_tdata  : out std_logic_vector(G_OBUF_DWIDTH - 1 downto 0);
@@ -62,7 +62,6 @@ p_in_ibuf_axi_tlast   : in   std_logic; --EOF
 --------------------------------------------------
 --request write to dev
 p_out_rqwr_di   : out  std_logic_vector(7 downto 0);
-p_out_rqwr_adr  : out  std_logic_vector(7 downto 0);
 p_out_rqwr_wr   : out  std_logic;
 p_in_rqwr_rdy_n : in   std_logic;
 
@@ -95,9 +94,9 @@ port(
 --------------------------------------------------
 --RQRD
 --------------------------------------------------
-p_in_rqrd_di     : in   std_logic_vector(7 downto 0);
-p_in_rqrd_wr     : in   std_logic;
-p_out_rqrd_rdy_n : out  std_logic;
+p_in_rq_di     : in   std_logic_vector(7 downto 0);
+p_in_rq_wr     : in   std_logic;
+p_out_rq_rdy_n : out  std_logic;
 
 --------------------------------------------------
 --DEV
@@ -124,6 +123,39 @@ p_in_clk : in std_logic;
 p_in_rst : in std_logic
 );
 end component dev_rd;
+
+component dev_wr is
+generic(
+G_SDEV_COUNT_MAX : natural := 4;
+G_TDEV_COUNT_MAX : natural := 16;
+G_NDEV_COUNT_MAX : natural := 2;
+G_SIM : string := "OFF"
+);
+port(
+--------------------------------------------------
+--RQWR (Len + DEVID + WRDATA; Len + DEVID + WRDATA....)
+--------------------------------------------------
+p_in_rq_di     : in   std_logic_vector(7 downto 0);
+p_in_rq_wr     : in   std_logic;
+p_out_rq_rdy_n : out  std_logic;
+
+--------------------------------------------------
+--DEV
+--------------------------------------------------
+p_in_dev_rdy : in  TDevB; --ready
+p_out_dev_d  : out TDevD; --data
+p_out_dev_wr : out TDevB; --write
+
+--------------------------------------------------
+--DBG
+--------------------------------------------------
+p_out_tst : out  std_logic_vector(1 downto 0);
+p_in_tst  : in   std_logic_vector(0 downto 0);
+
+p_in_clk : in std_logic;
+p_in_rst : in std_logic
+);
+end component dev_wr;
 
 component fifo_rqrd
 port (
@@ -167,6 +199,9 @@ signal i_rst     : std_logic;
 signal i_rst_n   : std_logic;
 signal i_clk     : std_logic;
 
+signal i_rqwr_di    : std_logic_vector(7 downto 0);
+signal i_rqwr_wr    : std_logic;
+signal i_rqwr_rdy_n : std_logic;
 
 signal i_rqrd_di    : std_logic_vector(7 downto 0);
 signal i_rqrd_wr    : std_logic;
@@ -182,9 +217,13 @@ signal i_obuf_axi_tvalid : std_logic;
 signal i_obuf_axi_tlast  : std_logic;
 signal i_obuf_axi_tready : std_logic;
 
-signal i_dev_drdy : TDevB;
-signal i_dev_d    : TDevD;
-signal i_dev_rd   : TDevB;
+signal i_wdev_rdy : TDevB;
+signal i_wdev_d   : TDevD;
+signal i_wdev_wr  : TDevB;
+
+signal i_rdev_rdy : TDevB;
+signal i_rdev_d   : TDevD;
+signal i_rdev_rd  : TDevB;
 
 signal i_dev_di : TDevD;
 signal i_dev_do : TDevD;
@@ -241,10 +280,9 @@ p_in_ibuf_axi_tlast   => i_bufi_rd_last,--: in   std_logic; --EOF
 --DEV
 --------------------------------------------------
 --request write to dev
-p_out_rqwr_di   => p_out_rqwr_di ,
-p_out_rqwr_adr  => p_out_rqwr_adr,
-p_out_rqwr_wr   => p_out_rqwr_wr ,
-p_in_rqwr_rdy_n => '0',
+p_out_rqwr_di   => i_rqwr_di,
+p_out_rqwr_wr   => i_rqwr_wr,
+p_in_rqwr_rdy_n => i_rqwr_rdy_n,
 
 --request read from dev
 p_out_rqrd_di   => i_rqrd_di,
@@ -262,6 +300,53 @@ p_in_clk => i_clk,
 p_in_rst => i_rst
 );
 
+m_dev_wr : dev_wr
+generic map(
+G_SDEV_COUNT_MAX => C_SDEV_COUNT_MAX,
+G_TDEV_COUNT_MAX => C_TDEV_COUNT_MAX,
+G_NDEV_COUNT_MAX => C_NDEV_COUNT_MAX,
+G_SIM => "OFF"
+)
+port map(
+--------------------------------------------------
+--RQWR (Len + DEVID + WRDATA; Len + DEVID + WRDATA....)
+--------------------------------------------------
+p_in_rq_di     => i_rqwr_di,
+p_in_rq_wr     => i_rqwr_wr,
+p_out_rq_rdy_n => i_rqwr_rdy_n,
+
+--------------------------------------------------
+--DEV
+--------------------------------------------------
+p_in_dev_rdy => i_wdev_rdy, --: in  TDevB; --ready
+p_out_dev_d  => i_wdev_d  , --: out TDevD; --data
+p_out_dev_wr => i_wdev_wr , --: out TDevB; --write
+
+--------------------------------------------------
+--DBG
+--------------------------------------------------
+p_out_tst => open,
+p_in_tst  => (others => '0'),
+
+p_in_clk => i_clk,
+p_in_rst => i_rst
+);
+
+--i_wdev_rdy <= p_in_dev_rdy;
+genwr_sdev : for s in 0 to C_SDEV_COUNT_MAX - 1 generate begin
+  genwr_tdev : for t in 0 to C_TDEV_COUNT_MAX - 1 generate begin
+    genwr_ndev : for n in 0 to C_NDEV_COUNT_MAX - 1 generate begin
+
+      i_wdev_rdy(s)(t)(n) <= '1' when C_WDEV_VALID(s)(t)(n) = '1' else '0';
+
+    end generate genwr_ndev;
+  end generate genwr_tdev;
+end generate genwr_sdev;
+
+p_out_dev_d  <= i_wdev_d ;
+p_out_dev_wr <= i_wdev_wr;
+
+
 
 m_dev_rd : dev_rd
 generic map(
@@ -275,16 +360,16 @@ port map(
 --------------------------------------------------
 --RQRD
 --------------------------------------------------
-p_in_rqrd_di     => i_rqrd_di   ,
-p_in_rqrd_wr     => i_rqrd_wr   ,
-p_out_rqrd_rdy_n => i_rqrd_rdy_n,
+p_in_rq_di     => i_rqrd_di   ,
+p_in_rq_wr     => i_rqrd_wr   ,
+p_out_rq_rdy_n => i_rqrd_rdy_n,
 
 --------------------------------------------------
 --DEV
 --------------------------------------------------
-p_in_dev_drdy => i_dev_drdy,
-p_in_dev_d    => i_dev_d    ,
-p_out_dev_rd  => i_dev_rd   ,
+p_in_dev_drdy => i_rdev_rdy,
+p_in_dev_d    => i_rdev_d  ,
+p_out_dev_rd  => i_rdev_rd ,
 
 --------------------------------------------------
 --EthTx
@@ -309,8 +394,8 @@ gen_sdev : for s in 0 to C_SDEV_COUNT_MAX - 1 generate begin
   gen_tdev : for t in 0 to C_TDEV_COUNT_MAX - 1 generate begin
     gen_ndev : for n in 0 to C_NDEV_COUNT_MAX - 1 generate begin
 
-      i_dev_drdy(s)(t)(n) <= not i_dev_empty(s)(t)(n) when C_DEV_VALID(s)(t)(n) = '1' else '0';
-      i_dev_d   (s)(t)(n) <= i_dev_do       (s)(t)(n) when C_DEV_VALID(s)(t)(n) = '1' else (others => '0');
+      i_rdev_rdy(s)(t)(n) <= not i_dev_empty(s)(t)(n) when C_RDEV_VALID(s)(t)(n) = '1' else '0';
+      i_rdev_d   (s)(t)(n) <= i_dev_do       (s)(t)(n) when C_RDEV_VALID(s)(t)(n) = '1' else (others => '0');
 
     end generate gen_ndev;
   end generate gen_tdev;
@@ -323,7 +408,7 @@ din   => i_dev_di(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM),
 wr_en => i_dev_wr(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM),
 
 dout  => i_dev_do(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM),
-rd_en => i_dev_rd(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM),
+rd_en => i_rdev_rd(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM),
 
 full  => open, --i_rqbuf_full,
 empty => i_dev_empty(C_SDEV_D2H)(C_TDEV_CAM)(CI_NDEV_CAM),
@@ -341,7 +426,7 @@ din   => i_dev_di(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS),
 wr_en => i_dev_wr(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS),
 
 dout  => i_dev_do(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS),
-rd_en => i_dev_rd(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS),
+rd_en => i_rdev_rd(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS),
 
 full  => open, --i_rqbuf_full,
 empty => i_dev_empty(C_SDEV_D2H)(C_TDEV_GPS)(CI_NDEV_GPS),
@@ -557,7 +642,7 @@ i_bufi_wr_last <= '0';
 
 wait until rising_edge(i_clk);
 i_bufi_di(15 downto  0) <= TO_UNSIGNED(14, 16); --sizeof(Header) + sizeof(DataWR) = 2 + 12
-i_bufi_di(63 downto 48) <= TO_UNSIGNED(0, 4) & TO_UNSIGNED(CI_NDEV_GPS, 4) & TO_UNSIGNED(C_TDEV_GPS, 4) & TO_UNSIGNED(C_SDEV_H2D, 4);
+i_bufi_di(31 downto 16) <= TO_UNSIGNED(0, 4) & TO_UNSIGNED(CI_NDEV_GPS, 4) & TO_UNSIGNED(C_TDEV_GPS, 4) & TO_UNSIGNED(C_SDEV_H2D, 4);
 i_bufi_di(39 downto 32) <= TO_UNSIGNED(32, 8); --12Byte
 i_bufi_di(47 downto 40) <= TO_UNSIGNED(33, 8);
 i_bufi_di(55 downto 48) <= TO_UNSIGNED(34, 8);

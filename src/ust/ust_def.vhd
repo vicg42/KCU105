@@ -42,14 +42,16 @@ constant C_TDEV_LASER  : natural := 5;
 constant C_TDEV_RAM    : natural := 6;
 constant C_TDEV_PROM   : natural := 7;
 constant C_TDEV_TEMP   : natural := 8;
+constant C_TDEV_LAST   : natural := C_TDEV_TEMP;
 --SubType Device
 constant C_SDEV_STATUS : natural := 0;
 constant C_SDEV_CTRL   : natural := 1;
 constant C_SDEV_H2D    : natural := 2;
 constant C_SDEV_D2H    : natural := 3;
+constant C_SDEV_LAST   : natural := C_SDEV_D2H;
 
-constant C_SDEV_COUNT_MAX : natural := 4;
-constant C_TDEV_COUNT_MAX : natural := 9;
+constant C_SDEV_COUNT_MAX : natural := C_SDEV_LAST + 1;
+constant C_TDEV_COUNT_MAX : natural := C_TDEV_LAST + 1;
 constant C_NDEV_COUNT_MAX : natural := 2; --Max Count Device from all device type/subtype
 
 type TDevB_t is array (0 to (C_TDEV_COUNT_MAX - 1)) of std_logic_vector((C_NDEV_COUNT_MAX - 1) downto 0);
@@ -59,13 +61,18 @@ type TDevDATA_t is array (0 to (C_NDEV_COUNT_MAX - 1)) of std_logic_vector(7 dow
 type TDevDATA is array (0 to (C_TDEV_COUNT_MAX - 1)) of TDevDATA_t;
 type TDevD is array (0 to (C_SDEV_COUNT_MAX - 1)) of TDevDATA;
 
---              TypeDevice(value): NULL   ,  REG   ,  CAM   ,  GPS   ,  LASER ,  SAU   ,  RAM   ,  ROM   ,  TEMP
+--              TypeDevice(value): NULL   ,  REG   ,  CAM   ,  SAU   , GPS    , LASER  ,  RAM   ,  ROM   ,  TEMP
 --              NumberDevice(bit): ..1,0  , ..1,0  , ..1,0  , ..1,0  , ..1,0  , ..1,0  , ..1,0  , ..1,0  , ..1,0
-constant C_DEV_VALID : TDevB :=( ( "00"   ,  "00"  ,  "00"  , "00"   , "00"   , "00"   , "00"   , "00"   , "00"  ),  --SubTypeDevice: STATUS
-                                 ( "00"   ,  "00"  ,  "00"  , "00"   , "00"   , "00"   , "00"   , "00"   , "00"  ),  --SubTypeDevice: CTRL
-                                 ( "00"   ,  "00"  ,  "00"  , "00"   , "00"   , "00"   , "00"   , "00"   , "00"  ),  --SubTypeDevice: H2D
-                                 ( "00"   ,  "00"  ,  "01"  , "10"   , "00"   , "00"   , "00"   , "00"   , "00"  )   --SubTypeDevice: D2H
-                               );
+constant C_RDEV_VALID : TDevB :=( ( "00"  ,  "00"  ,  "00"  , "00"   , "00"   , "00"   , "00"   , "00"   , "00"  ),  --SubTypeDevice: STATUS
+                                  ( "00"  ,  "00"  ,  "00"  , "00"   , "00"   , "00"   , "00"   , "00"   , "00"  ),  --SubTypeDevice: CTRL
+                                  ( "00"  ,  "00"  ,  "00"  , "00"   , "00"   , "00"   , "00"   , "00"   , "00"  ),  --SubTypeDevice: H2D
+                                  ( "00"  ,  "00"  ,  "01"  , "00"   , "10"   , "00"   , "00"   , "00"   , "00"  )   --SubTypeDevice: D2H
+                                );
 
+constant C_WDEV_VALID : TDevB :=( ( "00"  ,  "00"  ,  "00"  , "00"   , "00"   , "00"   , "00"   , "00"   , "00"  ),  --SubTypeDevice: STATUS
+                                  ( "00"  ,  "00"  ,  "00"  , "00"   , "00"   , "00"   , "00"   , "00"   , "00"  ),  --SubTypeDevice: CTRL
+                                  ( "00"  ,  "00"  ,  "01"  , "00"   , "10"   , "00"   , "00"   , "00"   , "00"  ),  --SubTypeDevice: H2D
+                                  ( "00"  ,  "00"  ,  "00"  , "00"   , "00"   , "00"   , "00"   , "00"   , "00"  )   --SubTypeDevice: D2H
+                                );
 end package ust_def;
 

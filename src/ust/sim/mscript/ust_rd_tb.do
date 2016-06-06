@@ -50,6 +50,7 @@ vcom -64 -93 "../../../lib/reduce_pack.vhd";
 vcom -64 -93 "../../../lib/vicg_common_pkg.vhd" ;
 vcom -64 -93 "../../ust_def.vhd";
 vcom -64 -93 "../../dev_rd.vhd"
+vcom -64 -93 "../../dev_wr.vhd"
 vcom -64 -93 "../../rx_if.vhd"
 
 #vlog -64 "../../../eth/fifo/eth_core_axi_fifo.v"

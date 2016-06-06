@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------
 -- Engineer    : Golovachenko Victor
 --
--- Create Date : 15.04.2016 10:23:48
+-- Create Date : 06.06.2016 12:42:00
 -- Module Name : dev_wr
 --
 -- Description :
@@ -21,7 +21,6 @@ generic(
 G_SDEV_COUNT_MAX : natural := 16;
 G_TDEV_COUNT_MAX : natural := 16;
 G_NDEV_COUNT_MAX : natural := 2;
-G_OBUF_DWIDTH : natural := 64;
 G_SIM : string := "OFF"
 );
 port(
@@ -76,17 +75,10 @@ S_RQ_IDLE,
 S_RQ_LEN,
 S_RQ_ID,
 S_RQ_CHK,
+--S_RQ_CHK1,
+--S_RQ_CHK2,
 S_RQ_DATA
 );
-
-type TDev is record
-s : unsigned(3 downto 0); --subtype
-t : unsigned(3 downto 0); --type
-n : unsigned(3 downto 0); --num
-dsize : unsigned(15 downto 0);--sizeof(DevData only)
-hrd : std_logic;--Read from fifo_rq : Len + Header
-drd : std_logic;--Read from fifo_rq : WrData
-end record;
 
 signal i_fsm_rq       : TFsmRq;
 
@@ -99,10 +91,21 @@ signal i_rqfifo_empty : std_logic;
 signal i_rq_len       : unsigned(15 downto 0);
 signal i_rq_id        : unsigned(15 downto 0);
 signal i_bcnt         : unsigned(log2(i_rq_len'length / 8) - 1 downto 0);--bus byte cnt
-signal i_dcnt         : unsigned(15 downto 0);
 
+type TDev is record
+s : unsigned(3 downto 0); --subtype
+t : unsigned(3 downto 0); --type
+n : unsigned(3 downto 0); --num
+dsize : unsigned(15 downto 0);--sizeof(DevData only)
+hrd : std_logic;--Read from fifo_rq : Len + Header
+drd : std_logic;--Read from fifo_rq : WrData
+end record;
+
+signal i_dev          : TDev;
+signal i_dcnt         : unsigned(15 downto 0);
 signal i_dev_rdy      : std_logic_vector((G_SDEV_COUNT_MAX * G_TDEV_COUNT_MAX * G_NDEV_COUNT_MAX) - 1 downto 0);
 signal i_dev_wr       : std_logic;
+signal i_dev_cs       : TDevB;
 
 
 begin --architecture behavioral
@@ -111,6 +114,8 @@ begin --architecture behavioral
 ---------------------------------------------
 --Read request
 ---------------------------------------------
+p_out_rq_rdy_n <= '0';
+
 m_fifo_rq : fifo_rqrd
 port map(
 din   => p_in_rq_di,
@@ -146,6 +151,19 @@ if rising_edge(p_in_clk) then
     i_dev.hrd <= '0';
     i_dev.drd <= '0';
     i_dev.dsize <= (others => '0');
+    i_dcnt <= (others => '0');
+
+    for s in 0 to G_SDEV_COUNT_MAX - 1 loop
+      for t in 0 to G_TDEV_COUNT_MAX - 1 loop
+        for n in 0 to G_NDEV_COUNT_MAX - 1 loop
+          i_dev_cs(s)(t)(n) <= '0';
+        end loop;
+      end loop;
+    end loop;
+--
+--    i_dev.s <= (others => '0');
+--    i_dev.t <= (others => '0');
+--    i_dev.n <= (others => '0');
 
   else
 
@@ -194,7 +212,7 @@ if rising_edge(p_in_clk) then
               i_bcnt <= (others => '0');
               i_dev.hrd <= '0';
               i_dev.dsize <= i_rq_len - 2; --subtraction sizeof(Header)
-              i_fsm_rq <= S_RQ_RDY;
+              i_fsm_rq <= S_RQ_CHK;
             else
               i_bcnt <= i_bcnt + 1;
             end if;
@@ -202,6 +220,20 @@ if rising_edge(p_in_clk) then
           end if;
 
         when S_RQ_CHK =>
+
+          for s in 0 to G_SDEV_COUNT_MAX - 1 loop --SubType Device
+            if (i_dev.s = s) then
+              for t in 0 to G_TDEV_COUNT_MAX - 1 loop --Type Device
+                if (i_dev.t = t) then
+                  for n in 0 to G_NDEV_COUNT_MAX - 1 loop --Number Device
+                    if (i_dev.n = n) then
+                      i_dev_cs(s)(t)(n) <= '1';
+                    end if;
+                  end loop;
+                end if;
+              end loop;
+            end if;
+          end loop;
 
           if ((i_rqfifo_empty = '0') and (OR_reduce(i_dev_rdy) = '1')) then
             i_dev.drd <= '1';
@@ -215,7 +247,16 @@ if rising_edge(p_in_clk) then
                 if (i_dcnt = (i_dev.dsize - 1)) then
                   i_dcnt <= (others => '0');
                   i_dev.drd <= '0';
-                  i_fsm_pkt <= S_RQ_IDLE;
+
+                  for s in 0 to G_SDEV_COUNT_MAX - 1 loop
+                    for t in 0 to G_TDEV_COUNT_MAX - 1 loop
+                      for n in 0 to G_NDEV_COUNT_MAX - 1 loop
+                        i_dev_cs(s)(t)(n) <= '0';
+                      end loop;
+                    end loop;
+                  end loop;
+
+                  i_fsm_rq <= S_RQ_IDLE;
                 else
                   i_dcnt <= i_dcnt + 1;
                 end if;
@@ -236,11 +277,11 @@ gen_sdev : for s in 0 to C_SDEV_COUNT_MAX - 1 generate begin
   gen_tdev : for t in 0 to C_TDEV_COUNT_MAX - 1 generate begin
     gen_ndev : for n in 0 to C_NDEV_COUNT_MAX - 1 generate begin
 
-      i_dev_rdy((s * G_TDEV_COUNT_MAX * G_NDEV_COUNT_MAX) + (t * G_NDEV_COUNT_MAX) + n) <= p_in_dev_rdy(s)(t)(n) when (i_dev.s = s) and (i_dev.t = t) and (i_dev.n = n) else '0';
+      i_dev_rdy((s * G_TDEV_COUNT_MAX * G_NDEV_COUNT_MAX) + (t * G_NDEV_COUNT_MAX) + n) <= p_in_dev_rdy(s)(t)(n) and i_dev_cs(s)(t)(n);
 
       p_out_dev_d(s)(t)(n) <= i_rqfifo_do;
 
-      p_out_dev_wr(s)(t)(n) <= i_dev_wr when ((i_dev.s = s) and (i_dev.t = t) and (i_dev.n = n)) else '0';
+      p_out_dev_wr(s)(t)(n) <= i_dev_wr and i_dev_cs(s)(t)(n);
 
     end generate gen_ndev;
   end generate gen_tdev;
