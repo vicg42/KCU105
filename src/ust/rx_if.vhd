@@ -37,8 +37,8 @@ p_in_ibuf_axi_tlast   : in   std_logic; --EOF
 --request write to dev
 p_out_rqwr_di   : out  std_logic_vector(7 downto 0);
 p_out_rqwr_adr  : out  std_logic_vector(7 downto 0);
-p_out_rqwr_wr   : out  std_logic;
-p_in_rqwr_rdy_n : in   std_logic;
+p_out_rqwr_wr   : out  TDevB;
+p_in_rqwr_rdy_n : in  TDevB; --data ready
 
 --request read from dev
 p_out_rqrd_di   : out  std_logic_vector(7 downto 0);
@@ -65,7 +65,7 @@ S_RX_DPKT,
 S_RX_PKT_DONE,
 S_RX_PKT_ERR
 );
-signal i_fsm_pkt_rx    : TFsmPktRx;
+signal i_fsm_pkt_rx   : TFsmPktRx;
 
 type TFsmRqWr is (
 S_RQWR_LEN,
@@ -73,25 +73,31 @@ S_RQWR_ADR,
 S_RQWR_D,
 S_RQWR_DONE
 );
-signal i_fsm_rqwr      : TFsmRqWr;
+signal i_fsm_rqwr     : TFsmRqWr;
 
-signal i_ibuf_rd       : std_logic;
-signal i_ibuf_rden     : std_logic;
+signal i_ibuf_rd      : std_logic;
+signal i_ibuf_rden    : std_logic;
 
-signal i_pkt_den       : std_logic;
-signal i_pkt_d         : unsigned(7 downto 0); --byte input
-signal i_pkt_type      : unsigned(1 downto 0);
-signal i_pkt_dcnt      : unsigned((C_FLEN_BCOUNT * 8) - 1 downto 0);--packet byte cnt
-signal i_pkt_dcount    : unsigned((C_FLEN_BCOUNT * 8) - 1 downto 0);--packet byte cnt
-signal i_bcnt_a        : unsigned(log2(G_IBUF_DWIDTH / 8) - 1 downto 0);--bus byte cnt
-signal i_bcnt_b        : unsigned(7 downto 0);
+signal i_pkt_den      : std_logic;
+signal i_pkt_d        : unsigned(7 downto 0); --byte input
+signal i_pkt_type     : unsigned(1 downto 0);
+signal i_pkt_dcnt     : unsigned((C_FLEN_BCOUNT * 8) - 1 downto 0);--packet byte cnt
+signal i_pkt_dcount   : unsigned((C_FLEN_BCOUNT * 8) - 1 downto 0);--packet byte cnt
+signal i_bcnt_a       : unsigned(log2(G_IBUF_DWIDTH / 8) - 1 downto 0);--bus byte cnt
+signal i_bcnt_b       : unsigned(7 downto 0);
 
-signal i_dev_dcnt      : unsigned((C_FLEN_BCOUNT * 8) - 1 downto 0);
-signal i_rqwr_adr      : unsigned(15 downto 0);
-signal i_rqwr_di       : unsigned(7 downto 0);
-signal i_rqwr_wr       : std_logic;
+type TDev is record
+s : unsigned(3 downto 0); --subtype
+t : unsigned(3 downto 0); --type
+n : unsigned(3 downto 0); --num
+end record;
+signal i_dev          : TDev;
+signal i_dev_dcnt     : unsigned((C_FLEN_BCOUNT * 8) - 1 downto 0);
+signal i_rqwr_adr     : unsigned(15 downto 0);
+signal i_rqwr_di      : unsigned(7 downto 0);
+signal i_rqwr_wr      : std_logic;
 
-signal i_err           : std_logic;
+signal i_err          : std_logic;
 
 constant CI_PKT_DECR : natural := C_TPKT_H2D_HDR_BCOUNT - 1;
 constant CI_DEV_DECR : natural := C_DEV_HDR_BCOUNT - 1;
@@ -223,8 +229,24 @@ p_out_rqrd_wr <= i_pkt_den when i_pkt_type = TO_UNSIGNED(C_TPKT_D2H, i_pkt_type'
 --
 ---------------------------------------------
 p_out_rqwr_di <= std_logic_vector(i_rqwr_di); --dev_num(7..4) & dev_type(3..0)
-p_out_rqwr_adr <= std_logic_vector(i_rqwr_adr(7 downto 0));
+--p_out_rqwr_adr <= std_logic_vector(i_rqwr_adr(7 downto 0));
 p_out_rqwr_wr <= i_rqwr_wr;
+
+--gen_sdev : for s in 0 to C_SDEV_COUNT_MAX - 1 generate begin
+--  gen_tdev : for t in 0 to C_TDEV_COUNT_MAX - 1 generate begin
+--    gen_ndev : for n in 0 to C_NDEV_COUNT_MAX - 1 generate begin
+--
+--      p_out_rqwr_wr(s)(t)(n) <= i_rqwr_wr when (i_rqwr_adr(3  downto 0) = s) and
+--                                               (i_rqwr_adr(7  downto 4) = t) and
+--                                               (i_rqwr_adr(11 downto 8) = n) else '0';
+--
+--    end generate gen_ndev;
+--  end generate gen_tdev;
+--end generate gen_sdev;
+
+i_dev.s <= i_rqwr_adr( 3 downto 0); --subtype device
+i_dev.t <= i_rqwr_adr( 7 downto 4); --type device
+i_dev.n <= i_rqwr_adr(11 downto 8); --number device
 
 process(p_in_clk)
 begin
@@ -237,7 +259,15 @@ if rising_edge(p_in_clk) then
 
     i_rqwr_adr <= (others => '0');
     i_rqwr_di <= (others => '0');
-    i_rqwr_wr <= '0';
+--    i_rqwr_wr <= '0';
+    for s in 0 to (G_SDEV_COUNT_MAX - 1) loop
+      for t in 0 to (G_TDEV_COUNT_MAX - 1) loop
+        for n in 0 to (G_NDEV_COUNT_MAX - 1) loop
+            i_rqwr_wr(s)(t)(n) <= '0';
+        end loop;
+      end loop;
+    end loop;
+
 
     i_bcnt_b <= (others => '0');
 
@@ -291,28 +321,61 @@ if rising_edge(p_in_clk) then
 
         when S_RQWR_D =>
 
-          if (i_pkt_den = '1') then
+--          if (i_pkt_den = '1') then
+--
+--              i_rqwr_di <= i_pkt_d;
+--              i_rqwr_wr <= '1';
+--
+--              if (i_dev_dcnt = (i_dev_dcnt'range => '0')) then
+--
+--                if (i_fsm_pkt_rx = S_RX_PKT_DONE) then
+--                  i_fsm_rqwr <= S_RQWR_DONE;
+--                else
+--                  i_fsm_rqwr <= S_RQWR_LEN;
+--                end if;
+--
+--              else
+--                i_dev_dcnt <= i_dev_dcnt - 1;
+--              end if;
+--
+--          end if;
 
-              i_rqwr_di <= i_pkt_d;
-              i_rqwr_wr <= '1';
 
-              if (i_dev_dcnt = (i_dev_dcnt'range => '0')) then
-
-                if (i_fsm_pkt_rx = S_RX_PKT_DONE) then
-                  i_fsm_rqwr <= S_RQWR_DONE;
-                else
-                  i_fsm_rqwr <= S_RQWR_LEN;
+          for s in 0 to (G_SDEV_COUNT_MAX - 1) loop --SubType Device
+            if (i_dev.s = s) then
+              for t in 0 to (G_TDEV_COUNT_MAX - 1) loop --Type Device
+                if (i_dev.t = t) then
+                  for n in 0 to (G_NDEV_COUNT_MAX - 1) loop --Number Device
+                    if (i_dev.n = n) then
+                        if (p_in_rqwr_rdy_n(s)(t)(n) = '1') then
+                            i_rqwr_wr(s)(t)(n) <= '1';
+                            i_dev_d <= p_in_dev_d(s)(t)(n);
+                            if (i_dev_dcnt = (i_dev_dcnt'range => '0')) then
+                              if (i_fsm_pkt_rx = S_RX_PKT_DONE) then
+                                i_fsm_rqwr <= S_RQWR_DONE;
+                              else
+                                i_fsm_rqwr <= S_RQWR_LEN;
+                              end if;
+                            else
+                              i_dev_dcnt <= i_dev_dcnt - 1;
+                            end if;
+                        end if;
+                    end if;
+                  end loop;
                 end if;
-
-              else
-                i_dev_dcnt <= i_dev_dcnt - 1;
-              end if;
-
-          end if;
+              end loop;
+            end if;
+          end loop;
 
         when S_RQWR_DONE =>
 
-          i_rqwr_wr <= '0';
+          for s in 0 to (G_SDEV_COUNT_MAX - 1) loop
+            for t in 0 to (G_TDEV_COUNT_MAX - 1) loop
+              for n in 0 to (G_NDEV_COUNT_MAX - 1) loop
+                  i_rqwr_wr(s)(t)(n) <= '0';
+              end loop;
+            end loop;
+          end loop;
           i_fsm_rqwr <= S_RQWR_LEN;
 
       end case;
