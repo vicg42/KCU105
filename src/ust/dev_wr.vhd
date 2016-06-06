@@ -75,8 +75,6 @@ S_RQ_IDLE,
 S_RQ_LEN,
 S_RQ_ID,
 S_RQ_CHK,
---S_RQ_CHK1,
---S_RQ_CHK2,
 S_RQ_DATA
 );
 
@@ -160,10 +158,6 @@ if rising_edge(p_in_clk) then
         end loop;
       end loop;
     end loop;
---
---    i_dev.s <= (others => '0');
---    i_dev.t <= (others => '0');
---    i_dev.n <= (others => '0');
 
   else
 
