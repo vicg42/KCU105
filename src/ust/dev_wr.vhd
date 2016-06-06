@@ -110,7 +110,7 @@ begin --architecture behavioral
 
 
 ---------------------------------------------
---Read request
+--FIFO request
 ---------------------------------------------
 p_out_rq_rdy_n <= '0';
 
@@ -171,7 +171,7 @@ if rising_edge(p_in_clk) then
           end if;
 
         --------------------------------------
-        --Get Param Device read
+        --Get Param Device (LEN + DEVID)
         --------------------------------------
         when S_RQ_LEN =>
 
@@ -215,25 +215,32 @@ if rising_edge(p_in_clk) then
 
         when S_RQ_CHK =>
 
-          for s in 0 to G_SDEV_COUNT_MAX - 1 loop
-            if (i_dev.s = s) then
-              for t in 0 to G_TDEV_COUNT_MAX - 1 loop
-                if (i_dev.t = t) then
-                  for n in 0 to G_NDEV_COUNT_MAX - 1 loop
-                    if (i_dev.n = n) then
-                      i_dev_cs(s)(t)(n) <= '1';
+          if (i_rq_id = (i_rq_id'range => '0')) then
+            i_fsm_rq <= S_RQ_IDLE;
+          else
+              for s in 0 to G_SDEV_COUNT_MAX - 1 loop
+                if (i_dev.s = s) then
+                  for t in 0 to G_TDEV_COUNT_MAX - 1 loop
+                    if (i_dev.t = t) then
+                      for n in 0 to G_NDEV_COUNT_MAX - 1 loop
+                        if (i_dev.n = n) then
+                          i_dev_cs(s)(t)(n) <= '1';
+                        end if;
+                      end loop;
                     end if;
                   end loop;
                 end if;
               end loop;
-            end if;
-          end loop;
 
-          if ((i_rqfifo_empty = '0') and (OR_reduce(i_dev_rdy) = '1')) then
-            i_dev.drd <= '1';
-            i_fsm_rq <= S_RQ_DATA;
+              if ((i_rqfifo_empty = '0') and (OR_reduce(i_dev_rdy) = '1')) then
+                i_dev.drd <= '1';
+                i_fsm_rq <= S_RQ_DATA;
+              end if;
           end if;
 
+        --------------------------------------
+        --Write data to device
+        --------------------------------------
         when S_RQ_DATA =>
 
           if (i_rqfifo_empty = '0') then
@@ -262,9 +269,9 @@ if rising_edge(p_in_clk) then
 end if;
 end process;
 
-i_dev.s <= i_rq_id( 3 downto 0); --subtype device
-i_dev.t <= i_rq_id( 7 downto 4); --type device
-i_dev.n <= i_rq_id(11 downto 8); --number device
+i_dev.s <= i_rq_id( 3 downto 0);
+i_dev.t <= i_rq_id( 7 downto 4);
+i_dev.n <= i_rq_id(11 downto 8);
 
 gen_sdev : for s in 0 to C_SDEV_COUNT_MAX - 1 generate begin
   gen_tdev : for t in 0 to C_TDEV_COUNT_MAX - 1 generate begin

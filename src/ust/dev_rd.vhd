@@ -203,9 +203,9 @@ begin --architecture behavioral
 
 
 ---------------------------------------------
---Read request
+--FIFO request
 ---------------------------------------------
-m_buf_rqrd : fifo_rqrd
+m_fifo_rq : fifo_rqrd
 port map(
 din   => p_in_rq_di,
 wr_en => p_in_rq_wr,
@@ -364,11 +364,11 @@ if rising_edge(p_in_clk) then
     i_dev_d <= (others => '0');
 
     for s in 0 to G_SDEV_COUNT_MAX - 1 loop
-        for t in 0 to G_TDEV_COUNT_MAX - 1 loop
-            for n in 0 to G_NDEV_COUNT_MAX - 1 loop
-              i_dev_cs(s)(t)(n) <= '0';
-            end loop;
+      for t in 0 to G_TDEV_COUNT_MAX - 1 loop
+        for n in 0 to G_NDEV_COUNT_MAX - 1 loop
+          i_dev_cs(s)(t)(n) <= '0';
         end loop;
+      end loop;
     end loop;
 
     i_bufo_rd <= '0';
@@ -461,11 +461,11 @@ if rising_edge(p_in_clk) then
           i_pkt_dcnt <= i_pkt_dcnt + 1;
           i_dev_hdr_wr <= '0';
 
-          for s in 0 to G_SDEV_COUNT_MAX - 1 loop --SubType Device
+          for s in 0 to G_SDEV_COUNT_MAX - 1 loop
             if (i_dev.s = s) then
-              for t in 0 to G_TDEV_COUNT_MAX - 1 loop --Type Device
+              for t in 0 to G_TDEV_COUNT_MAX - 1 loop
                 if (i_dev.t = t) then
-                  for n in 0 to G_NDEV_COUNT_MAX - 1 loop --Number Device
+                  for n in 0 to G_NDEV_COUNT_MAX - 1 loop
                     if (i_dev.n = n) then
                       i_dev_cs(s)(t)(n) <= '1';
                     end if;
@@ -479,11 +479,11 @@ if rising_edge(p_in_clk) then
 
         when S_PKT_DEV_RD =>
 
-          for s in 0 to G_SDEV_COUNT_MAX - 1 loop --SubType Device
+          for s in 0 to G_SDEV_COUNT_MAX - 1 loop
             if (i_dev.s = s) then
-              for t in 0 to G_TDEV_COUNT_MAX - 1 loop --Type Device
+              for t in 0 to G_TDEV_COUNT_MAX - 1 loop
                 if (i_dev.t = t) then
-                  for n in 0 to G_NDEV_COUNT_MAX - 1 loop --Number Device
+                  for n in 0 to G_NDEV_COUNT_MAX - 1 loop
                     if (i_dev.n = n) then
 
                         if (p_in_dev_drdy(s)(t)(n) = '1') then
