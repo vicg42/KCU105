@@ -215,7 +215,7 @@ if rising_edge(p_in_clk) then
 
         when S_RQ_CHK =>
 
-          if (i_rq_id = (i_rq_id'range => '0')) then
+          if (i_rq_id = (i_rq_id'range => '0')) then --DEVNULL
             i_fsm_rq <= S_RQ_IDLE;
           else
               for s in 0 to G_SDEV_COUNT_MAX - 1 loop
