@@ -77,12 +77,12 @@ module board;
   `ifdef LINKWIDTH
   localparam   [3:0] LINK_WIDTH = 4'h`LINKWIDTH;
   `else
-  localparam   [3:0] LINK_WIDTH = 4'h4;
+  localparam   [3:0] LINK_WIDTH = 4'h8;
   `endif
   `ifdef LINKSPEED
   localparam   [2:0] LINK_SPEED = 3'h`LINKSPEED;
   `else
-  localparam   [2:0] LINK_SPEED = 3'h2;
+  localparam   [2:0] LINK_SPEED = 3'h4;
   `endif
 
   localparam EXT_PIPE_SIM = "FALSE";
@@ -99,12 +99,19 @@ module board;
   //
   // PCI-Express Serial Interconnect
   //
+  
+  wire led_0;
+  wire led_1;
+  wire led_2;
+  wire led_3;
+  wire led_4;
+  wire led_5;
+  wire led_6;
+  wire led_7;
   wire  [(LINK_WIDTH-1):0]  ep_pci_exp_txn;
   wire  [(LINK_WIDTH-1):0]  ep_pci_exp_txp;
   wire  [(LINK_WIDTH-1):0]  rp_pci_exp_txn;
   wire  [(LINK_WIDTH-1):0]  rp_pci_exp_txp;
-  wire  [3:0] rp_txn;
-  wire  [3:0] rp_txp;
   
 
 
@@ -125,10 +132,10 @@ module board;
 
   
     // PCI-Express Interface
-    .pci_exp_txn({rp_txn,rp_pci_exp_txn}),
-    .pci_exp_txp({rp_txp,rp_pci_exp_txp}),
-    .pci_exp_rxn({4'b0,ep_pci_exp_txn}),
-    .pci_exp_rxp({4'b0,ep_pci_exp_txp})
+    .pci_exp_txn(rp_pci_exp_txn),
+    .pci_exp_txp(rp_pci_exp_txp),
+    .pci_exp_rxn(ep_pci_exp_txn),
+    .pci_exp_rxp(ep_pci_exp_txp)
   
   
   );
@@ -145,6 +152,16 @@ module board;
     .sys_clk_p(ep_sys_clk_p),
     .sys_rst_n(sys_rst_n),
 
+  
+    // Misc signals
+    .led_0(led_0),
+    .led_1(led_1),
+    .led_2(led_2),
+    .led_3(led_3),
+    .led_4(led_4),
+    .led_5(led_5),
+    .led_6(led_6),
+    .led_7(led_7),
 
     // PCI-Express Interface
     .pci_exp_txn(ep_pci_exp_txn),

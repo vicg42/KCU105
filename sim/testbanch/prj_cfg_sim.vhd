@@ -21,14 +21,14 @@ constant C_PCFG_BOARD                  : string := "SIM";
 
 --PCI-Express
 constant C_PCGF_PCIE_DBGCS             : string := "OFF";
-constant C_PCGF_PCIE_LINK_WIDTH        : integer := 8; --if change count link than need regenerat core PCI-Express
-constant C_PCGF_PCIE_DWIDTH            : integer := 256;
+constant C_PCGF_PCIE_LINK_WIDTH        : integer := 4; --if change count link than need regenerat core PCI-Express
+constant C_PCGF_PCIE_DWIDTH            : integer := 128;
 
 --FG(frame grabber)
 constant C_PCFG_FG_PIXBIT              : integer := 16; --Count bit/pix
 constant C_PCFG_FG_MEM_VBUF_SIZE       : integer := C_1MB * 32; --Size One Frame Buffer(VBUF)
 constant C_PCFG_FG_VBUF_COUNT          : integer := 4; --Count Frame Buffers
-constant C_PCFG_FG_VCH_COUNT           : integer := 2; --Count Video channels
+constant C_PCFG_FG_VCH_COUNT           : integer := 1; --Count Video channels
 constant C_PCFG_VSYN_ACTIVE            : std_logic := '1'; --select active level of strobe video synhronization (HS,VS)
 
 --Memory Controller
@@ -36,6 +36,11 @@ constant C_PCFG_MEMCTRL_BANK_SIZE      : integer := 4; --max 7: 0-8MB, 1-16MB, 2
 constant C_PCFG_MEMARB_CH_COUNT        : integer := 2 + C_PCFG_FG_VCH_COUNT; --CH0(HOST)
                                                                              -- + CH1(FrameGrabber Read)
                                                                              -- + CH2(FrameGrabber Writer) + ...
+
+
+constant C_PCFG_ETH_DBG                : string := "LOOPBACK";
+constant C_PCFG_ETH_CH_COUNT           : integer := 1;
+constant C_PCFG_ETH_DWIDTH             : integer := 64;
 
 end package prj_cfg;
 

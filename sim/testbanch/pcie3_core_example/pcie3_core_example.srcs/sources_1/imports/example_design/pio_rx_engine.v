@@ -674,18 +674,15 @@ module pio_rx_engine  #(
 
             end // PIO_RX_DATA
 
-            PIO_RX_DATA2 : begin
+            PIO_RX_DATA2 : begin // Address Aligned Mode, 2DW, Address Offset 3'b001 only
 
               if (m_axis_cq_tvalid && m_axis_cq_tlast)
               begin
-                if ( (payload_len == 11'h002) && (AXISTEN_IF_CQ_ALIGNMENT_MODE == "TRUE"))
-                begin // Address Aligned Mode
-                  wr_data[63:32]   <= #TCQ m_axis_cq_tdata[31:0];
-                  wr_be[7:4]       <= #TCQ m_axis_cq_tuser[11:8];
-                  wr_en            <= #TCQ 1'b1;
-                  m_axis_cq_tready <= #TCQ 1'b0;
-                  state            <= #TCQ PIO_RX_WAIT_STATE;
-                end
+                wr_data[63:32]   <= #TCQ m_axis_cq_tdata[31:0];
+                wr_be[7:4]       <= #TCQ m_axis_cq_tuser[11:8];
+                wr_en            <= #TCQ 1'b1;
+                m_axis_cq_tready <= #TCQ 1'b0;
+                state            <= #TCQ PIO_RX_WAIT_STATE;
 
               end // if (m_axis_cq_tvalid)
               else
@@ -1175,18 +1172,15 @@ module pio_rx_engine  #(
 
             end // PIO_RX_DATA
 
-            PIO_RX_DATA2 : begin
+            PIO_RX_DATA2 : begin // Address Aligned Mode, 2DW, Address Offset 3'b011 only
 
               if (m_axis_cq_tvalid && m_axis_cq_tlast)
               begin
-                if ( (payload_len == 11'h002) && (AXISTEN_IF_CQ_ALIGNMENT_MODE == "TRUE"))
-                begin // Address Aligned Mode
-                  wr_data[63:32]   <= #TCQ m_axis_cq_tdata[31:0];
-                  wr_be[7:4]       <= #TCQ m_axis_cq_tuser[11:8];
-                  wr_en            <= #TCQ 1'b1;
-                  m_axis_cq_tready <= #TCQ 1'b0;
-                  state            <= #TCQ PIO_RX_WAIT_STATE;
-                end
+                wr_data[63:32]   <= #TCQ m_axis_cq_tdata[31:0];
+                wr_be[7:4]       <= #TCQ m_axis_cq_tuser[11:8];
+                wr_en            <= #TCQ 1'b1;
+                m_axis_cq_tready <= #TCQ 1'b0;
+                state            <= #TCQ PIO_RX_WAIT_STATE;
 
               end // if (m_axis_cq_tvalid)
               else
@@ -1692,8 +1686,8 @@ module pio_rx_engine  #(
                     m_axis_cq_tready <= #TCQ 1'b0;
                   end
                   3'b111 : begin
-                    wr_data          <= #TCQ {32'h0, m_axis_cq_tdata[255:223]};
-                    wr_be            <= #TCQ { 4'h0, m_axis_cq_tuser[39:35]};
+                    wr_data          <= #TCQ {32'h0, m_axis_cq_tdata[255:224]};
+                    wr_be            <= #TCQ { 4'h0, m_axis_cq_tuser[39:36]};
                     wr_en            <= #TCQ payload_len ? 1'b0 : 1'b1;
                     state            <= #TCQ payload_len ? PIO_RX_DATA2 : PIO_RX_WAIT_STATE;
                     m_axis_cq_tready <= #TCQ payload_len ? 1'b1 : 1'b0;
@@ -1708,18 +1702,15 @@ module pio_rx_engine  #(
 
             end // PIO_RX_DATA
 
-            PIO_RX_DATA2 : begin
+            PIO_RX_DATA2 : begin // Address Aligned Mode, 2DW, Address Offset 3'b111 only
 
               if (m_axis_cq_tvalid && m_axis_cq_tlast)
               begin
-                if ( (payload_len == 11'h002) && (AXISTEN_IF_CQ_ALIGNMENT_MODE == "TRUE"))
-                begin // Address Aligned Mode
-                  wr_data[63:32]   <= #TCQ m_axis_cq_tdata[31:0];
-                  wr_be[7:4]       <= #TCQ m_axis_cq_tuser[11:8];
-                  wr_en            <= #TCQ 1'b1;
-                  m_axis_cq_tready <= #TCQ 1'b0;
-                  state            <= #TCQ PIO_RX_WAIT_STATE;
-                end
+                wr_data[63:32]   <= #TCQ m_axis_cq_tdata[31:0];
+                wr_be[7:4]       <= #TCQ m_axis_cq_tuser[11:8];
+                wr_en            <= #TCQ 1'b1;
+                m_axis_cq_tready <= #TCQ 1'b0;
+                state            <= #TCQ PIO_RX_WAIT_STATE;
 
               end // if (m_axis_cq_tvalid)
               else

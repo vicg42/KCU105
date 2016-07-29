@@ -73,11 +73,15 @@ module board;
                                           (REF_CLK_FREQ == 1) ? 4000 :
                                           (REF_CLK_FREQ == 2) ? 2000 : 0;
 
-  localparam   [2:0] PF0_DEV_CAP_MAX_PAYLOAD_SIZE = 3'hx3;
+  localparam   [2:0] PF0_DEV_CAP_MAX_PAYLOAD_SIZE = 3'hx3; //for PCIEx8 (GEN3), for PCIEx1 (GEN3), for PCIEx4 (GEN3)
+//  localparam   [2:0] PF0_DEV_CAP_MAX_PAYLOAD_SIZE = 3'hx2; //for PCIEx2 (GEN3),
   `ifdef LINKWIDTH
   localparam   [3:0] LINK_WIDTH = 4'h`LINKWIDTH;
   `else
-  localparam   [3:0] LINK_WIDTH = 4'h8;
+  localparam   [3:0] LINK_WIDTH = 4'h8; //for PCIEx8 (GEN3)
+//  localparam   [3:0] LINK_WIDTH = 4'h4; //for PCIEx4 (GEN3)
+//  localparam   [3:0] LINK_WIDTH = 4'h2; //for PCIEx2 (GEN3)
+//  localparam   [3:0] LINK_WIDTH = 4'h1; //for PCIEx1 (GEN3)
   `endif
   `ifdef LINKSPEED
   localparam   [2:0] LINK_SPEED = 3'h`LINKSPEED;
@@ -103,9 +107,10 @@ module board;
   wire  [(LINK_WIDTH-1):0]  ep_pci_exp_txp;
   wire  [(LINK_WIDTH-1):0]  rp_pci_exp_txn;
   wire  [(LINK_WIDTH-1):0]  rp_pci_exp_txp;
-  wire  [3:0] rp_txn;
-  wire  [3:0] rp_txp;
-
+//  wire  [3:0] rp_txn;
+//  wire  [3:0] rp_txp;
+  wire  [5:0] rp_txn;
+  wire  [5:0] rp_txp;
 
   //
   // PCI-Express Model Root Port Instance
@@ -113,6 +118,7 @@ module board;
 
   xilinx_pcie3_uscale_rp
   #(
+//     .AXISTEN_IF_ENABLE_RX_MSG_INTFC("TRUE"),
      .PF0_DEV_CAP_MAX_PAYLOAD_SIZE(PF0_DEV_CAP_MAX_PAYLOAD_SIZE)
      //ONLY FOR RP
   ) RP (
@@ -124,15 +130,29 @@ module board;
 
 
     // PCI-Express Interface
+//for PCIEx8 (GEN3)
     .pci_exp_txn(rp_pci_exp_txn),
     .pci_exp_txp(rp_pci_exp_txp),
     .pci_exp_rxn(ep_pci_exp_txn),
     .pci_exp_rxp(ep_pci_exp_txp)
+
+////for PCIEx4 (GEN3)
 //    .pci_exp_txn({rp_txn,rp_pci_exp_txn}),
 //    .pci_exp_txp({rp_txp,rp_pci_exp_txp}),
 //    .pci_exp_rxn({4'b0,ep_pci_exp_txn}),
 //    .pci_exp_rxp({4'b0,ep_pci_exp_txp})
 
+////for PCIEx2 (GEN3)
+//    .pci_exp_txn({rp_txn,rp_pci_exp_txn}),
+//    .pci_exp_txp({rp_txp,rp_pci_exp_txp}),
+//    .pci_exp_rxn({6'b0,ep_pci_exp_txn}),
+//    .pci_exp_rxp({6'b0,ep_pci_exp_txp})
+
+////for PCIEx1 (GEN3)
+//    .pci_exp_txn({rp_txn,rp_pci_exp_txn}),
+//    .pci_exp_txp({rp_txp,rp_pci_exp_txp}),
+//    .pci_exp_rxn({7'b0,ep_pci_exp_txn}),
+//    .pci_exp_rxp({7'b0,ep_pci_exp_txp})
 
   );
   //------------------------------------------------------------------------------//
@@ -190,6 +210,15 @@ module board;
     $display("[%t] : System Reset Is De-asserted...", $realtime);
     sys_rst_n = 1'b1;
   end
+
+//  initial begin
+//    #109050;
+//    $display("[%t] : Enable MEM, I/O, Bus Master Enable bit in RP", $realtime);
+//    RP.cfg_usrapp.TSK_READ_CFG_DW(32'h00000001);
+//    RP.cfg_usrapp.TSK_WRITE_CFG_DW(32'h00000001, 32'h00000007, 4'b1110);
+//    RP.cfg_usrapp.TSK_READ_CFG_DW(32'h00000001);
+//    $display("[%t] : Enable MEM, I/O, Bus Master Enable bit in RP", $realtime);
+//  end
 
   initial begin
 

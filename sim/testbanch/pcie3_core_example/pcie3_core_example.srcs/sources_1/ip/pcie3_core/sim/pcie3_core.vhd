@@ -47,7 +47,7 @@
 -- DO NOT MODIFY THIS FILE.
 
 -- IP VLNV: xilinx.com:ip:pcie3_ultrascale:4.0
--- IP Revision: 0
+-- IP Revision: 1
 
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
@@ -724,11 +724,11 @@ ARCHITECTURE pcie3_core_arch OF pcie3_core IS
       mcap_eos_in : IN STD_LOGIC;
       startup_cfgclk : OUT STD_LOGIC;
       startup_cfgmclk : OUT STD_LOGIC;
-      startup_di : OUT STD_LOGIC_VECTOR(4 DOWNTO 0);
+      startup_di : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
       startup_eos : OUT STD_LOGIC;
       startup_preq : OUT STD_LOGIC;
-      startup_do : IN STD_LOGIC_VECTOR(4 DOWNTO 0);
-      startup_dts : IN STD_LOGIC_VECTOR(4 DOWNTO 0);
+      startup_do : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+      startup_dts : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
       startup_fcsbo : IN STD_LOGIC;
       startup_fcsbts : IN STD_LOGIC;
       startup_gsr : IN STD_LOGIC;
@@ -995,7 +995,7 @@ BEGIN
       AXISTEN_IF_RQ_ALIGNMENT_MODE => "FALSE",
       PF0_AER_CAP_ECRC_CHECK_CAPABLE => "FALSE",
       PF0_AER_CAP_ECRC_GEN_CAPABLE => "FALSE",
-      PF0_AER_CAP_NEXTPTR => X"300",
+      PF0_AER_CAP_NEXTPTR => X"150",
       PF0_ARI_CAP_NEXTPTR => X"000",
       VF0_ARI_CAP_NEXTPTR => X"000",
       VF1_ARI_CAP_NEXTPTR => X"000",
@@ -1073,7 +1073,7 @@ BEGIN
       PF1_RBAR_CAP_SIZE0 => X"00000",
       PF1_RBAR_CAP_SIZE1 => X"00000",
       PF1_RBAR_CAP_SIZE2 => X"00000",
-      PF0_REVISION_ID => X"01",
+      PF0_REVISION_ID => X"02",
       PF0_SRIOV_BAR0_APERTURE_SIZE => X"00",
       PF0_SRIOV_BAR0_CONTROL => X"0",
       PF0_SRIOV_BAR1_APERTURE_SIZE => X"00",
@@ -1279,7 +1279,7 @@ BEGIN
       gen_x0y3_xdc => 0,
       gen_x0y4_xdc => 0,
       gen_x0y5_xdc => 0,
-      xlnx_ref_board => 0,
+      xlnx_ref_board => 1,
       pcie_blk_locn => 0,
       PIPE_SIM => "FALSE",
       AXISTEN_IF_ENABLE_CLIENT_TAG => "FALSE",
@@ -1472,8 +1472,8 @@ BEGIN
       conf_req_data => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 32)),
       conf_req_valid => '0',
       mcap_eos_in => '0',
-      startup_do => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 5)),
-      startup_dts => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 5)),
+      startup_do => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 4)),
+      startup_dts => STD_LOGIC_VECTOR(TO_UNSIGNED(0, 4)),
       startup_fcsbo => '0',
       startup_fcsbts => '0',
       startup_gsr => '0',
